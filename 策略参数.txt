@@ -1,0 +1,108 @@
+# ================================================
+# 北交所新股上市首日估值框架 — 策略参数
+# ================================================
+# 当前版本为无 Wind 优先主干，Wind 默认关闭。
+
+# === 数据源配置 ===
+wind_channel = disabled            # disabled / auto / api_only / excel_only
+stock_industry = auto              # auto 或手动填写：信息技术 / 半导体制造
+
+# === 可比公司配置 ===
+comparable_companies =             # 示例：300829.SZ,603186.SH
+
+# === 老股转让 ===
+old_shares_transfer = auto         # auto / 具体数字(万股) / 0
+
+# === 估值方法一参数 ===
+bse_discount_factor = 0.75
+pe_method = ttm
+comparable_pe_stat = median
+
+# === 估值方法二参数 ===
+recent_months = 3
+min_industry_samples = 2
+float_size_threshold = 2000
+small_cap_premium = 0.10
+pe_low_threshold = 0.30
+pe_discount_boost = 0.10
+pe_high_threshold = 0.60
+pe_premium_drag = -0.10
+trend_strong_boost = 0.05
+trend_weak_discount = -0.05
+trend_score_stocks = 5
+trend_strong_threshold = 70
+trend_weak_threshold = 40
+industry_trend_weight = 0.60
+market_sentiment_weight = 0.40
+sample_weight_mode = time_decay
+sample_decay_half_life_days = 20
+
+# === WSI 五维默认权重（先按已验证口径落地） ===
+wsi_weight_close_vwap = 0.30
+wsi_weight_price_retention = 0.25
+wsi_weight_high_timing = 0.20
+wsi_weight_closing_momentum = 0.15
+wsi_weight_volume_rhythm = 0.10
+wsi_weight_turnover = 0.00
+
+# === 综合定价参数 ===
+weight_comparable = 0.50
+weight_industry_momentum = 0.50
+price_range_width = 0.15
+
+[industry_mapping]
+# --- 信息技术 ---
+半导体 = 信息技术 / 半导体制造
+消费电子 = 信息技术 / 电子
+计算机设备 = 信息技术 / 电子
+软件开发 = 信息技术 / 技术服务
+通信设备 = 信息技术 / 通信
+IT服务 = 信息技术 / 技术服务
+光学光电子 = 信息技术 / 电子
+电子元件 = 信息技术 / 电子
+
+# --- 化工新材 ---
+电子化学品 = 化工新材 / 化学制品
+基础化学 = 化工新材 / 化学制品
+化学制品 = 化工新材 / 化学制品
+化学原料 = 化工新材 / 化学制品
+新材料 = 化工新材 / 非金属材料
+复合材料 = 化工新材 / 非金属材料
+塑料 = 化工新材 / 橡胶和塑料制品业
+橡胶 = 化工新材 / 橡胶和塑料制品业
+建筑材料 = 化工新材 / 非金属材料
+钢铁 = 化工新材 / 金属新材料
+有色金属 = 化工新材 / 金属新材料
+纺织制造 = 化工新材 / 纺织制造
+电池材料 = 化工新材 / 电池材料
+
+# --- 高端装备 ---
+通用设备 = 高端装备 / 机械设备
+专用设备 = 高端装备 / 机械设备
+电气设备 = 高端装备 / 电力设备
+自动化设备 = 高端装备 / 机械设备
+仪器仪表 = 高端装备 / 仪器仪表制造业
+汽车零部件 = 高端装备 / 汽车零部件
+航空装备 = 高端装备 / 国防军工
+军工电子 = 高端装备 / 国防军工
+环保设备 = 高端装备 / 机械设备
+电池 = 高端装备 / 电池
+光伏设备 = 高端装备 / 电力设备
+风电设备 = 高端装备 / 电力设备
+金属制品 = 高端装备 / 金属制品业
+
+# --- 医药生物 ---
+医疗器械 = 医药生物 / 医疗器械
+化学制药 = 医药生物 / 生物制品
+中药 = 医药生物 / 中药
+生物制品 = 医药生物 / 生物制品
+医疗服务 = 医药生物 / 医疗器械
+
+# --- 消费服务 ---
+食品加工 = 消费服务 / 食品饮料
+饮料制造 = 消费服务 / 食品饮料
+家用电器 = 消费服务 / 消费电子
+纺织服装 = 消费服务 / 纺织服装
+轻工制造 = 消费服务 / 轻工制造
+农林牧渔 = 消费服务 / 农林牧渔
+商贸零售 = 消费服务 / 商贸零售
