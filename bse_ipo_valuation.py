@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from dataclasses import asdict
+import re
 import sys
 from datetime import date
 from pathlib import Path
@@ -14,6 +16,9 @@ import wind_helper
 from industry_mapping import IndustryMapper
 
 
+CODE_PATTERN = re.compile(r"^\d{6}$")
+
+
 def _safe_float(value: Any) -> float | None:
     if value in (None, "", "--"):
         return None
@@ -24,9 +29,16 @@ def _safe_float(value: Any) -> float | None:
 
 
 def _find_pdf(directory: Path, code: str, suffix: str) -> Path | None:
+    candidates = _find_pdf_candidates(directory, code, suffix)
+    if candidates:
+        return candidates[0]
+    return None
+
+
+def _find_pdf_candidates(directory: Path, code: str, suffix: str) -> list[Path]:
     candidate = directory / f"{code}_{suffix}.pdf"
     if candidate.exists():
-        return candidate
+        return [candidate]
 
     aliases = {
         "上市公告书": ["上市公告书", "上市公告"],
@@ -35,7 +47,7 @@ def _find_pdf(directory: Path, code: str, suffix: str) -> Path | None:
     keywords = aliases.get(suffix, [suffix])
     other_keywords = [item for key, values in aliases.items() if key != suffix for item in values]
     if not directory.exists():
-        return None
+        return []
 
     pdf_files = sorted(directory.glob("*.pdf"))
     prioritized: list[Path] = []
@@ -49,35 +61,72 @@ def _find_pdf(directory: Path, code: str, suffix: str) -> Path | None:
         elif not any(keyword in stem for keyword in other_keywords):
             fallback.append(file_path)
 
-    if prioritized:
-        return prioritized[0]
-    if fallback:
-        return fallback[0]
-    return None
+    return prioritized + fallback
+
+
+def _pick_prospectus_pdf(directory: Path, code: str, usage: str) -> Path | None:
+    candidates = _find_pdf_candidates(directory, code, "招股说明书摘要")
+    if not candidates:
+        return None
+
+    def rank(file_path: Path) -> tuple[int, int, str]:
+        stem = file_path.stem
+        is_summary = "摘要" in stem
+        if usage == "business":
+            return (0 if is_summary else 1, 0 if "招股说明书" in stem else 1, stem)
+        return (0 if not is_summary else 1, 0 if "招股说明书" in stem else 1, stem)
+
+    return sorted(candidates, key=rank)[0]
 
 
 def _resolve_old_shares(
     params: dict[str, Any],
     listing_pdf: Path | None,
     prospectus_pdf: Path | None = None,
-) -> tuple[float, str]:
+) -> tuple[float, str, dict[str, Any] | None]:
     raw_value = params.get("old_shares_transfer", "auto")
     if raw_value == "auto":
-        extracted = None
-        extracted_from = ""
+        extracted_result = None
+        selected_label = None
         for file_path, label in ((listing_pdf, "上市公告书"), (prospectus_pdf, "招股文件")):
             if not file_path:
                 continue
-            extracted = pdf_parser.extract_old_shares(file_path)
-            if extracted is not None:
-                extracted_from = label
+            extracted_result = pdf_parser.extract_old_shares_result(file_path)
+            if extracted_result is not None:
+                selected_label = label
                 break
-        if extracted is None:
-            return 0.0, "待确认（当前按 0 万股计）"
-        return extracted, f"{extracted:.2f} 万股（PDF 提取：{extracted_from}）"
+        if extracted_result is None:
+            return 0.0, "待确认（当前按 0 万股计）", None
+        extraction_meta = asdict(extracted_result)
+        extraction_meta.update(
+            {
+                "listing_pdf_found": listing_pdf is not None,
+                "prospectus_pdf_found": prospectus_pdf is not None,
+                "selected_source_label": selected_label or extracted_result.source_file_type,
+                "fallback_used": bool(selected_label == "招股文件" and listing_pdf is not None),
+            }
+        )
+        return (
+            extracted_result.value_wan_shares,
+            f"{extracted_result.value_wan_shares:.2f} 万股（PDF 提取：{extracted_result.source_file_type}）",
+            extraction_meta,
+        )
 
     numeric = float(raw_value)
-    return numeric, f"{numeric:.2f} 万股（参数指定）"
+    return numeric, f"{numeric:.2f} 万股（参数指定）", {
+        "value_wan_shares": numeric,
+        "source_file_type": "参数指定",
+        "source_rule": "manual",
+        "source_anchor": "old_shares_transfer",
+        "raw_snippet": "",
+        "confidence": 1.0,
+        "unit": "万股",
+        "pre_unrestricted_wan_shares": numeric,
+        "listing_pdf_found": listing_pdf is not None,
+        "prospectus_pdf_found": prospectus_pdf is not None,
+        "selected_source_label": "参数指定",
+        "fallback_used": False,
+    }
 
 
 def _load_comparable_codes(params: dict[str, Any], prospectus_pdf: Path | None) -> list[str]:
@@ -104,20 +153,51 @@ def run(code: str) -> str:
 
     pdf_dir = Path("公告文件")
     listing_pdf = _find_pdf(pdf_dir, code, "上市公告书")
-    prospectus_pdf = _find_pdf(pdf_dir, code, "招股说明书摘要")
+    old_shares_fallback_pdf = _pick_prospectus_pdf(pdf_dir, code, "old_shares")
+    comparable_pdf = _pick_prospectus_pdf(pdf_dir, code, "comparables")
+    business_pdf = _pick_prospectus_pdf(pdf_dir, code, "business")
 
-    old_shares, old_shares_desc = _resolve_old_shares(params, listing_pdf, prospectus_pdf)
+    old_shares, old_shares_desc, old_shares_meta = _resolve_old_shares(params, listing_pdf, old_shares_fallback_pdf)
     total_issue_num = _safe_float(ipo_info.get("TOTAL_ISSUE_NUM")) or 0.0
     float_shares = total_issue_num + old_shares
 
-    comparable_codes = _load_comparable_codes(params, prospectus_pdf)
+    comparable_codes = _load_comparable_codes(params, comparable_pdf)
     comparable_data = []
-    if comparable_codes and params.get("wind_channel", "disabled") != "disabled":
-        comparable_data = wind_helper.get_comparable_valuations(comparable_codes, str(params.get("wind_channel")))
+    wind_summary = {
+        "channel": str(params.get("wind_channel", "disabled")),
+        "requested_codes": list(comparable_codes),
+        "returned_codes": [],
+        "fixed_cache_hits": [],
+        "variable_cache_hits": [],
+        "api_fetched_fixed": [],
+        "api_fetched_variable": [],
+        "stale_variable_used": [],
+        "skipped_due_quota": [],
+        "api_calls": 0,
+        "quota_limit": int(params.get("wind_daily_request_quota", 20)),
+        "quota_used_today": 0,
+        "quota_remaining": int(params.get("wind_daily_request_quota", 20)),
+        "local_computed_codes": [],
+        "eastmoney_api_calls": 0,
+        "eastmoney_fetched": [],
+        "eastmoney_cache_hits": [],
+        "eastmoney_fallback_used": [],
+        "cross_validated_codes": [],
+        "cross_validation_warnings": [],
+        "reason": "",
+    }
+    if comparable_codes:
+        wind_result = wind_helper.get_comparable_valuations(
+            comparable_codes,
+            str(params.get("wind_channel")),
+            params,
+        )
+        comparable_data = wind_result.get("items") or []
+        wind_summary = wind_result.get("summary") or wind_summary
 
     company_description = (
-        pdf_parser.extract_business_desc(prospectus_pdf)
-        if prospectus_pdf
+        pdf_parser.extract_business_desc(business_pdf)
+        if business_pdf
         else str(ipo_info.get("MAIN_BUSINESS", "") or "")
     )
     if not company_description:
@@ -156,7 +236,9 @@ def run(code: str) -> str:
             "method1": method1,
             "method2": method2,
             "old_shares_desc": old_shares_desc,
+            "old_shares_meta": old_shares_meta,
             "comparable_codes": comparable_codes,
+            "wind_summary": wind_summary,
         },
         params,
     )
@@ -173,9 +255,11 @@ def run(code: str) -> str:
         },
         "float_shares": float_shares,
         "old_shares_desc": old_shares_desc,
+        "old_shares_meta": old_shares_meta,
         "company_description": company_description,
         "comparable_codes": comparable_codes,
         "comparable_data": comparable_data,
+        "wind_summary": wind_summary,
         "recent_ipos": recent_ipos,
         "method1": method1,
         "method2": method2,
@@ -189,13 +273,37 @@ def run(code: str) -> str:
     return report_generator.generate_report(payload, "输出")
 
 
+def _prompt_code_interactively() -> str | None:
+    while True:
+        code = input("请输入 6 位新股代码（例如 920177，直接回车可退出）：").strip()
+        if not code:
+            print("已取消，本次未生成报告。")
+            return None
+        if CODE_PATTERN.fullmatch(code):
+            return code
+        print("输入有误，请输入 6 位数字代码。")
+
+
+def _normalize_code(code: str) -> str:
+    cleaned = str(code or "").strip()
+    if not CODE_PATTERN.fullmatch(cleaned):
+        raise ValueError("请输入 6 位数字代码，例如 920177。")
+    return cleaned
+
+
 def main() -> int:
-    code = sys.argv[1].strip() if len(sys.argv) > 1 else input("请输入新股代码: ").strip()
-    if not code:
-        print("请输入有效的新股代码，例如 920012")
-        return 1
+    interactive = len(sys.argv) <= 1
+    if interactive:
+        code = _prompt_code_interactively()
+        if code is None:
+            return 0
+    else:
+        code = sys.argv[1].strip()
 
     try:
+        code = _normalize_code(code)
+        if interactive:
+            print(f"已收到代码 {code}，正在生成报告，请稍候。这一步会读取公告文件并整理估值数据，通常需要几十秒。")
         output_path = run(code)
     except FileNotFoundError as exc:
         print(f"文件缺失：{exc}")
@@ -210,7 +318,11 @@ def main() -> int:
         print(f"运行失败：{exc}")
         return 1
 
-    print(f"报告已生成：{output_path}")
+    report_path = Path(output_path).resolve()
+    print(f"报告已生成：{report_path}")
+    print(f"报告所在目录：{report_path.parent}")
+    if interactive:
+        print("可直接打开上面的完整路径，或到“输出”文件夹中查看生成的 PDF 报告。")
     return 0
 
 

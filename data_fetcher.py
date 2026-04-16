@@ -10,6 +10,9 @@ from typing import Any
 
 
 BASE_URL = "https://datacenter-web.eastmoney.com/api/data/v1/get"
+EASTMONEY_QUOTE_URL = "https://push2.eastmoney.com/api/qt/stock/get"
+EASTMONEY_QUOTE_FIELDS = "f57,f58,f43,f108,f116,f117,f162,f163,f164,f167,f277"
+EASTMONEY_UT = "fa5fd1943c7b386f172d6893dbfba10b"
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
     "Referer": "https://data.eastmoney.com/",
@@ -111,6 +114,95 @@ def _request_data(params: dict[str, Any]) -> list[dict[str, Any]]:
     if not isinstance(data, list):
         raise DataFetcherError("东方财富返回结构异常，未找到 result.data")
     return [_normalize_record(item) for item in data]
+
+
+def _request_json(url: str, params: dict[str, Any]) -> dict[str, Any]:
+    request_url = f"{url}?{urllib.parse.urlencode(params, quote_via=urllib.parse.quote)}"
+    request = urllib.request.Request(request_url, headers=HEADERS)
+    try:
+        with urllib.request.urlopen(request, timeout=20) as response:
+            payload = json.loads(response.read().decode("utf-8"))
+    except urllib.error.URLError as exc:
+        raise DataFetcherError(f"东方财富请求失败: {exc.reason}") from exc
+    except json.JSONDecodeError as exc:
+        raise DataFetcherError("东方财富返回内容无法解析为 JSON") from exc
+
+    if not isinstance(payload, dict):
+        raise DataFetcherError("东方财富返回结构异常，未找到 JSON 对象")
+    return payload
+
+
+def build_eastmoney_secid(code: str) -> str:
+    normalized = str(code).strip().upper()
+    if "." in normalized:
+        base_code, market = normalized.split(".", 1)
+    else:
+        base_code, market = normalized, ""
+
+    if market == "SH" or base_code.startswith(("600", "601", "603", "605", "688")):
+        return f"1.{base_code}"
+    if market in {"SZ", "BJ", "NQ"} or base_code.startswith(("000", "001", "002", "003", "300", "301", "920", "830", "831", "832", "833", "834", "835", "836", "837", "838")):
+        return f"0.{base_code}"
+    raise DataFetcherError(f"无法识别证券代码市场: {code}")
+
+
+def fetch_equity_snapshot(code: str) -> dict[str, Any]:
+    normalized_code = str(code).strip().upper()
+    payload = _request_json(
+        EASTMONEY_QUOTE_URL,
+        {
+            "secid": build_eastmoney_secid(normalized_code),
+            "fields": EASTMONEY_QUOTE_FIELDS,
+            "ut": EASTMONEY_UT,
+            "invt": 2,
+            "fltt": 2,
+        },
+    )
+    data = payload.get("data") or {}
+    if not isinstance(data, dict) or not data:
+        raise DataFetcherError(f"东方财富未返回 {normalized_code} 的快照数据")
+
+    close_raw = safe_float(data.get("f43"))
+    eps_ttm_raw = safe_float(data.get("f108"))
+    total_cap_raw = safe_float(data.get("f116"))
+    float_cap_raw = safe_float(data.get("f117"))
+    pe_ttm_direct_raw = safe_float(data.get("f164"))
+    pe_alt_raw = safe_float(data.get("f162"))
+    pb_raw = safe_float(data.get("f167"))
+    total_shares_raw = safe_float(data.get("f277"))
+
+    close_value = None
+    if close_raw is not None:
+        close_value = close_raw / 100 if abs(close_raw) >= 1000 else close_raw
+    pe_ttm_value = pe_ttm_direct_raw
+    if pe_ttm_value is None and close_value is not None and eps_ttm_raw not in (None, 0):
+        pe_ttm_value = close_value / eps_ttm_raw
+
+    return {
+        "code": normalized_code,
+        "name": str(data.get("f58", "") or "").strip() or normalized_code,
+        "close": close_value,
+        "pe_ttm": pe_ttm_value,
+        "eps_ttm": eps_ttm_raw,
+        "pb_lf": pb_raw,
+        "mkt_cap": (total_cap_raw / 100000000) if total_cap_raw is not None else None,
+        "float_mkt_cap": (float_cap_raw / 100000000) if float_cap_raw is not None else None,
+        "total_shares": total_shares_raw,
+        "trade_date": date.today().isoformat(),
+        "price_basis": "quote_last",
+        "source": "eastmoney_api",
+        "raw_fields": {
+            "f43": close_raw,
+            "f108": eps_ttm_raw,
+            "f116": total_cap_raw,
+            "f117": float_cap_raw,
+            "f162": pe_alt_raw,
+            "f163": safe_float(data.get("f163")),
+            "f164": pe_ttm_direct_raw,
+            "f167": pb_raw,
+            "f277": total_shares_raw,
+        },
+    }
 
 
 def fetch_ipo_info(code: str) -> dict[str, Any]:

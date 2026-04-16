@@ -55,6 +55,10 @@ def _parse_old_shares(raw_value: Any) -> str | float:
 
 
 def _validate_params(params: dict[str, Any]) -> None:
+    wind_channel = str(params.get("wind_channel", "disabled")).strip().lower() or "disabled"
+    if wind_channel not in {"disabled", "auto", "api_only", "excel_only"}:
+        raise ValueError("wind_channel 仅支持 disabled / auto / api_only / excel_only")
+
     weight_comparable = float(params.get("weight_comparable", 0.5))
     weight_industry = float(params.get("weight_industry_momentum", 0.5))
     if abs((weight_comparable + weight_industry) - 1.0) > 1e-6:
@@ -85,6 +89,20 @@ def _validate_params(params: dict[str, Any]) -> None:
 
     if float(params.get("sample_decay_half_life_days", 20)) <= 0:
         raise ValueError("sample_decay_half_life_days 必须大于 0")
+    if int(params.get("wind_daily_request_quota", 20)) < 0:
+        raise ValueError("wind_daily_request_quota 不能小于 0")
+    if int(params.get("wind_batch_size", 20)) <= 0:
+        raise ValueError("wind_batch_size 必须大于 0")
+    if float(params.get("wind_static_ttl_days", 3650)) <= 0:
+        raise ValueError("wind_static_ttl_days 必须大于 0")
+    if float(params.get("wind_dynamic_ttl_hours", 24)) <= 0:
+        raise ValueError("wind_dynamic_ttl_hours 必须大于 0")
+    if float(params.get("wind_request_pause_seconds", 0.2)) < 0:
+        raise ValueError("wind_request_pause_seconds 不能小于 0")
+    if int(params.get("eastmoney_backup_enabled", 1)) not in {0, 1}:
+        raise ValueError("eastmoney_backup_enabled 仅支持 0 或 1")
+    if int(params.get("eastmoney_validation_enabled", 1)) not in {0, 1}:
+        raise ValueError("eastmoney_validation_enabled 仅支持 0 或 1")
 
 
 def load_params(filepath: str | Path = "策略参数.txt") -> dict[str, Any]:
@@ -120,6 +138,7 @@ def load_params(filepath: str | Path = "策略参数.txt") -> dict[str, Any]:
     params["comparable_companies"] = _parse_list(params.get("comparable_companies", ""))
     params["old_shares_transfer"] = _parse_old_shares(params.get("old_shares_transfer", "auto"))
     params["wind_channel"] = str(params.get("wind_channel", "disabled")).strip().lower() or "disabled"
+    params["wind_cache_root"] = str(params.get("wind_cache_root", "data/wind_db")).strip() or "data/wind_db"
     params["stock_industry"] = str(params.get("stock_industry", "auto")).strip() or "auto"
 
     _validate_params(params)

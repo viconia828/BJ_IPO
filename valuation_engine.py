@@ -324,7 +324,9 @@ def generate_notes(data_dict: dict[str, Any], params: dict[str, Any]) -> list[st
     industry = data_dict.get("industry", {})
     method1 = data_dict.get("method1", {})
     method2 = data_dict.get("method2", {})
+    old_shares_meta = data_dict.get("old_shares_meta", {}) or {}
     comparable_codes = data_dict.get("comparable_codes", []) or []
+    wind_summary = data_dict.get("wind_summary", {}) or {}
 
     if industry.get("primary") == "未分类":
         notes.append("当前标的尚未完成行业映射，方法二已自动退回全市场样本。建议在 `策略参数.txt` 中填写 `stock_industry`。")
@@ -340,9 +342,66 @@ def generate_notes(data_dict: dict[str, Any], params: dict[str, Any]) -> list[st
         notes.append("首日流通盘偏小，历史上这类新股更容易获得情绪溢价。")
 
     if not method1.get("available"):
-        notes.append("当前版本未启用 Wind 可比公司估值，方法一已跳过，综合估值默认以方法二为主。")
+        if str(wind_summary.get("channel", "disabled")).strip().lower() == "disabled":
+            notes.append("当前处于 Wind 禁用模式，但方法一仍会优先尝试使用东方财富可比快照；本次未形成有效可比公司 PE，综合估值默认以方法二为主。")
+        else:
+            notes.append("当前未获取到有效 Wind 可比公司快照，方法一已跳过，综合估值默认以方法二为主。")
         if comparable_codes:
-            notes.append(f"已从公告文件提取到可比公司代码：{', '.join(comparable_codes)}。待开启 Wind 后可直接用于方法一。")
+            notes.append(f"已从公告文件提取到可比公司代码：{', '.join(comparable_codes)}。")
+    elif str(wind_summary.get("channel", "disabled")).strip().lower() == "disabled":
+        notes.append(
+            f"方法一当前直接使用东方财富可比快照，共纳入 {len(wind_summary.get('returned_codes', []))} 只可比公司。"
+        )
+    elif wind_summary.get("api_calls"):
+        notes.append(
+            f"Wind 本次实际请求 {wind_summary.get('api_calls', 0)} 次，"
+            f"其中固定字段新增 {len(wind_summary.get('api_fetched_fixed', []))} 只，"
+            f"可变字段刷新 {len(wind_summary.get('api_fetched_variable', []))} 只。"
+        )
+
+    if comparable_codes and wind_summary.get("channel") not in {"", "disabled"}:
+        if wind_summary.get("local_computed_codes"):
+            notes.append(
+                "方法一当前优先使用 Wind 原料字段本地计算 PE/市值："
+                + ", ".join(wind_summary.get("local_computed_codes", []))
+                + "。"
+            )
+        if comparable_codes and not wind_summary.get("api_calls") and wind_summary.get("returned_codes"):
+            notes.append("可比公司估值本次优先命中本地 Wind 缓存，未新增 API 请求。")
+        if wind_summary.get("eastmoney_fallback_used"):
+            notes.append(
+                "Wind 不可用或字段缺失时，以下代码使用了东方财富补充数据："
+                + ", ".join(wind_summary.get("eastmoney_fallback_used", []))
+                + "。"
+            )
+        if wind_summary.get("cross_validated_codes"):
+            notes.append(
+                "已完成 Wind / 东方财富交叉验证："
+                + ", ".join(wind_summary.get("cross_validated_codes", []))
+                + "。"
+            )
+        if wind_summary.get("cross_validation_warnings"):
+            notes.append(
+                "跨源口径差异提醒："
+                + "；".join(wind_summary.get("cross_validation_warnings", []))
+                + "。"
+            )
+        if wind_summary.get("stale_variable_used"):
+            notes.append(
+                "Wind quota 或通道限制下，以下可比公司沿用了本地旧快照："
+                + ", ".join(wind_summary.get("stale_variable_used", []))
+                + "。"
+            )
+        if wind_summary.get("skipped_due_quota"):
+            notes.append(
+                "由于 Wind quota 限制，以下代码本次未刷新："
+                + ", ".join(wind_summary.get("skipped_due_quota", []))
+                + "。"
+            )
+        if wind_summary.get("eastmoney_api_calls"):
+            notes.append(f"东方财富本次补充抓取 {wind_summary.get('eastmoney_api_calls', 0)} 次，用于备选或交叉验证。")
+        if wind_summary.get("reason") and wind_summary.get("reason") != "Wind 当前处于禁用状态。":
+            notes.append(f"Wind 提示：{wind_summary.get('reason')}")
 
     if method2.get("available") and method2.get("sample_scope") == "全市场":
         notes.append("同行业样本数量不足，方法二当前回退为全市场新股统计口径。")
@@ -357,6 +416,10 @@ def generate_notes(data_dict: dict[str, Any], params: dict[str, Any]) -> list[st
 
     old_shares_desc = data_dict.get("old_shares_desc", "")
     if "待确认" in old_shares_desc:
-        notes.append("老股转让数据暂未确认，当前首日流通盘按仅新增发行量估算。")
+        notes.append("首日流通老股数据暂未确认，当前首日流通盘按仅新增发行量估算。")
+    elif old_shares_meta.get("fallback_used"):
+        notes.append("首日流通老股未从上市公告书提取到有效结果，本次已回退到招股文件口径。")
+    elif old_shares_meta.get("source_file_type") == "招股文件" and not old_shares_meta.get("listing_pdf_found", True):
+        notes.append("当前未找到上市公告书，首日流通老股暂按招股文件口径估算。")
 
     return notes

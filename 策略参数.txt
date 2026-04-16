@@ -5,6 +5,14 @@
 
 # === 数据源配置 ===
 wind_channel = disabled            # disabled / auto / api_only / excel_only
+wind_cache_root = data/wind_db    # 本地 Wind 文件数据库根目录
+wind_daily_request_quota = 20     # 当日允许的 Wind API 请求上限
+wind_batch_size = 20              # 单次批量请求代码数
+wind_static_ttl_days = 3650       # 固定字段缓存有效期（天）
+wind_dynamic_ttl_hours = 24       # 可变字段缓存有效期（小时）
+wind_request_pause_seconds = 0.20 # 两次 Wind 请求之间的暂停秒数
+eastmoney_backup_enabled = 1      # Wind 不可用或字段缺失时，允许东方财富补充
+eastmoney_validation_enabled = 1  # Wind 刷新后，补抓东方财富做交叉验证
 stock_industry = auto              # auto 或手动填写：信息技术 / 半导体制造
 
 # === 可比公司配置 ===
@@ -48,7 +56,7 @@ wsi_weight_turnover = 0.00
 # === 综合定价参数 ===
 weight_comparable = 0.50
 weight_industry_momentum = 0.50
-price_range_width = 0.15
+price_range_width = 0.10
 
 [industry_mapping]
 # --- 信息技术 ---
