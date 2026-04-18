@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import Any
 
 
-CSV_DIR = Path(__file__).resolve().parent / "首日分时走势"
+CSV_DIR = Path(__file__).resolve().parents[1] / "首日分时走势"
 
 
 @dataclass(frozen=True)

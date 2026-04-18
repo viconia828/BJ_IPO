@@ -98,14 +98,18 @@ class LocalFileDB:
         payload["events"] = events[-500:]
         _write_json(self.request_log_path(), payload)
 
-    def get_today_api_call_count(self, current_date: date | None = None) -> int:
+    def get_today_api_call_count(
+        self,
+        current_date: date | None = None,
+        source: str | None = "wind",
+    ) -> int:
         today = (current_date or date.today()).isoformat()
         payload = self.load_request_log()
         count = 0
         for event in payload.get("events", []):
             if event.get("event_type") != "api_call":
                 continue
-            if event.get("source", "wind") != "wind":
+            if source is not None and event.get("source", "wind") != source:
                 continue
             timestamp = str(event.get("timestamp", ""))
             if timestamp[:10] == today:

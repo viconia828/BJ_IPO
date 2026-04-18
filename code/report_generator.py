@@ -1,9 +1,12 @@
 from __future__ import annotations
 
 import html
+import report_source_helper
+import shutil
 import statistics
 import subprocess
-import tempfile
+import time
+import uuid
 from datetime import datetime
 from pathlib import Path
 from typing import Any
@@ -13,6 +16,7 @@ EDGE_CANDIDATES = (
     Path(r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe"),
     Path(r"C:\Program Files\Microsoft\Edge\Application\msedge.exe"),
 )
+DISPLAY_MISSING_TEXT = "未取到数据"
 
 
 def _safe_float(value: Any) -> float | None:
@@ -51,10 +55,29 @@ def _fmt_weight(value: Any, fallback: str = "-") -> str:
 def _compress_text(text: str, limit: int = 180) -> str:
     clean = " ".join((text or "").split())
     if not clean:
-        return "暂无公司简介，可在 `公告文件` 目录补充招股书摘要 PDF 后再生成增强版报告。"
+        return DISPLAY_MISSING_TEXT
     if len(clean) <= limit:
         return clean
     return f"{clean[:limit].rstrip()}..."
+
+
+def _display_text(value: Any, fallback: str = DISPLAY_MISSING_TEXT) -> str:
+    if value in (None, "", "--"):
+        return fallback
+    text = str(value).strip()
+    return text or fallback
+
+
+def _fmt_number_with_unit(
+    value: Any,
+    unit: str,
+    digits: int = 2,
+    fallback: str = DISPLAY_MISSING_TEXT,
+) -> str:
+    number = _safe_float(value)
+    if number is None:
+        return fallback
+    return f"{number:.{digits}f} {unit}"
 
 
 def _fmt_date(value: Any, fallback: str = "-") -> str:
@@ -213,7 +236,8 @@ def _prepare_report_context(all_data: dict[str, Any]) -> dict[str, Any]:
     notes = list(all_data.get("notes") or [])
     recent_ipos = all_data.get("recent_ipos") or []
     comparable_data = all_data.get("comparable_data") or []
-    wind_source_text = _build_wind_source_text(all_data)
+    wind_source_text = report_source_helper.build_comparable_source_text(all_data)
+    ipo_source_text = report_source_helper.build_ipo_source_text(all_data)
 
     comparable_rows, pe_median, pb_median = _build_comparable_items(comparable_data)
     recent_rows = _build_recent_items(recent_ipos)
@@ -222,6 +246,15 @@ def _prepare_report_context(all_data: dict[str, Any]) -> dict[str, Any]:
     issue_price = _safe_float(ipo.get("ISSUE_PRICE"))
     issue_pe = _safe_float(ipo.get("AFTER_ISSUE_PE"))
     industry_pe = _safe_float(ipo.get("INDUSTRY_PE_NEW"))
+    online_va_num = _safe_float(ipo.get("ONLINE_VA_NUM"))
+    price_way_text = _display_text(ipo.get("PRICE_WAY"))
+    top_apply_marketcap_text = _fmt_number_with_unit(ipo.get("TOP_APPLY_MARKETCAP"), "万元")
+    online_va_num_text = (
+        f"{_fmt_number(online_va_num / 10000, 2)} 万户"
+        if online_va_num is not None
+        else DISPLAY_MISSING_TEXT
+    )
+    online_issue_lwr_text = _fmt_pct(ipo.get("ONLINE_ISSUE_LWR"), 4, fallback=DISPLAY_MISSING_TEXT)
     pe_ratio = (issue_pe / industry_pe * 100) if issue_pe and industry_pe else None
     discount = ((1 - issue_pe / industry_pe) * 100) if issue_pe and industry_pe else None
 
@@ -264,14 +297,14 @@ def _prepare_report_context(all_data: dict[str, Any]) -> dict[str, Any]:
         ["发行PE / 行业PE", f"{_fmt_pct(pe_ratio)}（发行折价 {_fmt_pct(discount)}）"],
         ["申购日期", _fmt_date(ipo.get("APPLY_DATE"))],
         ["上市日期", _fmt_date(ipo.get("LISTING_DATE"))],
-        ["定价方式", str(ipo.get("PRICE_WAY", "-"))],
+        ["定价方式", price_way_text],
         ["发行总量", f"{_fmt_number(ipo.get('TOTAL_ISSUE_NUM'))} 万股"],
-        ["顶格打新金额", f"{_fmt_number(ipo.get('TOP_APPLY_MARKETCAP'))} 万元"],
+        ["顶格打新金额", top_apply_marketcap_text],
         ["首日流通盘", f"{_fmt_number(all_data.get('float_shares'))} 万股"],
         ["首日流通老股", str(all_data.get("old_shares_desc", "-"))],
-        ["有效申购户数", f"{_fmt_number(((_safe_float(ipo.get('ONLINE_VA_NUM')) or 0) / 10000), 2)} 万户"],
-        ["中签率", _fmt_pct(ipo.get("ONLINE_ISSUE_LWR"), 4)],
-        ["所属行业", str(industry["display_name"])],
+        ["有效申购户数", online_va_num_text],
+        ["中签率", online_issue_lwr_text],
+        ["所属行业", _display_text(industry.get("display_name"), fallback="-")],
     ]
 
     valuation_rows = [
@@ -292,6 +325,7 @@ def _prepare_report_context(all_data: dict[str, Any]) -> dict[str, Any]:
         "file_timestamp": generated_at.strftime("%Y%m%d_%H%M%S"),
         "title": f"{ipo.get('SECURITY_NAME_ABBR', '未知')}（{ipo.get('SECURITY_CODE', '-')}）北交所新股上市首日估值分析",
         "file_stem": f"{ipo.get('SECURITY_CODE', 'unknown')}_{ipo.get('SECURITY_NAME_ABBR', '未知')}_估值_{generated_at.strftime('%Y%m%d_%H%M%S')}",
+        "ipo_source_text": ipo_source_text,
         "wind_source_text": wind_source_text,
         "basic_rows": basic_rows,
         "company_description": _compress_text(all_data.get("company_description", "")),
@@ -347,7 +381,7 @@ def build_report_markdown(all_data: dict[str, Any]) -> str:
 
     return f"""# {context['title']}
 
-> 分析日期：{context['analysis_date']} | 生成时间：{context['generated_at_text']} | 数据来源：东方财富，PDF（可选），{context['wind_source_text']}
+> 分析日期：{context['analysis_date']} | 生成时间：{context['generated_at_text']} | 数据来源：{context['ipo_source_text']}，PDF（可选），{context['wind_source_text']}
 
 ---
 
@@ -506,7 +540,7 @@ def _build_report_html(context: dict[str, Any]) -> str:
 </head>
 <body>
   <h1>{html.escape(context['title'])}</h1>
-  <p class="meta">分析日期：{html.escape(context['analysis_date'])} | 生成时间：{html.escape(context['generated_at_text'])} | 数据来源：东方财富，PDF（可选），{html.escape(context['wind_source_text'])}</p>
+<p class="meta">分析日期：{html.escape(context['analysis_date'])} | 生成时间：{html.escape(context['generated_at_text'])} | 数据来源：{html.escape(context['ipo_source_text'])}，PDF（可选），{html.escape(context['wind_source_text'])}</p>
 
   <h2>一、新股基本信息</h2>
   <table>
@@ -567,7 +601,9 @@ def _render_pdf_from_html(html_text: str, pdf_path: Path) -> None:
     pdf_path = pdf_path.resolve()
     pdf_path.parent.mkdir(parents=True, exist_ok=True)
 
-    with tempfile.TemporaryDirectory(prefix="_report_pdf_", dir=str(pdf_path.parent)) as temp_dir:
+    temp_dir = pdf_path.parent / f"_report_pdf_{uuid.uuid4().hex[:8]}"
+    temp_dir.mkdir(parents=True, exist_ok=True)
+    try:
         temp_root = Path(temp_dir)
         html_path = temp_root / "report.html"
         user_data_dir = temp_root / "edge_profile"
@@ -593,6 +629,16 @@ def _render_pdf_from_html(html_text: str, pdf_path: Path) -> None:
                 f"PDF 导出失败。已保留 HTML 调试文件：{debug_html_path}。"
                 + (f" Edge 输出：{error_text}" if error_text else "")
             )
+    finally:
+        # Edge 偶尔会在退出后短暂占用 profile/cache 文件，清理失败不应让整次报告生成报错。
+        for _ in range(3):
+            try:
+                shutil.rmtree(temp_root)
+                break
+            except PermissionError:
+                time.sleep(0.5)
+            except FileNotFoundError:
+                break
 
 
 def generate_report(all_data: dict[str, Any], output_dir: str) -> str:

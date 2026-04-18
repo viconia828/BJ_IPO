@@ -1,116 +1,159 @@
 # ================================================
-# 北交所新股上市首日估值框架 — 策略参数
+# 北交所新股上市首日估值框架 - 策略参数
 # ================================================
-# 当前版本为无 Wind 优先主干，Wind 默认关闭。
 
-# === 数据源配置 ===
-wind_channel = disabled            # disabled / auto / api_only / excel_only
-wind_cache_root = data/wind_db    # 本地 Wind 文件数据库根目录
-wind_daily_request_quota = 20     # 当日允许的 Wind API 请求上限
-wind_batch_size = 20              # 单次批量请求代码数
-wind_static_ttl_days = 3650       # 固定字段缓存有效期（天）
-wind_dynamic_ttl_hours = 24       # 可变字段缓存有效期（小时）
-wind_request_pause_seconds = 0.20 # 两次 Wind 请求之间的暂停秒数
-eastmoney_backup_enabled = 1      # Wind 不可用或字段缺失时，允许东方财富补充
-eastmoney_validation_enabled = 1  # Wind 刷新后，补抓东方财富做交叉验证
-stock_industry = auto              # auto 或手动填写：信息技术 / 半导体制造
+# === 数据源与缓存（已内置到代码，不在此文件中开放）===
+# 当前固定口径：
+# - 方法一可比快照：Tushare 优先
+# - IPO 信息与近期样本：Tushare 优先
+# - Wind 通道：默认 disabled
+# - 缓存目录与请求节流：由代码统一维护
 
-# === 可比公司配置 ===
-comparable_companies =             # 示例：300829.SZ,603186.SH
+# === 调参建议 ===
+# - 用户最常调：优先调整，对结果影响最直接
+# - 偶尔调：在样本口径、行业特征或训练结论明确时再动
+# - 基本别动：通常保持默认，除非你明确知道自己在改什么
 
-# === 老股转让 ===
-old_shares_transfer = auto         # auto / 具体数字(万股) / 0
+# === 用户最常调：目标股与综合结果 ===
+stock_industry = auto                 # 若自动映射失败，可手动填写：信息技术 / 半导体制造
+comparable_companies =                # 手动指定可比公司代码，逗号分隔；留空则自动从公告提取
+old_shares_transfer = auto            # 首日流通老股数量：auto=自动从 PDF 提取；也可直接填万股数或 0
+recent_months = 3                     # 方法二回看最近多少个月的历史新股样本
+bse_discount_factor = 0.75            # 北交所相对可比公司估值折价系数
+weight_comparable = 0.50              # 方法一在综合估值中的权重
+weight_industry_momentum = 0.50       # 方法二在综合估值中的权重
+price_range_width = 0.12              # 最终估值区间宽度（±）
 
-# === 估值方法一参数 ===
-bse_discount_factor = 0.75
-pe_method = ttm
-comparable_pe_stat = median
+# === 偶尔调：方法二核心阈值 ===
+min_industry_samples = 2              # 维持行业口径所需的最少样本数；不足则回退更宽口径
+float_size_threshold = 1500           # 首日流通盘阈值（万股）；低于该值视为小盘
+small_cap_premium = 0.15              # 小盘样本给予的额外溢价系数
+pe_low_threshold = 0.30               # 发行 PE / 行业 PE 低估阈值
+pe_discount_boost = 0.10              # 低估阈值命中后的上调幅度
+pe_high_threshold = 0.60              # 发行 PE / 行业 PE 高估阈值
+pe_premium_drag = -0.10               # 高估阈值命中后的下调幅度
+sample_weight_mode = time_decay       # 历史样本加权方式：static / time_decay
+sample_decay_half_life_days = 20      # 时间衰减半衰期（天）
+industry_trend_weight = 0.60          # 行业走势因子权重
+market_sentiment_weight = 0.40        # 全市场情绪因子权重
 
-# === 估值方法二参数 ===
-recent_months = 3
-min_industry_samples = 2
-float_size_threshold = 2000
-small_cap_premium = 0.10
-pe_low_threshold = 0.30
-pe_discount_boost = 0.10
-pe_high_threshold = 0.60
-pe_premium_drag = -0.10
-trend_strong_boost = 0.05
-trend_weak_discount = -0.05
-trend_score_stocks = 5
-trend_strong_threshold = 70
-trend_weak_threshold = 40
-industry_trend_weight = 0.60
-market_sentiment_weight = 0.40
-sample_weight_mode = time_decay
-sample_decay_half_life_days = 20
-
-# === WSI 五维默认权重（先按已验证口径落地） ===
-wsi_weight_close_vwap = 0.30
-wsi_weight_price_retention = 0.25
-wsi_weight_high_timing = 0.20
-wsi_weight_closing_momentum = 0.15
-wsi_weight_volume_rhythm = 0.10
-wsi_weight_turnover = 0.00
-
-# === 综合定价参数 ===
-weight_comparable = 0.50
-weight_industry_momentum = 0.50
-price_range_width = 0.10
+# === 基本别动：方法一口径与走势细项 ===
+pe_method = ttm                       # PE 口径：当前固定使用 TTM
+comparable_pe_stat = median           # 可比公司 PE 聚合方式：median / mean
+trend_strong_boost = 0.05             # 走势评分强势时的额外加成
+trend_weak_discount = -0.05           # 走势评分偏弱时的额外折减
+trend_score_stocks = 5                # 走势评分最多纳入多少只历史样本
+trend_strong_threshold = 70           # 走势评分达到该值后视为强势
+trend_weak_threshold = 40             # 走势评分低于该值后视为偏弱
+# === 基本别动：WSI 评分权重 ===
+wsi_weight_close_vwap = 0.30          # 收盘相对 VWAP 的强弱权重
+wsi_weight_price_retention = 0.25     # 收盘价格保持度权重
+wsi_weight_high_timing = 0.20         # 日内高点出现时机权重
+wsi_weight_closing_momentum = 0.15    # 尾盘动量权重
+wsi_weight_volume_rhythm = 0.10       # 量能节奏权重
+wsi_weight_turnover = 0.00            # 换手特征权重
 
 [industry_mapping]
+# === 行业映射表（按需补充） ===
+# 若自动映射未命中，可在这里追加“原始行业名 = 一级行业 / 二级行业”
+
 # --- 信息技术 ---
 半导体 = 信息技术 / 半导体制造
 消费电子 = 信息技术 / 电子
 计算机设备 = 信息技术 / 电子
 软件开发 = 信息技术 / 技术服务
+软件服务 = 信息技术 / 技术服务
 通信设备 = 信息技术 / 通信
 IT服务 = 信息技术 / 技术服务
+IT设备 = 信息技术 / 电子
 光学光电子 = 信息技术 / 电子
 电子元件 = 信息技术 / 电子
+元器件 = 信息技术 / 电子
+电子化学品 = 化工新材 / 化学制品
+影视音像 = 信息技术 / 技术服务
 
 # --- 化工新材 ---
-电子化学品 = 化工新材 / 化学制品
 基础化学 = 化工新材 / 化学制品
 化学制品 = 化工新材 / 化学制品
 化学原料 = 化工新材 / 化学制品
+化工原料 = 化工新材 / 化学制品
 新材料 = 化工新材 / 非金属材料
 复合材料 = 化工新材 / 非金属材料
 塑料 = 化工新材 / 橡胶和塑料制品业
 橡胶 = 化工新材 / 橡胶和塑料制品业
 建筑材料 = 化工新材 / 非金属材料
+其他建材 = 化工新材 / 非金属材料
+矿物制品 = 化工新材 / 非金属材料
 钢铁 = 化工新材 / 金属新材料
 有色金属 = 化工新材 / 金属新材料
-纺织制造 = 化工新材 / 纺织制造
+小金属 = 化工新材 / 金属新材料
+钢加工 = 化工新材 / 金属新材料
+铅锌 = 化工新材 / 金属新材料
+纺织制造 = 化工新材 / 轻工制造
+化纤 = 化工新材 / 化学制品
 电池材料 = 化工新材 / 电池材料
+农药化肥 = 化工新材 / 化学制品
+日用化工 = 化工新材 / 化学制品
+石油加工 = 化工新材 / 化学制品
+石油开采 = 化工新材 / 化学制品
 
 # --- 高端装备 ---
 通用设备 = 高端装备 / 机械设备
 专用设备 = 高端装备 / 机械设备
+专用机械 = 高端装备 / 机械设备
 电气设备 = 高端装备 / 电力设备
 自动化设备 = 高端装备 / 机械设备
-仪器仪表 = 高端装备 / 仪器仪表制造业
-汽车零部件 = 高端装备 / 汽车零部件
-航空装备 = 高端装备 / 国防军工
-军工电子 = 高端装备 / 国防军工
+工程机械 = 高端装备 / 机械设备
+机床制造 = 高端装备 / 机械设备
+机械基件 = 高端装备 / 机械设备
+化工机械 = 高端装备 / 机械设备
+农用机械 = 高端装备 / 机械设备
+运输设备 = 高端装备 / 机械设备
+环境保护 = 高端装备 / 机械设备
 环保设备 = 高端装备 / 机械设备
+供气供热 = 高端装备 / 电力设备
+仪器仪表 = 高端装备 / 仪器仪表制造业
+电器仪表 = 高端装备 / 仪器仪表制造业
+汽车零部件 = 高端装备 / 汽车零部件
+汽车配件 = 高端装备 / 汽车零部件
+汽车服务 = 高端装备 / 汽车零部件
+摩托车 = 高端装备 / 汽车零部件
+航空装备 = 高端装备 / 国防军工
+航空 = 高端装备 / 国防军工
+军工电子 = 高端装备 / 国防军工
 电池 = 高端装备 / 电池
 光伏设备 = 高端装备 / 电力设备
 风电设备 = 高端装备 / 电力设备
 金属制品 = 高端装备 / 金属制品业
+建筑工程 = 高端装备 / 金属制品业
 
 # --- 医药生物 ---
 医疗器械 = 医药生物 / 医疗器械
+医疗保健 = 医药生物 / 医疗器械
 化学制药 = 医药生物 / 生物制品
 中药 = 医药生物 / 中药
+中成药 = 医药生物 / 中药
 生物制品 = 医药生物 / 生物制品
+生物制药 = 医药生物 / 生物制品
 医疗服务 = 医药生物 / 医疗器械
 
 # --- 消费服务 ---
 食品加工 = 消费服务 / 食品饮料
+食品 = 消费服务 / 食品饮料
 饮料制造 = 消费服务 / 食品饮料
+乳制品 = 消费服务 / 食品饮料
 家用电器 = 消费服务 / 消费电子
+家居用品 = 消费服务 / 轻工制造
 纺织服装 = 消费服务 / 纺织服装
+纺织 = 消费服务 / 纺织服装
 轻工制造 = 消费服务 / 轻工制造
+广告包装 = 消费服务 / 轻工制造
+造纸 = 消费服务 / 轻工制造
 农林牧渔 = 消费服务 / 农林牧渔
+农业综合 = 消费服务 / 农林牧渔
+种植业 = 消费服务 / 农林牧渔
+饲料 = 消费服务 / 农林牧渔
 商贸零售 = 消费服务 / 商贸零售
+仓储物流 = 消费服务 / 商贸零售
+水运 = 消费服务 / 商贸零售
+综合类 = 消费服务 / 商贸零售

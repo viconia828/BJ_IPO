@@ -5,6 +5,16 @@ from typing import Any
 
 
 SECTION_INDUSTRY_MAPPING = "industry_mapping"
+ROOT_DIR = Path(__file__).resolve().parents[1]
+SYSTEM_SOURCE_DEFAULTS: dict[str, Any] = {
+    "comparable_data_source": "tushare",
+    "ipo_data_source": "tushare",
+    "wind_channel": "disabled",
+    "wind_cache_root": "data/wind_db",
+    "tushare_api_url": "https://api.tushare.pro",
+    "tushare_token_env": "TUSHARE_TOKEN",
+    "tushare_cache_root": "data/tushare_db",
+}
 
 
 def _strip_inline_comment(raw_line: str) -> str:
@@ -19,7 +29,20 @@ def _parse_scalar(raw_value: str) -> Any:
         return ""
 
     lowered = value.lower()
-    if lowered in {"auto", "disabled", "api_only", "excel_only", "median", "mean", "ttm", "static", "time_decay"}:
+    if lowered in {
+        "auto",
+        "disabled",
+        "api_only",
+        "excel_only",
+        "median",
+        "mean",
+        "ttm",
+        "static",
+        "time_decay",
+        "wind",
+        "tushare",
+        "eastmoney",
+    }:
         return lowered
 
     try:
@@ -55,7 +78,15 @@ def _parse_old_shares(raw_value: Any) -> str | float:
 
 
 def _validate_params(params: dict[str, Any]) -> None:
-    wind_channel = str(params.get("wind_channel", "disabled")).strip().lower() or "disabled"
+    comparable_data_source = str(params.get("comparable_data_source", SYSTEM_SOURCE_DEFAULTS["comparable_data_source"])).strip().lower() or SYSTEM_SOURCE_DEFAULTS["comparable_data_source"]
+    if comparable_data_source not in {"wind", "tushare"}:
+        raise ValueError("comparable_data_source 仅支持 wind / tushare")
+
+    ipo_data_source = str(params.get("ipo_data_source", SYSTEM_SOURCE_DEFAULTS["ipo_data_source"])).strip().lower() or SYSTEM_SOURCE_DEFAULTS["ipo_data_source"]
+    if ipo_data_source not in {"eastmoney", "tushare"}:
+        raise ValueError("ipo_data_source 仅支持 eastmoney / tushare")
+
+    wind_channel = str(params.get("wind_channel", SYSTEM_SOURCE_DEFAULTS["wind_channel"])).strip().lower() or SYSTEM_SOURCE_DEFAULTS["wind_channel"]
     if wind_channel not in {"disabled", "auto", "api_only", "excel_only"}:
         raise ValueError("wind_channel 仅支持 disabled / auto / api_only / excel_only")
 
@@ -85,7 +116,7 @@ def _validate_params(params: dict[str, Any]) -> None:
 
     sample_weight_mode = str(params.get("sample_weight_mode", "static")).strip().lower() or "static"
     if sample_weight_mode not in {"static", "time_decay"}:
-        raise ValueError("sample_weight_mode 仅支持 static 或 time_decay")
+        raise ValueError("sample_weight_mode 仅支持 static / time_decay")
 
     if float(params.get("sample_decay_half_life_days", 20)) <= 0:
         raise ValueError("sample_decay_half_life_days 必须大于 0")
@@ -99,18 +130,28 @@ def _validate_params(params: dict[str, Any]) -> None:
         raise ValueError("wind_dynamic_ttl_hours 必须大于 0")
     if float(params.get("wind_request_pause_seconds", 0.2)) < 0:
         raise ValueError("wind_request_pause_seconds 不能小于 0")
+    if int(params.get("tushare_daily_request_quota", 200)) < 0:
+        raise ValueError("tushare_daily_request_quota 不能小于 0")
+    if float(params.get("tushare_request_pause_seconds", 0.12)) < 0:
+        raise ValueError("tushare_request_pause_seconds 不能小于 0")
+    if float(params.get("tushare_static_ttl_days", 3650)) <= 0:
+        raise ValueError("tushare_static_ttl_days 必须大于 0")
+    if float(params.get("tushare_dynamic_ttl_hours", 24)) <= 0:
+        raise ValueError("tushare_dynamic_ttl_hours 必须大于 0")
+    if int(params.get("tushare_recent_trade_days", 12)) <= 0:
+        raise ValueError("tushare_recent_trade_days 必须大于 0")
     if int(params.get("eastmoney_backup_enabled", 1)) not in {0, 1}:
-        raise ValueError("eastmoney_backup_enabled 仅支持 0 或 1")
+        raise ValueError("eastmoney_backup_enabled 仅支持 0 / 1")
     if int(params.get("eastmoney_validation_enabled", 1)) not in {0, 1}:
-        raise ValueError("eastmoney_validation_enabled 仅支持 0 或 1")
+        raise ValueError("eastmoney_validation_enabled 仅支持 0 / 1")
 
 
-def load_params(filepath: str | Path = "策略参数.txt") -> dict[str, Any]:
+def load_params(filepath: str | Path = ROOT_DIR / "策略参数.txt") -> dict[str, Any]:
     file_path = Path(filepath)
     if not file_path.exists():
         raise FileNotFoundError(f"参数文件不存在: {file_path}")
 
-    params: dict[str, Any] = {"industry_mapping": {}}
+    params: dict[str, Any] = {"industry_mapping": {}, **SYSTEM_SOURCE_DEFAULTS}
     current_section: str | None = None
 
     with file_path.open("r", encoding="utf-8-sig") as handle:
@@ -133,12 +174,19 @@ def load_params(filepath: str | Path = "策略参数.txt") -> dict[str, Any]:
             if current_section == SECTION_INDUSTRY_MAPPING:
                 params["industry_mapping"][key] = raw_value
             else:
+                if key in SYSTEM_SOURCE_DEFAULTS:
+                    continue
                 params[key] = _parse_scalar(raw_value)
 
     params["comparable_companies"] = _parse_list(params.get("comparable_companies", ""))
     params["old_shares_transfer"] = _parse_old_shares(params.get("old_shares_transfer", "auto"))
-    params["wind_channel"] = str(params.get("wind_channel", "disabled")).strip().lower() or "disabled"
-    params["wind_cache_root"] = str(params.get("wind_cache_root", "data/wind_db")).strip() or "data/wind_db"
+    params["comparable_data_source"] = str(params.get("comparable_data_source", SYSTEM_SOURCE_DEFAULTS["comparable_data_source"])).strip().lower() or SYSTEM_SOURCE_DEFAULTS["comparable_data_source"]
+    params["ipo_data_source"] = str(params.get("ipo_data_source", SYSTEM_SOURCE_DEFAULTS["ipo_data_source"])).strip().lower() or SYSTEM_SOURCE_DEFAULTS["ipo_data_source"]
+    params["wind_channel"] = str(params.get("wind_channel", SYSTEM_SOURCE_DEFAULTS["wind_channel"])).strip().lower() or SYSTEM_SOURCE_DEFAULTS["wind_channel"]
+    params["wind_cache_root"] = str(params.get("wind_cache_root", SYSTEM_SOURCE_DEFAULTS["wind_cache_root"])).strip() or SYSTEM_SOURCE_DEFAULTS["wind_cache_root"]
+    params["tushare_api_url"] = str(params.get("tushare_api_url", SYSTEM_SOURCE_DEFAULTS["tushare_api_url"])).strip() or SYSTEM_SOURCE_DEFAULTS["tushare_api_url"]
+    params["tushare_token_env"] = str(params.get("tushare_token_env", SYSTEM_SOURCE_DEFAULTS["tushare_token_env"])).strip() or SYSTEM_SOURCE_DEFAULTS["tushare_token_env"]
+    params["tushare_cache_root"] = str(params.get("tushare_cache_root", SYSTEM_SOURCE_DEFAULTS["tushare_cache_root"])).strip() or SYSTEM_SOURCE_DEFAULTS["tushare_cache_root"]
     params["stock_industry"] = str(params.get("stock_industry", "auto")).strip() or "auto"
 
     _validate_params(params)

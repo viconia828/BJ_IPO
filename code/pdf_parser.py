@@ -326,9 +326,10 @@ def _iter_page_texts(file_path: Path) -> Iterable[str]:
     try:
         from pypdf import PdfReader  # type: ignore
 
-        reader = PdfReader(str(file_path))
-        for page in reader.pages:
-            yield page.extract_text() or ""
+        with file_path.open("rb") as file_obj:
+            reader = PdfReader(file_obj)
+            for page in reader.pages:
+                yield page.extract_text() or ""
         return
     except Exception:
         pass
@@ -336,9 +337,10 @@ def _iter_page_texts(file_path: Path) -> Iterable[str]:
     try:
         from PyPDF2 import PdfReader  # type: ignore
 
-        reader = PdfReader(str(file_path))
-        for page in reader.pages:
-            yield page.extract_text() or ""
+        with file_path.open("rb") as file_obj:
+            reader = PdfReader(file_obj)
+            for page in reader.pages:
+                yield page.extract_text() or ""
     except Exception:
         return
 
@@ -442,9 +444,10 @@ def _extract_glossary_labeled_comparable_codes(raw_text: str, lookup_text: str) 
 @lru_cache(maxsize=1)
 def _load_local_comparable_name_code_index() -> dict[str, str]:
     index = dict(COMPARABLE_NAME_CODE_FALLBACKS)
-    base_dir = Path(__file__).resolve().parent
+    base_dir = Path(__file__).resolve().parents[1]
     candidate_dirs = (
         base_dir / "data" / "wind_db" / "fixed_fields",
+        base_dir / "data" / "tushare_db" / "fixed_fields",
         base_dir / "data" / "temp_validation",
     )
     for candidate_dir in candidate_dirs:

@@ -8,15 +8,18 @@ from pathlib import Path
 from typing import Any
 
 import config_loader
+import comparable_data_helper
 import data_fetcher
+import ipo_data_helper
+import note_builder
 import pdf_parser
 import report_generator
 import valuation_engine
-import wind_helper
 from industry_mapping import IndustryMapper
 
 
 CODE_PATTERN = re.compile(r"^\d{6}$")
+ROOT_DIR = Path(__file__).resolve().parents[1]
 
 
 def _safe_float(value: Any) -> float | None:
@@ -79,6 +82,21 @@ def _pick_prospectus_pdf(directory: Path, code: str, usage: str) -> Path | None:
     return sorted(candidates, key=rank)[0]
 
 
+def _build_old_shares_pending_reason(
+    listing_pdf: Path | None,
+    prospectus_pdf: Path | None,
+) -> str:
+    listing_found = listing_pdf is not None
+    prospectus_found = prospectus_pdf is not None
+    if listing_found and prospectus_found:
+        return "上市公告书与招股文件均未提取到有效老股数据"
+    if listing_found and not prospectus_found:
+        return "上市公告书未提取到有效老股数据，且未找到可用招股文件"
+    if not listing_found and prospectus_found:
+        return "未找到上市公告书，且招股文件未提取到有效老股数据"
+    return "未找到上市公告书，且未找到可用招股文件"
+
+
 def _resolve_old_shares(
     params: dict[str, Any],
     listing_pdf: Path | None,
@@ -96,7 +114,22 @@ def _resolve_old_shares(
                 selected_label = label
                 break
         if extracted_result is None:
-            return 0.0, "待确认（当前按 0 万股计）", None
+            pending_reason = _build_old_shares_pending_reason(listing_pdf, prospectus_pdf)
+            return 0.0, "待确认（当前按 0 万股计）", {
+                "value_wan_shares": None,
+                "source_file_type": "待确认",
+                "source_rule": "pending",
+                "source_anchor": "",
+                "raw_snippet": "",
+                "confidence": 0.0,
+                "unit": "万股",
+                "pre_unrestricted_wan_shares": None,
+                "listing_pdf_found": listing_pdf is not None,
+                "prospectus_pdf_found": prospectus_pdf is not None,
+                "selected_source_label": "",
+                "fallback_used": False,
+                "pending_reason": pending_reason,
+            }
         extraction_meta = asdict(extracted_result)
         extraction_meta.update(
             {
@@ -126,6 +159,7 @@ def _resolve_old_shares(
         "prospectus_pdf_found": prospectus_pdf is not None,
         "selected_source_label": "参数指定",
         "fallback_used": False,
+        "pending_reason": "",
     }
 
 
@@ -145,13 +179,18 @@ def _calc_change_pct(issue_price: float | None, target_price: float | None) -> f
 
 
 def run(code: str) -> str:
-    params = config_loader.load_params("策略参数.txt")
+    ipo_data_bundle: dict[str, Any]
+    ipo_info: dict[str, Any]
+    ipo_data_summary: dict[str, Any]
+    params = config_loader.load_params(ROOT_DIR / "策略参数.txt")
     mapper = IndustryMapper(params)
 
-    ipo_info = data_fetcher.fetch_ipo_info(code)
+    ipo_data_bundle = ipo_data_helper.prepare_ipo_data(code, int(params.get("recent_months", 3)), params)
+    ipo_info = ipo_data_bundle.get("ipo_info") or {}
+    ipo_data_summary = ipo_data_bundle.get("summary") or {}
     industry = mapper.resolve_stock_industry(code, ipo_info)
 
-    pdf_dir = Path("公告文件")
+    pdf_dir = ROOT_DIR / "公告文件"
     listing_pdf = _find_pdf(pdf_dir, code, "上市公告书")
     old_shares_fallback_pdf = _pick_prospectus_pdf(pdf_dir, code, "old_shares")
     comparable_pdf = _pick_prospectus_pdf(pdf_dir, code, "comparables")
@@ -163,7 +202,8 @@ def run(code: str) -> str:
 
     comparable_codes = _load_comparable_codes(params, comparable_pdf)
     comparable_data = []
-    wind_summary = {
+    comparable_summary = {
+        "provider": str(params.get("comparable_data_source", "wind")),
         "channel": str(params.get("wind_channel", "disabled")),
         "requested_codes": list(comparable_codes),
         "returned_codes": [],
@@ -173,6 +213,7 @@ def run(code: str) -> str:
         "api_fetched_variable": [],
         "stale_variable_used": [],
         "skipped_due_quota": [],
+        "skipped_unsupported": [],
         "api_calls": 0,
         "quota_limit": int(params.get("wind_daily_request_quota", 20)),
         "quota_used_today": 0,
@@ -187,13 +228,9 @@ def run(code: str) -> str:
         "reason": "",
     }
     if comparable_codes:
-        wind_result = wind_helper.get_comparable_valuations(
-            comparable_codes,
-            str(params.get("wind_channel")),
-            params,
-        )
-        comparable_data = wind_result.get("items") or []
-        wind_summary = wind_result.get("summary") or wind_summary
+        comparable_result = comparable_data_helper.get_comparable_valuations(comparable_codes, params)
+        comparable_data = comparable_result.get("items") or []
+        comparable_summary = comparable_result.get("summary") or comparable_summary
 
     company_description = (
         pdf_parser.extract_business_desc(business_pdf)
@@ -203,7 +240,7 @@ def run(code: str) -> str:
     if not company_description:
         company_description = str(ipo_info.get("MAIN_BUSINESS", "") or "")
 
-    recent_ipos = mapper.enrich_recent_ipos(data_fetcher.fetch_recent_ipos(int(params.get("recent_months", 3))))
+    recent_ipos = mapper.enrich_recent_ipos(ipo_data_bundle.get("recent_ipos") or [])
     recent_ipos = [item for item in recent_ipos if item.get("SECURITY_CODE") != code]
 
     issue_price = _safe_float(ipo_info.get("ISSUE_PRICE"))
@@ -228,7 +265,7 @@ def run(code: str) -> str:
     range_change_low = _calc_change_pct(issue_price, final.get("range_low"))
     range_change_high = _calc_change_pct(issue_price, final.get("range_high"))
 
-    notes = valuation_engine.generate_notes(
+    notes = note_builder.generate_notes(
         {
             "ipo_info": ipo_info,
             "float_shares": float_shares,
@@ -238,7 +275,9 @@ def run(code: str) -> str:
             "old_shares_desc": old_shares_desc,
             "old_shares_meta": old_shares_meta,
             "comparable_codes": comparable_codes,
-            "wind_summary": wind_summary,
+            "comparable_summary": comparable_summary,
+            "wind_summary": comparable_summary,
+            "ipo_data_summary": ipo_data_summary,
         },
         params,
     )
@@ -259,7 +298,9 @@ def run(code: str) -> str:
         "company_description": company_description,
         "comparable_codes": comparable_codes,
         "comparable_data": comparable_data,
-        "wind_summary": wind_summary,
+        "comparable_summary": comparable_summary,
+        "wind_summary": comparable_summary,
+        "ipo_data_summary": ipo_data_summary,
         "recent_ipos": recent_ipos,
         "method1": method1,
         "method2": method2,
@@ -270,7 +311,7 @@ def run(code: str) -> str:
         "notes": notes,
     }
 
-    return report_generator.generate_report(payload, "输出")
+    return report_generator.generate_report(payload, str(ROOT_DIR / "输出"))
 
 
 def _prompt_code_interactively() -> str | None:
