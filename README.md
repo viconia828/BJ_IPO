@@ -69,6 +69,32 @@
 - `tools/observe_composite_weight_candidate.py`：综合权重观察期复核
 - `tools/observe_trend_balance_candidate.py`：`trend_balance` 观察期复核
 - `tools/observe_quick_method2_core_only.py`：`quick_method2_core_only` 观察期复核
+- `tools/cache_listing_day_intraday.py`：扫描上市首日新股并用 Tushare 分钟线缓存本地 `首日分时走势/*.csv`
+- `tools/add_new_ipo_intraday_cache.py`：按最新上市顺序补齐缺失的新股首日分时缓存
+
+## 首日分时自动缓存
+
+- 当前实现优先复用东方财富新股列表做扫描，默认筛选“上市日期等于今天”的北交所新股
+- 分钟线数据源使用 Tushare：
+  - 今天：先尝试 `rt_min_daily`
+  - 若无权限或未返回分钟线：自动回退到 `stk_mins`
+  - 历史回补：直接使用 `stk_mins`
+- 若 Tushare 分钟线受限，会再尝试东方财富分钟线兜底
+  - 但如果东方财富返回的上市首日分钟串出现 `open = 0`，程序会取消本次缓存，并在执行界面提示“留待下次重试”
+- 写入格式与现有 `trend_scorer.py` 完全一致，缓存后可直接参与 `WSI` 打分和离线调参
+- 独立补缓存入口：双击根目录 [添加新股首日走势.bat](/C:/Users/ai/Desktop/北交所新股估值/添加新股首日走势.bat)
+  - 逻辑为“按最新上市顺序往前扫，遇到本地已有缓存的代码就停止”
+  - 执行过程中会实时提示“正在检查 / 已缓存 / 留待下次重试 / 命中已有缓存并停止”
+  - 该入口使用独立的 `data/tushare_intraday_db` 请求日志，避免被主流程当天的 Tushare 调用次数挤占
+  - 仓库提交约定：新增或更新的 `首日分时走势/*.csv` 需要随本次功能改动一并提交、推送，不单独留在本地
+
+示例：
+
+- `python tools\cache_listing_day_intraday.py`
+- `python tools\cache_listing_day_intraday.py --date 2026-04-20`
+- `python tools\cache_listing_day_intraday.py --codes 920188,920012 --force`
+- `python tools\cache_listing_day_intraday.py --latest-until-cached --months 18`
+- `python tools\add_new_ipo_intraday_cache.py`
 
 ## 当前默认参数状态
 

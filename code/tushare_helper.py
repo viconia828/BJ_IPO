@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import csv
 import json
 import math
 import os
@@ -16,6 +17,7 @@ from local_file_db import LocalFileDB
 
 DEFAULT_API_URL = "https://api.tushare.pro"
 DEFAULT_CACHE_ROOT = Path("data") / "tushare_db"
+DEFAULT_INTRADAY_DIR = Path(__file__).resolve().parents[1] / "首日分时走势"
 SUPPORTED_TUSHARE_SUFFIXES = {"SH", "SZ", "BJ"}
 
 
@@ -94,6 +96,87 @@ def _safe_float(raw_value: Any) -> float | None:
     return value
 
 
+def _base_code(code: str) -> str:
+    normalized_code = _normalize_code(code)
+    if "." in normalized_code:
+        return normalized_code.split(".", 1)[0]
+    return normalized_code
+
+
+def _to_ts_code(code: str) -> str:
+    normalized_code = _normalize_code(code)
+    if "." in normalized_code:
+        return normalized_code
+    if normalized_code.startswith("920"):
+        return f"{normalized_code}.BJ"
+    if normalized_code.startswith(("600", "601", "603", "605", "688")):
+        return f"{normalized_code}.SH"
+    if normalized_code.startswith(("000", "001", "002", "003", "300", "301")):
+        return f"{normalized_code}.SZ"
+    return normalized_code
+
+
+def _normalize_trade_date(raw_value: Any) -> str:
+    if isinstance(raw_value, date):
+        return raw_value.isoformat()
+    text = str(raw_value or "").strip()
+    if not text:
+        return ""
+    text = text.split(" ", 1)[0].replace("/", "-")
+    if len(text) == 8 and text.isdigit():
+        return f"{text[:4]}-{text[4:6]}-{text[6:8]}"
+    try:
+        return date.fromisoformat(text).isoformat()
+    except ValueError:
+        return ""
+
+
+def _format_intraday_datetime(raw_value: Any) -> str:
+    text = str(raw_value or "").strip()
+    if not text:
+        return ""
+    text = text.replace("T", " ").replace("-", "/")
+    if len(text) >= 16:
+        return text[:16]
+    return text
+
+
+def _normalize_intraday_rows(rows: list[dict[str, Any]], trade_date: str) -> list[dict[str, Any]]:
+    normalized_rows: list[dict[str, Any]] = []
+    trade_date_prefix = trade_date.replace("-", "/")
+
+    for row in rows:
+        dt = _format_intraday_datetime(row.get("trade_time") or row.get("time"))
+        open_price = _safe_float(row.get("open"))
+        high_price = _safe_float(row.get("high"))
+        low_price = _safe_float(row.get("low"))
+        close_price = _safe_float(row.get("close"))
+        volume = _safe_float(row.get("vol"))
+        if volume is None:
+            volume = _safe_float(row.get("volume"))
+        amount = _safe_float(row.get("amount"))
+
+        if not dt or not dt.startswith(trade_date_prefix):
+            continue
+        if None in {open_price, high_price, low_price, close_price}:
+            continue
+
+        normalized_rows.append(
+            {
+                "DateTime": dt,
+                "open": open_price,
+                "high": high_price,
+                "low": low_price,
+                "close": close_price,
+                "volume": volume if volume is not None else 0.0,
+                "amount": amount if amount is not None else 0.0,
+            }
+        )
+
+    normalized_rows.sort(key=lambda item: str(item.get("DateTime") or ""))
+    return normalized_rows
+
+
 def _positive_or_none(raw_value: Any) -> float | None:
     value = _safe_float(raw_value)
     if value is None or value <= 0:
@@ -141,6 +224,102 @@ def _build_settings(params: dict[str, Any] | None) -> dict[str, Any]:
         "eastmoney_backup_enabled": bool(int(source.get("eastmoney_backup_enabled", 1))),
         "eastmoney_validation_enabled": bool(int(source.get("eastmoney_validation_enabled", 1))),
     }
+
+
+def fetch_intraday_bars(
+    code: str,
+    trade_date: str | date | None = None,
+    params: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    settings = _build_settings(params)
+    db = LocalFileDB(settings["cache_root"])
+    normalized_code = _normalize_code(code)
+    ts_code = _to_ts_code(normalized_code)
+    normalized_trade_date = _normalize_trade_date(trade_date) or date.today().isoformat()
+
+    summary = {
+        "provider": "tushare",
+        "cache_root": str(settings["cache_root"]),
+        "code": _base_code(normalized_code),
+        "ts_code": ts_code,
+        "trade_date": normalized_trade_date,
+        "source_api": "",
+        "api_calls": 0,
+        "rows": 0,
+        "attempted_apis": [],
+        "reason": "",
+    }
+
+    if not settings["token"]:
+        summary["reason"] = f"Tushare token 未配置，请先设置环境变量 {settings['token_env']}。"
+        return {"rows": [], "summary": summary}
+
+    if not _supports_tushare_code(ts_code):
+        summary["reason"] = f"{code} 不是当前支持的 Tushare 股票代码。"
+        return {"rows": [], "summary": summary}
+
+    requests: list[tuple[str, dict[str, Any], str]] = []
+    if normalized_trade_date == date.today().isoformat():
+        requests.append(
+            (
+                "rt_min_daily",
+                {
+                    "ts_code": ts_code,
+                    "freq": "1MIN",
+                    "date_str": normalized_trade_date,
+                },
+                "code,freq,time,open,close,high,low,vol,amount",
+            )
+        )
+    requests.append(
+        (
+            "stk_mins",
+            {
+                "ts_code": ts_code,
+                "freq": "1min",
+                "start_date": f"{normalized_trade_date} 09:30:00",
+                "end_date": f"{normalized_trade_date} 15:00:00",
+            },
+            "ts_code,trade_time,open,close,high,low,vol,amount",
+        )
+    )
+
+    last_reason = ""
+    for api_name, api_params, fields in requests:
+        summary["attempted_apis"].append(api_name)
+        rows, error_message = _call_tushare_api(api_name, api_params, fields, settings, db)
+        summary["api_calls"] += 1
+        summary["source_api"] = api_name
+        if error_message:
+            last_reason = error_message
+            continue
+
+        normalized_rows = _normalize_intraday_rows(rows, normalized_trade_date)
+        summary["rows"] = len(normalized_rows)
+        if normalized_rows:
+            summary["reason"] = ""
+            return {"rows": normalized_rows, "summary": summary}
+        last_reason = f"Tushare 接口 {api_name} 未返回 {normalized_trade_date} 的可用分钟线。"
+
+    summary["reason"] = last_reason or f"Tushare 未返回 {normalized_trade_date} 的可用分钟线。"
+    return {"rows": [], "summary": summary}
+
+
+def write_intraday_csv(
+    code: str,
+    rows: list[dict[str, Any]],
+    output_dir: str | Path | None = None,
+) -> Path:
+    target_dir = Path(output_dir) if output_dir is not None else DEFAULT_INTRADAY_DIR
+    target_dir.mkdir(parents=True, exist_ok=True)
+    target_path = target_dir / f"{_base_code(code)}.csv"
+
+    with target_path.open("w", encoding="utf-8-sig", newline="") as handle:
+        writer = csv.DictWriter(handle, fieldnames=["DateTime", "open", "high", "low", "close", "volume", "amount"])
+        writer.writeheader()
+        writer.writerows(rows)
+
+    return target_path
 
 
 def _build_summary(codes: list[str], settings: dict[str, Any], db: LocalFileDB) -> dict[str, Any]:

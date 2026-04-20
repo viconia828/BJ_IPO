@@ -11,6 +11,7 @@ from typing import Any
 
 BASE_URL = "https://datacenter-web.eastmoney.com/api/data/v1/get"
 EASTMONEY_QUOTE_URL = "https://push2.eastmoney.com/api/qt/stock/get"
+EASTMONEY_TRENDS_URL = "https://push2his.eastmoney.com/api/qt/stock/trends2/get"
 EASTMONEY_QUOTE_FIELDS = "f57,f58,f43,f108,f116,f117,f162,f163,f164,f167,f277"
 EASTMONEY_UT = "fa5fd1943c7b386f172d6893dbfba10b"
 HEADERS = {
@@ -62,6 +63,18 @@ def safe_float(value: Any) -> float | None:
         return float(str(value).replace(",", ""))
     except (TypeError, ValueError):
         return None
+
+
+def _normalize_trade_date(raw_value: Any) -> str:
+    if isinstance(raw_value, date):
+        return raw_value.isoformat()
+    text = str(raw_value or "").strip()
+    if not text:
+        return ""
+    text = text.split(" ", 1)[0].replace("/", "-")
+    if len(text) == 8 and text.isdigit():
+        return f"{text[:4]}-{text[4:6]}-{text[6:8]}"
+    return text
 
 
 def _days_in_month(year: int, month: int) -> int:
@@ -205,6 +218,68 @@ def fetch_equity_snapshot(code: str) -> dict[str, Any]:
     }
 
 
+def fetch_intraday_trends(code: str, trade_date: str | date | None = None) -> list[dict[str, Any]]:
+    normalized_code = str(code).strip().upper()
+    normalized_trade_date = _normalize_trade_date(trade_date) or date.today().isoformat()
+    target_date = date.fromisoformat(normalized_trade_date)
+    day_span = max((date.today() - target_date).days + 1, 1)
+    ndays = min(day_span, 30)
+
+    payload = _request_json(
+        EASTMONEY_TRENDS_URL,
+        {
+            "secid": build_eastmoney_secid(normalized_code),
+            "fields1": "f1,f2,f3,f4,f5,f6,f7,f8",
+            "fields2": "f51,f52,f53,f54,f55,f56,f57,f58",
+            "ut": EASTMONEY_UT,
+            "ndays": ndays,
+            "iscr": 0,
+        },
+    )
+    data = payload.get("data") or {}
+    trends = data.get("trends") or []
+    if not isinstance(trends, list) or not trends:
+        raise DataFetcherError(f"东方财富未返回 {normalized_code} 的分时走势数据")
+
+    rows: list[dict[str, Any]] = []
+    trade_date_prefix = normalized_trade_date.replace("-", "/")
+    for raw_line in trends:
+        parts = str(raw_line or "").split(",")
+        if len(parts) < 7:
+            continue
+        dt = str(parts[0]).strip().replace("-", "/")
+        if not dt.startswith(trade_date_prefix):
+            continue
+        open_price = safe_float(parts[1])
+        close_price = safe_float(parts[2])
+        high_price = safe_float(parts[3])
+        low_price = safe_float(parts[4])
+        volume = safe_float(parts[5])
+        amount = safe_float(parts[6])
+        if open_price is not None and open_price <= 0:
+            raise DataFetcherError(
+                f"东方财富返回的 {normalized_code} 上市首日分钟串存在 open=0，数据不精确，已取消缓存，留待下次执行补缓存程序再取"
+            )
+        if None in {open_price, close_price, high_price, low_price}:
+            continue
+        rows.append(
+            {
+                "DateTime": dt[:16],
+                "open": open_price,
+                "high": high_price,
+                "low": low_price,
+                "close": close_price,
+                "volume": volume if volume is not None else 0.0,
+                "amount": amount if amount is not None else 0.0,
+            }
+        )
+
+    rows.sort(key=lambda item: str(item.get("DateTime") or ""))
+    if not rows:
+        raise DataFetcherError(f"东方财富返回了 {normalized_code} 的分时走势，但未覆盖 {normalized_trade_date}")
+    return rows
+
+
 def fetch_ipo_info(code: str) -> dict[str, Any]:
     params = {
         "reportName": "RPTA_APP_IPOAPPLY",
@@ -221,7 +296,11 @@ def fetch_ipo_info(code: str) -> dict[str, Any]:
     return data[0]
 
 
-def fetch_recent_ipos(months: int = 3, page_size: int = 50) -> list[dict[str, Any]]:
+def fetch_recent_ipos(
+    months: int = 3,
+    page_size: int = 50,
+    require_close_price: bool = True,
+) -> list[dict[str, Any]]:
     cutoff = _subtract_months(date.today(), months).isoformat()
     page_number = 1
     records: list[dict[str, Any]] = []
@@ -243,8 +322,11 @@ def fetch_recent_ipos(months: int = 3, page_size: int = 50) -> list[dict[str, An
             break
 
         for item in page_data:
-            if item.get("LISTING_DATE") and safe_float(item.get("CLOSE_PRICE")) is not None:
-                records.append(item)
+            if not item.get("LISTING_DATE"):
+                continue
+            if require_close_price and safe_float(item.get("CLOSE_PRICE")) is None:
+                continue
+            records.append(item)
 
         if len(page_data) < page_size:
             break
