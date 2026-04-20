@@ -4,14 +4,17 @@ import itertools
 import json
 import math
 from collections import OrderedDict
-from datetime import datetime
+from datetime import date, datetime, timedelta
 from pathlib import Path
 from typing import Any, Callable
 
 import bse_ipo_valuation
 import data_fetcher
+import pdf_parser
+import tushare_helper
 import valuation_engine
 from industry_mapping import IndustryMapper
+from local_file_db import LocalFileDB
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -21,7 +24,10 @@ DEFAULT_OUTPUT_DIR = REPO_ROOT / "输出" / "调参"
 INTRADAY_DIR = REPO_ROOT / "首日分时走势"
 PDF_DIR = REPO_ROOT / "公告文件"
 DATASET_SCHEMA = "offline_tuning_replay_v1"
-EVALUATION_SCOPE = "method2_only"
+METHOD2_ONLY_SCOPE = "method2_only"
+COMPOSITE_EVALUATION_SCOPE = "composite"
+SUPPORTED_EVALUATION_SCOPES = {METHOD2_ONLY_SCOPE, COMPOSITE_EVALUATION_SCOPE}
+EVALUATION_SCOPE = COMPOSITE_EVALUATION_SCOPE
 WSI_WEIGHT_KEYS = [
     "wsi_weight_close_vwap",
     "wsi_weight_price_retention",
@@ -35,7 +41,73 @@ METHOD2_UNSUPPORTED_KEYS = {
     "weight_industry_momentum",
 }
 
+
+def _build_wsi_turnover_candidates() -> list[dict[str, float]]:
+    candidates: list[dict[str, float]] = []
+
+    def add_candidate(
+        close_vwap: float,
+        price_retention: float,
+        high_timing: float,
+        closing_momentum: float,
+        volume_rhythm: float,
+        turnover: float,
+    ) -> None:
+        candidates.append(
+            {
+                "wsi_weight_close_vwap": close_vwap,
+                "wsi_weight_price_retention": price_retention,
+                "wsi_weight_high_timing": high_timing,
+                "wsi_weight_closing_momentum": closing_momentum,
+                "wsi_weight_volume_rhythm": volume_rhythm,
+                "wsi_weight_turnover": turnover,
+            }
+        )
+
+    # Theme 1: let price retention give up weight to turnover.
+    for turnover, price_retention in (
+        (0.05, 0.20),
+        (0.10, 0.15),
+        (0.15, 0.10),
+        (0.20, 0.05),
+    ):
+        add_candidate(0.30, price_retention, 0.20, 0.15, 0.10, turnover)
+
+    # Theme 2: pair turnover with closing momentum first, then volume rhythm.
+    for turnover, closing_momentum, volume_rhythm in (
+        (0.05, 0.10, 0.10),
+        (0.10, 0.05, 0.10),
+        (0.15, 0.00, 0.10),
+        (0.20, 0.00, 0.05),
+    ):
+        add_candidate(0.30, 0.25, 0.20, closing_momentum, volume_rhythm, turnover)
+
+    # Theme 3: jointly pull weight from price retention and closing momentum.
+    for turnover, price_retention, closing_momentum in (
+        (0.05, 0.22, 0.13),
+        (0.10, 0.19, 0.11),
+        (0.15, 0.16, 0.09),
+        (0.20, 0.13, 0.07),
+    ):
+        add_candidate(0.30, price_retention, 0.20, closing_momentum, 0.10, turnover)
+
+    # Theme 4: pull jointly from close-vwap strength and price retention.
+    for turnover, close_vwap, price_retention in (
+        (0.05, 0.28, 0.22),
+        (0.10, 0.26, 0.19),
+        (0.15, 0.24, 0.16),
+        (0.20, 0.22, 0.13),
+    ):
+        add_candidate(close_vwap, price_retention, 0.20, 0.15, 0.10, turnover)
+
+    return candidates
+
 SEARCH_STAGE_GRIDS: dict[str, dict[str, list[Any]]] = {
+    "composite_weights": OrderedDict(
+        [
+            ("weight_comparable", [0.20, 0.30, 0.40, 0.50, 0.60, 0.70, 0.80]),
+        ]
+    ),
     "quick_method2": OrderedDict(
         [
             ("price_range_width", [0.08, 0.10, 0.12]),
@@ -69,56 +141,7 @@ SEARCH_STAGE_CANDIDATES: dict[str, list[dict[str, Any]]] = {
         for half_life in (10, 20, 30)
         for strong_threshold, weak_threshold in ((65, 35), (70, 40), (75, 45))
     ],
-    "wsi_turnover_balance": [
-        {
-            "wsi_weight_close_vwap": 0.29,
-            "wsi_weight_price_retention": 0.24,
-            "wsi_weight_high_timing": 0.19,
-            "wsi_weight_closing_momentum": 0.14,
-            "wsi_weight_volume_rhythm": 0.09,
-            "wsi_weight_turnover": 0.05,
-        },
-        {
-            "wsi_weight_close_vwap": 0.27,
-            "wsi_weight_price_retention": 0.23,
-            "wsi_weight_high_timing": 0.18,
-            "wsi_weight_closing_momentum": 0.13,
-            "wsi_weight_volume_rhythm": 0.09,
-            "wsi_weight_turnover": 0.10,
-        },
-        {
-            "wsi_weight_close_vwap": 0.25,
-            "wsi_weight_price_retention": 0.21,
-            "wsi_weight_high_timing": 0.17,
-            "wsi_weight_closing_momentum": 0.12,
-            "wsi_weight_volume_rhythm": 0.10,
-            "wsi_weight_turnover": 0.15,
-        },
-        {
-            "wsi_weight_close_vwap": 0.30,
-            "wsi_weight_price_retention": 0.25,
-            "wsi_weight_high_timing": 0.15,
-            "wsi_weight_closing_momentum": 0.10,
-            "wsi_weight_volume_rhythm": 0.10,
-            "wsi_weight_turnover": 0.10,
-        },
-        {
-            "wsi_weight_close_vwap": 0.24,
-            "wsi_weight_price_retention": 0.20,
-            "wsi_weight_high_timing": 0.17,
-            "wsi_weight_closing_momentum": 0.17,
-            "wsi_weight_volume_rhythm": 0.12,
-            "wsi_weight_turnover": 0.10,
-        },
-        {
-            "wsi_weight_close_vwap": 0.24,
-            "wsi_weight_price_retention": 0.20,
-            "wsi_weight_high_timing": 0.16,
-            "wsi_weight_closing_momentum": 0.12,
-            "wsi_weight_volume_rhythm": 0.13,
-            "wsi_weight_turnover": 0.15,
-        },
-    ],
+    "wsi_turnover_balance": _build_wsi_turnover_candidates(),
 }
 
 
@@ -140,6 +163,30 @@ def _parse_date_key(value: Any) -> tuple[int, str]:
     if not text:
         return (0, "")
     return (1, text.replace("/", "-"))
+
+
+def _parse_date(value: Any) -> date | None:
+    text = str(value or "").strip().split(" ", 1)[0].replace("/", "-")
+    if not text:
+        return None
+    try:
+        return date.fromisoformat(text)
+    except ValueError:
+        return None
+
+
+def _previous_day_yyyymmdd(value: Any) -> str | None:
+    parsed = _parse_date(value)
+    if parsed is None:
+        return None
+    return (parsed - timedelta(days=1)).strftime("%Y%m%d")
+
+
+def _get_dataset_evaluation_scope(dataset: dict[str, Any]) -> str:
+    scope = str(dataset.get("evaluation_scope") or "").strip().lower()
+    if scope in SUPPORTED_EVALUATION_SCOPES:
+        return scope
+    return METHOD2_ONLY_SCOPE
 
 
 def _mean(values: list[float]) -> float | None:
@@ -204,6 +251,7 @@ def build_replay_dataset(
     requested_codes = sorted(_normalize_codes(requested_codes))
     raw_records = data_fetcher.fetch_recent_ipos(months=months, page_size=page_size)
     enriched_records = mapper.enrich_recent_ipos(list(raw_records))
+    comparable_snapshot_cache: dict[tuple[str, str], dict[str, Any] | None] = {}
 
     record_by_code = {
         str(item.get("SECURITY_CODE", "")).strip(): item
@@ -213,6 +261,7 @@ def build_replay_dataset(
 
     items: list[dict[str, Any]] = []
     skipped: list[dict[str, Any]] = []
+    method1_ready_count = 0
     for code in requested_codes:
         record = record_by_code.get(code)
         if record is None:
@@ -225,6 +274,22 @@ def build_replay_dataset(
             total_issue_num = _safe_float(record.get("ISSUE_NUM"))
 
         industry = mapper.resolve_stock_industry(code, record)
+        comparable_pdf = bse_ipo_valuation._pick_prospectus_pdf(PDF_DIR, code, "comparables")
+        comparable_codes = pdf_parser.extract_comparable_companies(comparable_pdf) if comparable_pdf else []
+        comparable_data, comparable_summary = _fetch_historical_comparable_data(
+            comparable_codes,
+            record.get("LISTING_DATE"),
+            params,
+            comparable_snapshot_cache,
+        )
+        method1_replay = valuation_engine.method1_comparable(
+            issue_price=_safe_float(record.get("ISSUE_PRICE")),
+            issue_pe=_safe_float(record.get("AFTER_ISSUE_PE")),
+            comparable_data=comparable_data,
+            params=params,
+        )
+        if method1_replay.get("available"):
+            method1_ready_count += 1
         items.append(
             {
                 "SECURITY_CODE": code,
@@ -248,24 +313,41 @@ def build_replay_dataset(
                 "old_shares_meta": old_shares_meta or {},
                 "float_shares": (total_issue_num or 0.0) + old_shares,
                 "has_intraday_file": (INTRADAY_DIR / f"{code}.csv").exists(),
+                "comparable_codes": comparable_codes,
+                "comparable_data": comparable_data,
+                "comparable_summary": comparable_summary,
+                "method1_replay_available": bool(method1_replay.get("available")),
             }
         )
 
     items.sort(key=lambda item: _parse_date_key(item.get("LISTING_DATE")))
+    evaluation_scope = COMPOSITE_EVALUATION_SCOPE if method1_ready_count > 0 else METHOD2_ONLY_SCOPE
+    caveats = [
+        "每只样本只使用上市当时可见的发行字段、历史新股样本和本地首日分时数据。",
+        "历史流通盘使用本地 PDF 提取的 old_shares 结果，缺失时回退按 0 万股处理。",
+    ]
+    if evaluation_scope == COMPOSITE_EVALUATION_SCOPE:
+        caveats.insert(
+            0,
+            "方法一历史回放快照基于 Tushare `daily_basic`，按标的上市日前一日向前回看交易窗口，未取到时该样本自动降级为仅方法二。",
+        )
+    else:
+        caveats.insert(
+            0,
+            "当前未形成可用的方法一历史快照，离线调参仍按方法二口径评估。",
+        )
     return {
         "schema": DATASET_SCHEMA,
-        "evaluation_scope": EVALUATION_SCOPE,
+        "evaluation_scope": evaluation_scope,
         "generated_at": _now_text(),
         "source_months": months,
         "sample_codes": [item["SECURITY_CODE"] for item in items],
         "requested_codes": requested_codes,
         "available_count": len(items),
+        "method1_ready_count": method1_ready_count,
+        "method1_ready_rate": (method1_ready_count / len(items)) if items else 0.0,
         "skipped": skipped,
-        "caveats": [
-            "当前回放调参先聚焦方法二；方法一历史可比快照尚未按历史时点回放。",
-            "每只样本只使用上市当时可见的发行字段、历史新股样本和本地首日分时数据。",
-            "历史流通盘使用本地 PDF 提取的 old_shares 结果，缺失时回退按 0 万股处理。",
-        ],
+        "caveats": caveats,
         "items": items,
     }
 
@@ -281,6 +363,8 @@ def load_replay_dataset(path: str | Path = DEFAULT_DATASET_PATH) -> dict[str, An
     payload = json.loads(Path(path).read_text(encoding="utf-8"))
     if payload.get("schema") != DATASET_SCHEMA:
         raise ValueError(f"不支持的数据集 schema: {payload.get('schema')}")
+    if str(payload.get("evaluation_scope") or "").strip().lower() not in SUPPORTED_EVALUATION_SCOPES:
+        payload["evaluation_scope"] = METHOD2_ONLY_SCOPE
     return payload
 
 
@@ -301,7 +385,118 @@ def build_stage_candidates(stage_name: str) -> list[dict[str, Any]]:
 
     keys = list(grid.keys())
     values = [grid[key] for key in keys]
-    return [dict(zip(keys, combo)) for combo in itertools.product(*values)]
+    candidates = [dict(zip(keys, combo)) for combo in itertools.product(*values)]
+    if stage_name == "composite_weights":
+        for item in candidates:
+            weight_comparable = float(item.get("weight_comparable", 0.5))
+            item["weight_industry_momentum"] = round(1 - weight_comparable, 2)
+    return candidates
+
+
+def _build_historical_comparable_item(
+    code: str,
+    snapshot: dict[str, Any],
+) -> dict[str, Any]:
+    return {
+        "code": code,
+        "name": code,
+        "close": snapshot.get("close"),
+        "pe_ttm": snapshot.get("pe_ttm"),
+        "pb_lf": snapshot.get("pb_lf"),
+        "mkt_cap": snapshot.get("mkt_cap"),
+        "trade_date": snapshot.get("trade_date"),
+        "source": "tushare_historical",
+        "close_source": "tushare_historical",
+        "pe_source": "tushare_historical",
+        "pb_source": "tushare_historical",
+        "mkt_cap_source": "tushare_historical",
+    }
+
+
+def _fetch_historical_comparable_data(
+    comparable_codes: list[str],
+    listing_date: Any,
+    params: dict[str, Any],
+    snapshot_cache: dict[tuple[str, str], dict[str, Any] | None],
+) -> tuple[list[dict[str, Any]], dict[str, Any]]:
+    normalized_codes = _normalize_codes([LocalFileDB.normalize_code(code) for code in comparable_codes])
+    reference_trade_date = _previous_day_yyyymmdd(listing_date)
+    summary = {
+        "provider": "tushare_historical",
+        "requested_codes": list(normalized_codes),
+        "returned_codes": [],
+        "cache_hits": [],
+        "api_fetched": [],
+        "skipped_unsupported": [],
+        "reference_trade_date": reference_trade_date,
+        "reason": "",
+    }
+
+    if not normalized_codes:
+        summary["reason"] = "未提取到可比公司代码。"
+        return [], summary
+    if reference_trade_date is None:
+        summary["reason"] = "上市日期缺失，无法构建方法一历史快照。"
+        return [], summary
+
+    settings = tushare_helper._build_settings(params)
+    if not settings.get("token"):
+        summary["reason"] = f"Tushare token 未配置，无法构建历史可比快照（环境变量 {settings['token_env']}）。"
+        return [], summary
+
+    db = LocalFileDB(settings["cache_root"])
+    lookback_days = max(int(settings["recent_trade_days"]) * 3, 15)
+    end_date = datetime.strptime(reference_trade_date, "%Y%m%d").date()
+    start_date = (end_date - timedelta(days=lookback_days)).strftime("%Y%m%d")
+
+    items: list[dict[str, Any]] = []
+    for code in normalized_codes:
+        if not tushare_helper._supports_tushare_code(code):
+            summary["skipped_unsupported"].append(code)
+            continue
+
+        cache_key = (code, reference_trade_date)
+        snapshot = snapshot_cache.get(cache_key)
+        if cache_key in snapshot_cache:
+            if snapshot is not None:
+                summary["cache_hits"].append(code)
+        else:
+            rows, error_message = tushare_helper._call_tushare_api(
+                "daily_basic",
+                {
+                    "ts_code": code,
+                    "start_date": start_date,
+                    "end_date": reference_trade_date,
+                },
+                "ts_code,trade_date,close,pe_ttm,pb,total_share,float_share,free_share,total_mv,circ_mv",
+                settings,
+                db,
+            )
+            if error_message:
+                summary["reason"] = summary["reason"] or error_message
+                snapshot_cache[cache_key] = None
+                continue
+
+            rows.sort(key=lambda item: str(item.get("trade_date") or ""), reverse=True)
+            snapshot = None
+            for row in rows:
+                candidate = tushare_helper._build_tushare_snapshot(row)
+                if candidate.get("close") is not None or candidate.get("pe_ttm") is not None:
+                    snapshot = candidate
+                    break
+            snapshot_cache[cache_key] = snapshot
+            if snapshot is not None:
+                summary["api_fetched"].append(code)
+
+        if snapshot is None:
+            continue
+
+        items.append(_build_historical_comparable_item(code, snapshot))
+        summary["returned_codes"].append(code)
+
+    if not items and not summary["reason"]:
+        summary["reason"] = "未取到可用的历史可比快照。"
+    return items, summary
 
 
 def load_search_candidates(grid_file: str | Path) -> list[dict[str, Any]]:
@@ -406,6 +601,49 @@ def _build_recent_pool(items: list[dict[str, Any]]) -> list[dict[str, Any]]:
     ]
 
 
+def _calc_change_pct(issue_price: float | None, target_price: float | None) -> float | None:
+    if not issue_price or not target_price:
+        return None
+    return (target_price / issue_price - 1) * 100
+
+
+def _evaluate_replay_prediction(
+    item: dict[str, Any],
+    params: dict[str, Any],
+    recent_pool: list[dict[str, Any]],
+    evaluation_scope: str,
+) -> tuple[dict[str, Any], dict[str, Any] | None, dict[str, Any] | None]:
+    code = str(item.get("SECURITY_CODE") or "").strip()
+    issue_price = _safe_float(item.get("ISSUE_PRICE"))
+    method2 = valuation_engine.method2_industry_momentum(
+        issue_price=issue_price,
+        issue_pe=_safe_float(item.get("AFTER_ISSUE_PE")),
+        industry_pe=_safe_float(item.get("INDUSTRY_PE_NEW")),
+        float_shares=_safe_float(item.get("float_shares")),
+        industry={
+            "primary": str(item.get("industry_primary") or "未分类"),
+            "secondary": str(item.get("industry_secondary") or "未分类"),
+        },
+        recent_ipos=recent_pool,
+        params=params,
+        target_code=code,
+        target_listing_date=item.get("LISTING_DATE"),
+    )
+
+    if evaluation_scope == METHOD2_ONLY_SCOPE:
+        return method2, None, method2
+
+    comparable_data = list(item.get("comparable_data") or [])
+    method1 = valuation_engine.method1_comparable(
+        issue_price=issue_price,
+        issue_pe=_safe_float(item.get("AFTER_ISSUE_PE")),
+        comparable_data=comparable_data,
+        params=params,
+    )
+    final = valuation_engine.composite_valuation(method1, method2, params)
+    return final, method1, method2
+
+
 def evaluate_replay_targets(
     dataset: dict[str, Any],
     params: dict[str, Any],
@@ -414,6 +652,7 @@ def evaluate_replay_targets(
     items = list(dataset.get("items") or [])
     target_set = set(_normalize_codes(target_codes))
     recent_pool = _build_recent_pool(items)
+    evaluation_scope = _get_dataset_evaluation_scope(dataset)
     width = float(params.get("price_range_width", 0.10))
 
     available_results: list[dict[str, Any]] = []
@@ -432,22 +671,6 @@ def evaluate_replay_targets(
         if target_set and code not in target_set:
             continue
 
-        industry = {
-            "primary": str(item.get("industry_primary") or "未分类"),
-            "secondary": str(item.get("industry_secondary") or "未分类"),
-        }
-        method2 = valuation_engine.method2_industry_momentum(
-            issue_price=_safe_float(item.get("ISSUE_PRICE")),
-            issue_pe=_safe_float(item.get("AFTER_ISSUE_PE")),
-            industry_pe=_safe_float(item.get("INDUSTRY_PE_NEW")),
-            float_shares=_safe_float(item.get("float_shares")),
-            industry=industry,
-            recent_ipos=recent_pool,
-            params=params,
-            target_code=code,
-            target_listing_date=item.get("LISTING_DATE"),
-        )
-
         base_result = {
             "code": code,
             "name": str(item.get("SECURITY_NAME_ABBR") or "").strip(),
@@ -455,12 +678,13 @@ def evaluate_replay_targets(
             "actual_close_price": _safe_float(item.get("CLOSE_PRICE")),
             "actual_change_pct": _safe_float(item.get("LD_CLOSE_CHANGE")),
         }
-        if not method2.get("available"):
-            unavailable_results.append({**base_result, "reason": str(method2.get("reason") or "")})
+        valuation_result, method1, method2 = _evaluate_replay_prediction(item, params, recent_pool, evaluation_scope)
+        if not valuation_result.get("available"):
+            unavailable_results.append({**base_result, "reason": str(valuation_result.get("reason") or "")})
             continue
 
-        predicted_price = _safe_float(method2.get("target_price"))
-        predicted_change = _safe_float(method2.get("change_pct"))
+        predicted_price = _safe_float(valuation_result.get("target_price"))
+        predicted_change = _calc_change_pct(_safe_float(item.get("ISSUE_PRICE")), predicted_price)
         actual_price = _safe_float(item.get("CLOSE_PRICE"))
         actual_change = _safe_float(item.get("LD_CLOSE_CHANGE"))
 
@@ -478,8 +702,11 @@ def evaluate_replay_targets(
             price_eval_count += 1
             price_abs_errors.append(abs(price_error))
             price_signed_errors.append(price_error)
-            range_low = predicted_price * (1 - width)
-            range_high = predicted_price * (1 + width)
+            range_low = _safe_float(valuation_result.get("range_low"))
+            range_high = _safe_float(valuation_result.get("range_high"))
+            if range_low is None or range_high is None:
+                range_low = predicted_price * (1 - width)
+                range_high = predicted_price * (1 + width)
             interval_hits += int(range_low <= actual_price <= range_high)
 
         available_results.append(
@@ -491,20 +718,29 @@ def evaluate_replay_targets(
                 "range_high": range_high,
                 "price_abs_error": abs(predicted_price - actual_price) if predicted_price is not None and actual_price is not None else None,
                 "change_abs_error": abs(predicted_change - actual_change) if predicted_change is not None and actual_change is not None else None,
-                "sample_scope": method2.get("sample_scope"),
-                "sample_count": method2.get("sample_count"),
-                "sample_codes": list(method2.get("sample_codes") or []),
-                "adj_factor": method2.get("adj_factor"),
-                "trend_factor": method2.get("trend_factor"),
-                "float_factor": method2.get("float_factor"),
-                "pe_factor": method2.get("pe_factor"),
+                "method1_available": bool(method1 and method1.get("available")),
+                "method1_target_price": _safe_float((method1 or {}).get("target_price")),
+                "method1_change_pct": _safe_float((method1 or {}).get("change_pct")),
+                "method1_sample_count": (method1 or {}).get("sample_count"),
+                "method2_available": bool(method2 and method2.get("available")),
+                "method2_target_price": _safe_float((method2 or {}).get("target_price")),
+                "method2_change_pct": _safe_float((method2 or {}).get("change_pct")),
+                "sample_scope": (method2 or {}).get("sample_scope"),
+                "sample_count": (method2 or {}).get("sample_count"),
+                "sample_codes": list((method2 or {}).get("sample_codes") or []),
+                "adj_factor": (method2 or {}).get("adj_factor"),
+                "trend_factor": (method2 or {}).get("trend_factor"),
+                "float_factor": (method2 or {}).get("float_factor"),
+                "pe_factor": (method2 or {}).get("pe_factor"),
+                "weight_comparable": _safe_float(valuation_result.get("weight_comparable")),
+                "weight_industry_momentum": _safe_float(valuation_result.get("weight_industry_momentum")),
             }
         )
 
     total_targets = len(available_results) + len(unavailable_results)
     available_count = len(available_results)
     return {
-        "evaluation_scope": EVALUATION_SCOPE,
+        "evaluation_scope": evaluation_scope,
         "target_count": total_targets,
         "available_count": available_count,
         "available_rate": (available_count / total_targets) if total_targets else 0.0,
@@ -542,7 +778,10 @@ def _candidate_review_sort_key(item: dict[str, Any], metrics_key: str) -> tuple[
     )
 
 
-def _validate_supported_overrides(candidates: list[dict[str, Any]]) -> None:
+def _validate_supported_overrides(
+    dataset: dict[str, Any],
+    candidates: list[dict[str, Any]],
+) -> None:
     unsupported_keys = sorted(
         {
             key
@@ -551,10 +790,10 @@ def _validate_supported_overrides(candidates: list[dict[str, Any]]) -> None:
             if key in METHOD2_UNSUPPORTED_KEYS
         }
     )
-    if unsupported_keys:
+    if unsupported_keys and _get_dataset_evaluation_scope(dataset) != COMPOSITE_EVALUATION_SCOPE:
         joined = ", ".join(unsupported_keys)
         raise ValueError(
-            f"当前离线调参评估范围仍为 {EVALUATION_SCOPE}，暂不支持直接调综合权重参数：{joined}。"
+            f"当前离线调参评估范围仍为 {METHOD2_ONLY_SCOPE}，暂不支持直接调综合权重参数：{joined}。"
             "如需调这些参数，需要先补方法一历史回放，再切到综合口径评估。"
         )
 
@@ -569,7 +808,8 @@ def rank_param_candidates(
     include_baseline: bool = True,
     progress_callback: Callable[[int, int, dict[str, Any]], None] | None = None,
 ) -> dict[str, Any]:
-    _validate_supported_overrides(candidates)
+    evaluation_scope = _get_dataset_evaluation_scope(dataset)
+    _validate_supported_overrides(dataset, candidates)
     train_codes, validation_codes = split_target_codes(
         dataset,
         train_ratio=train_ratio,
@@ -618,7 +858,7 @@ def rank_param_candidates(
     best = ranking[0] if ranking else None
     return {
         "generated_at": _now_text(),
-        "evaluation_scope": EVALUATION_SCOPE,
+        "evaluation_scope": evaluation_scope,
         "selection_metrics_scope": selection_metrics_scope,
         "train_codes": train_codes,
         "validation_codes": validation_codes,
@@ -639,7 +879,8 @@ def review_candidate_sets(
     min_train_samples: int = 8,
     progress_callback: Callable[[int, int, dict[str, Any]], None] | None = None,
 ) -> dict[str, Any]:
-    _validate_supported_overrides([dict(item.get("overrides") or {}) for item in candidate_payload.get("candidates") or []])
+    evaluation_scope = _get_dataset_evaluation_scope(dataset)
+    _validate_supported_overrides(dataset, [dict(item.get("overrides") or {}) for item in candidate_payload.get("candidates") or []])
     train_codes, validation_codes = split_target_codes(
         dataset,
         train_ratio=train_ratio,
@@ -698,7 +939,7 @@ def review_candidate_sets(
 
     return {
         "generated_at": _now_text(),
-        "evaluation_scope": EVALUATION_SCOPE,
+        "evaluation_scope": evaluation_scope,
         "selection_metrics_scope": selection_metrics_scope,
         "review_name": str(candidate_payload.get("name") or "candidate_review").strip() or "candidate_review",
         "review_description": str(candidate_payload.get("description") or "").strip(),
@@ -769,6 +1010,8 @@ def write_search_outputs(
         "stage_name": stage_name,
         "dataset_summary": {
             "available_count": dataset.get("available_count"),
+            "method1_ready_count": dataset.get("method1_ready_count"),
+            "method1_ready_rate": dataset.get("method1_ready_rate"),
             "sample_codes": dataset.get("sample_codes"),
             "caveats": dataset.get("caveats"),
         },
@@ -806,6 +1049,7 @@ def write_search_outputs(
             f"- 评估范围：{ranking_result.get('evaluation_scope', EVALUATION_SCOPE)}",
             f"- 评分依据：{metrics_scope} 集指标",
             f"- 数据集样本数：{dataset.get('available_count', 0)}",
+            f"- 方法一可回放样本数：{dataset.get('method1_ready_count', 0)}",
             f"- 训练集代码数：{len(ranking_result.get('train_codes') or [])}",
             f"- 验证集代码数：{len(ranking_result.get('validation_codes') or [])}",
             "",
@@ -865,6 +1109,8 @@ def write_candidate_review_outputs(
     payload = {
         "dataset_summary": {
             "available_count": dataset.get("available_count"),
+            "method1_ready_count": dataset.get("method1_ready_count"),
+            "method1_ready_rate": dataset.get("method1_ready_rate"),
             "sample_codes": dataset.get("sample_codes"),
             "caveats": dataset.get("caveats"),
         },
@@ -904,6 +1150,7 @@ def write_candidate_review_outputs(
             f"- 评估范围：{review_result.get('evaluation_scope', EVALUATION_SCOPE)}",
             f"- 评分依据：{metrics_scope} 集指标",
             f"- 数据集样本数：{dataset.get('available_count', 0)}",
+            f"- 方法一可回放样本数：{dataset.get('method1_ready_count', 0)}",
             f"- 训练集代码数：{len(review_result.get('train_codes') or [])}",
             f"- 验证集代码数：{len(review_result.get('validation_codes') or [])}",
             "",

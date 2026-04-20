@@ -39,7 +39,7 @@ def _progress(index: int, total: int, spec: dict[str, object]) -> None:
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="北交所新股估值离线调参工具（当前聚焦方法二）")
+    parser = argparse.ArgumentParser(description="北交所新股估值离线调参工具")
     parser.add_argument("--params-file", default=str(ROOT_DIR / "策略参数.txt"), help="参数文件路径")
     parser.add_argument("--dataset-path", default=str(param_tuning.DEFAULT_DATASET_PATH), help="回放数据集路径")
     parser.add_argument("--rebuild-dataset", action="store_true", help="重新构建历史回放数据集")

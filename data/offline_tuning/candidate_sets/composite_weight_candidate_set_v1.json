@@ -1,0 +1,31 @@
+{
+  "name": "composite_weight_candidate_set_v1",
+  "description": "基于 2026-04-20 composite_weights 首轮真实综合回放结果整理的第一版综合权重候选集。",
+  "source_report": "输出/调参/tune_params_composite_weights_20260420_144915.md",
+  "candidates": [
+    {
+      "name": "composite_weight_best_method2_lean",
+      "description": "直接采用首轮综合回放验证集最优组合，明显偏向方法二。",
+      "overrides": {
+        "weight_comparable": 0.2,
+        "weight_industry_momentum": 0.8
+      }
+    },
+    {
+      "name": "composite_weight_second_best",
+      "description": "保留较强的方法二主导，但比最优组合更保守一档。",
+      "overrides": {
+        "weight_comparable": 0.3,
+        "weight_industry_momentum": 0.7
+      }
+    },
+    {
+      "name": "composite_weight_conservative",
+      "description": "只小幅拉低方法一权重，作为观察期保守备选。",
+      "overrides": {
+        "weight_comparable": 0.4,
+        "weight_industry_momentum": 0.6
+      }
+    }
+  ]
+}

@@ -1,7 +1,7 @@
 {
   "schema": "offline_tuning_replay_v1",
-  "evaluation_scope": "method2_only",
-  "generated_at": "2026-04-18 20:30:14",
+  "evaluation_scope": "composite",
+  "generated_at": "2026-04-20 14:48:27",
   "source_months": 18,
   "sample_codes": [
     "920086",
@@ -46,9 +46,11 @@
     "920188"
   ],
   "available_count": 19,
+  "method1_ready_count": 17,
+  "method1_ready_rate": 0.8947368421052632,
   "skipped": [],
   "caveats": [
-    "当前回放调参先聚焦方法二；方法一历史可比快照尚未按历史时点回放。",
+    "方法一历史回放快照基于 Tushare `daily_basic`，按标的上市日前一日向前回看交易窗口，未取到时该样本自动降级为仅方法二。",
     "每只样本只使用上市当时可见的发行字段、历史新股样本和本地首日分时数据。",
     "历史流通盘使用本地 PDF 提取的 old_shares 结果，缺失时回退按 0 万股处理。"
   ],
@@ -87,7 +89,43 @@
         "fallback_used": false
       },
       "float_shares": 2092.0,
-      "has_intraday_file": true
+      "has_intraday_file": true,
+      "comparable_codes": [
+        "603586.SH"
+      ],
+      "comparable_data": [
+        {
+          "code": "603586.SH",
+          "name": "603586.SH",
+          "close": 18.95,
+          "pe_ttm": 23.609,
+          "pb_lf": 1.6151,
+          "mkt_cap": 37.15200181,
+          "trade_date": "20260115",
+          "source": "tushare_historical",
+          "close_source": "tushare_historical",
+          "pe_source": "tushare_historical",
+          "pb_source": "tushare_historical",
+          "mkt_cap_source": "tushare_historical"
+        }
+      ],
+      "comparable_summary": {
+        "provider": "tushare_historical",
+        "requested_codes": [
+          "603586.SH"
+        ],
+        "returned_codes": [
+          "603586.SH"
+        ],
+        "cache_hits": [],
+        "api_fetched": [
+          "603586.SH"
+        ],
+        "skipped_unsupported": [],
+        "reference_trade_date": "20260115",
+        "reason": ""
+      },
+      "method1_replay_available": true
     },
     {
       "SECURITY_CODE": "920050",
@@ -123,7 +161,61 @@
         "fallback_used": false
       },
       "float_shares": 1979.4634,
-      "has_intraday_file": true
+      "has_intraday_file": true,
+      "comparable_codes": [
+        "603301.SH",
+        "002950.SZ"
+      ],
+      "comparable_data": [
+        {
+          "code": "603301.SH",
+          "name": "603301.SH",
+          "close": 69.21,
+          "pe_ttm": 65.4991,
+          "pb_lf": 3.2349,
+          "mkt_cap": 183.98477377,
+          "trade_date": "20260120",
+          "source": "tushare_historical",
+          "close_source": "tushare_historical",
+          "pe_source": "tushare_historical",
+          "pb_source": "tushare_historical",
+          "mkt_cap_source": "tushare_historical"
+        },
+        {
+          "code": "002950.SZ",
+          "name": "002950.SZ",
+          "close": 11.94,
+          "pe_ttm": 16.7165,
+          "pb_lf": 2.0266,
+          "mkt_cap": 75.6118896,
+          "trade_date": "20260120",
+          "source": "tushare_historical",
+          "close_source": "tushare_historical",
+          "pe_source": "tushare_historical",
+          "pb_source": "tushare_historical",
+          "mkt_cap_source": "tushare_historical"
+        }
+      ],
+      "comparable_summary": {
+        "provider": "tushare_historical",
+        "requested_codes": [
+          "603301.SH",
+          "002950.SZ"
+        ],
+        "returned_codes": [
+          "603301.SH",
+          "002950.SZ"
+        ],
+        "cache_hits": [],
+        "api_fetched": [
+          "603301.SH",
+          "002950.SZ"
+        ],
+        "skipped_unsupported": [],
+        "reference_trade_date": "20260120",
+        "reason": ""
+      },
+      "method1_replay_available": true
     },
     {
       "SECURITY_CODE": "920076",
@@ -159,7 +251,101 @@
         "fallback_used": false
       },
       "float_shares": 2156.5902,
-      "has_intraday_file": true
+      "has_intraday_file": true,
+      "comparable_codes": [
+        "002392.SZ",
+        "002225.SZ",
+        "688119.SH",
+        "002066.SZ",
+        "833580.NQ"
+      ],
+      "comparable_data": [
+        {
+          "code": "002392.SZ",
+          "name": "002392.SZ",
+          "close": 8.74,
+          "pe_ttm": 29.175,
+          "pb_lf": 1.8041,
+          "mkt_cap": 104.04889933,
+          "trade_date": "20260121",
+          "source": "tushare_historical",
+          "close_source": "tushare_historical",
+          "pe_source": "tushare_historical",
+          "pb_source": "tushare_historical",
+          "mkt_cap_source": "tushare_historical"
+        },
+        {
+          "code": "002225.SZ",
+          "name": "002225.SZ",
+          "close": 6.35,
+          "pe_ttm": 68.7835,
+          "pb_lf": 1.7859,
+          "mkt_cap": 73.61168583,
+          "trade_date": "20260121",
+          "source": "tushare_historical",
+          "close_source": "tushare_historical",
+          "pe_source": "tushare_historical",
+          "pb_source": "tushare_historical",
+          "mkt_cap_source": "tushare_historical"
+        },
+        {
+          "code": "688119.SH",
+          "name": "688119.SH",
+          "close": 6.88,
+          "pe_ttm": null,
+          "pb_lf": 2.5969,
+          "mkt_cap": 77.4,
+          "trade_date": "20260121",
+          "source": "tushare_historical",
+          "close_source": "tushare_historical",
+          "pe_source": "tushare_historical",
+          "pb_source": "tushare_historical",
+          "mkt_cap_source": "tushare_historical"
+        },
+        {
+          "code": "002066.SZ",
+          "name": "002066.SZ",
+          "close": 20.92,
+          "pe_ttm": 271.1249,
+          "pb_lf": 6.9552,
+          "mkt_cap": 49.1425444,
+          "trade_date": "20260121",
+          "source": "tushare_historical",
+          "close_source": "tushare_historical",
+          "pe_source": "tushare_historical",
+          "pb_source": "tushare_historical",
+          "mkt_cap_source": "tushare_historical"
+        }
+      ],
+      "comparable_summary": {
+        "provider": "tushare_historical",
+        "requested_codes": [
+          "002392.SZ",
+          "002225.SZ",
+          "688119.SH",
+          "002066.SZ",
+          "833580.NQ"
+        ],
+        "returned_codes": [
+          "002392.SZ",
+          "002225.SZ",
+          "688119.SH",
+          "002066.SZ"
+        ],
+        "cache_hits": [],
+        "api_fetched": [
+          "002392.SZ",
+          "002225.SZ",
+          "688119.SH",
+          "002066.SZ"
+        ],
+        "skipped_unsupported": [
+          "833580.NQ"
+        ],
+        "reference_trade_date": "20260121",
+        "reason": ""
+      },
+      "method1_replay_available": true
     },
     {
       "SECURITY_CODE": "920159",
@@ -195,7 +381,101 @@
         "fallback_used": false
       },
       "float_shares": 1600.0,
-      "has_intraday_file": true
+      "has_intraday_file": true,
+      "comparable_codes": [
+        "002588.SZ",
+        "002170.SZ",
+        "000902.SZ",
+        "603395.SH",
+        "873757.NQ"
+      ],
+      "comparable_data": [
+        {
+          "code": "002588.SZ",
+          "name": "002588.SZ",
+          "close": 10.93,
+          "pe_ttm": 12.8873,
+          "pb_lf": 1.7193,
+          "mkt_cap": 125.90179341,
+          "trade_date": "20260127",
+          "source": "tushare_historical",
+          "close_source": "tushare_historical",
+          "pe_source": "tushare_historical",
+          "pb_source": "tushare_historical",
+          "mkt_cap_source": "tushare_historical"
+        },
+        {
+          "code": "002170.SZ",
+          "name": "002170.SZ",
+          "close": 13.54,
+          "pe_ttm": 14.6937,
+          "pb_lf": 3.7304,
+          "mkt_cap": 131.02251218,
+          "trade_date": "20260127",
+          "source": "tushare_historical",
+          "close_source": "tushare_historical",
+          "pe_source": "tushare_historical",
+          "pb_source": "tushare_historical",
+          "mkt_cap_source": "tushare_historical"
+        },
+        {
+          "code": "000902.SZ",
+          "name": "000902.SZ",
+          "close": 17.02,
+          "pe_ttm": 13.5527,
+          "pb_lf": 1.8545,
+          "mkt_cap": 213.55567149,
+          "trade_date": "20260127",
+          "source": "tushare_historical",
+          "close_source": "tushare_historical",
+          "pe_source": "tushare_historical",
+          "pb_source": "tushare_historical",
+          "mkt_cap_source": "tushare_historical"
+        },
+        {
+          "code": "603395.SH",
+          "name": "603395.SH",
+          "close": 30.6,
+          "pe_ttm": 292.9631,
+          "pb_lf": 5.6875,
+          "mkt_cap": 79.56,
+          "trade_date": "20260127",
+          "source": "tushare_historical",
+          "close_source": "tushare_historical",
+          "pe_source": "tushare_historical",
+          "pb_source": "tushare_historical",
+          "mkt_cap_source": "tushare_historical"
+        }
+      ],
+      "comparable_summary": {
+        "provider": "tushare_historical",
+        "requested_codes": [
+          "002588.SZ",
+          "002170.SZ",
+          "000902.SZ",
+          "603395.SH",
+          "873757.NQ"
+        ],
+        "returned_codes": [
+          "002588.SZ",
+          "002170.SZ",
+          "000902.SZ",
+          "603395.SH"
+        ],
+        "cache_hits": [],
+        "api_fetched": [
+          "002588.SZ",
+          "002170.SZ",
+          "000902.SZ",
+          "603395.SH"
+        ],
+        "skipped_unsupported": [
+          "873757.NQ"
+        ],
+        "reference_trade_date": "20260127",
+        "reason": ""
+      },
+      "method1_replay_available": true
     },
     {
       "SECURITY_CODE": "920119",
@@ -231,7 +511,115 @@
         "fallback_used": false
       },
       "float_shares": 1600.0,
-      "has_intraday_file": true
+      "has_intraday_file": true,
+      "comparable_codes": [
+        "301029.SZ",
+        "688097.SH",
+        "300450.SZ",
+        "301662.SZ",
+        "300173.SZ"
+      ],
+      "comparable_data": [
+        {
+          "code": "301029.SZ",
+          "name": "301029.SZ",
+          "close": 27.36,
+          "pe_ttm": 35.1563,
+          "pb_lf": 4.0791,
+          "mkt_cap": 173.517862,
+          "trade_date": "20260129",
+          "source": "tushare_historical",
+          "close_source": "tushare_historical",
+          "pe_source": "tushare_historical",
+          "pb_source": "tushare_historical",
+          "mkt_cap_source": "tushare_historical"
+        },
+        {
+          "code": "688097.SH",
+          "name": "688097.SH",
+          "close": 39.44,
+          "pe_ttm": 36.9359,
+          "pb_lf": 3.7452,
+          "mkt_cap": 176.15787852,
+          "trade_date": "20260129",
+          "source": "tushare_historical",
+          "close_source": "tushare_historical",
+          "pe_source": "tushare_historical",
+          "pb_source": "tushare_historical",
+          "mkt_cap_source": "tushare_historical"
+        },
+        {
+          "code": "300450.SZ",
+          "name": "300450.SZ",
+          "close": 56.34,
+          "pe_ttm": 102.1332,
+          "pb_lf": 6.9243,
+          "mkt_cap": 882.3762533600001,
+          "trade_date": "20260129",
+          "source": "tushare_historical",
+          "close_source": "tushare_historical",
+          "pe_source": "tushare_historical",
+          "pb_source": "tushare_historical",
+          "mkt_cap_source": "tushare_historical"
+        },
+        {
+          "code": "301662.SZ",
+          "name": "301662.SZ",
+          "close": 168.44,
+          "pe_ttm": 107.1237,
+          "pb_lf": 9.3419,
+          "mkt_cap": 134.752,
+          "trade_date": "20260129",
+          "source": "tushare_historical",
+          "close_source": "tushare_historical",
+          "pe_source": "tushare_historical",
+          "pb_source": "tushare_historical",
+          "mkt_cap_source": "tushare_historical"
+        },
+        {
+          "code": "300173.SZ",
+          "name": "300173.SZ",
+          "close": 4.56,
+          "pe_ttm": 59.2713,
+          "pb_lf": 3.4661,
+          "mkt_cap": 33.50349183,
+          "trade_date": "20260129",
+          "source": "tushare_historical",
+          "close_source": "tushare_historical",
+          "pe_source": "tushare_historical",
+          "pb_source": "tushare_historical",
+          "mkt_cap_source": "tushare_historical"
+        }
+      ],
+      "comparable_summary": {
+        "provider": "tushare_historical",
+        "requested_codes": [
+          "301029.SZ",
+          "688097.SH",
+          "300450.SZ",
+          "301662.SZ",
+          "300173.SZ"
+        ],
+        "returned_codes": [
+          "301029.SZ",
+          "688097.SH",
+          "300450.SZ",
+          "301662.SZ",
+          "300173.SZ"
+        ],
+        "cache_hits": [],
+        "api_fetched": [
+          "301029.SZ",
+          "688097.SH",
+          "300450.SZ",
+          "301662.SZ",
+          "300173.SZ"
+        ],
+        "skipped_unsupported": [],
+        "reference_trade_date": "20260129",
+        "reason": ""
+      },
+      "method1_replay_available": true
     },
     {
       "SECURITY_CODE": "920180",
@@ -267,7 +655,115 @@
         "fallback_used": false
       },
       "float_shares": 2953.0762,
-      "has_intraday_file": true
+      "has_intraday_file": true,
+      "comparable_codes": [
+        "688161.SH",
+        "002901.SZ",
+        "300326.SZ",
+        "688085.SH",
+        "688236.SH"
+      ],
+      "comparable_data": [
+        {
+          "code": "688161.SH",
+          "name": "688161.SH",
+          "close": 29.85,
+          "pe_ttm": 44.7418,
+          "pb_lf": 2.9601,
+          "mkt_cap": 119.4,
+          "trade_date": "20260209",
+          "source": "tushare_historical",
+          "close_source": "tushare_historical",
+          "pe_source": "tushare_historical",
+          "pb_source": "tushare_historical",
+          "mkt_cap_source": "tushare_historical"
+        },
+        {
+          "code": "002901.SZ",
+          "name": "002901.SZ",
+          "close": 49.11,
+          "pe_ttm": 37.5434,
+          "pb_lf": 6.0938,
+          "mkt_cap": 203.3249794,
+          "trade_date": "20260209",
+          "source": "tushare_historical",
+          "close_source": "tushare_historical",
+          "pe_source": "tushare_historical",
+          "pb_source": "tushare_historical",
+          "mkt_cap_source": "tushare_historical"
+        },
+        {
+          "code": "300326.SZ",
+          "name": "300326.SZ",
+          "close": 6.24,
+          "pe_ttm": null,
+          "pb_lf": 1.6056,
+          "mkt_cap": 44.74159136,
+          "trade_date": "20260209",
+          "source": "tushare_historical",
+          "close_source": "tushare_historical",
+          "pe_source": "tushare_historical",
+          "pb_source": "tushare_historical",
+          "mkt_cap_source": "tushare_historical"
+        },
+        {
+          "code": "688085.SH",
+          "name": "688085.SH",
+          "close": 21.67,
+          "pe_ttm": 111.3781,
+          "pb_lf": 3.4823,
+          "mkt_cap": 72.26132332,
+          "trade_date": "20260209",
+          "source": "tushare_historical",
+          "close_source": "tushare_historical",
+          "pe_source": "tushare_historical",
+          "pb_source": "tushare_historical",
+          "mkt_cap_source": "tushare_historical"
+        },
+        {
+          "code": "688236.SH",
+          "name": "688236.SH",
+          "close": 23.0,
+          "pe_ttm": 34.5465,
+          "pb_lf": 3.0374,
+          "mkt_cap": 88.22075500000001,
+          "trade_date": "20260209",
+          "source": "tushare_historical",
+          "close_source": "tushare_historical",
+          "pe_source": "tushare_historical",
+          "pb_source": "tushare_historical",
+          "mkt_cap_source": "tushare_historical"
+        }
+      ],
+      "comparable_summary": {
+        "provider": "tushare_historical",
+        "requested_codes": [
+          "688161.SH",
+          "002901.SZ",
+          "300326.SZ",
+          "688085.SH",
+          "688236.SH"
+        ],
+        "returned_codes": [
+          "688161.SH",
+          "002901.SZ",
+          "300326.SZ",
+          "688085.SH",
+          "688236.SH"
+        ],
+        "cache_hits": [],
+        "api_fetched": [
+          "688161.SH",
+          "002901.SZ",
+          "300326.SZ",
+          "688085.SH",
+          "688236.SH"
+        ],
+        "skipped_unsupported": [],
+        "reference_trade_date": "20260209",
+        "reason": ""
+      },
+      "method1_replay_available": true
     },
     {
       "SECURITY_CODE": "920166",
@@ -303,7 +799,79 @@
         "fallback_used": false
       },
       "float_shares": 2489.4118,
-      "has_intraday_file": true
+      "has_intraday_file": true,
+      "comparable_codes": [
+        "603309.SH",
+        "300453.SZ",
+        "301097.SZ"
+      ],
+      "comparable_data": [
+        {
+          "code": "603309.SH",
+          "name": "603309.SH",
+          "close": 14.83,
+          "pe_ttm": 17.7171,
+          "pb_lf": 2.3062,
+          "mkt_cap": 43.284531290000004,
+          "trade_date": "20260211",
+          "source": "tushare_historical",
+          "close_source": "tushare_historical",
+          "pe_source": "tushare_historical",
+          "pb_source": "tushare_historical",
+          "mkt_cap_source": "tushare_historical"
+        },
+        {
+          "code": "300453.SZ",
+          "name": "300453.SZ",
+          "close": 9.47,
+          "pe_ttm": 20.224,
+          "pb_lf": 3.5825,
+          "mkt_cap": 49.44138084,
+          "trade_date": "20260211",
+          "source": "tushare_historical",
+          "close_source": "tushare_historical",
+          "pe_source": "tushare_historical",
+          "pb_source": "tushare_historical",
+          "mkt_cap_source": "tushare_historical"
+        },
+        {
+          "code": "301097.SZ",
+          "name": "301097.SZ",
+          "close": 56.52,
+          "pe_ttm": 256.1354,
+          "pb_lf": 2.8192,
+          "mkt_cap": 33.31705239,
+          "trade_date": "20260211",
+          "source": "tushare_historical",
+          "close_source": "tushare_historical",
+          "pe_source": "tushare_historical",
+          "pb_source": "tushare_historical",
+          "mkt_cap_source": "tushare_historical"
+        }
+      ],
+      "comparable_summary": {
+        "provider": "tushare_historical",
+        "requested_codes": [
+          "603309.SH",
+          "300453.SZ",
+          "301097.SZ"
+        ],
+        "returned_codes": [
+          "603309.SH",
+          "300453.SZ",
+          "301097.SZ"
+        ],
+        "cache_hits": [],
+        "api_fetched": [
+          "603309.SH",
+          "300453.SZ",
+          "301097.SZ"
+        ],
+        "skipped_unsupported": [],
+        "reference_trade_date": "20260211",
+        "reason": ""
+      },
+      "method1_replay_available": true
     },
     {
       "SECURITY_CODE": "920168",
@@ -339,7 +907,61 @@
         "fallback_used": false
       },
       "float_shares": 3005.3854,
-      "has_intraday_file": true
+      "has_intraday_file": true,
+      "comparable_codes": [
+        "601799.SH",
+        "603786.SH"
+      ],
+      "comparable_data": [
+        {
+          "code": "601799.SH",
+          "name": "601799.SH",
+          "close": 151.6,
+          "pe_ttm": 27.5484,
+          "pb_lf": 3.9325,
+          "mkt_cap": 433.08999919999997,
+          "trade_date": "20260225",
+          "source": "tushare_historical",
+          "close_source": "tushare_historical",
+          "pe_source": "tushare_historical",
+          "pb_source": "tushare_historical",
+          "mkt_cap_source": "tushare_historical"
+        },
+        {
+          "code": "603786.SH",
+          "name": "603786.SH",
+          "close": 68.42,
+          "pe_ttm": 34.0299,
+          "pb_lf": 5.073,
+          "mkt_cap": 276.31875414,
+          "trade_date": "20260225",
+          "source": "tushare_historical",
+          "close_source": "tushare_historical",
+          "pe_source": "tushare_historical",
+          "pb_source": "tushare_historical",
+          "mkt_cap_source": "tushare_historical"
+        }
+      ],
+      "comparable_summary": {
+        "provider": "tushare_historical",
+        "requested_codes": [
+          "601799.SH",
+          "603786.SH"
+        ],
+        "returned_codes": [
+          "601799.SH",
+          "603786.SH"
+        ],
+        "cache_hits": [],
+        "api_fetched": [
+          "601799.SH",
+          "603786.SH"
+        ],
+        "skipped_unsupported": [],
+        "reference_trade_date": "20260225",
+        "reason": ""
+      },
+      "method1_replay_available": true
     },
     {
       "SECURITY_CODE": "920183",
@@ -375,7 +997,65 @@
         "fallback_used": false
       },
       "float_shares": 1230.2529,
-      "has_intraday_file": true
+      "has_intraday_file": true,
+      "comparable_codes": [
+        "002351.SZ",
+        "002888.SZ",
+        "872824"
+      ],
+      "comparable_data": [
+        {
+          "code": "002351.SZ",
+          "name": "002351.SZ",
+          "close": 11.74,
+          "pe_ttm": 25.4056,
+          "pb_lf": 3.6293,
+          "mkt_cap": 104.3811618,
+          "trade_date": "20260303",
+          "source": "tushare_historical",
+          "close_source": "tushare_historical",
+          "pe_source": "tushare_historical",
+          "pb_source": "tushare_historical",
+          "mkt_cap_source": "tushare_historical"
+        },
+        {
+          "code": "002888.SZ",
+          "name": "002888.SZ",
+          "close": 20.16,
+          "pe_ttm": 176.4443,
+          "pb_lf": 7.8267,
+          "mkt_cap": 29.764911859999998,
+          "trade_date": "20260303",
+          "source": "tushare_historical",
+          "close_source": "tushare_historical",
+          "pe_source": "tushare_historical",
+          "pb_source": "tushare_historical",
+          "mkt_cap_source": "tushare_historical"
+        }
+      ],
+      "comparable_summary": {
+        "provider": "tushare_historical",
+        "requested_codes": [
+          "002351.SZ",
+          "002888.SZ",
+          "872824"
+        ],
+        "returned_codes": [
+          "002351.SZ",
+          "002888.SZ"
+        ],
+        "cache_hits": [],
+        "api_fetched": [
+          "002351.SZ",
+          "002888.SZ"
+        ],
+        "skipped_unsupported": [
+          "872824"
+        ],
+        "reference_trade_date": "20260303",
+        "reason": ""
+      },
+      "method1_replay_available": true
     },
     {
       "SECURITY_CODE": "920187",
@@ -411,7 +1091,97 @@
         "fallback_used": false
       },
       "float_shares": 2251.3886,
-      "has_intraday_file": true
+      "has_intraday_file": true,
+      "comparable_codes": [
+        "603730.SH",
+        "603035.SH",
+        "603179.SH",
+        "301529.SZ"
+      ],
+      "comparable_data": [
+        {
+          "code": "603730.SH",
+          "name": "603730.SH",
+          "close": 9.45,
+          "pe_ttm": 32.5463,
+          "pb_lf": 4.4491,
+          "mkt_cap": 203.04130915000002,
+          "trade_date": "20260304",
+          "source": "tushare_historical",
+          "close_source": "tushare_historical",
+          "pe_source": "tushare_historical",
+          "pb_source": "tushare_historical",
+          "mkt_cap_source": "tushare_historical"
+        },
+        {
+          "code": "603035.SH",
+          "name": "603035.SH",
+          "close": 14.49,
+          "pe_ttm": 13.6792,
+          "pb_lf": 0.9996,
+          "mkt_cap": 53.083691890000004,
+          "trade_date": "20260304",
+          "source": "tushare_historical",
+          "close_source": "tushare_historical",
+          "pe_source": "tushare_historical",
+          "pb_source": "tushare_historical",
+          "mkt_cap_source": "tushare_historical"
+        },
+        {
+          "code": "603179.SH",
+          "name": "603179.SH",
+          "close": 76.11,
+          "pe_ttm": 42.4963,
+          "pb_lf": 5.4238,
+          "mkt_cap": 388.26899476,
+          "trade_date": "20260304",
+          "source": "tushare_historical",
+          "close_source": "tushare_historical",
+          "pe_source": "tushare_historical",
+          "pb_source": "tushare_historical",
+          "mkt_cap_source": "tushare_historical"
+        },
+        {
+          "code": "301529.SZ",
+          "name": "301529.SZ",
+          "close": 113.66,
+          "pe_ttm": 63.3227,
+          "pb_lf": 7.1099,
+          "mkt_cap": 96.42597289,
+          "trade_date": "20260304",
+          "source": "tushare_historical",
+          "close_source": "tushare_historical",
+          "pe_source": "tushare_historical",
+          "pb_source": "tushare_historical",
+          "mkt_cap_source": "tushare_historical"
+        }
+      ],
+      "comparable_summary": {
+        "provider": "tushare_historical",
+        "requested_codes": [
+          "603730.SH",
+          "603035.SH",
+          "603179.SH",
+          "301529.SZ"
+        ],
+        "returned_codes": [
+          "603730.SH",
+          "603035.SH",
+          "603179.SH",
+          "301529.SZ"
+        ],
+        "cache_hits": [],
+        "api_fetched": [
+          "603730.SH",
+          "603035.SH",
+          "603179.SH",
+          "301529.SZ"
+        ],
+        "skipped_unsupported": [],
+        "reference_trade_date": "20260304",
+        "reason": ""
+      },
+      "method1_replay_available": true
     },
     {
       "SECURITY_CODE": "920036",
@@ -447,7 +1217,79 @@
         "fallback_used": false
       },
       "float_shares": 1442.1826999999998,
-      "has_intraday_file": true
+      "has_intraday_file": true,
+      "comparable_codes": [
+        "688475.SH",
+        "301189.SZ",
+        "301042.SZ"
+      ],
+      "comparable_data": [
+        {
+          "code": "688475.SH",
+          "name": "688475.SH",
+          "close": 27.26,
+          "pe_ttm": 37.8902,
+          "pb_lf": 3.7078,
+          "mkt_cap": 214.6725,
+          "trade_date": "20260306",
+          "source": "tushare_historical",
+          "close_source": "tushare_historical",
+          "pe_source": "tushare_historical",
+          "pb_source": "tushare_historical",
+          "mkt_cap_source": "tushare_historical"
+        },
+        {
+          "code": "301189.SZ",
+          "name": "301189.SZ",
+          "close": 42.97,
+          "pe_ttm": null,
+          "pb_lf": 2.3797,
+          "mkt_cap": 50.01556101,
+          "trade_date": "20260306",
+          "source": "tushare_historical",
+          "close_source": "tushare_historical",
+          "pe_source": "tushare_historical",
+          "pb_source": "tushare_historical",
+          "mkt_cap_source": "tushare_historical"
+        },
+        {
+          "code": "301042.SZ",
+          "name": "301042.SZ",
+          "close": 88.3,
+          "pe_ttm": 547.9773,
+          "pb_lf": 5.8567,
+          "mkt_cap": 61.56591849,
+          "trade_date": "20260306",
+          "source": "tushare_historical",
+          "close_source": "tushare_historical",
+          "pe_source": "tushare_historical",
+          "pb_source": "tushare_historical",
+          "mkt_cap_source": "tushare_historical"
+        }
+      ],
+      "comparable_summary": {
+        "provider": "tushare_historical",
+        "requested_codes": [
+          "688475.SH",
+          "301189.SZ",
+          "301042.SZ"
+        ],
+        "returned_codes": [
+          "688475.SH",
+          "301189.SZ",
+          "301042.SZ"
+        ],
+        "cache_hits": [],
+        "api_fetched": [
+          "688475.SH",
+          "301189.SZ",
+          "301042.SZ"
+        ],
+        "skipped_unsupported": [],
+        "reference_trade_date": "20260308",
+        "reason": ""
+      },
+      "method1_replay_available": true
     },
     {
       "SECURITY_CODE": "920078",
@@ -483,7 +1325,61 @@
         "fallback_used": false
       },
       "float_shares": 2300.0,
-      "has_intraday_file": true
+      "has_intraday_file": true,
+      "comparable_codes": [
+        "688157.SH",
+        "300665.SZ"
+      ],
+      "comparable_data": [
+        {
+          "code": "688157.SH",
+          "name": "688157.SH",
+          "close": 37.58,
+          "pe_ttm": 269.0234,
+          "pb_lf": 4.3516,
+          "mkt_cap": 58.78679986,
+          "trade_date": "20260317",
+          "source": "tushare_historical",
+          "close_source": "tushare_historical",
+          "pe_source": "tushare_historical",
+          "pb_source": "tushare_historical",
+          "mkt_cap_source": "tushare_historical"
+        },
+        {
+          "code": "300665.SZ",
+          "name": "300665.SZ",
+          "close": 7.89,
+          "pe_ttm": null,
+          "pb_lf": 3.1278,
+          "mkt_cap": 17.2748181,
+          "trade_date": "20260317",
+          "source": "tushare_historical",
+          "close_source": "tushare_historical",
+          "pe_source": "tushare_historical",
+          "pb_source": "tushare_historical",
+          "mkt_cap_source": "tushare_historical"
+        }
+      ],
+      "comparable_summary": {
+        "provider": "tushare_historical",
+        "requested_codes": [
+          "688157.SH",
+          "300665.SZ"
+        ],
+        "returned_codes": [
+          "688157.SH",
+          "300665.SZ"
+        ],
+        "cache_hits": [],
+        "api_fetched": [
+          "688157.SH",
+          "300665.SZ"
+        ],
+        "skipped_unsupported": [],
+        "reference_trade_date": "20260317",
+        "reason": ""
+      },
+      "method1_replay_available": true
     },
     {
       "SECURITY_CODE": "920028",
@@ -519,7 +1415,20 @@
         "fallback_used": false
       },
       "float_shares": 4666.8099999999995,
-      "has_intraday_file": true
+      "has_intraday_file": true,
+      "comparable_codes": [],
+      "comparable_data": [],
+      "comparable_summary": {
+        "provider": "tushare_historical",
+        "requested_codes": [],
+        "returned_codes": [],
+        "cache_hits": [],
+        "api_fetched": [],
+        "skipped_unsupported": [],
+        "reference_trade_date": "20260319",
+        "reason": "未提取到可比公司代码。"
+      },
+      "method1_replay_available": false
     },
     {
       "SECURITY_CODE": "920069",
@@ -555,7 +1464,83 @@
         "fallback_used": false
       },
       "float_shares": 1583.6015,
-      "has_intraday_file": true
+      "has_intraday_file": true,
+      "comparable_codes": [
+        "603987.SH",
+        "301122.SZ",
+        "301234.SZ",
+        "873804.NQ"
+      ],
+      "comparable_data": [
+        {
+          "code": "603987.SH",
+          "name": "603987.SH",
+          "close": 8.36,
+          "pe_ttm": 14.9761,
+          "pb_lf": 1.3687,
+          "mkt_cap": 36.51571757,
+          "trade_date": "20260326",
+          "source": "tushare_historical",
+          "close_source": "tushare_historical",
+          "pe_source": "tushare_historical",
+          "pb_source": "tushare_historical",
+          "mkt_cap_source": "tushare_historical"
+        },
+        {
+          "code": "301122.SZ",
+          "name": "301122.SZ",
+          "close": 29.26,
+          "pe_ttm": 919.1228,
+          "pb_lf": 2.0001,
+          "mkt_cap": 35.76907953,
+          "trade_date": "20260326",
+          "source": "tushare_historical",
+          "close_source": "tushare_historical",
+          "pe_source": "tushare_historical",
+          "pb_source": "tushare_historical",
+          "mkt_cap_source": "tushare_historical"
+        },
+        {
+          "code": "301234.SZ",
+          "name": "301234.SZ",
+          "close": 38.14,
+          "pe_ttm": 107.4194,
+          "pb_lf": 3.4097,
+          "mkt_cap": 25.9352,
+          "trade_date": "20260326",
+          "source": "tushare_historical",
+          "close_source": "tushare_historical",
+          "pe_source": "tushare_historical",
+          "pb_source": "tushare_historical",
+          "mkt_cap_source": "tushare_historical"
+        }
+      ],
+      "comparable_summary": {
+        "provider": "tushare_historical",
+        "requested_codes": [
+          "603987.SH",
+          "301122.SZ",
+          "301234.SZ",
+          "873804.NQ"
+        ],
+        "returned_codes": [
+          "603987.SH",
+          "301122.SZ",
+          "301234.SZ"
+        ],
+        "cache_hits": [],
+        "api_fetched": [
+          "603987.SH",
+          "301122.SZ",
+          "301234.SZ"
+        ],
+        "skipped_unsupported": [
+          "873804.NQ"
+        ],
+        "reference_trade_date": "20260326",
+        "reason": ""
+      },
+      "method1_replay_available": true
     },
     {
       "SECURITY_CODE": "920188",
@@ -591,7 +1576,26 @@
         "fallback_used": false
       },
       "float_shares": 2199.3198,
-      "has_intraday_file": true
+      "has_intraday_file": true,
+      "comparable_codes": [
+        "871694.BJ",
+        "836871.BJ"
+      ],
+      "comparable_data": [],
+      "comparable_summary": {
+        "provider": "tushare_historical",
+        "requested_codes": [
+          "871694.BJ",
+          "836871.BJ"
+        ],
+        "returned_codes": [],
+        "cache_hits": [],
+        "api_fetched": [],
+        "skipped_unsupported": [],
+        "reference_trade_date": "20260329",
+        "reason": "未取到可用的历史可比快照。"
+      },
+      "method1_replay_available": false
     },
     {
       "SECURITY_CODE": "920055",
@@ -627,7 +1631,97 @@
         "fallback_used": false
       },
       "float_shares": 1700.0,
-      "has_intraday_file": true
+      "has_intraday_file": true,
+      "comparable_codes": [
+        "603305.SH",
+        "600933.SH",
+        "603211.SH",
+        "605133.SH"
+      ],
+      "comparable_data": [
+        {
+          "code": "603305.SH",
+          "name": "603305.SH",
+          "close": 14.62,
+          "pe_ttm": 42.9795,
+          "pb_lf": 1.8619,
+          "mkt_cap": 168.96459088999998,
+          "trade_date": "20260330",
+          "source": "tushare_historical",
+          "close_source": "tushare_historical",
+          "pe_source": "tushare_historical",
+          "pb_source": "tushare_historical",
+          "mkt_cap_source": "tushare_historical"
+        },
+        {
+          "code": "600933.SH",
+          "name": "600933.SH",
+          "close": 16.9,
+          "pe_ttm": 15.9271,
+          "pb_lf": 1.8644,
+          "mkt_cap": 174.09240433,
+          "trade_date": "20260330",
+          "source": "tushare_historical",
+          "close_source": "tushare_historical",
+          "pe_source": "tushare_historical",
+          "pb_source": "tushare_historical",
+          "mkt_cap_source": "tushare_historical"
+        },
+        {
+          "code": "603211.SH",
+          "name": "603211.SH",
+          "close": 25.22,
+          "pe_ttm": 109.0118,
+          "pb_lf": 5.5807,
+          "mkt_cap": 68.54997759999999,
+          "trade_date": "20260330",
+          "source": "tushare_historical",
+          "close_source": "tushare_historical",
+          "pe_source": "tushare_historical",
+          "pb_source": "tushare_historical",
+          "mkt_cap_source": "tushare_historical"
+        },
+        {
+          "code": "605133.SH",
+          "name": "605133.SH",
+          "close": 26.7,
+          "pe_ttm": 40.76,
+          "pb_lf": 2.0045,
+          "mkt_cap": 75.49936358000001,
+          "trade_date": "20260330",
+          "source": "tushare_historical",
+          "close_source": "tushare_historical",
+          "pe_source": "tushare_historical",
+          "pb_source": "tushare_historical",
+          "mkt_cap_source": "tushare_historical"
+        }
+      ],
+      "comparable_summary": {
+        "provider": "tushare_historical",
+        "requested_codes": [
+          "603305.SH",
+          "600933.SH",
+          "603211.SH",
+          "605133.SH"
+        ],
+        "returned_codes": [
+          "603305.SH",
+          "600933.SH",
+          "603211.SH",
+          "605133.SH"
+        ],
+        "cache_hits": [],
+        "api_fetched": [
+          "603305.SH",
+          "600933.SH",
+          "603211.SH",
+          "605133.SH"
+        ],
+        "skipped_unsupported": [],
+        "reference_trade_date": "20260330",
+        "reason": ""
+      },
+      "method1_replay_available": true
     },
     {
       "SECURITY_CODE": "920011",
@@ -663,7 +1757,119 @@
         "fallback_used": false
       },
       "float_shares": 2066.6667,
-      "has_intraday_file": true
+      "has_intraday_file": true,
+      "comparable_codes": [
+        "603344.SH",
+        "301226.SZ",
+        "300660.SZ",
+        "002892.SZ",
+        "833450.NQ",
+        "920100.BJ"
+      ],
+      "comparable_data": [
+        {
+          "code": "603344.SH",
+          "name": "603344.SH",
+          "close": 26.63,
+          "pe_ttm": 26.7073,
+          "pb_lf": 2.4654,
+          "mkt_cap": 51.80359997,
+          "trade_date": "20260407",
+          "source": "tushare_historical",
+          "close_source": "tushare_historical",
+          "pe_source": "tushare_historical",
+          "pb_source": "tushare_historical",
+          "mkt_cap_source": "tushare_historical"
+        },
+        {
+          "code": "301226.SZ",
+          "name": "301226.SZ",
+          "close": 42.4,
+          "pe_ttm": 161.6131,
+          "pb_lf": 5.0606,
+          "mkt_cap": 46.1312,
+          "trade_date": "20260407",
+          "source": "tushare_historical",
+          "close_source": "tushare_historical",
+          "pe_source": "tushare_historical",
+          "pb_source": "tushare_historical",
+          "mkt_cap_source": "tushare_historical"
+        },
+        {
+          "code": "300660.SZ",
+          "name": "300660.SZ",
+          "close": 40.66,
+          "pe_ttm": 57.1037,
+          "pb_lf": 5.2417,
+          "mkt_cap": 181.80572042,
+          "trade_date": "20260407",
+          "source": "tushare_historical",
+          "close_source": "tushare_historical",
+          "pe_source": "tushare_historical",
+          "pb_source": "tushare_historical",
+          "mkt_cap_source": "tushare_historical"
+        },
+        {
+          "code": "002892.SZ",
+          "name": "002892.SZ",
+          "close": 10.52,
+          "pe_ttm": 225.8618,
+          "pb_lf": 6.0099,
+          "mkt_cap": 78.32530082000001,
+          "trade_date": "20260407",
+          "source": "tushare_historical",
+          "close_source": "tushare_historical",
+          "pe_source": "tushare_historical",
+          "pb_source": "tushare_historical",
+          "mkt_cap_source": "tushare_historical"
+        },
+        {
+          "code": "920100.BJ",
+          "name": "920100.BJ",
+          "close": 45.27,
+          "pe_ttm": 55.519,
+          "pb_lf": 7.2577,
+          "mkt_cap": 33.41347011,
+          "trade_date": "20260407",
+          "source": "tushare_historical",
+          "close_source": "tushare_historical",
+          "pe_source": "tushare_historical",
+          "pb_source": "tushare_historical",
+          "mkt_cap_source": "tushare_historical"
+        }
+      ],
+      "comparable_summary": {
+        "provider": "tushare_historical",
+        "requested_codes": [
+          "603344.SH",
+          "301226.SZ",
+          "300660.SZ",
+          "002892.SZ",
+          "833450.NQ",
+          "920100.BJ"
+        ],
+        "returned_codes": [
+          "603344.SH",
+          "301226.SZ",
+          "300660.SZ",
+          "002892.SZ",
+          "920100.BJ"
+        ],
+        "cache_hits": [],
+        "api_fetched": [
+          "603344.SH",
+          "301226.SZ",
+          "300660.SZ",
+          "002892.SZ",
+          "920100.BJ"
+        ],
+        "skipped_unsupported": [
+          "833450.NQ"
+        ],
+        "reference_trade_date": "20260407",
+        "reason": ""
+      },
+      "method1_replay_available": true
     },
     {
       "SECURITY_CODE": "920181",
@@ -699,7 +1905,49 @@
         "fallback_used": false
       },
       "float_shares": 1110.0,
-      "has_intraday_file": true
+      "has_intraday_file": true,
+      "comparable_codes": [
+        "301581.SZ",
+        "688103.SH",
+        "873913.NQ"
+      ],
+      "comparable_data": [
+        {
+          "code": "301581.SZ",
+          "name": "301581.SZ",
+          "close": 45.14,
+          "pe_ttm": 50.4117,
+          "pb_lf": 3.5951,
+          "mkt_cap": 36.112,
+          "trade_date": "20260409",
+          "source": "tushare_historical",
+          "close_source": "tushare_historical",
+          "pe_source": "tushare_historical",
+          "pb_source": "tushare_historical",
+          "mkt_cap_source": "tushare_historical"
+        }
+      ],
+      "comparable_summary": {
+        "provider": "tushare_historical",
+        "requested_codes": [
+          "301581.SZ",
+          "688103.SH",
+          "873913.NQ"
+        ],
+        "returned_codes": [
+          "301581.SZ"
+        ],
+        "cache_hits": [],
+        "api_fetched": [
+          "301581.SZ"
+        ],
+        "skipped_unsupported": [
+          "873913.NQ"
+        ],
+        "reference_trade_date": "20260409",
+        "reason": "Tushare 请求失败: [SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1032)"
+      },
+      "method1_replay_available": true
     },
     {
       "SECURITY_CODE": "920012",
@@ -735,7 +1983,47 @@
         "fallback_used": false
       },
       "float_shares": 1450.1601,
-      "has_intraday_file": true
+      "has_intraday_file": true,
+      "comparable_codes": [
+        "920526.BJ",
+        "874318.NQ"
+      ],
+      "comparable_data": [
+        {
+          "code": "920526.BJ",
+          "name": "920526.BJ",
+          "close": 19.11,
+          "pe_ttm": 109.6476,
+          "pb_lf": 6.9033,
+          "mkt_cap": 15.803970000000001,
+          "trade_date": "20260410",
+          "source": "tushare_historical",
+          "close_source": "tushare_historical",
+          "pe_source": "tushare_historical",
+          "pb_source": "tushare_historical",
+          "mkt_cap_source": "tushare_historical"
+        }
+      ],
+      "comparable_summary": {
+        "provider": "tushare_historical",
+        "requested_codes": [
+          "920526.BJ",
+          "874318.NQ"
+        ],
+        "returned_codes": [
+          "920526.BJ"
+        ],
+        "cache_hits": [],
+        "api_fetched": [
+          "920526.BJ"
+        ],
+        "skipped_unsupported": [
+          "874318.NQ"
+        ],
+        "reference_trade_date": "20260412",
+        "reason": ""
+      },
+      "method1_replay_available": true
     }
   ]
 }

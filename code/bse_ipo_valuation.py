@@ -178,11 +178,14 @@ def _calc_change_pct(issue_price: float | None, target_price: float | None) -> f
     return (target_price / issue_price - 1) * 100
 
 
-def run(code: str) -> str:
+def build_analysis_data(
+    code: str,
+    params: dict[str, Any] | None = None,
+) -> dict[str, Any]:
     ipo_data_bundle: dict[str, Any]
     ipo_info: dict[str, Any]
     ipo_data_summary: dict[str, Any]
-    params = config_loader.load_params(ROOT_DIR / "策略参数.txt")
+    params = dict(params) if params is not None else config_loader.load_params(ROOT_DIR / "策略参数.txt")
     mapper = IndustryMapper(params)
 
     ipo_data_bundle = ipo_data_helper.prepare_ipo_data(code, int(params.get("recent_months", 3)), params)
@@ -311,7 +314,17 @@ def run(code: str) -> str:
         "notes": notes,
     }
 
-    return report_generator.generate_report(payload, str(ROOT_DIR / "输出"))
+    return payload
+
+
+def run(
+    code: str,
+    params: dict[str, Any] | None = None,
+    output_dir: str | Path | None = None,
+) -> str:
+    payload = build_analysis_data(code, params=params)
+    target_output_dir = str(Path(output_dir)) if output_dir is not None else str(ROOT_DIR / "输出")
+    return report_generator.generate_report(payload, target_output_dir)
 
 
 def _prompt_code_interactively() -> str | None:

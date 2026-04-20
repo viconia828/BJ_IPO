@@ -63,6 +63,35 @@
 ## 工具脚本
 
 - `tools/scan_pdf_samples.py`
+- `tools/tune_params.py`：离线调参入口
+- `tools/review_candidate_params.py`：候选参数集复核
+- `tools/upgrade_replay_dataset_composite.py`：将现有回放数据集升级为 `composite` 口径
+- `tools/observe_composite_weight_candidate.py`：综合权重观察期复核
+- `tools/observe_trend_balance_candidate.py`：`trend_balance` 观察期复核
+- `tools/observe_quick_method2_core_only.py`：`quick_method2_core_only` 观察期复核
+
+## 当前默认参数状态
+
+- 综合权重当前默认值：
+  - `weight_comparable = 0.20`
+  - `weight_industry_momentum = 0.80`
+- 方法二当前保留的 `quick_method2_core_only` 试运行参数：
+  - `price_range_width = 0.12`
+  - `float_size_threshold = 1500`
+  - `small_cap_premium = 0.15`
+- `trend_balance` 当前结论：
+  - 已完成离线调参与两轮真实样本观察
+  - 暂不吸收为默认参数
+- `WSI` 当前结论：
+  - 已完成扩组复核
+  - 当前未观察到稳定增益
+
+如需追踪这些结论的推演过程，优先查看：
+
+- `docs/工作日志/`
+- `data/offline_tuning/candidate_sets/`
+- `输出/调参/`
+- `输出/观察期/`
 
 ## 说明
 

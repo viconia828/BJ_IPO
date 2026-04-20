@@ -1,0 +1,40 @@
+{
+  "name": "trend_balance_candidate_set_v1",
+  "description": "基于 2026-04-20 trend_balance 首轮真实回放结果整理的第一版行业趋势权重候选集。",
+  "source_report": "输出/调参/tune_params_trend_balance_20260420_165614.md",
+  "candidates": [
+    {
+      "name": "trend_balance_industry_0p7_half10_thr70_40",
+      "description": "验证集当前最优，行业趋势偏置最强，且使用更短半衰期。",
+      "overrides": {
+        "industry_trend_weight": 0.7,
+        "market_sentiment_weight": 0.3,
+        "sample_decay_half_life_days": 10,
+        "trend_strong_threshold": 70,
+        "trend_weak_threshold": 40
+      }
+    },
+    {
+      "name": "trend_balance_industry_0p7_half10_thr75_45",
+      "description": "保留 0.7 / 0.3 主导结构，只把强弱阈值整体上移一档。",
+      "overrides": {
+        "industry_trend_weight": 0.7,
+        "market_sentiment_weight": 0.3,
+        "sample_decay_half_life_days": 10,
+        "trend_strong_threshold": 75,
+        "trend_weak_threshold": 45
+      }
+    },
+    {
+      "name": "trend_balance_industry_0p6_half10_thr70_40",
+      "description": "略微降低行业趋势权重，作为更保守的备选。",
+      "overrides": {
+        "industry_trend_weight": 0.6,
+        "market_sentiment_weight": 0.4,
+        "sample_decay_half_life_days": 10,
+        "trend_strong_threshold": 70,
+        "trend_weak_threshold": 40
+      }
+    }
+  ]
+}
