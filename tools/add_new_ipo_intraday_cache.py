@@ -46,7 +46,10 @@ def _emit_progress(event: str, payload: dict[str, Any]) -> None:
         pending = list(payload.get("pending_deferred_before") or [])
         print("正在扫描最新上市的新股首日走势缓存...", flush=True)
         if pending:
-            print(f"检测到 {len(pending)} 只待重试新股，本次会继续尝试补缓存。", flush=True)
+            print(
+                f"检测到 {len(pending)} 只待重试新股，本次会先重试这些代码，再按时间顺序扫描新股。",
+                flush=True,
+            )
         return
 
     if event == "scan_completed":
@@ -55,7 +58,10 @@ def _emit_progress(event: str, payload: dict[str, Any]) -> None:
         return
 
     if event == "checking":
-        print(f"正在检查 {_format_item(payload)} ...", flush=True)
+        if payload.get("phase") == "retry_pending":
+            print(f"正在重试待补缓存 {_format_item(payload)} ...", flush=True)
+        else:
+            print(f"正在检查 {_format_item(payload)} ...", flush=True)
         return
 
     if event == "cached":
@@ -77,7 +83,10 @@ def _emit_progress(event: str, payload: dict[str, Any]) -> None:
 
     if event == "error":
         reason = str(payload.get("reason") or "未知错误")
-        print(f"缓存失败 {_format_item(payload)}：{reason}", flush=True)
+        if payload.get("retry_pending"):
+            print(f"缓存失败 {_format_item(payload)}：{reason}；已保留待重试标记", flush=True)
+        else:
+            print(f"缓存失败 {_format_item(payload)}：{reason}", flush=True)
         return
 
     if event == "scan_error":
@@ -114,7 +123,10 @@ def _print_summary(summary: dict[str, object]) -> None:
         print("以下新股未能完成缓存：")
         for item in errors:
             reason = str(item.get("reason") or "未知错误")
-            print(f"- {_format_item(item)}：{reason}")
+            if item.get("retry_pending"):
+                print(f"- {_format_item(item)}：{reason}（已保留待重试，下次会继续尝试）")
+            else:
+                print(f"- {_format_item(item)}：{reason}")
 
 
 def main() -> int:

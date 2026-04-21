@@ -46,6 +46,12 @@ def _format_metric(value: Any) -> str:
     return f"{numeric:.4f}"
 
 
+def _format_flag(value: bool | None) -> str:
+    if value is None:
+        return "-"
+    return "是" if value else "否"
+
+
 def _candidate_tag(price_range_width: float, float_size_threshold: int, small_cap_premium: float) -> str:
     def _fmt(value: float) -> str:
         text = f"{value:.2f}".rstrip("0").rstrip(".")
@@ -84,6 +90,49 @@ def _is_interval_hit(actual_close_price: float | None, range_low: float | None, 
     return range_low <= actual_close_price <= range_high
 
 
+def _is_small_cap_triggered(float_factor: float | None) -> bool | None:
+    if float_factor is None:
+        return None
+    return float_factor > 1.0
+
+
+def _build_row_note(
+    error: str,
+    baseline_final: dict[str, Any],
+    candidate_final: dict[str, Any],
+    baseline_method2: dict[str, Any],
+    candidate_method2: dict[str, Any],
+) -> str:
+    if error:
+        return error
+
+    parts: list[str] = []
+    baseline_final_reason = str(baseline_final.get("reason") or "").strip()
+    candidate_final_reason = str(candidate_final.get("reason") or "").strip()
+    baseline_method2_reason = str(baseline_method2.get("reason") or "").strip()
+    candidate_method2_reason = str(candidate_method2.get("reason") or "").strip()
+
+    if baseline_final.get("available") is False or candidate_final.get("available") is False:
+        if baseline_final_reason and baseline_final_reason == candidate_final_reason:
+            parts.append(f"最终估值不可用：{baseline_final_reason}")
+        else:
+            if baseline_final_reason:
+                parts.append(f"baseline 最终估值不可用：{baseline_final_reason}")
+            if candidate_final_reason:
+                parts.append(f"候选最终估值不可用：{candidate_final_reason}")
+
+    if baseline_method2.get("available") is False or candidate_method2.get("available") is False:
+        if baseline_method2_reason and baseline_method2_reason == candidate_method2_reason:
+            parts.append(f"方法二不可用：{baseline_method2_reason}")
+        else:
+            if baseline_method2_reason:
+                parts.append(f"baseline 方法二不可用：{baseline_method2_reason}")
+            if candidate_method2_reason:
+                parts.append(f"候选方法二不可用：{candidate_method2_reason}")
+
+    return "；".join(parts)
+
+
 def _build_result_row(
     code: str,
     baseline_payload: dict[str, Any],
@@ -109,6 +158,7 @@ def _build_result_row(
     candidate_interval_hit = _is_interval_hit(actual_close_price, candidate_range_low, candidate_range_high)
     baseline_float_factor = _safe_float(baseline_method2.get("float_factor"))
     candidate_float_factor = _safe_float(candidate_method2.get("float_factor"))
+    note = _build_row_note(error, baseline_final, candidate_final, baseline_method2, candidate_method2)
 
     return {
         "code": code,
@@ -143,17 +193,26 @@ def _build_result_row(
         "candidate_change_pct": _safe_float(candidate_payload.get("final_change_pct")),
         "baseline_method2_target_price": _safe_float(baseline_method2.get("target_price")),
         "candidate_method2_target_price": _safe_float(candidate_method2.get("target_price")),
+        "baseline_final_available": baseline_final.get("available"),
+        "candidate_final_available": candidate_final.get("available"),
+        "baseline_final_reason": baseline_final.get("reason"),
+        "candidate_final_reason": candidate_final.get("reason"),
         "baseline_method2_sample_scope": baseline_method2.get("sample_scope"),
         "baseline_method2_sample_count": baseline_method2.get("sample_count"),
         "candidate_method2_sample_scope": candidate_method2.get("sample_scope"),
         "candidate_method2_sample_count": candidate_method2.get("sample_count"),
+        "baseline_method2_available": baseline_method2.get("available"),
+        "candidate_method2_available": candidate_method2.get("available"),
+        "baseline_method2_reason": baseline_method2.get("reason"),
+        "candidate_method2_reason": candidate_method2.get("reason"),
         "baseline_float_factor": baseline_float_factor,
         "candidate_float_factor": candidate_float_factor,
-        "baseline_small_cap_triggered": bool(baseline_float_factor and baseline_float_factor > 1.0),
-        "candidate_small_cap_triggered": bool(candidate_float_factor and candidate_float_factor > 1.0),
+        "baseline_small_cap_triggered": _is_small_cap_triggered(baseline_float_factor),
+        "candidate_small_cap_triggered": _is_small_cap_triggered(candidate_float_factor),
         "baseline_float_note": baseline_method2.get("float_note"),
         "candidate_float_note": candidate_method2.get("float_note"),
         "candidate_report_path": candidate_report_path,
+        "note": note,
         "error": error,
     }
 
@@ -172,6 +231,14 @@ def _hit_rate(values: list[bool | None]) -> float | None:
     return sum(1 for value in filtered if value) / len(filtered)
 
 
+def _is_comparable_row(row: dict[str, Any]) -> bool:
+    return (
+        _safe_float(row.get("baseline_target_price")) is not None
+        and _safe_float(row.get("candidate_target_price")) is not None
+        and _safe_float(row.get("actual_close_price")) is not None
+    )
+
+
 def _write_outputs(
     output_dir: Path,
     candidate_name: str,
@@ -183,6 +250,8 @@ def _write_outputs(
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     json_path = output_dir / f"observe_{candidate_name}_{timestamp}.json"
     md_path = output_dir / f"observe_{candidate_name}_{timestamp}.md"
+    comparable_rows = [row for row in rows if _is_comparable_row(row)]
+    unavailable_rows = [row for row in rows if not _is_comparable_row(row)]
 
     payload = {
         "candidate_name": candidate_name,
@@ -198,24 +267,34 @@ def _write_outputs(
             "small_cap_premium": candidate_params.get("small_cap_premium"),
         },
         "rows": rows,
+        "sample_count": len(rows),
+        "comparable_sample_count": len(comparable_rows),
+        "unavailable_samples": [
+            {
+                "code": row.get("code"),
+                "name": row.get("name"),
+                "note": row.get("note"),
+            }
+            for row in unavailable_rows
+        ],
         "baseline_avg_abs_price_error": _average(
-            [_safe_float(row.get("baseline_abs_price_error")) for row in rows]
+            [_safe_float(row.get("baseline_abs_price_error")) for row in comparable_rows]
         ),
         "candidate_avg_abs_price_error": _average(
-            [_safe_float(row.get("candidate_abs_price_error")) for row in rows]
+            [_safe_float(row.get("candidate_abs_price_error")) for row in comparable_rows]
         ),
-        "baseline_interval_hit_rate": _hit_rate([row.get("baseline_interval_hit") for row in rows]),
-        "candidate_interval_hit_rate": _hit_rate([row.get("candidate_interval_hit") for row in rows]),
+        "baseline_interval_hit_rate": _hit_rate([row.get("baseline_interval_hit") for row in comparable_rows]),
+        "candidate_interval_hit_rate": _hit_rate([row.get("candidate_interval_hit") for row in comparable_rows]),
     }
     json_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
 
     table_lines = [
-        "| 代码 | 名称 | 实际收盘 | baseline 目标价 | 候选目标价 | baseline 误差 | 候选误差 | baseline 小盘 | 候选小盘 | baseline 区间命中 | 候选区间命中 |",
-        "| --- | --- | ---: | ---: | ---: | ---: | ---: | --- | --- | --- | --- |",
+        "| 代码 | 名称 | 实际收盘 | baseline 目标价 | 候选目标价 | baseline 误差 | 候选误差 | baseline 小盘 | 候选小盘 | baseline 区间命中 | 候选区间命中 | 备注 |",
+        "| --- | --- | ---: | ---: | ---: | ---: | ---: | --- | --- | --- | --- | --- |",
     ]
     for row in rows:
         table_lines.append(
-            "| {code} | {name} | {actual_close} | {base_target} | {cand_target} | {base_error} | {cand_error} | {base_small} | {cand_small} | {base_hit} | {cand_hit} |".format(
+            "| {code} | {name} | {actual_close} | {base_target} | {cand_target} | {base_error} | {cand_error} | {base_small} | {cand_small} | {base_hit} | {cand_hit} | {note} |".format(
                 code=row.get("code"),
                 name=row.get("name") or "-",
                 actual_close=_format_metric(row.get("actual_close_price")),
@@ -223,12 +302,18 @@ def _write_outputs(
                 cand_target=_format_metric(row.get("candidate_target_price")),
                 base_error=_format_metric(row.get("baseline_abs_price_error")),
                 cand_error=_format_metric(row.get("candidate_abs_price_error")),
-                base_small="是" if row.get("baseline_small_cap_triggered") else "否",
-                cand_small="是" if row.get("candidate_small_cap_triggered") else "否",
-                base_hit="是" if row.get("baseline_interval_hit") else "否",
-                cand_hit="是" if row.get("candidate_interval_hit") else "否",
+                base_small=_format_flag(row.get("baseline_small_cap_triggered")),
+                cand_small=_format_flag(row.get("candidate_small_cap_triggered")),
+                base_hit=_format_flag(row.get("baseline_interval_hit")),
+                cand_hit=_format_flag(row.get("candidate_interval_hit")),
+                note=row.get("note") or "-",
             )
         )
+
+    unavailable_lines = [
+        f"- `{row.get('code')}` {row.get('name') or ''}：{row.get('note') or '无可比观察结果'}".rstrip()
+        for row in unavailable_rows
+    ]
 
     markdown = "\n".join(
         [
@@ -254,10 +339,16 @@ def _write_outputs(
             "",
             "## 汇总",
             "",
+            f"- 样本总数：`{payload['sample_count']}`",
+            f"- 有效可比样本数：`{payload['comparable_sample_count']}`",
             f"- baseline 平均绝对误差：`{_format_metric(payload['baseline_avg_abs_price_error'])}`",
             f"- 候选平均绝对误差：`{_format_metric(payload['candidate_avg_abs_price_error'])}`",
             f"- baseline 区间命中率：`{_format_metric(payload['baseline_interval_hit_rate'])}`",
             f"- 候选区间命中率：`{_format_metric(payload['candidate_interval_hit_rate'])}`",
+            "",
+            "## 不可用样本",
+            "",
+            *(unavailable_lines or ["- 无"]),
             "",
         ]
     )

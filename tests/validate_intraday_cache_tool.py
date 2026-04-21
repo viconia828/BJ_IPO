@@ -388,11 +388,81 @@ def _run_retry_deferred_case(failures: list[str]) -> None:
         params=_make_params(cache_root),
     )
 
-    _assert(summary["checked_codes"] == ["920191", "920177", "920188"], "retry_deferred: expected scan to continue past cached 920191", failures)
+    _assert(summary["checked_codes"] == ["920177", "920191"], "retry_deferred: expected deferred code retried before chronological scan", failures)
     _assert(summary["deferred_count"] == 1, "retry_deferred: expected one deferred code", failures)
     _assert(summary["pending_deferred_after"] == ["920177"], "retry_deferred: expected deferred code to remain pending", failures)
-    _assert(summary["stop_at_existing"]["code"] == "920188", "retry_deferred: expected stop at older existing cache", failures)
-    print("OK retry_deferred: pending deferred codes were retried even when a newer cached csv already existed")
+    _assert(summary["stop_at_existing"]["code"] == "920191", "retry_deferred: expected stop at first existing cache in chronological scan", failures)
+    print("OK retry_deferred: pending deferred codes were retried first, then scan stopped at the first existing cache")
+
+
+def _run_error_retry_persistence_case(failures: list[str]) -> None:
+    cache_root = TEMP_ROOT / "error_retry_persistence" / "cache_db"
+    output_dir = TEMP_ROOT / "error_retry_persistence" / "csv"
+    today = cache_listing_day_intraday.date.today().isoformat()
+
+    scans = [
+        [
+            {"SECURITY_CODE": "920177", "SECURITY_NAME_ABBR": "恒道科技", "LISTING_DATE": "2026-04-19"},
+            {"SECURITY_CODE": "920188", "SECURITY_NAME_ABBR": "已有缓存样本", "LISTING_DATE": "2026-04-18"},
+        ],
+        [
+            {"SECURITY_CODE": "920191", "SECURITY_NAME_ABBR": "新近已有缓存", "LISTING_DATE": today},
+            {"SECURITY_CODE": "920177", "SECURITY_NAME_ABBR": "恒道科技", "LISTING_DATE": "2026-04-19"},
+            {"SECURITY_CODE": "920188", "SECURITY_NAME_ABBR": "已有缓存样本", "LISTING_DATE": "2026-04-18"},
+        ],
+    ]
+
+    def _fake_call_tushare_api(
+        api_name: str,
+        params: dict[str, Any],
+        fields: str,
+        settings: dict[str, Any],
+        db: Any,
+    ) -> tuple[list[dict[str, Any]], str]:
+        return [], "Tushare 接口 stk_mins 调用失败: 抱歉，您每天最多访问该接口2次。"
+
+    def _fake_fetch_recent_ipos(months: int = 3, page_size: int = 50, require_close_price: bool = True) -> list[dict[str, Any]]:
+        return scans.pop(0)
+
+    def _fake_fetch_intraday_trends(code: str, trade_date: str | Any = None) -> list[dict[str, Any]]:
+        raise cache_listing_day_intraday.data_fetcher.DataFetcherError(
+            f"东方财富分钟线暂不可用：{code}"
+        )
+
+    output_dir.mkdir(parents=True, exist_ok=True)
+    (output_dir / "920188.csv").write_text("DateTime,open,high,low,close,volume,amount\n", encoding="utf-8-sig")
+
+    os.environ[TOKEN_ENV] = "dummy"
+    cache_listing_day_intraday.data_fetcher.fetch_recent_ipos = _fake_fetch_recent_ipos
+    cache_listing_day_intraday.data_fetcher.fetch_intraday_trends = _fake_fetch_intraday_trends
+    tushare_helper._call_tushare_api = _fake_call_tushare_api
+
+    first_summary = cache_listing_day_intraday.run_latest_missing_cache_job(
+        months=18,
+        output_dir=output_dir,
+        params=_make_params(cache_root),
+    )
+
+    _assert(first_summary["error_count"] == 1, "error_retry_persistence: expected one failed code on first run", failures)
+    _assert(first_summary["errors"][0]["code"] == "920177", "error_retry_persistence: expected 920177 error on first run", failures)
+    _assert(first_summary["errors"][0].get("retry_pending") is True, "error_retry_persistence: expected retry_pending flag", failures)
+    _assert(first_summary["pending_deferred_after"] == ["920177"], "error_retry_persistence: expected failed code to stay pending after first run", failures)
+    _assert(first_summary["stop_at_existing"]["code"] == "920188", "error_retry_persistence: expected stop at existing 920188 on first run", failures)
+
+    (output_dir / "920191.csv").write_text("DateTime,open,high,low,close,volume,amount\n", encoding="utf-8-sig")
+    second_summary = cache_listing_day_intraday.run_latest_missing_cache_job(
+        months=18,
+        output_dir=output_dir,
+        params=_make_params(cache_root),
+    )
+
+    _assert(second_summary["pending_deferred_before"] == ["920177"], "error_retry_persistence: expected pending marker on second run", failures)
+    _assert(second_summary["checked_codes"] == ["920177", "920191"], "error_retry_persistence: expected deferred code retried before chronological scan", failures)
+    _assert(second_summary["error_count"] == 1, "error_retry_persistence: expected one failed code on second run", failures)
+    _assert(second_summary["errors"][0]["code"] == "920177", "error_retry_persistence: expected 920177 error on second run", failures)
+    _assert(second_summary["pending_deferred_after"] == ["920177"], "error_retry_persistence: expected failed code to remain pending after second run", failures)
+    _assert(second_summary["stop_at_existing"]["code"] == "920191", "error_retry_persistence: expected stop at first existing cache on second run", failures)
+    print("OK error_retry_persistence: failed uncached codes stayed pending and were retried before the normal stop boundary")
 
 
 def _run_progress_callback_case(failures: list[str]) -> None:
@@ -439,6 +509,7 @@ def main() -> int:
         _run_eastmoney_fallback_case(failures)
         _run_eastmoney_imprecise_case(failures)
         _run_retry_deferred_case(failures)
+        _run_error_retry_persistence_case(failures)
         _run_progress_callback_case(failures)
     finally:
         tushare_helper._call_tushare_api = _ORIGINAL_CALL_TUSHARE_API
@@ -452,7 +523,7 @@ def main() -> int:
             print(f"- {item}")
         return 1
 
-    print("\nIntraday cache validation passed: 7 cases")
+    print("\nIntraday cache validation passed: 8 cases")
     return 0
 
 

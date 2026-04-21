@@ -299,7 +299,6 @@ def run_latest_missing_cache_job(
     strategy_params = _prepare_params(params)
     summary = _build_empty_summary("eastmoney_latest_until_cached", output_path)
     deferred_before = _load_deferred_codes(strategy_params)
-    remaining_deferred = set(deferred_before)
     deferred_after: list[str] = []
     summary["pending_deferred_before"] = list(deferred_before)
     _emit_progress(
@@ -329,10 +328,18 @@ def run_latest_missing_cache_job(
         },
     )
 
+    candidate_by_code: dict[str, dict[str, Any]] = {}
     for item in candidates:
+        normalized_code = _base_code(str(item.get("SECURITY_CODE") or "")).strip().upper()
+        if normalized_code and normalized_code not in candidate_by_code:
+            candidate_by_code[normalized_code] = item
+
+    processed_codes: set[str] = set()
+
+    def _handle_candidate(item: dict[str, Any], phase: str, allow_stop_on_existing: bool) -> bool:
         code = str(item.get("SECURITY_CODE") or "").strip()
         if not code:
-            continue
+            return False
         _emit_progress(
             progress_callback,
             "checking",
@@ -340,38 +347,57 @@ def run_latest_missing_cache_job(
                 "code": code,
                 "name": str(item.get("SECURITY_NAME_ABBR") or item.get("SECURITY_NAME") or "").strip(),
                 "listing_date": _normalize_trade_date(item.get("LISTING_DATE")),
+                "phase": phase,
             },
         )
         summary["checked_codes"].append(code)
         result = _cache_single_candidate(item, output_path, strategy_params, force=False)
         status = result.pop("status")
-        current_code = str(result.get("code") or code).strip().upper()
-        if current_code in remaining_deferred:
-            remaining_deferred.discard(current_code)
+        current_code = _base_code(str(result.get("code") or code)).strip().upper()
+        if current_code:
+            processed_codes.add(current_code)
         if status == "existing":
             summary["skipped_existing"].append(result)
             _emit_progress(progress_callback, "existing", result)
-            if not remaining_deferred:
+            if allow_stop_on_existing:
                 summary["stop_at_existing"] = dict(result)
                 _emit_progress(progress_callback, "stop_at_existing", result)
-                break
-            continue
+                return True
+            return False
         if status == "cached":
             summary["cached"].append(result)
             _emit_progress(progress_callback, "cached", result)
-            continue
+            return False
         if status == "deferred":
             summary["deferred"].append(result)
             if current_code and current_code not in deferred_after:
                 deferred_after.append(current_code)
             _emit_progress(progress_callback, "deferred", result)
-            continue
-        summary["errors"].append(result)
-        _emit_progress(progress_callback, "error", result)
+            return False
+        error_result = dict(result)
+        if current_code:
+            if current_code not in deferred_after:
+                deferred_after.append(current_code)
+            error_result["retry_pending"] = True
+        summary["errors"].append(error_result)
+        _emit_progress(progress_callback, "error", error_result)
+        return False
 
     for code in deferred_before:
-        if code in remaining_deferred and code not in deferred_after:
-            deferred_after.append(code)
+        item = candidate_by_code.get(code)
+        if item is None:
+            if code not in deferred_after:
+                deferred_after.append(code)
+            continue
+        _handle_candidate(item, phase="retry_pending", allow_stop_on_existing=False)
+
+    for item in candidates:
+        normalized_code = _base_code(str(item.get("SECURITY_CODE") or "")).strip().upper()
+        if not normalized_code or normalized_code in processed_codes:
+            continue
+        if _handle_candidate(item, phase="latest_scan", allow_stop_on_existing=True):
+            break
+
     summary["pending_deferred_after"] = list(deferred_after)
     _save_deferred_codes(strategy_params, deferred_after)
     _emit_progress(

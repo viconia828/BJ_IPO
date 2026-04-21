@@ -468,7 +468,7 @@ def _assert_note_builder_focus_scope(params: dict[str, Any], failures: list[str]
     low_pe_notes = note_builder.generate_notes(
         {
             "ipo_info": {
-                "AFTER_ISSUE_PE": 2.0,
+                "AFTER_ISSUE_PE": 1.9,
                 "INDUSTRY_PE_NEW": 10.0,
             },
             "float_shares": 3000.0,

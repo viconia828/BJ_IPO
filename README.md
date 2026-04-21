@@ -21,6 +21,7 @@
 - `code/ipo_data_helper.py`：IPO 信息与方法二样本数据源分发层
 - `code/tushare_helper.py`：Tushare 可比快照适配层
 - `code/tushare_ipo_helper.py`：Tushare IPO 信息与近期样本适配层
+- `code/bse_official_helper.py`：北交所官网公告下载封装，主走 `920 -> 公开发行一览详情 -> PDF`，审核项目链路保留兜底
 - `code/pdf_parser.py`：公告文件解析
 - `code/trend_scorer.py`：首日走势评分
 - `code/wind_helper.py`：当前保留的数据源适配层
@@ -59,6 +60,9 @@
 - `tests/validate_tushare_ipo_data_pipeline.py`
 - `tests/validate_pdf_content_goldens.py`
 - `tests/validate_pdf_old_shares_goldens.py`
+- `tests/validate_bse_official_helper.py`
+- `tests/validate_prospectus_autodownload.py`
+- `tests/validate_bse_newshare_fallback.py`
 
 ## 工具脚本
 
@@ -71,6 +75,39 @@
 - `tools/observe_quick_method2_core_only.py`：`quick_method2_core_only` 观察期复核
 - `tools/cache_listing_day_intraday.py`：扫描上市首日新股并用 Tushare 分钟线缓存本地 `首日分时走势/*.csv`
 - `tools/add_new_ipo_intraday_cache.py`：按最新上市顺序补齐缺失的新股首日分时缓存
+- `tools/download_bse_official_pdf.py`：按北交所官网映射链下载招股说明书 / 上市公告书 PDF 到 `公告文件/`
+
+## 北交所官网公告下载
+
+- 当前主链路已切到北交所官网“公开发行一览”：
+  - `920xxx -> newShareController/infoResult.do -> 公开发行详情 id`
+  - `详情 id -> newShareController/infoDetailResult.do -> 招股说明书 / 上市公告书 PDF`
+- 若“公开发行一览”未命中，再回退旧官网审核项目链路：
+  - `920xxx -> detailCompany.do -> 公司全称`
+  - `公司全称 -> infoResult.do -> 8 开头项目代码 + project id`
+  - `project id -> infoDetailResult.do -> 招股说明书 PDF`
+- 当前已实现上市公告书下载链路：
+  - 先尝试北交所官网“公开发行一览”详情页公告列表
+  - 再尝试北交所官网上市公司公告接口
+  - 若官网未命中，再回退东方财富公告列表和公告详情页提取 PDF 原文链接
+- 当前工具默认优先取 `BHG(注册稿)`，再回退 `SYG(上会稿)`、`SBG(申报稿)`
+
+示例：
+
+- `python tools\download_bse_official_pdf.py 920177`
+- `python tools\download_bse_official_pdf.py 920177 --resolve-only`
+- `python tools\download_bse_official_pdf.py 920177 --overwrite`
+- `python tools\download_bse_official_pdf.py 920177 --document listing`
+- `python tools\download_bse_official_pdf.py 920177 --document all`
+
+## 主程序公告取用顺序
+
+- 生成估值报告时，主程序会先检查本地 `公告文件/` 里的招股说明书和上市公告书
+- 若本地缺少任意一个文件，就会启动官网探测；缺招股说明书时会提示“招股说明书下载中，请稍候。”，仅缺上市公告书时会提示“上市公告书探测中，请稍候。”
+- 官网探测仍优先走北交所“公开发行一览”链路；命中招股说明书和上市公告书时会直接下载到本地
+- 若官网探测结束后仍没有可用招股说明书，程序会直接提示“未取到招股说明书，生成报告失败：...”并终止本次报告生成
+- 只要已经拿到招股说明书，报告就会继续生成；若上市公告书仍未命中或下载失败，只提示“上市公告书未下载，可手动补充”，不再额外走其他公告链路兜底
+- 上市公告书目前仍只按本地文件参与解析，不作为报告生成的必备项
 
 ## 首日分时自动缓存
 
@@ -104,7 +141,12 @@
 - 方法二当前保留的 `quick_method2_core_only` 试运行参数：
   - `price_range_width = 0.12`
   - `float_size_threshold = 1500`
-  - `small_cap_premium = 0.15`
+  - `small_cap_premium = 0.10`
+- 方法二 PE 参数当前默认状态：
+  - `pe_low_threshold = 0.20`
+  - `pe_discount_boost = 0.10`
+  - `pe_high_threshold = 0.60`
+  - `pe_premium_drag = -0.10`
 - `trend_balance` 当前结论：
   - 已完成离线调参与两轮真实样本观察
   - 暂不吸收为默认参数

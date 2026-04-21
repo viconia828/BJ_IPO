@@ -27,8 +27,8 @@ price_range_width = 0.12              # 最终估值区间宽度（±）
 # === 偶尔调：方法二核心阈值 ===
 min_industry_samples = 2              # 维持行业口径所需的最少样本数；不足则回退更宽口径
 float_size_threshold = 1500           # 首日流通盘阈值（万股）；低于该值视为小盘
-small_cap_premium = 0.15              # 小盘样本给予的额外溢价系数
-pe_low_threshold = 0.30               # 发行 PE / 行业 PE 低估阈值
+small_cap_premium = 0.10              # 小盘样本给予的额外溢价系数
+pe_low_threshold = 0.20               # 发行 PE / 行业 PE 低估阈值
 pe_discount_boost = 0.10              # 低估阈值命中后的上调幅度
 pe_high_threshold = 0.60              # 发行 PE / 行业 PE 高估阈值
 pe_premium_drag = -0.10               # 高估阈值命中后的下调幅度

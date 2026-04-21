@@ -119,6 +119,17 @@ SEARCH_STAGE_GRIDS: dict[str, dict[str, list[Any]]] = {
             ("pe_premium_drag", [-0.05, -0.10]),
         ]
     ),
+    "quick_method2_pe_focus": OrderedDict(
+        [
+            ("price_range_width", [0.12]),
+            ("small_cap_premium", [0.10]),
+            ("float_size_threshold", [1500]),
+            ("pe_low_threshold", [0.20, 0.25, 0.30, 0.35]),
+            ("pe_discount_boost", [0.05, 0.10, 0.15]),
+            ("pe_high_threshold", [0.55, 0.60]),
+            ("pe_premium_drag", [-0.05, -0.10]),
+        ]
+    ),
     "time_decay": OrderedDict(
         [
             ("sample_weight_mode", ["time_decay"]),

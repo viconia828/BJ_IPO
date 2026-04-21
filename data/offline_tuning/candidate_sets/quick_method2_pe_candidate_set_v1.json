@@ -1,0 +1,37 @@
+{
+  "name": "quick_method2_pe_candidate_set_v1",
+  "description": "基于 2026-04-21 quick_method2_pe_focus 定向调参与 replay 观察整理的第一版 PE 参数候选集。",
+  "source_report": "输出/调参/tune_params_quick_method2_pe_focus_20260421_102535.md",
+  "candidates": [
+    {
+      "name": "quick_method2_pe_low_0p20_keep_current",
+      "description": "只下调低 PE 触发阈值到 0.20，其余 PE 参数保持当前默认值，优先验证“减少不必要的低估加成”。",
+      "overrides": {
+        "pe_low_threshold": 0.20,
+        "pe_discount_boost": 0.10,
+        "pe_high_threshold": 0.60,
+        "pe_premium_drag": -0.10
+      }
+    },
+    {
+      "name": "quick_method2_pe_low_0p20_mild_boost",
+      "description": "下调低 PE 阈值到 0.20，同时把低估加成收敛到 5%，作为更保守备选。",
+      "overrides": {
+        "pe_low_threshold": 0.20,
+        "pe_discount_boost": 0.05,
+        "pe_high_threshold": 0.60,
+        "pe_premium_drag": -0.10
+      }
+    },
+    {
+      "name": "quick_method2_pe_low_0p25_keep_current",
+      "description": "保留当前高 PE 参数，只把低 PE 阈值调整到 0.25，作为较温和的中间方案。",
+      "overrides": {
+        "pe_low_threshold": 0.25,
+        "pe_discount_boost": 0.10,
+        "pe_high_threshold": 0.60,
+        "pe_premium_drag": -0.10
+      }
+    }
+  ]
+}

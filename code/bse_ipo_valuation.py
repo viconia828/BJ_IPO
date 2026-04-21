@@ -5,8 +5,9 @@ import re
 import sys
 from datetime import date
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
+import bse_official_helper
 import config_loader
 import comparable_data_helper
 import data_fetcher
@@ -20,6 +21,10 @@ from industry_mapping import IndustryMapper
 
 CODE_PATTERN = re.compile(r"^\d{6}$")
 ROOT_DIR = Path(__file__).resolve().parents[1]
+
+
+class RequiredProspectusNotFoundError(RuntimeError):
+    """Raised when no usable prospectus is available after official probing."""
 
 
 def _safe_float(value: Any) -> float | None:
@@ -178,9 +183,95 @@ def _calc_change_pct(issue_price: float | None, target_price: float | None) -> f
     return (target_price / issue_price - 1) * 100
 
 
+def _ensure_local_prospectus_pdf(
+    directory: Path,
+    code: str,
+    progress_callback: Callable[[str], None] | None = None,
+) -> tuple[Path | None, str]:
+    existing = _pick_prospectus_pdf(directory, code, "old_shares")
+    if existing is not None:
+        return existing, ""
+
+    if progress_callback is not None:
+        progress_callback("招股说明书下载中，请稍候。")
+
+    try:
+        client = bse_official_helper.BSEOfficialClient(status_callback=progress_callback)
+        _, downloaded_path = client.download_best_prospectus_by_post_listing_code(
+            code,
+            directory,
+            overwrite=False,
+        )
+    except bse_official_helper.BSEOfficialError as exc:
+        return None, str(exc)
+
+    refreshed = _pick_prospectus_pdf(directory, code, "old_shares")
+    if refreshed is not None:
+        return refreshed, ""
+    if downloaded_path.exists():
+        return None, f"招股说明书已下载到本地，但未识别为可用文件：{downloaded_path.name}"
+    return None, "招股说明书下载后仍未在本地找到可用文件"
+
+def _ensure_local_official_documents(
+    directory: Path,
+    code: str,
+    progress_callback: Callable[[str], None] | None = None,
+) -> tuple[Path | None, str, Path | None, str]:
+    existing_prospectus = _pick_prospectus_pdf(directory, code, "old_shares")
+    existing_listing = _find_pdf(directory, code, "上市公告书")
+    if existing_prospectus is not None and existing_listing is not None:
+        return existing_prospectus, "", existing_listing, ""
+
+    if progress_callback is not None:
+        if existing_prospectus is None and existing_listing is None:
+            progress_callback("招股说明书/上市公告书探测中，请稍候。")
+        elif existing_prospectus is None:
+            progress_callback("招股说明书下载中，请稍候。")
+        else:
+            progress_callback("上市公告书探测中，请稍候。")
+
+    client = bse_official_helper.BSEOfficialClient(status_callback=progress_callback)
+    prospectus_download_error = ""
+    listing_download_error = ""
+    downloaded_path: Path | None = None
+
+    if existing_prospectus is None:
+        try:
+            _, downloaded_path = client.download_best_prospectus_by_post_listing_code(
+                code,
+                directory,
+                overwrite=False,
+            )
+        except bse_official_helper.BSEOfficialError as exc:
+            prospectus_download_error = str(exc)
+
+    if existing_listing is None:
+        try:
+            _, existing_listing = client.download_listing_announcement_from_newshare_by_post_listing_code(
+                code,
+                directory,
+                overwrite=False,
+            )
+        except bse_official_helper.BSEOfficialError as exc:
+            listing_download_error = str(exc)
+
+    refreshed_prospectus = _pick_prospectus_pdf(directory, code, "old_shares")
+    refreshed_listing = _find_pdf(directory, code, "上市公告书")
+    if refreshed_prospectus is not None:
+        return refreshed_prospectus, "", refreshed_listing or existing_listing, listing_download_error
+    if existing_prospectus is not None:
+        return existing_prospectus, "", refreshed_listing or existing_listing, listing_download_error
+    if not prospectus_download_error and downloaded_path is not None and downloaded_path.exists():
+        prospectus_download_error = f"招股说明书已下载到本地，但未识别为可用文件：{downloaded_path.name}"
+    if not prospectus_download_error:
+        prospectus_download_error = "招股说明书下载后仍未在本地找到可用文件"
+    return None, prospectus_download_error, refreshed_listing or existing_listing, listing_download_error
+
+
 def build_analysis_data(
     code: str,
     params: dict[str, Any] | None = None,
+    progress_callback: Callable[[str], None] | None = None,
 ) -> dict[str, Any]:
     ipo_data_bundle: dict[str, Any]
     ipo_info: dict[str, Any]
@@ -198,6 +289,36 @@ def build_analysis_data(
     old_shares_fallback_pdf = _pick_prospectus_pdf(pdf_dir, code, "old_shares")
     comparable_pdf = _pick_prospectus_pdf(pdf_dir, code, "comparables")
     business_pdf = _pick_prospectus_pdf(pdf_dir, code, "business")
+    prospectus_download_error = ""
+    listing_download_error = ""
+    prospectus_available = any((old_shares_fallback_pdf, comparable_pdf, business_pdf))
+
+    if not prospectus_available or listing_pdf is None:
+        (
+            old_shares_fallback_pdf,
+            prospectus_download_error,
+            listing_pdf,
+            listing_download_error,
+        ) = _ensure_local_official_documents(
+            pdf_dir,
+            code,
+            progress_callback=progress_callback,
+        )
+        old_shares_fallback_pdf = _pick_prospectus_pdf(pdf_dir, code, "old_shares")
+        listing_pdf = _find_pdf(pdf_dir, code, "上市公告书") or listing_pdf
+        comparable_pdf = _pick_prospectus_pdf(pdf_dir, code, "comparables")
+        business_pdf = _pick_prospectus_pdf(pdf_dir, code, "business")
+        prospectus_available = any((old_shares_fallback_pdf, comparable_pdf, business_pdf))
+
+        if not prospectus_available:
+            detail = prospectus_download_error or "官网探测结束后仍未找到可用招股说明书"
+            raise RequiredProspectusNotFoundError(f"未取到招股说明书，生成报告失败：{detail}")
+
+        if listing_pdf is None and progress_callback is not None:
+            message = "上市公告书未下载，可手动补充；本次将按无上市公告书方式继续生成估值报告。"
+            if listing_download_error:
+                message = f"{message} 原因：{listing_download_error}"
+            progress_callback(message)
 
     old_shares, old_shares_desc, old_shares_meta = _resolve_old_shares(params, listing_pdf, old_shares_fallback_pdf)
     total_issue_num = _safe_float(ipo_info.get("TOTAL_ISSUE_NUM")) or 0.0
@@ -299,6 +420,8 @@ def build_analysis_data(
         "old_shares_desc": old_shares_desc,
         "old_shares_meta": old_shares_meta,
         "company_description": company_description,
+        "prospectus_download_error": prospectus_download_error,
+        "listing_download_error": listing_download_error,
         "comparable_codes": comparable_codes,
         "comparable_data": comparable_data,
         "comparable_summary": comparable_summary,
@@ -321,8 +444,9 @@ def run(
     code: str,
     params: dict[str, Any] | None = None,
     output_dir: str | Path | None = None,
+    progress_callback: Callable[[str], None] | None = None,
 ) -> str:
-    payload = build_analysis_data(code, params=params)
+    payload = build_analysis_data(code, params=params, progress_callback=progress_callback)
     target_output_dir = str(Path(output_dir)) if output_dir is not None else str(ROOT_DIR / "输出")
     return report_generator.generate_report(payload, target_output_dir)
 
@@ -358,12 +482,15 @@ def main() -> int:
         code = _normalize_code(code)
         if interactive:
             print(f"已收到代码 {code}，正在生成报告，请稍候。这一步会读取公告文件并整理估值数据，通常需要几十秒。")
-        output_path = run(code)
+        output_path = run(code, progress_callback=print)
     except FileNotFoundError as exc:
         print(f"文件缺失：{exc}")
         return 1
     except data_fetcher.DataFetcherError as exc:
         print(f"数据获取失败：{exc}")
+        return 1
+    except RequiredProspectusNotFoundError as exc:
+        print(str(exc))
         return 1
     except ValueError as exc:
         print(f"参数或输入错误：{exc}")
