@@ -1,169 +1,223 @@
-﻿# 北交所新股估值
+# 北交所新股估值
 
-这是当前可直接交付使用的本地版北交所新股估值工具。
+这是一个面向日常使用的本地版北交所新股估值工具。
 
-## 入口
+它主要解决三件事：
 
-- 双击 [运行.bat](运行.bat)
-- 或命令行运行：`python code\bse_ipo_valuation.py 920177`
+1. 输入 6 位股票代码，生成首日估值 PDF 报告
+2. 补齐招股说明书、上市公告书和首日分时走势等本地资料
+3. 对策略参数做离线复核和 replay 观察
 
-程序会提示输入 6 位代码，生成带时间戳的 PDF 报告到 `输出/` 目录。
+如果你只是使用者，优先看下面这几节即可，不需要先研究 `code/` 和 `tests/`。
 
-如需启用 Tushare，请先在本机环境变量中设置 `TUSHARE_TOKEN`。仓库不会保存 token。
+## 你最常用的入口
 
-## 当前核心文件
+- 生成估值报告：双击 `运行.bat`
+- 手动调参：双击 `手动调参.bat`
+- 补最新首日分时走势：双击 `添加新股首日走势.bat`
 
-- `code/bse_ipo_valuation.py`：主入口
-- `code/report_generator.py`：报告渲染与 PDF 导出
-- `code/valuation_engine.py`：方法一、方法二、综合估值
-- `code/data_fetcher.py`：IPO 基础信息与近期样本获取
-- `code/comparable_data_helper.py`：方法一可比快照数据源分发层
-- `code/ipo_data_helper.py`：IPO 信息与方法二样本数据源分发层
-- `code/tushare_helper.py`：Tushare 可比快照适配层
-- `code/tushare_ipo_helper.py`：Tushare IPO 信息与近期样本适配层
-- `code/bse_official_helper.py`：北交所官网公告下载封装，主走 `920 -> 公开发行一览详情 -> PDF`，审核项目链路保留兜底
-- `code/pdf_parser.py`：公告文件解析
-- `code/trend_scorer.py`：首日走势评分
-- `code/wind_helper.py`：当前保留的数据源适配层
+也可以直接用命令行：
 
-## 目录结构
+- `python code\bse_ipo_valuation.py 920177`
+- `python tools\tune_params.py --mode offline --param-name small_cap_premium --candidate-values 0.10,0.15`
+- `python tools\cache_listing_day_intraday.py --latest-until-cached --months 18`
 
-- 根目录：仅保留 `运行.bat`、`策略参数.txt`、`README.md`
-- `code/`：全部核心运行模块
-- `公告文件/`：原始 PDF 公告
-- `首日分时走势/`：本地走势样本数据
-- `输出/`：运行后生成的 PDF 报告
-- `tests/`：回归验证与黄金样本脚本
-- `tools/`：批量扫描等辅助工具
-- `docs/设计文档/`：方案、实施计划、施工方案
-- `docs/工作日志/`：工作日志与下一步工作清单
+## 首次使用前
 
-## 文档命名规则
+### 1. 环境
 
-- 设计文档：`01_...`、`02_...`、`03_...`
-- 工作日志：`YYYYMMDD_工作日志.md`
-- 下一步清单：`YYYYMMDD_下一步工作清单.md`
+- 需要本机可直接运行 `python`
+- Windows 下建议直接双击根目录的 `.bat` 入口
 
-这样按文件名即可排序查看，不需要额外猜日期和版本。
+### 2. Tushare
 
-## 编码约定
+- 如需启用 Tushare，请先在本机环境变量中设置 `TUSHARE_TOKEN`
+- 仓库不会保存 token
 
-- Markdown、TXT、BAT、CMD 文档统一使用 `UTF-8 with BOM`
-- 仓库已通过 `.editorconfig` 固定编码
-- `docs/` 下文档已统一转码，Windows 下直接打开或读取更稳定
+### 3. 本地目录
 
-## 验证脚本
+程序会自动使用和维护以下目录：
 
-- `tests/validate_main_flow_regression.py`
-- `tests/validate_method1_data_pipeline.py`
-- `tests/validate_tushare_data_pipeline.py`
-- `tests/validate_tushare_ipo_data_pipeline.py`
-- `tests/validate_pdf_content_goldens.py`
-- `tests/validate_pdf_old_shares_goldens.py`
-- `tests/validate_bse_official_helper.py`
-- `tests/validate_prospectus_autodownload.py`
-- `tests/validate_bse_newshare_fallback.py`
+- `公告文件/`：招股说明书、上市公告书等 PDF
+- `首日分时走势/`：首日分时 CSV
+- `输出/`：报告输出目录
 
-## 工具脚本
+## 日常怎么用
 
-- `tools/scan_pdf_samples.py`
-- `tools/tune_params.py`：离线调参入口
-- `tools/review_candidate_params.py`：候选参数集复核
-- `tools/upgrade_replay_dataset_composite.py`：将现有回放数据集升级为 `composite` 口径
-- `tools/observe_composite_weight_candidate.py`：综合权重观察期复核
-- `tools/observe_trend_balance_candidate.py`：`trend_balance` 观察期复核
-- `tools/observe_quick_method2_core_only.py`：`quick_method2_core_only` 观察期复核
-- `tools/cache_listing_day_intraday.py`：扫描上市首日新股并用 Tushare 分钟线缓存本地 `首日分时走势/*.csv`
-- `tools/add_new_ipo_intraday_cache.py`：按最新上市顺序补齐缺失的新股首日分时缓存
-- `tools/download_bse_official_pdf.py`：按北交所官网映射链下载招股说明书 / 上市公告书 PDF 到 `公告文件/`
+### 1. 生成估值报告
 
-## 北交所官网公告下载
+最简单的方式：
 
-- 当前主链路已切到北交所官网“公开发行一览”：
-  - `920xxx -> newShareController/infoResult.do -> 公开发行详情 id`
-  - `详情 id -> newShareController/infoDetailResult.do -> 招股说明书 / 上市公告书 PDF`
-- 若“公开发行一览”未命中，再回退旧官网审核项目链路：
-  - `920xxx -> detailCompany.do -> 公司全称`
-  - `公司全称 -> infoResult.do -> 8 开头项目代码 + project id`
-  - `project id -> infoDetailResult.do -> 招股说明书 PDF`
-- 当前已实现上市公告书下载链路：
-  - 先尝试北交所官网“公开发行一览”详情页公告列表
-  - 再尝试北交所官网上市公司公告接口
-  - 若官网未命中，再回退东方财富公告列表和公告详情页提取 PDF 原文链接
-- 当前工具默认优先取 `BHG(注册稿)`，再回退 `SYG(上会稿)`、`SBG(申报稿)`
+- 双击 `运行.bat`
 
-示例：
+或命令行：
+
+- `python code\bse_ipo_valuation.py 920177`
+
+运行后会提示输入 6 位代码，并生成带时间戳的 PDF 报告到 `输出/`。
+
+主程序取资料的顺序是：
+
+1. 先看本地 `公告文件/`
+2. 若缺文件，再自动尝试北交所官网链路补下载
+3. 若招股说明书仍缺失，则本次报告终止
+4. 若上市公告书缺失，但招股说明书已拿到，则报告仍可继续生成
+
+### 2. 手动调参
+
+推荐直接双击：
+
+- `手动调参.bat`
+
+它会按顺序提示你：
+
+1. 选择模式：`离线复核` 或 `replay 观察`
+2. 选择输入方式：`单参数多候选值` / `手动候选组` / `候选文件`
+3. 输入必要参数
+
+底层统一调用：
+
+- `tools/tune_params.py`
+
+三种模式分别是：
+
+- `--mode search`：按内置阶段批量调参
+- `--mode offline`：手动候选离线复核，输出到 `输出/调参/`
+- `--mode observe`：手动候选 replay 观察，输出到 `输出/观察期/`
+
+常见例子：
+
+- `python tools\tune_params.py --mode offline --param-name small_cap_premium --candidate-values 0.10,0.15`
+- `python tools\tune_params.py --mode observe --param-name pe_low_threshold --candidate-values 0.20,0.25 --codes 920012,920036,920183`
+- `python tools\tune_params.py --mode offline --candidate "price_range_width=0.12,float_size_threshold=1500,small_cap_premium=0.10"`
+- `python tools\tune_params.py --mode offline --candidate-file data\offline_tuning\candidate_sets\quick_method2_pe_candidate_set_v1.json`
+
+手动调参现在有两个重要规则：
+
+- 如果某个“和为 1”的二因子权重组只输入了一个因子，会自动补足另一个因子到 `1`
+- 如果某个“和为 1”的多因子组只调了一个因子，其余因子会按当前 `策略参数.txt` 的现有比例自动缩放
+
+### 3. 补最新首日分时走势
+
+最简单的方式：
+
+- 双击 `添加新股首日走势.bat`
+
+常用命令：
+
+- `python tools\add_new_ipo_intraday_cache.py`
+- `python tools\cache_listing_day_intraday.py`
+- `python tools\cache_listing_day_intraday.py --latest-until-cached --months 18`
+
+这套缓存会直接写入 `首日分时走势/`，后续主程序和调参会自动复用。
+
+### 4. 下载公告文件
+
+常用命令：
 
 - `python tools\download_bse_official_pdf.py 920177`
-- `python tools\download_bse_official_pdf.py 920177 --resolve-only`
-- `python tools\download_bse_official_pdf.py 920177 --overwrite`
 - `python tools\download_bse_official_pdf.py 920177 --document listing`
 - `python tools\download_bse_official_pdf.py 920177 --document all`
+- `python tools\download_bse_official_pdf.py 920177 --resolve-only`
 
-## 主程序公告取用顺序
+下载结果会保存到 `公告文件/`。
 
-- 生成估值报告时，主程序会先检查本地 `公告文件/` 里的招股说明书和上市公告书
-- 若本地缺少任意一个文件，就会启动官网探测；缺招股说明书时会提示“招股说明书下载中，请稍候。”，仅缺上市公告书时会提示“上市公告书探测中，请稍候。”
-- 官网探测仍优先走北交所“公开发行一览”链路；命中招股说明书和上市公告书时会直接下载到本地
-- 若官网探测结束后仍没有可用招股说明书，程序会直接提示“未取到招股说明书，生成报告失败：...”并终止本次报告生成
-- 只要已经拿到招股说明书，报告就会继续生成；若上市公告书仍未命中或下载失败，只提示“上市公告书未下载，可手动补充”，不再额外走其他公告链路兜底
-- 上市公告书目前仍只按本地文件参与解析，不作为报告生成的必备项
+## 输出文件怎么看
 
-## 首日分时自动缓存
+### 1. 估值报告
 
-- 当前实现优先复用东方财富新股列表做扫描，默认筛选“上市日期等于今天”的北交所新股
-- 分钟线数据源使用 Tushare：
-  - 今天：先尝试 `rt_min_daily`
-  - 若无权限或未返回分钟线：自动回退到 `stk_mins`
-  - 历史回补：直接使用 `stk_mins`
-- 若 Tushare 分钟线受限，会再尝试东方财富分钟线兜底
-  - 但如果东方财富返回的上市首日分钟串出现 `open = 0`，程序会取消本次缓存，并在执行界面提示“留待下次重试”
-- 写入格式与现有 `trend_scorer.py` 完全一致，缓存后可直接参与 `WSI` 打分和离线调参
-- 独立补缓存入口：双击根目录 [添加新股首日走势.bat](/C:/Users/ai/Desktop/北交所新股估值/添加新股首日走势.bat)
-  - 逻辑为“按最新上市顺序往前扫，遇到本地已有缓存的代码就停止”
-  - 执行过程中会实时提示“正在检查 / 已缓存 / 留待下次重试 / 命中已有缓存并停止”
-  - 该入口使用独立的 `data/tushare_intraday_db` 请求日志，避免被主流程当天的 Tushare 调用次数挤占
-  - 仓库提交约定：新增或更新的 `首日分时走势/*.csv` 需要随本次功能改动一并提交、推送，不单独留在本地
+- 主程序 PDF 报告：`输出/`
 
-示例：
+### 2. 调参报告
 
-- `python tools\cache_listing_day_intraday.py`
-- `python tools\cache_listing_day_intraday.py --date 2026-04-20`
-- `python tools\cache_listing_day_intraday.py --codes 920188,920012 --force`
-- `python tools\cache_listing_day_intraday.py --latest-until-cached --months 18`
-- `python tools\add_new_ipo_intraday_cache.py`
+- 离线复核报告：`输出/调参/`
+- replay 观察报告：`输出/观察期/`
 
-## 当前默认参数状态
+### 3. replay 观察报告里的关键统计
 
-- 综合权重当前默认值：
-  - `weight_comparable = 0.20`
-  - `weight_industry_momentum = 0.80`
-- 方法二当前保留的 `quick_method2_core_only` 试运行参数：
-  - `price_range_width = 0.12`
-  - `float_size_threshold = 1500`
-  - `small_cap_premium = 0.10`
-- 方法二 PE 参数当前默认状态：
-  - `pe_low_threshold = 0.20`
-  - `pe_discount_boost = 0.10`
-  - `pe_high_threshold = 0.60`
-  - `pe_premium_drag = -0.10`
-- `trend_balance` 当前结论：
-  - 已完成离线调参与两轮真实样本观察
-  - 暂不吸收为默认参数
-- `WSI` 当前结论：
-  - 已完成扩组复核
-  - 当前未观察到稳定增益
+现在报告会直接给你：
 
-如需追踪这些结论的推演过程，优先查看：
+- 本次样本数
+- 与 baseline 相比涨幅误差缩小样本
+- 与 baseline 相比涨幅误差增大样本
+- 与 baseline 相比涨幅误差无变化样本
+- 不可比较但前后相同样本
+- 展示变化样本数
+- 已省略未变化样本数
+
+其中：
+
+- “误差缩小 / 增大 / 无变化”只统计 baseline 与候选都能算出涨幅绝对误差的样本
+- “不可比较但前后相同样本”表示两边都没有可比较误差，但整体输出结果完全一致
+- 正文默认只展开“发生变化的样本”，避免全样本表过长
+
+## 参数怎么改
+
+所有用户需要直接维护的参数，都在：
+
+- `策略参数.txt`
+
+当前文件已经按用途分成几类：
+
+- 用户最常调：目标股、综合权重、估值区间宽度
+- 调参专用：离线回放与候选复核
+- 偶尔调：方法二核心阈值
+- 基本别动：方法一口径、走势细项、WSI 细项
+
+如果你只想做日常使用，通常重点关注这些参数：
+
+- `weight_comparable`
+- `weight_industry_momentum`
+- `price_range_width`
+- `float_size_threshold`
+- `small_cap_premium`
+- `pe_low_threshold`
+- `pe_discount_boost`
+- `pe_high_threshold`
+- `pe_premium_drag`
+
+调参工具默认也会读取 `策略参数.txt` 里的这几项运行参数：
+
+- `tuning_replay_months`
+- `tuning_page_size`
+- `tuning_train_ratio`
+- `tuning_min_train_samples`
+- `tuning_top_n`
+
+## 当前默认口径
+
+截至目前，主程序默认使用：
+
+- 综合权重：`weight_comparable = 0.20`，`weight_industry_momentum = 0.80`
+- 方法二核心：`price_range_width = 0.12`，`float_size_threshold = 1500`，`small_cap_premium = 0.10`
+- 方法二 PE：`pe_low_threshold = 0.20`，`pe_discount_boost = 0.10`，`pe_high_threshold = 0.60`，`pe_premium_drag = -0.10`
+
+`trend_balance` 和 `WSI` 的扩展调参结论目前保留在项目里，但还没有继续吸收到默认参数中。
+
+## 如果你要看项目过程记录
+
+优先看这几个位置：
 
 - `docs/工作日志/`
 - `data/offline_tuning/candidate_sets/`
 - `输出/调参/`
 - `输出/观察期/`
 
-## 说明
+## 如果你不是开发者，可以忽略这些目录
 
-- 仓库里的早期探索脚本、临时模板和中间产物已经清理
-- 目前保留的是“可运行入口 + `code/` 核心链路 + 当前验证资产”
-- 数据源配置已内置到代码中，`策略参数.txt` 只保留用户需要调的业务参数
-- 后续如果切换数据源，优先从 `code/data_fetcher.py` 和 `code/wind_helper.py` 接续
+- `code/`
+- `tests/`
+- `docs/设计文档/`
+
+## 保留的工具脚本
+
+当前项目里保留的是仍然有直接使用价值的工具：
+
+- `tools/tune_params.py`：统一调参入口
+- `tools/review_candidate_params.py`：复核已有候选参数集
+- `tools/cache_listing_day_intraday.py`：缓存首日分时走势
+- `tools/add_new_ipo_intraday_cache.py`：补最新上市样本缓存
+- `tools/download_bse_official_pdf.py`：下载公告 PDF
+- `tools/scan_pdf_samples.py`：批量扫描本地 PDF 样本
+
+早期按单一主题拆分的专用观察脚本已经清理，避免入口重复；现在统一通过 `tools/tune_params.py` 和 `手动调参.bat` 使用。

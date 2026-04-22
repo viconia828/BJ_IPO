@@ -15,6 +15,13 @@ SYSTEM_SOURCE_DEFAULTS: dict[str, Any] = {
     "tushare_token_env": "TUSHARE_TOKEN",
     "tushare_cache_root": "data/tushare_db",
 }
+TUNING_RUNTIME_DEFAULTS: dict[str, Any] = {
+    "tuning_replay_months": 18,
+    "tuning_page_size": 100,
+    "tuning_train_ratio": 0.70,
+    "tuning_min_train_samples": 8,
+    "tuning_top_n": 10,
+}
 
 
 def _strip_inline_comment(raw_line: str) -> str:
@@ -145,6 +152,27 @@ def _validate_params(params: dict[str, Any]) -> None:
     if int(params.get("eastmoney_validation_enabled", 1)) not in {0, 1}:
         raise ValueError("eastmoney_validation_enabled 仅支持 0 / 1")
 
+    if int(params.get("tuning_replay_months", TUNING_RUNTIME_DEFAULTS["tuning_replay_months"])) <= 0:
+        raise ValueError("tuning_replay_months 必须大于 0")
+    if int(params.get("tuning_page_size", TUNING_RUNTIME_DEFAULTS["tuning_page_size"])) <= 0:
+        raise ValueError("tuning_page_size 必须大于 0")
+
+    tuning_train_ratio = float(params.get("tuning_train_ratio", TUNING_RUNTIME_DEFAULTS["tuning_train_ratio"]))
+    if not (0 < tuning_train_ratio < 1):
+        raise ValueError("tuning_train_ratio 必须在 0 与 1 之间")
+
+    if int(params.get("tuning_min_train_samples", TUNING_RUNTIME_DEFAULTS["tuning_min_train_samples"])) <= 0:
+        raise ValueError("tuning_min_train_samples 必须大于 0")
+    if int(params.get("tuning_top_n", TUNING_RUNTIME_DEFAULTS["tuning_top_n"])) <= 0:
+        raise ValueError("tuning_top_n 必须大于 0")
+
+
+def get_tuning_runtime_settings(params: dict[str, Any]) -> dict[str, Any]:
+    return {
+        key: params.get(key, default_value)
+        for key, default_value in TUNING_RUNTIME_DEFAULTS.items()
+    }
+
 
 def load_params(filepath: str | Path = ROOT_DIR / "策略参数.txt") -> dict[str, Any]:
     file_path = Path(filepath)
@@ -188,6 +216,8 @@ def load_params(filepath: str | Path = ROOT_DIR / "策略参数.txt") -> dict[st
     params["tushare_token_env"] = str(params.get("tushare_token_env", SYSTEM_SOURCE_DEFAULTS["tushare_token_env"])).strip() or SYSTEM_SOURCE_DEFAULTS["tushare_token_env"]
     params["tushare_cache_root"] = str(params.get("tushare_cache_root", SYSTEM_SOURCE_DEFAULTS["tushare_cache_root"])).strip() or SYSTEM_SOURCE_DEFAULTS["tushare_cache_root"]
     params["stock_industry"] = str(params.get("stock_industry", "auto")).strip() or "auto"
+    for key, default_value in TUNING_RUNTIME_DEFAULTS.items():
+        params[key] = params.get(key, default_value)
 
     _validate_params(params)
     return params

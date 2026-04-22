@@ -20,23 +20,41 @@ def _progress(index: int, total: int, spec: dict[str, object]) -> None:
     print(f"[{index}/{total}] reviewing {name}", flush=True)
 
 
-def build_parser() -> argparse.ArgumentParser:
+def _resolve_params_file(argv: list[str] | None) -> str:
+    bootstrap = argparse.ArgumentParser(add_help=False)
+    bootstrap.add_argument("--params-file", default=str(ROOT_DIR / "策略参数.txt"))
+    known_args, _ = bootstrap.parse_known_args(argv)
+    return str(known_args.params_file)
+
+
+def build_parser(params_file: str, tuning_settings: dict[str, object]) -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="北交所新股估值候选参数集综合回放复核工具")
-    parser.add_argument("--params-file", default=str(ROOT_DIR / "策略参数.txt"), help="参数文件路径")
+    parser.add_argument("--params-file", default=params_file, help="参数文件路径")
     parser.add_argument("--dataset-path", default=str(param_tuning.DEFAULT_DATASET_PATH), help="历史回放数据集路径")
     parser.add_argument("--candidate-file", required=True, help="候选参数集文件路径")
-    parser.add_argument("--train-ratio", type=float, default=0.7, help="时间切分训练集比例")
-    parser.add_argument("--min-train-samples", type=int, default=8, help="最小训练样本数")
+    parser.add_argument(
+        "--train-ratio",
+        type=float,
+        default=float(tuning_settings["tuning_train_ratio"]),
+        help="时间切分训练集比例；默认取策略参数.txt 的 tuning_train_ratio",
+    )
+    parser.add_argument(
+        "--min-train-samples",
+        type=int,
+        default=int(tuning_settings["tuning_min_train_samples"]),
+        help="最小训练样本数；默认取策略参数.txt 的 tuning_min_train_samples",
+    )
     parser.add_argument("--output-dir", default=str(param_tuning.DEFAULT_OUTPUT_DIR), help="报告输出目录")
     parser.add_argument("--review-name", help="输出文件名后缀，默认取候选集名称")
     return parser
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = build_parser()
+    params_file = _resolve_params_file(argv)
+    params = config_loader.load_params(params_file)
+    tuning_settings = config_loader.get_tuning_runtime_settings(params)
+    parser = build_parser(params_file, tuning_settings)
     args = parser.parse_args(argv)
-
-    params = config_loader.load_params(args.params_file)
     dataset = param_tuning.load_replay_dataset(args.dataset_path)
     candidate_payload = param_tuning.load_named_candidate_sets(args.candidate_file)
 

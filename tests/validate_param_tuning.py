@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import json
+import os
+import re
 import shutil
 import subprocess
 from pathlib import Path
@@ -35,6 +37,18 @@ def _reset_dir(path: Path) -> None:
     if path.exists():
         shutil.rmtree(path)
     path.mkdir(parents=True, exist_ok=True)
+
+
+def _write_temp_params_file(path: Path, overrides: dict[str, Any]) -> None:
+    content = (ROOT_DIR / "策略参数.txt").read_text(encoding="utf-8-sig")
+    for key, value in overrides.items():
+        rendered = str(value)
+        pattern = rf"(?m)^({re.escape(key)}\s*=\s*).*$"
+        if re.search(pattern, content):
+            content = re.sub(pattern, rf"\g<1>{rendered}", content)
+        else:
+            content += f"\n{key} = {rendered}\n"
+    path.write_text(content, encoding="utf-8-sig")
 
 
 def _base_params(**overrides: Any) -> dict[str, Any]:
@@ -325,6 +339,73 @@ def cli_case(failures: list[str]) -> None:
     md_reports = sorted(output_dir.glob("tune_params_*.md"))
     _assert(bool(json_reports), "CLI 未生成 JSON 报告", failures)
     _assert(bool(md_reports), "CLI 未生成 Markdown 报告", failures)
+    if json_reports:
+        payload = json.loads(json_reports[-1].read_text(encoding="utf-8"))
+        report_comparisons = payload.get("report_comparisons") or {}
+        _assert("selection_scope" in report_comparisons, "CLI JSON 报告应包含评分集对比", failures)
+        _assert("full_scope" in report_comparisons, "CLI JSON 报告应包含全样本对比", failures)
+    if md_reports:
+        markdown = md_reports[-1].read_text(encoding="utf-8")
+        _assert("## 前后汇总" in markdown, "CLI Markdown 报告应包含前后汇总", failures)
+        _assert("逐样本对比（与真实结果）" in markdown, "CLI Markdown 报告应包含真实结果逐样本对比", failures)
+
+
+def config_default_cli_case(failures: list[str]) -> None:
+    _reset_dir(TEMP_ROOT)
+    dataset = _make_method2_dataset()
+    dataset_path = TEMP_ROOT / "replay_dataset.json"
+    output_dir = TEMP_ROOT / "config_default_reports"
+    grid_path = TEMP_ROOT / "tiny_grid.json"
+    params_path = TEMP_ROOT / "temp_params.txt"
+
+    param_tuning.save_replay_dataset(dataset, dataset_path)
+    grid_path.write_text(
+        json.dumps([{"small_cap_premium": 0.0}, {"small_cap_premium": 0.10}], ensure_ascii=False, indent=2),
+        encoding="utf-8",
+    )
+    _write_temp_params_file(
+        params_path,
+        {
+            "tuning_train_ratio": 0.5,
+            "tuning_min_train_samples": 3,
+            "tuning_top_n": 2,
+        },
+    )
+
+    command = [
+        sys.executable,
+        str(ROOT_DIR / "tools" / "tune_params.py"),
+        "--params-file",
+        str(params_path),
+        "--dataset-path",
+        str(dataset_path),
+        "--grid-file",
+        str(grid_path),
+        "--output-dir",
+        str(output_dir),
+    ]
+    completed = subprocess.run(
+        command,
+        cwd=ROOT_DIR,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+        check=False,
+    )
+    _assert(
+        completed.returncode == 0,
+        f"config default CLI 退出码异常: {completed.returncode}\n{completed.stdout}\n{completed.stderr}",
+        failures,
+    )
+    json_reports = sorted(output_dir.glob("tune_params_*.json"))
+    _assert(bool(json_reports), "config default CLI 未生成 JSON 报告", failures)
+    if json_reports:
+        payload = json.loads(json_reports[-1].read_text(encoding="utf-8"))
+        _assert(payload.get("train_codes") == ["000001", "000002", "000003"], "config default CLI 训练集切分未读取 tuning_train_ratio/min_train_samples", failures)
+        _assert(payload.get("validation_codes") == ["000004", "000005", "000006"], "config default CLI 验证集切分未读取 tuning_train_ratio/min_train_samples", failures)
+        top_candidates = payload.get("top_candidates") or []
+        _assert(len(top_candidates) == 2, "config default CLI 未读取 tuning_top_n", failures)
 
 
 def review_cli_case(failures: list[str]) -> None:
@@ -378,6 +459,380 @@ def review_cli_case(failures: list[str]) -> None:
     md_reports = sorted(output_dir.glob("review_candidate_*.md"))
     _assert(bool(json_reports), "review CLI 未生成 JSON 报告", failures)
     _assert(bool(md_reports), "review CLI 未生成 Markdown 报告", failures)
+    if json_reports:
+        payload = json.loads(json_reports[-1].read_text(encoding="utf-8"))
+        report_comparisons = payload.get("report_comparisons") or {}
+        _assert("selection_scope" in report_comparisons, "review CLI JSON 报告应包含评分集对比", failures)
+        _assert("full_scope" in report_comparisons, "review CLI JSON 报告应包含全样本对比", failures)
+    if md_reports:
+        markdown = md_reports[-1].read_text(encoding="utf-8")
+        _assert("## 前后汇总" in markdown, "review CLI Markdown 报告应包含前后汇总", failures)
+        _assert("逐样本对比（与真实结果）" in markdown, "review CLI Markdown 报告应包含真实结果逐样本对比", failures)
+
+
+def review_config_default_cli_case(failures: list[str]) -> None:
+    _reset_dir(TEMP_ROOT)
+    dataset = _make_method2_dataset()
+    dataset_path = TEMP_ROOT / "replay_dataset.json"
+    output_dir = TEMP_ROOT / "review_config_reports"
+    candidate_path = TEMP_ROOT / "candidate_set.json"
+    params_path = TEMP_ROOT / "temp_params.txt"
+
+    param_tuning.save_replay_dataset(dataset, dataset_path)
+    candidate_path.write_text(
+        json.dumps(
+            {
+                "name": "fixture_review",
+                "candidates": [
+                    {"name": "baseline_like", "overrides": {"small_cap_premium": 0.0}},
+                    {"name": "better_one", "overrides": {"small_cap_premium": 0.10}},
+                ],
+            },
+            ensure_ascii=False,
+            indent=2,
+        ),
+        encoding="utf-8",
+    )
+    _write_temp_params_file(
+        params_path,
+        {
+            "tuning_train_ratio": 0.5,
+            "tuning_min_train_samples": 3,
+        },
+    )
+
+    command = [
+        sys.executable,
+        str(ROOT_DIR / "tools" / "review_candidate_params.py"),
+        "--params-file",
+        str(params_path),
+        "--dataset-path",
+        str(dataset_path),
+        "--candidate-file",
+        str(candidate_path),
+        "--output-dir",
+        str(output_dir),
+    ]
+    completed = subprocess.run(
+        command,
+        cwd=ROOT_DIR,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+        check=False,
+    )
+    _assert(
+        completed.returncode == 0,
+        f"review config default CLI 退出码异常: {completed.returncode}\n{completed.stdout}\n{completed.stderr}",
+        failures,
+    )
+    json_reports = sorted(output_dir.glob("review_candidate_*.json"))
+    _assert(bool(json_reports), "review config default CLI 未生成 JSON 报告", failures)
+    if json_reports:
+        payload = json.loads(json_reports[-1].read_text(encoding="utf-8"))
+        _assert(payload.get("train_codes") == ["000001", "000002", "000003"], "review config default CLI 训练集切分未读取 tuning_train_ratio/min_train_samples", failures)
+        _assert(payload.get("validation_codes") == ["000004", "000005", "000006"], "review config default CLI 验证集切分未读取 tuning_train_ratio/min_train_samples", failures)
+
+
+def manual_pair_weight_payload_case(failures: list[str]) -> None:
+    payload = param_tuning.build_manual_candidate_payload(
+        name="manual_pair_weight",
+        param_name="industry_trend_weight",
+        values=[0.65],
+        base_params=_base_params(),
+    )
+    candidates = payload.get("candidates") or []
+    _assert(len(candidates) == 1, "manual pair weight payload should generate one candidate", failures)
+    if not candidates:
+        return
+    candidate = candidates[0]
+    overrides = dict(candidate.get("overrides") or {})
+    _assert_close(overrides.get("industry_trend_weight"), 0.65, "manual pair weight should keep industry_trend_weight", failures)
+    _assert_close(overrides.get("market_sentiment_weight"), 0.35, "manual pair weight should auto-fill market_sentiment_weight", failures)
+    description = str(candidate.get("description") or "")
+    _assert("自动补足到 1" in description, "manual pair weight description should mention auto fill", failures)
+
+
+def manual_wsi_weight_payload_case(failures: list[str]) -> None:
+    payload = param_tuning.build_manual_candidate_payload(
+        name="manual_wsi_weight",
+        param_name="wsi_weight_turnover",
+        values=[0.20],
+        base_params=_base_params(),
+    )
+    candidates = payload.get("candidates") or []
+    _assert(len(candidates) == 1, "manual WSI weight payload should generate one candidate", failures)
+    if not candidates:
+        return
+    candidate = candidates[0]
+    overrides = dict(candidate.get("overrides") or {})
+    expected_weights = {
+        "wsi_weight_close_vwap": 0.24,
+        "wsi_weight_price_retention": 0.20,
+        "wsi_weight_high_timing": 0.16,
+        "wsi_weight_closing_momentum": 0.12,
+        "wsi_weight_volume_rhythm": 0.08,
+        "wsi_weight_turnover": 0.20,
+    }
+    for key, expected_value in expected_weights.items():
+        _assert_close(overrides.get(key), expected_value, f"manual WSI weight should auto-scale {key}", failures)
+    total_weight = sum(float(overrides.get(key, 0.0)) for key in param_tuning.WSI_WEIGHT_KEYS)
+    _assert_close(total_weight, 1.0, "manual WSI weight sum should remain 1", failures)
+    description = str(candidate.get("description") or "")
+    _assert("按当前策略参数比例自动缩放" in description, "manual WSI weight description should mention proportional scaling", failures)
+
+
+def manual_offline_cli_case(failures: list[str]) -> None:
+    _reset_dir(TEMP_ROOT)
+    dataset = _make_method2_dataset()
+    dataset_path = TEMP_ROOT / "replay_dataset.json"
+    output_dir = TEMP_ROOT / "manual_offline_reports"
+
+    param_tuning.save_replay_dataset(dataset, dataset_path)
+
+    command = [
+        sys.executable,
+        str(ROOT_DIR / "tools" / "tune_params.py"),
+        "--mode",
+        "offline",
+        "--dataset-path",
+        str(dataset_path),
+        "--param-name",
+        "small_cap_premium",
+        "--candidate-values",
+        "0.0,0.10",
+        "--output-dir",
+        str(output_dir),
+        "--train-ratio",
+        "0.5",
+        "--min-train-samples",
+        "3",
+    ]
+    completed = subprocess.run(
+        command,
+        cwd=ROOT_DIR,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+        check=False,
+    )
+    _assert(
+        completed.returncode == 0,
+        f"manual offline CLI 退出码异常: {completed.returncode}\n{completed.stdout}\n{completed.stderr}",
+        failures,
+    )
+    _assert("手动候选离线复核完成" in completed.stdout, "manual offline CLI 应打印完成提示", failures)
+    json_reports = sorted(output_dir.glob("review_candidate_*.json"))
+    md_reports = sorted(output_dir.glob("review_candidate_*.md"))
+    _assert(bool(json_reports), "manual offline CLI 未生成 JSON 报告", failures)
+    _assert(bool(md_reports), "manual offline CLI 未生成 Markdown 报告", failures)
+
+
+def manual_auto_normalize_cli_case(failures: list[str]) -> None:
+    _reset_dir(TEMP_ROOT)
+    dataset = _make_method2_dataset()
+    dataset_path = TEMP_ROOT / "replay_dataset.json"
+    output_dir = TEMP_ROOT / "manual_auto_normalize_reports"
+
+    param_tuning.save_replay_dataset(dataset, dataset_path)
+
+    command = [
+        sys.executable,
+        str(ROOT_DIR / "tools" / "tune_params.py"),
+        "--mode",
+        "offline",
+        "--dataset-path",
+        str(dataset_path),
+        "--param-name",
+        "industry_trend_weight",
+        "--candidate-values",
+        "0.70",
+        "--output-dir",
+        str(output_dir),
+        "--train-ratio",
+        "0.5",
+        "--min-train-samples",
+        "3",
+    ]
+    completed = subprocess.run(
+        command,
+        cwd=ROOT_DIR,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+        check=False,
+    )
+    _assert(
+        completed.returncode == 0,
+        f"manual auto-normalize CLI 退出码异常: {completed.returncode}\n{completed.stdout}\n{completed.stderr}",
+        failures,
+    )
+    json_reports = sorted(output_dir.glob("review_candidate_*.json"))
+    _assert(bool(json_reports), "manual auto-normalize CLI 未生成 JSON 报告", failures)
+    if not json_reports:
+        return
+    payload = json.loads(json_reports[-1].read_text(encoding="utf-8"))
+    ranked_results = payload.get("ranked_results") or []
+    candidate = next((item for item in ranked_results if item.get("name") == "industry_trend_weight_0p7"), None)
+    _assert(candidate is not None, "manual auto-normalize CLI 应包含 industry_trend_weight_0p7", failures)
+    if not candidate:
+        return
+    overrides = dict(candidate.get("overrides") or {})
+    _assert_close(overrides.get("industry_trend_weight"), 0.70, "manual auto-normalize CLI should keep industry_trend_weight", failures)
+    _assert_close(overrides.get("market_sentiment_weight"), 0.30, "manual auto-normalize CLI should auto-fill market_sentiment_weight", failures)
+    description = str(candidate.get("description") or "")
+    _assert("market_sentiment_weight" in description, "manual auto-normalize CLI description should show effective overrides", failures)
+
+
+def manual_observe_cli_case(failures: list[str]) -> None:
+    _reset_dir(TEMP_ROOT)
+    dataset = _make_method2_dataset()
+    dataset_path = TEMP_ROOT / "replay_dataset.json"
+    output_dir = TEMP_ROOT / "manual_observe_reports"
+
+    param_tuning.save_replay_dataset(dataset, dataset_path)
+
+    command = [
+        sys.executable,
+        str(ROOT_DIR / "tools" / "tune_params.py"),
+        "--mode",
+        "observe",
+        "--dataset-path",
+        str(dataset_path),
+        "--candidate",
+        "small_cap_premium=0.10,price_range_width=0.10",
+        "--codes",
+        "000004,000005,000006",
+        "--output-dir",
+        str(output_dir),
+    ]
+    completed = subprocess.run(
+        command,
+        cwd=ROOT_DIR,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+        check=False,
+    )
+    _assert(
+        completed.returncode == 0,
+        f"manual observe CLI 退出码异常: {completed.returncode}\n{completed.stdout}\n{completed.stderr}",
+        failures,
+    )
+    _assert("手动候选 replay 观察完成" in completed.stdout, "manual observe CLI 应打印完成提示", failures)
+    json_reports = sorted(output_dir.glob("observe_manual_*.json"))
+    md_reports = sorted(output_dir.glob("observe_manual_*.md"))
+    _assert(bool(json_reports), "manual observe CLI 未生成 JSON 报告", failures)
+    _assert(bool(md_reports), "manual observe CLI 未生成 Markdown 报告", failures)
+
+    payload = json.loads(json_reports[-1].read_text(encoding="utf-8"))
+    _assert(payload.get("target_codes") == ["000004", "000005", "000006"], "manual observe CLI 观察代码不正确", failures)
+    report_display = payload.get("report_display") or {}
+    _assert(report_display.get("display_mode") == "changed_only", "manual observe CLI 应标记 changed_only 展示模式", failures)
+    ranked_results = payload.get("ranked_results") or []
+    _assert(bool(ranked_results), "manual observe CLI 应包含候选排序结果", failures)
+    markdown = md_reports[-1].read_text(encoding="utf-8")
+    _assert("只展示调参前后发生变化的样本" in markdown, "manual observe CLI Markdown 应说明只展示变化样本", failures)
+    _assert("本次样本数" in markdown, "manual observe CLI Markdown 应包含本次样本数统计", failures)
+    _assert("误差缩小样本" in markdown, "manual observe CLI Markdown 应包含误差缩小样本统计", failures)
+    _assert("误差增大样本" in markdown, "manual observe CLI Markdown 应包含误差增大样本统计", failures)
+    _assert("无变化样本" in markdown, "manual observe CLI Markdown 应包含无变化样本统计", failures)
+
+
+    _assert("不可比较但前后相同样本" in markdown, "manual observe CLI Markdown 应包含不可比较但前后相同样本统计", failures)
+
+
+def manual_observe_no_change_cli_case(failures: list[str]) -> None:
+    _reset_dir(TEMP_ROOT)
+    dataset = _make_method2_dataset()
+    dataset_path = TEMP_ROOT / "replay_dataset.json"
+    output_dir = TEMP_ROOT / "manual_observe_no_change_reports"
+
+    param_tuning.save_replay_dataset(dataset, dataset_path)
+
+    command = [
+        sys.executable,
+        str(ROOT_DIR / "tools" / "tune_params.py"),
+        "--mode",
+        "observe",
+        "--dataset-path",
+        str(dataset_path),
+        "--candidate",
+        "small_cap_premium=0.10,price_range_width=0.12,float_size_threshold=1500,pe_low_threshold=0.20,pe_discount_boost=0.10,pe_high_threshold=0.60,pe_premium_drag=-0.10",
+        "--codes",
+        "000004,000005,000006",
+        "--output-dir",
+        str(output_dir),
+    ]
+    completed = subprocess.run(
+        command,
+        cwd=ROOT_DIR,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+        check=False,
+    )
+    _assert(
+        completed.returncode == 0,
+        f"manual observe no-change CLI 退出码异常: {completed.returncode}\n{completed.stdout}\n{completed.stderr}",
+        failures,
+    )
+    md_reports = sorted(output_dir.glob("observe_manual_*.md"))
+    _assert(bool(md_reports), "manual observe no-change CLI 未生成 Markdown 报告", failures)
+    if md_reports:
+        markdown = md_reports[-1].read_text(encoding="utf-8")
+        _assert("本轮无变化样本" in markdown, "manual observe no-change CLI 应提示无变化样本", failures)
+
+
+def manual_batch_entry_case(failures: list[str]) -> None:
+    _reset_dir(TEMP_ROOT)
+    output_dir = TEMP_ROOT / "manual_batch_reports"
+    input_text = "\n".join(
+        [
+            "1",
+            "1",
+            "",
+            "small_cap_premium",
+            "0.0,0.10",
+            "",
+        ]
+    )
+    env = os.environ.copy()
+    env["CODEX_BATCH_NO_PAUSE"] = "1"
+    env["PYTHONIOENCODING"] = "utf-8"
+
+    command = ["cmd", "/c", "手动调参.bat"]
+    completed = subprocess.run(
+        command,
+        cwd=ROOT_DIR,
+        input=input_text,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+        env=env,
+        check=False,
+    )
+    _assert(
+        completed.returncode == 0,
+        f"manual batch 入口退出码异常: {completed.returncode}\n{completed.stdout}\n{completed.stderr}",
+        failures,
+    )
+    _assert("请选择执行模式" in completed.stdout, "manual batch 入口应显示模式提示词", failures)
+    _assert("候选值列表，逗号分隔" in completed.stdout, "manual batch 入口应显示规范候选值提示词", failures)
+    _assert("执行完成" in completed.stdout, "manual batch 入口应打印执行完成提示", failures)
+    reports = sorted((ROOT_DIR / "输出" / "调参").glob("review_candidate_manual_small_cap_premium_*.json"))
+    _assert(bool(reports), "manual batch 入口未生成预期报告", failures)
+    _assert("若只输入权重组中的一个因子" in completed.stdout, "manual batch 入口应提示权重组自动联动规则", failures)
+    if reports:
+        latest_report = reports[-1]
+        payload = json.loads(latest_report.read_text(encoding="utf-8"))
+        _assert(payload.get("review_name") == "manual_small_cap_premium", "manual batch 报告名不正确", failures)
 
 
 def wsi_turnover_stage_case(failures: list[str]) -> None:
@@ -547,7 +1002,16 @@ def main() -> int:
     ranking_case(failures)
     review_case(failures)
     cli_case(failures)
+    config_default_cli_case(failures)
     review_cli_case(failures)
+    review_config_default_cli_case(failures)
+    manual_pair_weight_payload_case(failures)
+    manual_wsi_weight_payload_case(failures)
+    manual_offline_cli_case(failures)
+    manual_auto_normalize_cli_case(failures)
+    manual_observe_cli_case(failures)
+    manual_observe_no_change_cli_case(failures)
+    manual_batch_entry_case(failures)
     wsi_turnover_stage_case(failures)
     unsupported_composite_weight_case(failures)
     composite_replay_metrics_case(failures)
@@ -557,7 +1021,7 @@ def main() -> int:
     if failures:
         raise AssertionError("\n".join(failures))
 
-    print("Param tuning validation passed: 11 cases")
+    print("Param tuning validation passed: 20 cases")
     return 0
 
 

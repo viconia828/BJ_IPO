@@ -21,6 +21,7 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_DATASET_PATH = REPO_ROOT / "data" / "offline_tuning" / "replay_dataset.json"
 DEFAULT_CANDIDATE_SET_DIR = REPO_ROOT / "data" / "offline_tuning" / "candidate_sets"
 DEFAULT_OUTPUT_DIR = REPO_ROOT / "输出" / "调参"
+DEFAULT_OBSERVE_OUTPUT_DIR = REPO_ROOT / "输出" / "观察期"
 INTRADAY_DIR = REPO_ROOT / "首日分时走势"
 PDF_DIR = REPO_ROOT / "公告文件"
 DATASET_SCHEMA = "offline_tuning_replay_v1"
@@ -40,6 +41,12 @@ METHOD2_UNSUPPORTED_KEYS = {
     "weight_comparable",
     "weight_industry_momentum",
 }
+AUTO_NORMALIZE_WEIGHT_GROUPS: tuple[tuple[str, ...], ...] = (
+    ("weight_comparable", "weight_industry_momentum"),
+    ("industry_trend_weight", "market_sentiment_weight"),
+    tuple(WSI_WEIGHT_KEYS),
+)
+AUTO_NORMALIZE_EPSILON = 1e-9
 
 
 def _build_wsi_turnover_candidates() -> list[dict[str, float]]:
@@ -216,6 +223,12 @@ def _fmt_metric(value: float | None, digits: int = 4) -> str:
     if value is None:
         return "-"
     return f"{value:.{digits}f}"
+
+
+def _fmt_flag(value: bool | None) -> str:
+    if value is None:
+        return "-"
+    return "是" if value else "否"
 
 
 def _normalize_codes(values: list[str] | None) -> list[str]:
@@ -574,6 +587,239 @@ def load_named_candidate_sets(candidate_file: str | Path) -> dict[str, Any]:
     }
 
 
+def _manual_value_tag(value: Any) -> str:
+    if isinstance(value, bool):
+        return "true" if value else "false"
+    if isinstance(value, int) and not isinstance(value, bool):
+        return str(value)
+    if isinstance(value, float):
+        return f"{value:.4f}".rstrip("0").rstrip(".").replace("-", "m").replace(".", "p")
+
+    text = str(value or "").strip().lower()
+    normalized = "".join(character if character.isalnum() else "_" for character in text)
+    normalized = "_".join(part for part in normalized.split("_") if part)
+    return normalized or "value"
+
+
+def _rounded_weight(value: float) -> float:
+    if abs(value) <= AUTO_NORMALIZE_EPSILON:
+        return 0.0
+    if abs(value - 1.0) <= AUTO_NORMALIZE_EPSILON:
+        return 1.0
+    return round(float(value), 10)
+
+
+def _build_auto_normalize_note(group: tuple[str, ...], adjusted_keys: list[str]) -> str:
+    if not adjusted_keys:
+        return ""
+    if len(group) == 2:
+        return "同组另一权重已自动补足到 1"
+    return "其余同组权重已按当前策略参数比例自动缩放"
+
+
+def _auto_normalize_weight_overrides(
+    base_params: dict[str, Any],
+    overrides: dict[str, Any],
+) -> tuple[dict[str, Any], list[str]]:
+    normalized = dict(overrides)
+    adjustment_notes: list[str] = []
+
+    for group in AUTO_NORMALIZE_WEIGHT_GROUPS:
+        explicit_keys = [key for key in group if key in overrides]
+        if len(explicit_keys) != 1:
+            continue
+
+        target_key = explicit_keys[0]
+        target_value = _safe_float(overrides.get(target_key))
+        if target_value is None:
+            raise ValueError(f"参数 {target_key} 需要是数值，才能自动归一化同组权重")
+        if target_value < -AUTO_NORMALIZE_EPSILON or target_value > 1 + AUTO_NORMALIZE_EPSILON:
+            raise ValueError(f"参数 {target_key} 超出 0 到 1，无法自动归一化同组权重")
+
+        target_value = _rounded_weight(min(max(float(target_value), 0.0), 1.0))
+        normalized[target_key] = target_value
+        other_keys = [key for key in group if key != target_key]
+        remaining_total = 1.0 - target_value
+        if remaining_total < -AUTO_NORMALIZE_EPSILON:
+            raise ValueError(f"参数 {target_key} 超出 0 到 1，无法自动归一化同组权重")
+        if abs(remaining_total) <= AUTO_NORMALIZE_EPSILON:
+            remaining_total = 0.0
+
+        adjusted_keys: list[str] = []
+        if len(other_keys) == 1:
+            normalized[other_keys[0]] = _rounded_weight(remaining_total)
+            adjusted_keys = list(other_keys)
+        else:
+            base_other_weights: list[float] = []
+            for key in other_keys:
+                base_value = _safe_float(base_params.get(key))
+                if base_value is None:
+                    raise ValueError(f"当前参数缺少 {key}，无法按现有比例自动缩放同组权重")
+                base_other_weights.append(float(base_value))
+
+            base_other_total = sum(base_other_weights)
+            if base_other_total <= AUTO_NORMALIZE_EPSILON:
+                if remaining_total > AUTO_NORMALIZE_EPSILON:
+                    joined = ", ".join(other_keys)
+                    raise ValueError(f"当前参数中的 {joined} 全为 0，无法按现有比例自动缩放同组权重")
+                for key in other_keys:
+                    normalized[key] = 0.0
+                adjusted_keys = list(other_keys)
+            else:
+                assigned_total = target_value
+                for index, key in enumerate(other_keys):
+                    if index == len(other_keys) - 1:
+                        scaled_value = 1.0 - assigned_total
+                    else:
+                        scaled_value = remaining_total * base_other_weights[index] / base_other_total
+                        assigned_total += scaled_value
+                    normalized[key] = _rounded_weight(scaled_value)
+                total_weight = sum(_safe_float(normalized.get(key)) or 0.0 for key in group)
+                drift = 1.0 - total_weight
+                if abs(drift) > AUTO_NORMALIZE_EPSILON:
+                    last_key = other_keys[-1]
+                    last_value = _safe_float(normalized.get(last_key)) or 0.0
+                    normalized[last_key] = _rounded_weight(last_value + drift)
+                adjusted_keys = list(other_keys)
+
+        note = _build_auto_normalize_note(group, adjusted_keys)
+        if note:
+            adjustment_notes.append(note)
+
+    return normalized, adjustment_notes
+
+
+def normalize_manual_candidate_payload(
+    base_params: dict[str, Any],
+    candidate_payload: dict[str, Any],
+) -> dict[str, Any]:
+    normalized_candidates: list[dict[str, Any]] = []
+    for index, item in enumerate(candidate_payload.get("candidates") or [], start=1):
+        name = str(item.get("name") or f"candidate_{index}").strip() or f"candidate_{index}"
+        description = str(item.get("description") or "").strip()
+        overrides = dict(item.get("overrides") or {})
+        normalized_overrides, adjustment_notes = _auto_normalize_weight_overrides(base_params, overrides)
+
+        rendered_overrides = "；".join(_build_param_lines(normalized_overrides))
+        if adjustment_notes:
+            adjustment_text = "；".join(adjustment_notes)
+            if description:
+                description = f"{description}；{adjustment_text}；实际执行为：{rendered_overrides}"
+            else:
+                description = f"{rendered_overrides}；{adjustment_text}"
+        elif not description:
+            description = rendered_overrides
+
+        normalized_candidates.append(
+            {
+                "name": name,
+                "description": description,
+                "overrides": normalized_overrides,
+            }
+        )
+
+    return {
+        **candidate_payload,
+        "candidates": normalized_candidates,
+    }
+
+
+def build_manual_candidate_payload(
+    *,
+    name: str | None = None,
+    description: str = "",
+    param_name: str | None = None,
+    values: list[Any] | None = None,
+    override_groups: list[dict[str, Any]] | None = None,
+    base_params: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    candidates: list[dict[str, Any]] = []
+
+    if param_name is not None:
+        param_key = str(param_name).strip()
+        if not param_key:
+            raise ValueError("手动候选的参数名不能为空")
+        normalized_values = list(values or [])
+        if not normalized_values:
+            raise ValueError(f"参数 {param_key} 未提供候选值")
+        for raw_value in normalized_values:
+            overrides = {param_key: raw_value}
+            candidates.append(
+                {
+                    "name": f"{param_key}_{_manual_value_tag(raw_value)}",
+                    "description": "",
+                    "overrides": overrides,
+                }
+            )
+
+    for index, raw_overrides in enumerate(override_groups or [], start=1):
+        overrides = dict(raw_overrides or {})
+        if not overrides:
+            continue
+        if len(overrides) == 1:
+            key, value = next(iter(overrides.items()))
+            candidate_name = f"{key}_{_manual_value_tag(value)}"
+        else:
+            candidate_name = f"candidate_{index}"
+        candidates.append(
+            {
+                "name": candidate_name,
+                "description": "",
+                "overrides": overrides,
+            }
+        )
+
+    if not candidates:
+        raise ValueError("未提供任何手动候选参数")
+
+    payload_name = str(name or "").strip()
+    if not payload_name:
+        payload_name = f"manual_{param_name}" if param_name else "manual_candidates"
+
+    payload = {
+        "name": payload_name,
+        "description": str(description or "").strip(),
+        "candidates": candidates,
+    }
+    if base_params is not None:
+        return normalize_manual_candidate_payload(base_params, payload)
+    payload["candidates"] = [
+        {
+            **item,
+            "description": str(item.get("description") or "").strip()
+            or "；".join(_build_param_lines(dict(item.get("overrides") or {}))),
+        }
+        for item in candidates
+    ]
+    return payload
+
+
+def load_manual_candidate_payload(
+    candidate_file: str | Path,
+    *,
+    name: str | None = None,
+    description: str = "",
+    base_params: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    payload = json.loads(Path(candidate_file).read_text(encoding="utf-8"))
+    if isinstance(payload, dict) and isinstance(payload.get("candidates"), list):
+        named_payload = load_named_candidate_sets(candidate_file)
+        if name:
+            named_payload["name"] = str(name).strip()
+        if description:
+            named_payload["description"] = str(description).strip()
+        if base_params is not None:
+            return normalize_manual_candidate_payload(base_params, named_payload)
+        return named_payload
+
+    return build_manual_candidate_payload(
+        name=name or Path(candidate_file).stem,
+        description=description,
+        override_groups=load_search_candidates(candidate_file),
+        base_params=base_params,
+    )
+
+
 def split_target_codes(
     dataset: dict[str, Any],
     train_ratio: float = 0.7,
@@ -859,6 +1105,7 @@ def rank_param_candidates(
             "overrides": dict(spec["overrides"]),
             "train_metrics": train_metrics,
             "validation_metrics": validation_metrics,
+            "full_metrics": evaluate_replay_targets(dataset, candidate_params),
         }
         ranking.append(entry)
         if spec["label"] == "baseline":
@@ -964,6 +1211,241 @@ def review_candidate_sets(
     }
 
 
+def _resolve_target_codes(
+    dataset: dict[str, Any],
+    target_codes: list[str] | None = None,
+) -> tuple[list[str], list[str], list[str]]:
+    dataset_codes = [
+        str(item.get("SECURITY_CODE") or "").strip()
+        for item in dataset.get("items") or []
+        if str(item.get("SECURITY_CODE") or "").strip()
+    ]
+    if target_codes is None:
+        return dataset_codes, dataset_codes, []
+
+    requested_codes = _normalize_codes(target_codes)
+    dataset_code_set = set(dataset_codes)
+    resolved_codes = [code for code in dataset_codes if code in set(requested_codes)]
+    missing_codes = [code for code in requested_codes if code not in dataset_code_set]
+    return requested_codes, resolved_codes, missing_codes
+
+
+def _observe_candidate_sort_key(item: dict[str, Any]) -> tuple[float, float, float, float, int, str]:
+    return (
+        *_ranking_sort_key(item.get("observe_metrics") or {}),
+        len(dict(item.get("overrides") or {})),
+        str(item.get("name") or ""),
+    )
+
+
+def _index_metrics_results(metrics: dict[str, Any]) -> tuple[dict[str, dict[str, Any]], dict[str, dict[str, Any]]]:
+    available = {
+        str(item.get("code") or "").strip(): item
+        for item in metrics.get("available_results") or []
+        if str(item.get("code") or "").strip()
+    }
+    unavailable = {
+        str(item.get("code") or "").strip(): item
+        for item in metrics.get("unavailable_results") or []
+        if str(item.get("code") or "").strip()
+    }
+    return available, unavailable
+
+
+def _is_interval_hit(
+    actual_close_price: float | None,
+    range_low: float | None,
+    range_high: float | None,
+) -> bool | None:
+    if actual_close_price is None or range_low is None or range_high is None:
+        return None
+    return range_low <= actual_close_price <= range_high
+
+
+def _build_observe_row_note(
+    baseline_reason: str,
+    candidate_reason: str,
+) -> str:
+    if baseline_reason and candidate_reason:
+        if baseline_reason == candidate_reason:
+            return f"baseline 与候选均不可用：{baseline_reason}"
+        return f"baseline 不可用：{baseline_reason}；候选不可用：{candidate_reason}"
+    if baseline_reason:
+        return f"baseline 不可用：{baseline_reason}"
+    if candidate_reason:
+        return f"候选不可用：{candidate_reason}"
+    return ""
+
+
+def _build_candidate_observe_rows(
+    dataset: dict[str, Any],
+    target_codes: list[str],
+    baseline_metrics: dict[str, Any],
+    candidate_metrics: dict[str, Any],
+) -> list[dict[str, Any]]:
+    dataset_items = {
+        str(item.get("SECURITY_CODE") or "").strip(): item
+        for item in dataset.get("items") or []
+        if str(item.get("SECURITY_CODE") or "").strip()
+    }
+    baseline_available, baseline_unavailable = _index_metrics_results(baseline_metrics)
+    candidate_available, candidate_unavailable = _index_metrics_results(candidate_metrics)
+
+    rows: list[dict[str, Any]] = []
+    for code in target_codes:
+        dataset_item = dataset_items.get(code, {})
+        baseline_result = baseline_available.get(code)
+        candidate_result = candidate_available.get(code)
+        baseline_reason = str((baseline_unavailable.get(code) or {}).get("reason") or "").strip()
+        candidate_reason = str((candidate_unavailable.get(code) or {}).get("reason") or "").strip()
+        actual_close_price = _safe_float(dataset_item.get("CLOSE_PRICE"))
+        baseline_range_low = _safe_float((baseline_result or {}).get("range_low"))
+        baseline_range_high = _safe_float((baseline_result or {}).get("range_high"))
+        candidate_range_low = _safe_float((candidate_result or {}).get("range_low"))
+        candidate_range_high = _safe_float((candidate_result or {}).get("range_high"))
+
+        rows.append(
+            {
+                "code": code,
+                "name": str(dataset_item.get("SECURITY_NAME_ABBR") or "").strip(),
+                "listing_date": str(dataset_item.get("LISTING_DATE") or "").strip(),
+                "actual_close_price": actual_close_price,
+                "actual_change_pct": _safe_float(dataset_item.get("LD_CLOSE_CHANGE")),
+                "baseline_available": baseline_result is not None,
+                "candidate_available": candidate_result is not None,
+                "baseline_reason": baseline_reason,
+                "candidate_reason": candidate_reason,
+                "baseline_target_price": _safe_float((baseline_result or {}).get("predicted_target_price")),
+                "candidate_target_price": _safe_float((candidate_result or {}).get("predicted_target_price")),
+                "baseline_abs_price_error": _safe_float((baseline_result or {}).get("price_abs_error")),
+                "candidate_abs_price_error": _safe_float((candidate_result or {}).get("price_abs_error")),
+                "baseline_change_pct": _safe_float((baseline_result or {}).get("predicted_change_pct")),
+                "candidate_change_pct": _safe_float((candidate_result or {}).get("predicted_change_pct")),
+                "baseline_change_abs_error": _safe_float((baseline_result or {}).get("change_abs_error")),
+                "candidate_change_abs_error": _safe_float((candidate_result or {}).get("change_abs_error")),
+                "baseline_range_low": baseline_range_low,
+                "baseline_range_high": baseline_range_high,
+                "candidate_range_low": candidate_range_low,
+                "candidate_range_high": candidate_range_high,
+                "baseline_interval_hit": _is_interval_hit(actual_close_price, baseline_range_low, baseline_range_high),
+                "candidate_interval_hit": _is_interval_hit(actual_close_price, candidate_range_low, candidate_range_high),
+                "baseline_sample_scope": (baseline_result or {}).get("sample_scope"),
+                "candidate_sample_scope": (candidate_result or {}).get("sample_scope"),
+                "baseline_sample_count": (baseline_result or {}).get("sample_count"),
+                "candidate_sample_count": (candidate_result or {}).get("sample_count"),
+                "baseline_pe_factor": _safe_float((baseline_result or {}).get("pe_factor")),
+                "candidate_pe_factor": _safe_float((candidate_result or {}).get("pe_factor")),
+                "baseline_float_factor": _safe_float((baseline_result or {}).get("float_factor")),
+                "candidate_float_factor": _safe_float((candidate_result or {}).get("float_factor")),
+                "comparison_outcome": _compare_change_error(
+                    _safe_float((baseline_result or {}).get("change_abs_error")),
+                    _safe_float((candidate_result or {}).get("change_abs_error")),
+                ),
+                "note": _build_observe_row_note(baseline_reason, candidate_reason),
+            }
+        )
+    return rows
+
+
+def observe_candidate_sets(
+    dataset: dict[str, Any],
+    base_params: dict[str, Any],
+    candidate_payload: dict[str, Any],
+    target_codes: list[str] | None = None,
+    progress_callback: Callable[[int, int, dict[str, Any]], None] | None = None,
+) -> dict[str, Any]:
+    evaluation_scope = _get_dataset_evaluation_scope(dataset)
+    _validate_supported_overrides(dataset, [dict(item.get("overrides") or {}) for item in candidate_payload.get("candidates") or []])
+
+    requested_codes, resolved_codes, missing_codes = _resolve_target_codes(dataset, target_codes)
+    if not resolved_codes:
+        raise ValueError(
+            "观察样本未命中回放数据集：{codes}".format(
+                codes=",".join(requested_codes or missing_codes or ["<empty>"])
+            )
+        )
+
+    specs: list[dict[str, Any]] = [
+        {
+            "name": "baseline",
+            "description": "当前参数",
+            "overrides": {},
+        }
+    ]
+    for item in candidate_payload.get("candidates") or []:
+        specs.append(
+            {
+                "name": str(item.get("name") or "").strip() or "candidate",
+                "description": str(item.get("description") or "").strip(),
+                "overrides": dict(item.get("overrides") or {}),
+            }
+        )
+
+    deduped_specs: list[dict[str, Any]] = []
+    seen_signatures: set[str] = set()
+    for spec in specs:
+        signature = _candidate_signature(spec["overrides"])
+        if signature in seen_signatures:
+            continue
+        seen_signatures.add(signature)
+        deduped_specs.append(spec)
+
+    raw_results: list[dict[str, Any]] = []
+    total_specs = len(deduped_specs)
+    for index, spec in enumerate(deduped_specs, start=1):
+        if progress_callback is not None:
+            progress_callback(index, total_specs, spec)
+        candidate_params = dict(base_params)
+        candidate_params.update(spec["overrides"])
+        raw_results.append(
+            {
+                "name": spec["name"],
+                "description": spec["description"],
+                "overrides": dict(spec["overrides"]),
+                "observe_metrics": evaluate_replay_targets(dataset, candidate_params, resolved_codes),
+            }
+        )
+
+    baseline = next((item for item in raw_results if item.get("name") == "baseline"), None)
+    if baseline is None:
+        raise ValueError("观察结果缺少 baseline")
+
+    ranking: list[dict[str, Any]] = []
+    for item in raw_results:
+        if item.get("name") == "baseline":
+            continue
+        ranking.append(
+            {
+                **item,
+                "rows": _build_candidate_observe_rows(
+                    dataset,
+                    resolved_codes,
+                    baseline.get("observe_metrics") or {},
+                    item.get("observe_metrics") or {},
+                ),
+            }
+        )
+    ranking.sort(key=_observe_candidate_sort_key)
+
+    combined_ranking = sorted(raw_results, key=_observe_candidate_sort_key)
+    best_overall = combined_ranking[0] if combined_ranking else None
+    best_candidate = ranking[0] if ranking else None
+
+    return {
+        "generated_at": _now_text(),
+        "evaluation_scope": evaluation_scope,
+        "observe_name": str(candidate_payload.get("name") or "manual_observe").strip() or "manual_observe",
+        "observe_description": str(candidate_payload.get("description") or "").strip(),
+        "requested_codes": requested_codes,
+        "target_codes": resolved_codes,
+        "missing_codes": missing_codes,
+        "baseline": baseline,
+        "best_overall": best_overall,
+        "best_candidate": best_candidate,
+        "ranked_results": ranking,
+    }
+
+
 def _build_param_lines(overrides: dict[str, Any]) -> list[str]:
     lines: list[str] = []
     for key, value in overrides.items():
@@ -998,6 +1480,217 @@ def _build_review_name_text(item: dict[str, Any]) -> str:
     return name
 
 
+def _scope_display_name(scope: str) -> str:
+    mapping = {
+        "train": "训练集",
+        "validation": "验证集",
+        "full": "全样本",
+    }
+    return mapping.get(scope, scope)
+
+
+def _dataset_target_codes(dataset: dict[str, Any]) -> list[str]:
+    sample_codes = _normalize_codes(list(dataset.get("sample_codes") or []))
+    if sample_codes:
+        return sample_codes
+    return [
+        str(item.get("SECURITY_CODE") or "").strip()
+        for item in dataset.get("items") or []
+        if str(item.get("SECURITY_CODE") or "").strip()
+    ]
+
+
+def _selection_scope_target_codes(result: dict[str, Any], metrics_scope: str) -> list[str]:
+    if metrics_scope == "validation":
+        return list(result.get("validation_codes") or [])
+    return list(result.get("train_codes") or [])
+
+
+def _compare_change_error(
+    baseline_error: float | None,
+    candidate_error: float | None,
+) -> str:
+    if baseline_error is None and candidate_error is None:
+        return "-"
+    if baseline_error is None:
+        return "候选补出结果"
+    if candidate_error is None:
+        return "候选缺结果"
+    if candidate_error < baseline_error:
+        return "候选更优"
+    if candidate_error > baseline_error:
+        return "候选更差"
+    return "持平"
+
+
+def _summarize_compare_rows(rows: list[dict[str, Any]]) -> dict[str, int]:
+    comparable_rows = [
+        row
+        for row in rows
+        if row.get("baseline_change_abs_error") is not None and row.get("candidate_change_abs_error") is not None
+    ]
+    noncomparable_rows = [
+        row
+        for row in rows
+        if row.get("baseline_change_abs_error") is None or row.get("candidate_change_abs_error") is None
+    ]
+    candidate_better_count = sum(
+        1
+        for row in comparable_rows
+        if float(row["candidate_change_abs_error"]) < float(row["baseline_change_abs_error"])
+    )
+    candidate_worse_count = sum(
+        1
+        for row in comparable_rows
+        if float(row["candidate_change_abs_error"]) > float(row["baseline_change_abs_error"])
+    )
+    tie_count = sum(
+        1
+        for row in comparable_rows
+        if float(row["candidate_change_abs_error"]) == float(row["baseline_change_abs_error"])
+    )
+    changed_row_count = sum(1 for row in rows if _observe_row_has_effective_change(row))
+    unchanged_row_count = max(len(rows) - changed_row_count, 0)
+    noncomparable_unchanged_count = sum(1 for row in noncomparable_rows if not _observe_row_has_effective_change(row))
+    noncomparable_changed_count = max(len(noncomparable_rows) - noncomparable_unchanged_count, 0)
+    return {
+        "row_count": len(rows),
+        "comparable_count": len(comparable_rows),
+        "noncomparable_count": len(noncomparable_rows),
+        "candidate_better_count": candidate_better_count,
+        "candidate_worse_count": candidate_worse_count,
+        "tie_count": tie_count,
+        "error_smaller_count": candidate_better_count,
+        "error_larger_count": candidate_worse_count,
+        "error_unchanged_count": tie_count,
+        "changed_row_count": changed_row_count,
+        "unchanged_row_count": unchanged_row_count,
+        "noncomparable_unchanged_count": noncomparable_unchanged_count,
+        "noncomparable_changed_count": noncomparable_changed_count,
+        "interval_gain_count": sum(
+            1
+            for row in rows
+            if row.get("baseline_interval_hit") is False and row.get("candidate_interval_hit") is True
+        ),
+        "interval_loss_count": sum(
+            1
+            for row in rows
+            if row.get("baseline_interval_hit") is True and row.get("candidate_interval_hit") is False
+        ),
+        "baseline_unavailable_count": sum(1 for row in rows if not row.get("baseline_available")),
+        "candidate_unavailable_count": sum(1 for row in rows if not row.get("candidate_available")),
+    }
+
+
+def _build_scope_comparison(
+    dataset: dict[str, Any],
+    target_codes: list[str],
+    baseline_metrics: dict[str, Any],
+    candidate_metrics: dict[str, Any],
+) -> dict[str, Any]:
+    rows = _build_candidate_observe_rows(dataset, target_codes, baseline_metrics, candidate_metrics)
+    return {
+        "target_codes": list(target_codes),
+        "summary": _summarize_compare_rows(rows),
+        "rows": rows,
+    }
+
+
+def _build_metrics_overview_lines(
+    scopes: list[tuple[str, dict[str, Any], dict[str, Any]]],
+) -> list[str]:
+    lines = [
+        "| 范围 | baseline MAE | 候选 MAE | MAE 变化 | baseline RMSE | 候选 RMSE | RMSE 变化 | baseline 区间命中率 | 候选区间命中率 | baseline 可用率 | 候选可用率 |",
+        "| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
+    ]
+    seen_scopes: set[str] = set()
+    for scope, baseline_metrics, candidate_metrics in scopes:
+        if scope in seen_scopes:
+            continue
+        seen_scopes.add(scope)
+        lines.append(
+            "| {scope} | {base_mae} | {cand_mae} | {mae_delta} | {base_rmse} | {cand_rmse} | {rmse_delta} | {base_hit} | {cand_hit} | {base_avail} | {cand_avail} |".format(
+                scope=_scope_display_name(scope),
+                base_mae=_fmt_metric(baseline_metrics.get("mae_change_pct")),
+                cand_mae=_fmt_metric(candidate_metrics.get("mae_change_pct")),
+                mae_delta=_metric_delta_text(candidate_metrics.get("mae_change_pct"), baseline_metrics.get("mae_change_pct")),
+                base_rmse=_fmt_metric(baseline_metrics.get("rmse_change_pct")),
+                cand_rmse=_fmt_metric(candidate_metrics.get("rmse_change_pct")),
+                rmse_delta=_metric_delta_text(candidate_metrics.get("rmse_change_pct"), baseline_metrics.get("rmse_change_pct")),
+                base_hit=_fmt_metric(baseline_metrics.get("interval_hit_rate")),
+                cand_hit=_fmt_metric(candidate_metrics.get("interval_hit_rate")),
+                base_avail=_fmt_metric(baseline_metrics.get("available_rate")),
+                cand_avail=_fmt_metric(candidate_metrics.get("available_rate")),
+            )
+        )
+    return lines
+
+
+def _build_compare_summary_lines(summary: dict[str, Any]) -> list[str]:
+    return [
+        f"- 可比样本数：`{summary.get('comparable_count', 0)} / {summary.get('row_count', 0)}`",
+        f"- 候选优于 baseline：`{summary.get('candidate_better_count', 0)}`",
+        f"- 候选劣于 baseline：`{summary.get('candidate_worse_count', 0)}`",
+        f"- 持平：`{summary.get('tie_count', 0)}`",
+        f"- 候选新增区间命中：`{summary.get('interval_gain_count', 0)}`",
+        f"- 候选丢失区间命中：`{summary.get('interval_loss_count', 0)}`",
+        f"- baseline 不可用样本：`{summary.get('baseline_unavailable_count', 0)}`",
+        f"- 候选不可用样本：`{summary.get('candidate_unavailable_count', 0)}`",
+    ]
+
+
+def _build_compare_table_lines(rows: list[dict[str, Any]]) -> list[str]:
+    lines = [
+        "| 代码 | 名称 | 实际收盘 | 实际涨幅 | baseline 目标价 | 候选目标价 | baseline 涨幅误差 | 候选涨幅误差 | baseline 区间命中 | 候选区间命中 | 结论 | 备注 |",
+        "| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | --- | --- | --- | --- |",
+    ]
+    for row in rows:
+        lines.append(
+            "| {code} | {name} | {actual_close} | {actual_change} | {baseline_target} | {candidate_target} | {baseline_change_error} | {candidate_change_error} | {baseline_hit} | {candidate_hit} | {outcome} | {note} |".format(
+                code=row.get("code") or "-",
+                name=row.get("name") or "-",
+                actual_close=_fmt_metric(_safe_float(row.get("actual_close_price"))),
+                actual_change=_fmt_metric(_safe_float(row.get("actual_change_pct"))),
+                baseline_target=_fmt_metric(_safe_float(row.get("baseline_target_price"))),
+                candidate_target=_fmt_metric(_safe_float(row.get("candidate_target_price"))),
+                baseline_change_error=_fmt_metric(_safe_float(row.get("baseline_change_abs_error"))),
+                candidate_change_error=_fmt_metric(_safe_float(row.get("candidate_change_abs_error"))),
+                baseline_hit=_fmt_flag(row.get("baseline_interval_hit")),
+                candidate_hit=_fmt_flag(row.get("candidate_interval_hit")),
+                outcome=row.get("comparison_outcome") or "-",
+                note=row.get("note") or "-",
+            )
+        )
+    return lines
+
+
+def _values_differ(left: Any, right: Any, tolerance: float = 1e-9) -> bool:
+    if left is None or right is None:
+        return left != right
+    if isinstance(left, (int, float)) and not isinstance(left, bool) and isinstance(right, (int, float)) and not isinstance(right, bool):
+        return not math.isclose(float(left), float(right), rel_tol=0.0, abs_tol=tolerance)
+    return left != right
+
+
+def _observe_row_has_effective_change(row: dict[str, Any]) -> bool:
+    compare_pairs = [
+        ("baseline_available", "candidate_available"),
+        ("baseline_reason", "candidate_reason"),
+        ("baseline_target_price", "candidate_target_price"),
+        ("baseline_abs_price_error", "candidate_abs_price_error"),
+        ("baseline_change_pct", "candidate_change_pct"),
+        ("baseline_change_abs_error", "candidate_change_abs_error"),
+        ("baseline_range_low", "candidate_range_low"),
+        ("baseline_range_high", "candidate_range_high"),
+        ("baseline_interval_hit", "candidate_interval_hit"),
+        ("baseline_sample_scope", "candidate_sample_scope"),
+        ("baseline_sample_count", "candidate_sample_count"),
+        ("baseline_pe_factor", "candidate_pe_factor"),
+        ("baseline_float_factor", "candidate_float_factor"),
+    ]
+    return any(_values_differ(row.get(left_key), row.get(right_key)) for left_key, right_key in compare_pairs)
+
+
 def write_search_outputs(
     dataset: dict[str, Any],
     ranking_result: dict[str, Any],
@@ -1010,6 +1703,21 @@ def write_search_outputs(
     metrics_key = f"{metrics_scope}_metrics"
     best_metrics = best.get(metrics_key) or {}
     baseline_metrics = baseline.get(metrics_key) or {}
+    selection_target_codes = _selection_scope_target_codes(ranking_result, metrics_scope)
+    selection_comparison = _build_scope_comparison(dataset, selection_target_codes, baseline_metrics, best_metrics)
+    full_comparison = _build_scope_comparison(
+        dataset,
+        _dataset_target_codes(dataset),
+        baseline.get("full_metrics") or {},
+        best.get("full_metrics") or {},
+    )
+    metrics_overview_lines = _build_metrics_overview_lines(
+        [
+            ("train", baseline.get("train_metrics") or {}, best.get("train_metrics") or {}),
+            (metrics_scope, baseline_metrics, best_metrics),
+            ("full", baseline.get("full_metrics") or {}, best.get("full_metrics") or {}),
+        ]
+    )
 
     target_dir = Path(output_dir)
     target_dir.mkdir(parents=True, exist_ok=True)
@@ -1025,6 +1733,16 @@ def write_search_outputs(
             "method1_ready_rate": dataset.get("method1_ready_rate"),
             "sample_codes": dataset.get("sample_codes"),
             "caveats": dataset.get("caveats"),
+        },
+        "report_comparisons": {
+            "selection_scope": {
+                "scope": metrics_scope,
+                **selection_comparison,
+            },
+            "full_scope": {
+                "scope": "full",
+                **full_comparison,
+            },
         },
         **ranking_result,
     }
@@ -1052,6 +1770,8 @@ def write_search_outputs(
         best_param_lines = ["沿用当前参数（baseline）"]
 
     caveat_lines = [f"- {item}" for item in dataset.get("caveats") or []]
+    if not caveat_lines:
+        caveat_lines = ["- 无"]
     markdown = "\n".join(
         [
             f"# 离线调参报告（{stage_name}）",
@@ -1072,20 +1792,19 @@ def write_search_outputs(
             "",
             *[f"- `{line}`" for line in best_param_lines],
             "",
-            "## 与当前参数对比",
+            "## 前后汇总",
             "",
-            f"- 当前参数 MAE(涨幅)：`{_fmt_metric(baseline_metrics.get('mae_change_pct'))}`",
-            f"- 推荐参数 MAE(涨幅)：`{_fmt_metric(best_metrics.get('mae_change_pct'))}`",
-            f"- MAE 变化：`{_metric_delta_text(best_metrics.get('mae_change_pct'), baseline_metrics.get('mae_change_pct'))}`",
-            f"- 当前参数 RMSE(涨幅)：`{_fmt_metric(baseline_metrics.get('rmse_change_pct'))}`",
-            f"- 推荐参数 RMSE(涨幅)：`{_fmt_metric(best_metrics.get('rmse_change_pct'))}`",
-            f"- RMSE 变化：`{_metric_delta_text(best_metrics.get('rmse_change_pct'), baseline_metrics.get('rmse_change_pct'))}`",
+            *metrics_overview_lines,
             "",
-            "## 推荐参数表现",
+            f"## {_scope_display_name(metrics_scope)}逐样本对比（与真实结果）",
             "",
-            f"- 区间命中率：`{_fmt_metric(best_metrics.get('interval_hit_rate'))}`",
-            f"- 方向命中率：`{_fmt_metric(best_metrics.get('direction_hit_rate'))}`",
-            f"- 可用率：`{_fmt_metric(best_metrics.get('available_rate'))}`",
+            *(_build_compare_summary_lines(selection_comparison["summary"])),
+            "",
+            *(_build_compare_table_lines(selection_comparison["rows"])),
+            "",
+            "## 全样本真实结果对比摘要",
+            "",
+            *(_build_compare_summary_lines(full_comparison["summary"])),
             "",
             "## Top 候选",
             "",
@@ -1109,6 +1828,21 @@ def write_candidate_review_outputs(
     best_candidate = review_result.get("best_candidate") or {}
     baseline_metrics = baseline.get(metrics_key) or {}
     best_candidate_metrics = best_candidate.get(metrics_key) or {}
+    selection_target_codes = _selection_scope_target_codes(review_result, metrics_scope)
+    selection_comparison = _build_scope_comparison(dataset, selection_target_codes, baseline_metrics, best_candidate_metrics)
+    full_comparison = _build_scope_comparison(
+        dataset,
+        _dataset_target_codes(dataset),
+        baseline.get("full_metrics") or {},
+        best_candidate.get("full_metrics") or {},
+    )
+    metrics_overview_lines = _build_metrics_overview_lines(
+        [
+            ("train", baseline.get("train_metrics") or {}, best_candidate.get("train_metrics") or {}),
+            (metrics_scope, baseline_metrics, best_candidate_metrics),
+            ("full", baseline.get("full_metrics") or {}, best_candidate.get("full_metrics") or {}),
+        ]
+    )
 
     target_dir = Path(output_dir)
     target_dir.mkdir(parents=True, exist_ok=True)
@@ -1124,6 +1858,16 @@ def write_candidate_review_outputs(
             "method1_ready_rate": dataset.get("method1_ready_rate"),
             "sample_codes": dataset.get("sample_codes"),
             "caveats": dataset.get("caveats"),
+        },
+        "report_comparisons": {
+            "selection_scope": {
+                "scope": metrics_scope,
+                **selection_comparison,
+            },
+            "full_scope": {
+                "scope": "full",
+                **full_comparison,
+            },
         },
         **review_result,
     }
@@ -1153,6 +1897,8 @@ def write_candidate_review_outputs(
         best_param_lines = ["沿用当前参数（baseline）"]
 
     caveat_lines = [f"- {item}" for item in dataset.get("caveats") or []]
+    if not caveat_lines:
+        caveat_lines = ["- 无"]
     markdown = "\n".join(
         [
             f"# 候选参数集综合回放复核（{stem}）",
@@ -1174,19 +1920,211 @@ def write_candidate_review_outputs(
             f"- 方案：`{_build_review_name_text(best_candidate)}`",
             *[f"- `{line}`" for line in best_param_lines],
             "",
-            "## 与 baseline 对比",
+            "## 前后汇总",
             "",
-            f"- baseline 验证集 MAE(涨幅)：`{_fmt_metric(baseline_metrics.get('mae_change_pct'))}`",
-            f"- 候选 验证集 MAE(涨幅)：`{_fmt_metric(best_candidate_metrics.get('mae_change_pct'))}`",
-            f"- MAE 变化：`{_metric_delta_text(best_candidate_metrics.get('mae_change_pct'), baseline_metrics.get('mae_change_pct'))}`",
-            f"- baseline 验证集 RMSE(涨幅)：`{_fmt_metric(baseline_metrics.get('rmse_change_pct'))}`",
-            f"- 候选 验证集 RMSE(涨幅)：`{_fmt_metric(best_candidate_metrics.get('rmse_change_pct'))}`",
-            f"- RMSE 变化：`{_metric_delta_text(best_candidate_metrics.get('rmse_change_pct'), baseline_metrics.get('rmse_change_pct'))}`",
+            *metrics_overview_lines,
+            "",
+            f"## {_scope_display_name(metrics_scope)}逐样本对比（与真实结果）",
+            "",
+            *(_build_compare_summary_lines(selection_comparison["summary"])),
+            "",
+            *(_build_compare_table_lines(selection_comparison["rows"])),
+            "",
+            "## 全样本真实结果对比摘要",
+            "",
+            *(_build_compare_summary_lines(full_comparison["summary"])),
             "",
             "## 候选集排序",
             "",
             *ranked_lines,
             "",
+        ]
+    )
+    md_path.write_text(markdown, encoding="utf-8")
+    return json_path, md_path
+
+
+def write_manual_observe_outputs(
+    dataset: dict[str, Any],
+    observe_result: dict[str, Any],
+    output_dir: str | Path = DEFAULT_OBSERVE_OUTPUT_DIR,
+    observe_name: str | None = None,
+) -> tuple[Path, Path]:
+    baseline = observe_result.get("baseline") or {}
+    baseline_metrics = baseline.get("observe_metrics") or {}
+    best_candidate = observe_result.get("best_candidate") or {}
+    best_candidate_metrics = best_candidate.get("observe_metrics") or {}
+
+    target_dir = Path(output_dir)
+    target_dir.mkdir(parents=True, exist_ok=True)
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    stem = observe_name or str(observe_result.get("observe_name") or "manual_observe")
+    json_path = target_dir / f"observe_manual_{stem}_{timestamp}.json"
+    md_path = target_dir / f"observe_manual_{stem}_{timestamp}.md"
+
+    display_ranked_results: list[dict[str, Any]] = []
+    for item in observe_result.get("ranked_results") or []:
+        all_rows = list(item.get("rows") or [])
+        changed_rows = [row for row in all_rows if _observe_row_has_effective_change(row)]
+        compare_summary = _summarize_compare_rows(all_rows)
+        display_ranked_results.append(
+            {
+                "name": item.get("name"),
+                "description": item.get("description"),
+                "changed_row_count": len(changed_rows),
+                "hidden_unchanged_row_count": max(len(all_rows) - len(changed_rows), 0),
+                "changed_rows": changed_rows,
+                "compare_summary": compare_summary,
+            }
+        )
+
+    payload = {
+        "dataset_summary": {
+            "available_count": dataset.get("available_count"),
+            "method1_ready_count": dataset.get("method1_ready_count"),
+            "method1_ready_rate": dataset.get("method1_ready_rate"),
+            "sample_codes": dataset.get("sample_codes"),
+            "caveats": dataset.get("caveats"),
+        },
+        "report_display": {
+            "display_mode": "changed_only",
+            "ranked_results": display_ranked_results,
+        },
+        **observe_result,
+    }
+    json_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+
+    summary_lines = [
+        "| 排名 | 方案 | 样本数 | 误差缩小 | 误差增大 | 无变化 | MAE(涨幅) | RMSE(涨幅) | 区间命中率 | 可用率 |",
+        "| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
+    ]
+    for index, (item, display_item) in enumerate(zip(observe_result.get("ranked_results") or [], display_ranked_results), start=1):
+        metrics = item.get("observe_metrics") or {}
+        compare_summary = display_item.get("compare_summary") or {}
+        summary_lines.append(
+            "| {rank} | {name} | {sample_count} | {smaller} | {larger} | {unchanged} | {mae} | {rmse} | {hit} | {avail} |".format(
+                rank=index,
+                name=_build_review_name_text(item),
+                sample_count=compare_summary.get("row_count", 0),
+                smaller=compare_summary.get("error_smaller_count", 0),
+                larger=compare_summary.get("error_larger_count", 0),
+                unchanged=compare_summary.get("error_unchanged_count", 0),
+                mae=_fmt_metric(metrics.get("mae_change_pct")),
+                rmse=_fmt_metric(metrics.get("rmse_change_pct")),
+                hit=_fmt_metric(metrics.get("interval_hit_rate")),
+                avail=_fmt_metric(metrics.get("available_rate")),
+            )
+        )
+
+    detail_sections: list[str] = []
+    for item, display_item in zip(observe_result.get("ranked_results") or [], display_ranked_results):
+        metrics = item.get("observe_metrics") or {}
+        changed_rows = list(display_item.get("changed_rows") or [])
+        hidden_unchanged_row_count = int(display_item.get("hidden_unchanged_row_count") or 0)
+        compare_summary = display_item.get("compare_summary") or {}
+        table_lines: list[str] = []
+        if changed_rows:
+            table_lines = [
+                "| 代码 | 名称 | 实际收盘 | baseline 目标价 | 候选目标价 | baseline 误差 | 候选误差 | baseline 区间命中 | 候选区间命中 | 备注 |",
+                "| --- | --- | ---: | ---: | ---: | ---: | ---: | --- | --- | --- |",
+            ]
+            for row in changed_rows:
+                table_lines.append(
+                    "| {code} | {name} | {actual_close} | {baseline_target} | {candidate_target} | {baseline_error} | {candidate_error} | {baseline_hit} | {candidate_hit} | {note} |".format(
+                        code=row.get("code") or "-",
+                        name=row.get("name") or "-",
+                        actual_close=_fmt_metric(_safe_float(row.get("actual_close_price"))),
+                        baseline_target=_fmt_metric(_safe_float(row.get("baseline_target_price"))),
+                        candidate_target=_fmt_metric(_safe_float(row.get("candidate_target_price"))),
+                        baseline_error=_fmt_metric(_safe_float(row.get("baseline_abs_price_error"))),
+                        candidate_error=_fmt_metric(_safe_float(row.get("candidate_abs_price_error"))),
+                        baseline_hit=_fmt_flag(row.get("baseline_interval_hit")),
+                        candidate_hit=_fmt_flag(row.get("candidate_interval_hit")),
+                        note=row.get("note") or "-",
+                    )
+                )
+
+        candidate_param_lines = _build_param_lines(dict(item.get("overrides") or {}))
+        if not candidate_param_lines:
+            candidate_param_lines = ["沿用当前参数（baseline）"]
+
+        section_lines = [
+            f"## 样本对比：{_build_review_name_text(item)}",
+            "",
+            *[f"- `{line}`" for line in candidate_param_lines],
+            f"- MAE(涨幅)：`{_fmt_metric(metrics.get('mae_change_pct'))}`",
+            f"- RMSE(涨幅)：`{_fmt_metric(metrics.get('rmse_change_pct'))}`",
+            f"- 区间命中率：`{_fmt_metric(metrics.get('interval_hit_rate'))}`",
+            f"- 可用率：`{_fmt_metric(metrics.get('available_rate'))}`",
+            f"- 本次样本数：`{compare_summary.get('row_count', 0)}`",
+            f"- 与 baseline 相比涨幅误差缩小样本：`{compare_summary.get('error_smaller_count', 0)}`",
+            f"- 与 baseline 相比涨幅误差增大样本：`{compare_summary.get('error_larger_count', 0)}`",
+            f"- 与 baseline 相比涨幅误差无变化样本：`{compare_summary.get('error_unchanged_count', 0)}`",
+            f"- 不可比较但前后相同样本：`{compare_summary.get('noncomparable_unchanged_count', 0)}`",
+            f"- 展示变化样本数：`{len(changed_rows)}`",
+            f"- 已省略未变化样本数：`{hidden_unchanged_row_count}`",
+            "",
+        ]
+        if changed_rows:
+            section_lines.extend([*table_lines, ""])
+        else:
+            section_lines.extend(
+                [
+                    "- 本轮无变化样本，已省略全量样本表。",
+                    "",
+                ]
+            )
+        detail_sections.extend(section_lines)
+
+    caveat_lines = [f"- {item}" for item in dataset.get("caveats") or []]
+    if not caveat_lines:
+        caveat_lines = ["- 无"]
+    missing_codes = observe_result.get("missing_codes") or []
+    markdown = "\n".join(
+        [
+            f"# 手动参数 replay 观察（{stem}）",
+            "",
+            f"- 生成时间：{observe_result.get('generated_at', _now_text())}",
+            f"- 评估范围：{observe_result.get('evaluation_scope', EVALUATION_SCOPE)}",
+            f"- 数据集样本数：{dataset.get('available_count', 0)}",
+            f"- 观察代码数：{len(observe_result.get('target_codes') or [])}",
+            f"- 请求代码：`{', '.join(observe_result.get('requested_codes') or []) or '-'}`",
+            f"- 未命中代码：`{', '.join(missing_codes) if missing_codes else '-'}`",
+            "",
+            "## 说明",
+            "",
+            *caveat_lines,
+            "- 下方样本表默认只展示调参前后发生变化的样本；未变化样本不重复展开。",
+            "- “误差缩小 / 增大 / 无变化”按与真实结果对比的“涨幅绝对误差”统计。",
+            "- “不可比较但前后相同样本”表示 baseline 与候选都没有可比较的涨幅误差，但前后输出结果完全一致。",
+            "",
+            "## baseline",
+            "",
+            f"- MAE(涨幅)：`{_fmt_metric(baseline_metrics.get('mae_change_pct'))}`",
+            f"- RMSE(涨幅)：`{_fmt_metric(baseline_metrics.get('rmse_change_pct'))}`",
+            f"- 区间命中率：`{_fmt_metric(baseline_metrics.get('interval_hit_rate'))}`",
+            f"- 可用率：`{_fmt_metric(baseline_metrics.get('available_rate'))}`",
+            "",
+            "## 候选汇总",
+            "",
+            *summary_lines,
+            "",
+            "## 当前最优候选",
+            "",
+            f"- 方案：`{_build_review_name_text(best_candidate) if best_candidate else '无'}`",
+            f"- baseline MAE(涨幅)：`{_fmt_metric(baseline_metrics.get('mae_change_pct'))}`",
+            f"- 候选 MAE(涨幅)：`{_fmt_metric(best_candidate_metrics.get('mae_change_pct'))}`",
+            f"- MAE 变化：`{_metric_delta_text(best_candidate_metrics.get('mae_change_pct'), baseline_metrics.get('mae_change_pct'))}`",
+            f"- baseline RMSE(涨幅)：`{_fmt_metric(baseline_metrics.get('rmse_change_pct'))}`",
+            f"- 候选 RMSE(涨幅)：`{_fmt_metric(best_candidate_metrics.get('rmse_change_pct'))}`",
+            f"- RMSE 变化：`{_metric_delta_text(best_candidate_metrics.get('rmse_change_pct'), baseline_metrics.get('rmse_change_pct'))}`",
+            f"- 本次样本数：`{((display_ranked_results[0].get('compare_summary') or {}).get('row_count', 0)) if display_ranked_results else 0}`",
+            f"- 误差缩小样本：`{((display_ranked_results[0].get('compare_summary') or {}).get('error_smaller_count', 0)) if display_ranked_results else 0}`",
+            f"- 误差增大样本：`{((display_ranked_results[0].get('compare_summary') or {}).get('error_larger_count', 0)) if display_ranked_results else 0}`",
+            f"- 无变化样本：`{((display_ranked_results[0].get('compare_summary') or {}).get('error_unchanged_count', 0)) if display_ranked_results else 0}`",
+            f"- 不可比较但前后相同样本：`{((display_ranked_results[0].get('compare_summary') or {}).get('noncomparable_unchanged_count', 0)) if display_ranked_results else 0}`",
+            "",
+            *detail_sections,
         ]
     )
     md_path.write_text(markdown, encoding="utf-8")
