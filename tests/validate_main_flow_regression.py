@@ -418,6 +418,88 @@ def _assert_missing_online_va_num_placeholder(failures: list[str]) -> None:
             failures.append(f"report placeholder: missing {label} empty-state text")
 
 
+def _assert_recent_table_time_window(failures: list[str]) -> None:
+    base_payload = {
+        "analysis_date": "2026-04-27",
+        "ipo_info": {
+            "SECURITY_CODE": "920000",
+            "SECURITY_NAME_ABBR": "占位样本",
+            "ISSUE_PRICE": 10.0,
+            "AFTER_ISSUE_PE": 15.0,
+            "INDUSTRY_PE_NEW": 20.0,
+            "APPLY_DATE": "2026-04-18",
+            "LISTING_DATE": "2026-04-25",
+            "PRICE_WAY": "直接定价",
+            "TOTAL_ISSUE_NUM": 1000.0,
+        },
+        "industry": {"display_name": "通用设备"},
+        "method1": {"available": False, "reason": "test"},
+        "method2": {"available": False, "reason": "test"},
+        "final": {
+            "available": False,
+            "reason": "test",
+            "target_price": None,
+            "range_low": None,
+            "range_high": None,
+        },
+        "params": {
+            "price_range_width": 0.15,
+            "recent_months": 3,
+            "ipo_data_source": "eastmoney",
+            "comparable_data_source": "wind",
+        },
+        "notes": [],
+        "recent_ipos": [
+            {
+                "SECURITY_CODE": "920001",
+                "SECURITY_NAME_ABBR": "过旧样本",
+                "LISTING_DATE": "2026-01-26",
+                "ISSUE_PRICE": 10.0,
+                "CLOSE_PRICE": 12.0,
+                "LD_CLOSE_CHANGE": 20.0,
+                "industry_primary": "高端装备",
+            },
+            {
+                "SECURITY_CODE": "920002",
+                "SECURITY_NAME_ABBR": "边界样本",
+                "LISTING_DATE": "2026-01-27",
+                "ISSUE_PRICE": 10.0,
+                "CLOSE_PRICE": 13.0,
+                "LD_CLOSE_CHANGE": 30.0,
+                "industry_primary": "信息技术",
+            },
+            {
+                "SECURITY_CODE": "920003",
+                "SECURITY_NAME_ABBR": "窗口样本",
+                "LISTING_DATE": "2026-04-20",
+                "ISSUE_PRICE": 10.0,
+                "CLOSE_PRICE": 14.0,
+                "LD_CLOSE_CHANGE": 40.0,
+                "industry_primary": "医药生物",
+            },
+            {
+                "SECURITY_CODE": "920004",
+                "SECURITY_NAME_ABBR": "未来样本",
+                "LISTING_DATE": "2026-04-28",
+                "ISSUE_PRICE": 10.0,
+                "CLOSE_PRICE": 15.0,
+                "LD_CLOSE_CHANGE": 50.0,
+                "industry_primary": "消费服务",
+            },
+        ],
+        "comparable_data": [],
+        "float_shares": 500.0,
+        "old_shares_desc": "无",
+        "company_description": "",
+        "final_change_pct": None,
+        "range_change_low": None,
+        "range_change_high": None,
+    }
+    markdown = report_generator.build_report_markdown(base_payload)
+    _assert_contains(markdown, ("边界样本", "窗口样本"), failures, "recent table window")
+    _assert_not_contains(markdown, ("过旧样本", "未来样本"), failures, "recent table window")
+
+
 def _assert_note_builder_focus_scope(params: dict[str, Any], failures: list[str]) -> None:
     noisy_notes = note_builder.generate_notes(
         {
@@ -508,6 +590,7 @@ def main() -> int:
     params = config_loader.load_params(ROOT_DIR / "策略参数.txt")
     failures: list[str] = []
     _assert_missing_online_va_num_placeholder(failures)
+    _assert_recent_table_time_window(failures)
     _assert_note_builder_focus_scope(params, failures)
 
     for case in REGRESSION_CASES:

@@ -7,7 +7,7 @@ import statistics
 import subprocess
 import time
 import uuid
-from datetime import datetime
+from datetime import date, datetime
 from pathlib import Path
 from typing import Any
 
@@ -87,6 +87,60 @@ def _fmt_date(value: Any, fallback: str = "-") -> str:
     if " " in text:
         return text.split(" ", 1)[0]
     return text
+
+
+def _parse_date(value: Any) -> date | None:
+    if value in (None, "", "--"):
+        return None
+    text = str(value).strip()
+    if not text:
+        return None
+    text = text.split(" ", 1)[0].replace("/", "-")
+    try:
+        return date.fromisoformat(text)
+    except ValueError:
+        return None
+
+
+def _days_in_month(year: int, month: int) -> int:
+    if month == 2:
+        return 29 if year % 4 == 0 and (year % 100 != 0 or year % 400 == 0) else 28
+    if month in {4, 6, 9, 11}:
+        return 30
+    return 31
+
+
+def _subtract_months(current_date: date, months: int) -> date:
+    year = current_date.year
+    month = current_date.month - months
+    while month <= 0:
+        year -= 1
+        month += 12
+    return date(year, month, min(current_date.day, _days_in_month(year, month)))
+
+
+def _filter_recent_items_by_months(
+    recent_ipos: list[dict[str, Any]],
+    months: Any,
+    reference_date: Any,
+) -> list[dict[str, Any]]:
+    try:
+        month_count = max(int(months), 1)
+    except (TypeError, ValueError):
+        month_count = 3
+    end_date = _parse_date(reference_date) or date.today()
+    start_date = _subtract_months(end_date, month_count)
+
+    filtered: list[dict[str, Any]] = []
+    for item in recent_ipos:
+        listing_date = _parse_date(item.get("LISTING_DATE"))
+        if listing_date is None:
+            continue
+        if start_date <= listing_date <= end_date:
+            filtered.append(item)
+
+    filtered.sort(key=lambda item: _parse_date(item.get("LISTING_DATE")) or date.min, reverse=True)
+    return filtered
 
 
 def _build_wind_source_text(all_data: dict[str, Any]) -> str:
@@ -235,12 +289,14 @@ def _prepare_report_context(all_data: dict[str, Any]) -> dict[str, Any]:
     params = all_data["params"]
     notes = list(all_data.get("notes") or [])
     recent_ipos = all_data.get("recent_ipos") or []
+    recent_months = params.get("recent_months", 3)
+    display_recent_ipos = _filter_recent_items_by_months(recent_ipos, recent_months, analysis_date)
     comparable_data = all_data.get("comparable_data") or []
     wind_source_text = report_source_helper.build_comparable_source_text(all_data)
     ipo_source_text = report_source_helper.build_ipo_source_text(all_data)
 
     comparable_rows, pe_median, pb_median = _build_comparable_items(comparable_data)
-    recent_rows = _build_recent_items(recent_ipos)
+    recent_rows = _build_recent_items(display_recent_ipos)
     note_items = notes or ["当前未触发额外风险提示。"]
 
     issue_price = _safe_float(ipo.get("ISSUE_PRICE"))
@@ -320,7 +376,7 @@ def _prepare_report_context(all_data: dict[str, Any]) -> dict[str, Any]:
 
     return {
         "analysis_date": analysis_date,
-        "recent_months": params.get("recent_months", 3),
+        "recent_months": recent_months,
         "generated_at_text": generated_at.strftime("%Y-%m-%d %H:%M:%S"),
         "file_timestamp": generated_at.strftime("%Y%m%d_%H%M%S"),
         "title": f"{ipo.get('SECURITY_NAME_ABBR', '未知')}（{ipo.get('SECURITY_CODE', '-')}）北交所新股上市首日估值分析",

@@ -5,6 +5,7 @@ import os
 import re
 import shutil
 import subprocess
+from types import SimpleNamespace
 from pathlib import Path
 import sys
 from typing import Any
@@ -17,6 +18,13 @@ if str(CODE_DIR) not in sys.path:
     sys.path.insert(0, str(CODE_DIR))
 
 import param_tuning
+
+import importlib.util
+
+TUNE_PARAMS_SPEC = importlib.util.spec_from_file_location("tune_params_cli", ROOT_DIR / "tools" / "tune_params.py")
+assert TUNE_PARAMS_SPEC and TUNE_PARAMS_SPEC.loader
+tune_params_cli = importlib.util.module_from_spec(TUNE_PARAMS_SPEC)
+TUNE_PARAMS_SPEC.loader.exec_module(tune_params_cli)
 
 
 TEMP_ROOT = ROOT_DIR / "data" / "temp_validation" / "param_tuning_validation"
@@ -213,6 +221,124 @@ def time_split_case(failures: list[str]) -> None:
     train_codes, validation_codes = param_tuning.split_target_codes(dataset, train_ratio=0.5, min_train_samples=3)
     _assert(train_codes == ["000001", "000002", "000003"], "时间切分训练集顺序不正确", failures)
     _assert(validation_codes == ["000004", "000005", "000006"], "时间切分验证集顺序不正确", failures)
+
+
+def replay_dataset_sync_inspection_case(failures: list[str]) -> None:
+    dataset = _make_method2_dataset()
+    same_codes = ["000001", "000002", "000003", "000004", "000005", "000006"]
+    synced_status = param_tuning.inspect_replay_dataset_sync(dataset, local_sample_codes=same_codes, months=12)
+    _assert(not synced_status["needs_refresh"], "本地 CSV 与数据集一致时不应要求刷新", failures)
+
+    expanded_status = param_tuning.inspect_replay_dataset_sync(
+        dataset,
+        local_sample_codes=[*same_codes, "000007"],
+        months=12,
+    )
+    _assert(expanded_status["needs_refresh"], "本地 CSV 新增样本时应要求刷新", failures)
+    _assert(expanded_status["missing_in_dataset"] == ["000007"], "新增 CSV 样本识别不正确", failures)
+
+    removed_status = param_tuning.inspect_replay_dataset_sync(
+        dataset,
+        local_sample_codes=["000001", "000002", "000003", "000004", "000005"],
+        months=12,
+    )
+    _assert(removed_status["extra_in_dataset"] == ["000006"], "本地删除 CSV 后应识别数据集多余样本", failures)
+
+    months_status = param_tuning.inspect_replay_dataset_sync(dataset, local_sample_codes=same_codes, months=18)
+    _assert(months_status["needs_refresh"], "回放月份参数变化时应要求刷新", failures)
+
+
+def manual_dataset_auto_refresh_gate_case(failures: list[str]) -> None:
+    default_dataset_path = Path(param_tuning.DEFAULT_DATASET_PATH)
+    custom_dataset_path = TEMP_ROOT / "custom_replay_dataset.json"
+    original_env_value = os.environ.pop("BSE_TUNING_NO_AUTO_REFRESH", None)
+
+    try:
+        args = SimpleNamespace(mode="offline", no_auto_refresh_dataset=False)
+        _assert(
+            tune_params_cli._should_auto_refresh_dataset(args, default_dataset_path, None),
+            "手动模式默认数据集应启用自动同步",
+            failures,
+        )
+        _assert(
+            not tune_params_cli._should_auto_refresh_dataset(args, custom_dataset_path, None),
+            "自定义数据集且未显式 sample-codes 时不应自动同步",
+            failures,
+        )
+        _assert(
+            tune_params_cli._should_auto_refresh_dataset(args, custom_dataset_path, ["000001"]),
+            "显式 sample-codes 时应允许自定义数据集自动同步",
+            failures,
+        )
+
+        search_args = SimpleNamespace(mode="search", no_auto_refresh_dataset=False)
+        _assert(
+            not tune_params_cli._should_auto_refresh_dataset(search_args, default_dataset_path, None),
+            "search 模式不应默认启用手动同步逻辑",
+            failures,
+        )
+
+        disabled_args = SimpleNamespace(mode="offline", no_auto_refresh_dataset=True)
+        _assert(
+            not tune_params_cli._should_auto_refresh_dataset(disabled_args, default_dataset_path, None),
+            "--no-auto-refresh-dataset 应关闭自动同步",
+            failures,
+        )
+
+        os.environ["BSE_TUNING_NO_AUTO_REFRESH"] = "1"
+        _assert(
+            not tune_params_cli._should_auto_refresh_dataset(args, default_dataset_path, None),
+            "环境变量 BSE_TUNING_NO_AUTO_REFRESH 应关闭自动同步",
+            failures,
+        )
+    finally:
+        if original_env_value is None:
+            os.environ.pop("BSE_TUNING_NO_AUTO_REFRESH", None)
+        else:
+            os.environ["BSE_TUNING_NO_AUTO_REFRESH"] = original_env_value
+
+
+def manual_dataset_auto_refresh_failure_fallback_case(failures: list[str]) -> None:
+    _reset_dir(TEMP_ROOT)
+    dataset = _make_method2_dataset()
+    dataset_path = TEMP_ROOT / "stale_replay_dataset.json"
+    param_tuning.save_replay_dataset(dataset, dataset_path)
+
+    args = SimpleNamespace(
+        rebuild_dataset=False,
+        mode="offline",
+        no_auto_refresh_dataset=False,
+        months=12,
+        page_size=100,
+    )
+    original_build = tune_params_cli._build_and_save_dataset
+
+    def _raise_build_error(*args: Any, **kwargs: Any) -> dict[str, Any]:
+        _ = (args, kwargs)
+        raise RuntimeError("fixture build failed")
+
+    tune_params_cli._build_and_save_dataset = _raise_build_error
+    try:
+        loaded = tune_params_cli._load_or_refresh_dataset(
+            args,
+            _base_params(),
+            dataset_path,
+            ["000001", "000002", "000003", "000004", "000005", "000006", "000007"],
+        )
+    finally:
+        tune_params_cli._build_and_save_dataset = original_build
+
+    _assert(
+        loaded.get("sample_codes") == dataset.get("sample_codes"),
+        "自动刷新失败时应回退使用旧回放数据集",
+        failures,
+    )
+    persisted = param_tuning.load_replay_dataset(dataset_path)
+    _assert(
+        persisted.get("sample_codes") == dataset.get("sample_codes"),
+        "自动刷新失败时不应破坏旧回放数据集文件",
+        failures,
+    )
 
 
 def replay_metrics_case(failures: list[str]) -> None:
@@ -804,6 +930,7 @@ def manual_batch_entry_case(failures: list[str]) -> None:
     )
     env = os.environ.copy()
     env["CODEX_BATCH_NO_PAUSE"] = "1"
+    env["BSE_TUNING_NO_AUTO_REFRESH"] = "1"
     env["PYTHONIOENCODING"] = "utf-8"
 
     command = ["cmd", "/c", "手动调参.bat"]
@@ -998,6 +1125,9 @@ def composite_cli_case(failures: list[str]) -> None:
 def main() -> int:
     failures: list[str] = []
     time_split_case(failures)
+    replay_dataset_sync_inspection_case(failures)
+    manual_dataset_auto_refresh_gate_case(failures)
+    manual_dataset_auto_refresh_failure_fallback_case(failures)
     replay_metrics_case(failures)
     ranking_case(failures)
     review_case(failures)
@@ -1021,7 +1151,7 @@ def main() -> int:
     if failures:
         raise AssertionError("\n".join(failures))
 
-    print("Param tuning validation passed: 20 cases")
+    print("Param tuning validation passed: 23 cases")
     return 0
 
 

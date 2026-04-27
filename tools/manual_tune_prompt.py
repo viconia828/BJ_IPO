@@ -26,8 +26,9 @@ def _print_header() -> None:
     print("========================================")
     print("说明：")
     print("1. 本入口会调用 tools\\tune_params.py。")
-    print("2. 默认使用当前回放数据集：data\\offline_tuning\\replay_dataset.json。")
-    print("3. 训练集切分比例等默认取 策略参数.txt 中“调参专用”分类。")
+    print("2. 每次执行前会扫描“首日分时走势”目录，必要时自动同步回放数据集。")
+    print("3. 默认使用当前回放数据集：data\\offline_tuning\\replay_dataset.json。")
+    print("4. 训练集切分比例等默认取 策略参数.txt 中“调参专用”分类。")
     print(
         "   当前默认：train_ratio={ratio}，min_train_samples={min_samples}，replay_months={months}。".format(
             ratio=tuning_settings["tuning_train_ratio"],
@@ -35,8 +36,8 @@ def _print_header() -> None:
             months=tuning_settings["tuning_replay_months"],
         )
     )
-    print("4. 如无特殊需要，按提示逐步输入即可。")
-    print("5. 若只输入权重组中的一个因子：二因子会自动补足到 1，多因子组会按当前策略参数比例缩放其余权重。")
+    print("5. 如无特殊需要，按提示逐步输入即可。")
+    print("6. 若只输入权重组中的一个因子：二因子会自动补足到 1，多因子组会按当前策略参数比例缩放其余权重。")
     print("")
 
 

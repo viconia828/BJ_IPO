@@ -254,6 +254,42 @@ def discover_local_sample_codes() -> list[str]:
     return sorted(codes)
 
 
+def inspect_replay_dataset_sync(
+    dataset: dict[str, Any],
+    local_sample_codes: list[str] | None = None,
+    months: int | None = None,
+) -> dict[str, Any]:
+    local_codes = _normalize_codes(local_sample_codes if local_sample_codes is not None else discover_local_sample_codes())
+    dataset_codes = _normalize_codes(dataset.get("requested_codes") or dataset.get("sample_codes") or [])
+    local_code_set = set(local_codes)
+    dataset_code_set = set(dataset_codes)
+    missing_in_dataset = [code for code in local_codes if code not in dataset_code_set]
+    extra_in_dataset = [code for code in dataset_codes if code not in local_code_set]
+
+    reasons: list[str] = []
+    if missing_in_dataset:
+        reasons.append("本地首日分时走势新增样本：" + ",".join(missing_in_dataset))
+    if extra_in_dataset:
+        reasons.append("回放数据集中存在本地已无 CSV 的样本：" + ",".join(extra_in_dataset))
+    if months is not None:
+        dataset_months = dataset.get("source_months")
+        try:
+            dataset_months_int = int(dataset_months)
+        except (TypeError, ValueError):
+            dataset_months_int = None
+        if dataset_months_int != int(months):
+            reasons.append(f"回放月份参数变化：数据集={dataset_months}，当前={months}")
+
+    return {
+        "needs_refresh": bool(reasons),
+        "reasons": reasons,
+        "local_codes": local_codes,
+        "dataset_codes": dataset_codes,
+        "missing_in_dataset": missing_in_dataset,
+        "extra_in_dataset": extra_in_dataset,
+    }
+
+
 def list_stage_names() -> list[str]:
     return sorted(set(SEARCH_STAGE_GRIDS) | set(SEARCH_STAGE_CANDIDATES))
 

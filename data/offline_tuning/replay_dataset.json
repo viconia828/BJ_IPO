@@ -1,7 +1,7 @@
 {
   "schema": "offline_tuning_replay_v1",
   "evaluation_scope": "composite",
-  "generated_at": "2026-04-20 14:48:27",
+  "generated_at": "2026-04-27 15:20:08",
   "source_months": 18,
   "sample_codes": [
     "920086",
@@ -22,7 +22,10 @@
     "920055",
     "920011",
     "920181",
-    "920012"
+    "920012",
+    "920177",
+    "920191",
+    "920125"
   ],
   "requested_codes": [
     "920011",
@@ -36,18 +39,21 @@
     "920078",
     "920086",
     "920119",
+    "920125",
     "920159",
     "920166",
     "920168",
+    "920177",
     "920180",
     "920181",
     "920183",
     "920187",
-    "920188"
+    "920188",
+    "920191"
   ],
-  "available_count": 19,
-  "method1_ready_count": 17,
-  "method1_ready_rate": 0.8947368421052632,
+  "available_count": 22,
+  "method1_ready_count": 21,
+  "method1_ready_rate": 0.9545454545454546,
   "skipped": [],
   "caveats": [
     "方法一历史回放快照基于 Tushare `daily_basic`，按标的上市日前一日向前回看交易窗口，未取到时该样本自动降级为仅方法二。",
@@ -1410,25 +1416,48 @@
         "unit": "股",
         "pre_unrestricted_wan_shares": 557.81,
         "listing_pdf_found": true,
-        "prospectus_pdf_found": false,
+        "prospectus_pdf_found": true,
         "selected_source_label": "上市公告书",
         "fallback_used": false
       },
       "float_shares": 4666.8099999999995,
       "has_intraday_file": true,
-      "comparable_codes": [],
-      "comparable_data": [],
+      "comparable_codes": [
+        "002130.SZ"
+      ],
+      "comparable_data": [
+        {
+          "code": "002130.SZ",
+          "name": "002130.SZ",
+          "close": 25.2,
+          "pe_ttm": 31.0732,
+          "pb_lf": 4.1015,
+          "mkt_cap": 352.77161522,
+          "trade_date": "20260319",
+          "source": "tushare_historical",
+          "close_source": "tushare_historical",
+          "pe_source": "tushare_historical",
+          "pb_source": "tushare_historical",
+          "mkt_cap_source": "tushare_historical"
+        }
+      ],
       "comparable_summary": {
         "provider": "tushare_historical",
-        "requested_codes": [],
-        "returned_codes": [],
+        "requested_codes": [
+          "002130.SZ"
+        ],
+        "returned_codes": [
+          "002130.SZ"
+        ],
         "cache_hits": [],
-        "api_fetched": [],
+        "api_fetched": [
+          "002130.SZ"
+        ],
         "skipped_unsupported": [],
         "reference_trade_date": "20260319",
-        "reason": "未提取到可比公司代码。"
+        "reason": ""
       },
-      "method1_replay_available": false
+      "method1_replay_available": true
     },
     {
       "SECURITY_CODE": "920069",
@@ -1925,6 +1954,20 @@
           "pe_source": "tushare_historical",
           "pb_source": "tushare_historical",
           "mkt_cap_source": "tushare_historical"
+        },
+        {
+          "code": "688103.SH",
+          "name": "688103.SH",
+          "close": 55.0,
+          "pe_ttm": 74.245,
+          "pb_lf": 4.6682,
+          "mkt_cap": 52.4235613,
+          "trade_date": "20260409",
+          "source": "tushare_historical",
+          "close_source": "tushare_historical",
+          "pe_source": "tushare_historical",
+          "pb_source": "tushare_historical",
+          "mkt_cap_source": "tushare_historical"
         }
       ],
       "comparable_summary": {
@@ -1935,17 +1978,19 @@
           "873913.NQ"
         ],
         "returned_codes": [
-          "301581.SZ"
+          "301581.SZ",
+          "688103.SH"
         ],
         "cache_hits": [],
         "api_fetched": [
-          "301581.SZ"
+          "301581.SZ",
+          "688103.SH"
         ],
         "skipped_unsupported": [
           "873913.NQ"
         ],
         "reference_trade_date": "20260409",
-        "reason": "Tushare 请求失败: [SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1032)"
+        "reason": ""
       },
       "method1_replay_available": true
     },
@@ -2021,6 +2066,352 @@
           "874318.NQ"
         ],
         "reference_trade_date": "20260412",
+        "reason": ""
+      },
+      "method1_replay_available": true
+    },
+    {
+      "SECURITY_CODE": "920177",
+      "SECURITY_NAME_ABBR": "恒道科技",
+      "APPLY_DATE": "2026-04-07 00:00:00",
+      "LISTING_DATE": "2026-04-16 00:00:00",
+      "ISSUE_PRICE": 21.8,
+      "AFTER_ISSUE_PE": 14.99,
+      "INDUSTRY_PE_NEW": 41.56,
+      "TOTAL_ISSUE_NUM": 1308.0,
+      "CLOSE_PRICE": 36.58,
+      "LD_CLOSE_CHANGE": 67.7982,
+      "TURNOVERRATE": 90.2507,
+      "SW_INDUSTRY": "",
+      "INDUSTRY": "",
+      "industry_primary": "高端装备",
+      "industry_secondary": "机械设备",
+      "industry_source": "built_in_sample_map",
+      "old_shares": 0.0,
+      "old_shares_desc": "0.00 万股（PDF 提取：上市公告书）",
+      "old_shares_meta": {
+        "value_wan_shares": 0.0,
+        "source_file_type": "上市公告书",
+        "source_rule": "listing_table",
+        "source_anchor": "本次发行前后的股本结构变动情况 -> 无限售流通股小计",
+        "raw_snippet": "象小计3,924.0000100.00%4,054.800077.50%--二、无限售流通股小计--1,177.200022.50%--合计3,924.0000100.00%5,232.0000100.00%--56六、",
+        "confidence": 0.95,
+        "unit": "万股",
+        "pre_unrestricted_wan_shares": 0.0,
+        "listing_pdf_found": true,
+        "prospectus_pdf_found": true,
+        "selected_source_label": "上市公告书",
+        "fallback_used": false
+      },
+      "float_shares": 1308.0,
+      "has_intraday_file": true,
+      "comparable_codes": [
+        "874616.NQ",
+        "002859.SZ",
+        "000651.SZ"
+      ],
+      "comparable_data": [
+        {
+          "code": "002859.SZ",
+          "name": "002859.SZ",
+          "close": 42.12,
+          "pe_ttm": 90.3943,
+          "pb_lf": 6.1807,
+          "mkt_cap": 181.63261486,
+          "trade_date": "20260415",
+          "source": "tushare_historical",
+          "close_source": "tushare_historical",
+          "pe_source": "tushare_historical",
+          "pb_source": "tushare_historical",
+          "mkt_cap_source": "tushare_historical"
+        },
+        {
+          "code": "000651.SZ",
+          "name": "000651.SZ",
+          "close": 37.39,
+          "pe_ttm": 6.61,
+          "pb_lf": 1.5085,
+          "mkt_cap": 2094.36560656,
+          "trade_date": "20260415",
+          "source": "tushare_historical",
+          "close_source": "tushare_historical",
+          "pe_source": "tushare_historical",
+          "pb_source": "tushare_historical",
+          "mkt_cap_source": "tushare_historical"
+        }
+      ],
+      "comparable_summary": {
+        "provider": "tushare_historical",
+        "requested_codes": [
+          "874616.NQ",
+          "002859.SZ",
+          "000651.SZ"
+        ],
+        "returned_codes": [
+          "002859.SZ",
+          "000651.SZ"
+        ],
+        "cache_hits": [],
+        "api_fetched": [
+          "002859.SZ",
+          "000651.SZ"
+        ],
+        "skipped_unsupported": [
+          "874616.NQ"
+        ],
+        "reference_trade_date": "20260415",
+        "reason": ""
+      },
+      "method1_replay_available": true
+    },
+    {
+      "SECURITY_CODE": "920191",
+      "SECURITY_NAME_ABBR": "瑞尔竞达",
+      "APPLY_DATE": "2026-04-09 00:00:00",
+      "LISTING_DATE": "2026-04-20 00:00:00",
+      "ISSUE_PRICE": 7.71,
+      "AFTER_ISSUE_PE": 14.99,
+      "INDUSTRY_PE_NEW": 39.14,
+      "TOTAL_ISSUE_NUM": 4435.0,
+      "CLOSE_PRICE": 14.88,
+      "LD_CLOSE_CHANGE": 92.9961,
+      "TURNOVERRATE": 92.1221,
+      "SW_INDUSTRY": "",
+      "INDUSTRY": "",
+      "industry_primary": "未分类",
+      "industry_secondary": "未分类",
+      "industry_source": "unclassified",
+      "old_shares": 0.0,
+      "old_shares_desc": "0.00 万股（PDF 提取：上市公告书）",
+      "old_shares_meta": {
+        "value_wan_shares": 0.0,
+        "source_file_type": "上市公告书",
+        "source_rule": "listing_table",
+        "source_anchor": "本次发行前后的股本结构变动情况 -> 无限售流通股小计",
+        "raw_snippet": "--51股东名称本次发行前本次发行后限售期限备注数量（股）占比数量（股）占比二、无限售流通股小计00.00%39,915,00022.50%--合计133,045,400100.00%177,395,400100.00%--52六、",
+        "confidence": 0.98,
+        "unit": "股",
+        "pre_unrestricted_wan_shares": 0.0,
+        "listing_pdf_found": true,
+        "prospectus_pdf_found": true,
+        "selected_source_label": "上市公告书",
+        "fallback_used": false
+      },
+      "float_shares": 4435.0,
+      "has_intraday_file": true,
+      "comparable_codes": [
+        "688119.SH",
+        "002225.SZ",
+        "002392.SZ",
+        "002066.SZ"
+      ],
+      "comparable_data": [
+        {
+          "code": "688119.SH",
+          "name": "688119.SH",
+          "close": 5.22,
+          "pe_ttm": null,
+          "pb_lf": 2.0867,
+          "mkt_cap": 58.725,
+          "trade_date": "20260417",
+          "source": "tushare_historical",
+          "close_source": "tushare_historical",
+          "pe_source": "tushare_historical",
+          "pb_source": "tushare_historical",
+          "mkt_cap_source": "tushare_historical"
+        },
+        {
+          "code": "002225.SZ",
+          "name": "002225.SZ",
+          "close": 5.66,
+          "pe_ttm": 61.3094,
+          "pb_lf": 1.5918,
+          "mkt_cap": 65.61293572,
+          "trade_date": "20260417",
+          "source": "tushare_historical",
+          "close_source": "tushare_historical",
+          "pe_source": "tushare_historical",
+          "pb_source": "tushare_historical",
+          "mkt_cap_source": "tushare_historical"
+        },
+        {
+          "code": "002392.SZ",
+          "name": "002392.SZ",
+          "close": 7.15,
+          "pe_ttm": 21.2283,
+          "pb_lf": 1.461,
+          "mkt_cap": 85.12009499,
+          "trade_date": "20260417",
+          "source": "tushare_historical",
+          "close_source": "tushare_historical",
+          "pe_source": "tushare_historical",
+          "pb_source": "tushare_historical",
+          "mkt_cap_source": "tushare_historical"
+        },
+        {
+          "code": "002066.SZ",
+          "name": "002066.SZ",
+          "close": 23.41,
+          "pe_ttm": null,
+          "pb_lf": 8.755,
+          "mkt_cap": 54.9917287,
+          "trade_date": "20260417",
+          "source": "tushare_historical",
+          "close_source": "tushare_historical",
+          "pe_source": "tushare_historical",
+          "pb_source": "tushare_historical",
+          "mkt_cap_source": "tushare_historical"
+        }
+      ],
+      "comparable_summary": {
+        "provider": "tushare_historical",
+        "requested_codes": [
+          "688119.SH",
+          "002225.SZ",
+          "002392.SZ",
+          "002066.SZ"
+        ],
+        "returned_codes": [
+          "688119.SH",
+          "002225.SZ",
+          "002392.SZ",
+          "002066.SZ"
+        ],
+        "cache_hits": [],
+        "api_fetched": [
+          "688119.SH",
+          "002225.SZ",
+          "002392.SZ",
+          "002066.SZ"
+        ],
+        "skipped_unsupported": [],
+        "reference_trade_date": "20260419",
+        "reason": ""
+      },
+      "method1_replay_available": true
+    },
+    {
+      "SECURITY_CODE": "920125",
+      "SECURITY_NAME_ABBR": "鸿仕达",
+      "APPLY_DATE": "2026-04-13 00:00:00",
+      "LISTING_DATE": "2026-04-24 00:00:00",
+      "ISSUE_PRICE": 16.57,
+      "AFTER_ISSUE_PE": 14.99,
+      "INDUSTRY_PE_NEW": 40.88,
+      "TOTAL_ISSUE_NUM": 1350.0,
+      "CLOSE_PRICE": 50.02,
+      "LD_CLOSE_CHANGE": 201.8709,
+      "TURNOVERRATE": 81.0871,
+      "SW_INDUSTRY": "",
+      "INDUSTRY": "",
+      "industry_primary": "未分类",
+      "industry_secondary": "未分类",
+      "industry_source": "unclassified",
+      "old_shares": 433.1539,
+      "old_shares_desc": "433.15 万股（PDF 提取：上市公告书）",
+      "old_shares_meta": {
+        "value_wan_shares": 433.1539,
+        "source_file_type": "上市公告书",
+        "source_rule": "listing_table",
+        "source_anchor": "本次发行前后的股本结构变动情况 -> 无限售流通股小计",
+        "raw_snippet": "小计38,328,46189.85%39,678,46170.65%————二、无限售流通股小计4,331,53910.15%16,481,53929.35%————合计42,660,000100.00%56,160,000100.00%————注1：上表中股份比例数值为保留2位小数，若出现各分项数值之和与合计数尾数不符的情况，为四舍五入原因造成；注2：发行",
+        "confidence": 0.98,
+        "unit": "股",
+        "pre_unrestricted_wan_shares": 433.1539,
+        "listing_pdf_found": true,
+        "prospectus_pdf_found": true,
+        "selected_source_label": "上市公告书",
+        "fallback_used": false
+      },
+      "float_shares": 1783.1539,
+      "has_intraday_file": true,
+      "comparable_codes": [
+        "688097.SH",
+        "603283.SH",
+        "300836.SZ",
+        "301128.SZ"
+      ],
+      "comparable_data": [
+        {
+          "code": "688097.SH",
+          "name": "688097.SH",
+          "close": 63.36,
+          "pe_ttm": 43.3564,
+          "pb_lf": 5.8958,
+          "mkt_cap": 282.9960239,
+          "trade_date": "20260423",
+          "source": "tushare_historical",
+          "close_source": "tushare_historical",
+          "pe_source": "tushare_historical",
+          "pb_source": "tushare_historical",
+          "mkt_cap_source": "tushare_historical"
+        },
+        {
+          "code": "603283.SH",
+          "name": "603283.SH",
+          "close": 50.49,
+          "pe_ttm": 28.5177,
+          "pb_lf": 4.3361,
+          "mkt_cap": 136.91576926,
+          "trade_date": "20260423",
+          "source": "tushare_historical",
+          "close_source": "tushare_historical",
+          "pe_source": "tushare_historical",
+          "pb_source": "tushare_historical",
+          "mkt_cap_source": "tushare_historical"
+        },
+        {
+          "code": "300836.SZ",
+          "name": "300836.SZ",
+          "close": 61.59,
+          "pe_ttm": 95.2349,
+          "pb_lf": 10.0123,
+          "mkt_cap": 57.085067200000005,
+          "trade_date": "20260423",
+          "source": "tushare_historical",
+          "close_source": "tushare_historical",
+          "pe_source": "tushare_historical",
+          "pb_source": "tushare_historical",
+          "mkt_cap_source": "tushare_historical"
+        },
+        {
+          "code": "301128.SZ",
+          "name": "301128.SZ",
+          "close": 181.5,
+          "pe_ttm": 132.5414,
+          "pb_lf": 20.4771,
+          "mkt_cap": 187.74590504999998,
+          "trade_date": "20260423",
+          "source": "tushare_historical",
+          "close_source": "tushare_historical",
+          "pe_source": "tushare_historical",
+          "pb_source": "tushare_historical",
+          "mkt_cap_source": "tushare_historical"
+        }
+      ],
+      "comparable_summary": {
+        "provider": "tushare_historical",
+        "requested_codes": [
+          "688097.SH",
+          "603283.SH",
+          "300836.SZ",
+          "301128.SZ"
+        ],
+        "returned_codes": [
+          "688097.SH",
+          "603283.SH",
+          "300836.SZ",
+          "301128.SZ"
+        ],
+        "cache_hits": [],
+        "api_fetched": [
+          "688097.SH",
+          "603283.SH",
+          "300836.SZ",
+          "301128.SZ"
+        ],
+        "skipped_unsupported": [],
+        "reference_trade_date": "20260423",
         "reason": ""
       },
       "method1_replay_available": true

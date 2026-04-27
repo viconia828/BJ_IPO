@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import os
 from pathlib import Path
 import sys
 from typing import Any
@@ -13,6 +14,7 @@ if str(CODE_DIR) not in sys.path:
     sys.path.insert(0, str(CODE_DIR))
 
 import config_loader
+import data_fetcher
 import param_tuning
 
 
@@ -109,6 +111,101 @@ def _resolve_output_dir(args: argparse.Namespace) -> str:
     return str(param_tuning.DEFAULT_OUTPUT_DIR)
 
 
+def _same_path(left: Path, right: Path) -> bool:
+    try:
+        return left.resolve() == right.resolve()
+    except OSError:
+        return left.absolute() == right.absolute()
+
+
+def _should_auto_refresh_dataset(
+    args: argparse.Namespace,
+    dataset_path: Path,
+    sample_codes: list[str] | None,
+) -> bool:
+    if os.environ.get("BSE_TUNING_NO_AUTO_REFRESH") == "1":
+        return False
+    if args.no_auto_refresh_dataset:
+        return False
+    if args.mode not in {"offline", "observe"}:
+        return False
+    if sample_codes is not None:
+        return True
+    return _same_path(dataset_path, Path(param_tuning.DEFAULT_DATASET_PATH))
+
+
+def _build_and_save_dataset(
+    params: dict[str, Any],
+    dataset_path: Path,
+    *,
+    months: int,
+    sample_codes: list[str] | None,
+    page_size: int,
+) -> dict[str, Any]:
+    dataset = param_tuning.build_replay_dataset(
+        params,
+        months=months,
+        sample_codes=sample_codes,
+        page_size=page_size,
+    )
+    param_tuning.save_replay_dataset(dataset, dataset_path)
+    return dataset
+
+
+def _load_or_refresh_dataset(
+    args: argparse.Namespace,
+    params: dict[str, Any],
+    dataset_path: Path,
+    sample_codes: list[str] | None,
+) -> dict[str, Any]:
+    if args.rebuild_dataset or not dataset_path.exists():
+        print("开始构建历史回放数据集...", flush=True)
+        return _build_and_save_dataset(
+            params,
+            dataset_path,
+            months=args.months,
+            sample_codes=sample_codes,
+            page_size=args.page_size,
+        )
+
+    dataset = param_tuning.load_replay_dataset(dataset_path)
+    if not _should_auto_refresh_dataset(args, dataset_path, sample_codes):
+        return dataset
+
+    local_codes = sample_codes if sample_codes is not None else param_tuning.discover_local_sample_codes()
+    sync_status = param_tuning.inspect_replay_dataset_sync(
+        dataset,
+        local_sample_codes=local_codes,
+        months=args.months,
+    )
+    if not sync_status["needs_refresh"]:
+        print(
+            "回放数据集已同步本地首日分时走势：CSV {csv_count} 个，可用样本 {sample_count} 个。".format(
+                csv_count=len(sync_status.get("local_codes") or []),
+                sample_count=dataset.get("available_count", 0),
+            ),
+            flush=True,
+        )
+        return dataset
+
+    print("检测到本地首日分时走势与回放数据集不一致，开始自动更新数据集...", flush=True)
+    for reason in sync_status.get("reasons") or []:
+        print(f"- {reason}", flush=True)
+    try:
+        return _build_and_save_dataset(
+            params,
+            dataset_path,
+            months=args.months,
+            sample_codes=local_codes,
+            page_size=args.page_size,
+        )
+    except Exception as exc:
+        print(f"自动更新回放数据集失败：{exc}", flush=True)
+        print("本次将继续使用旧回放数据集；训练集/验证集暂不包含上述新增 CSV。", flush=True)
+        print("网络恢复后重新运行手动调参即可再次自动同步；如需强制刷新，可加 --rebuild-dataset。", flush=True)
+        return dataset
+
+
 def _resolve_params_file(argv: list[str] | None) -> str:
     bootstrap = argparse.ArgumentParser(add_help=False)
     bootstrap.add_argument("--params-file", default=str(ROOT_DIR / "策略参数.txt"))
@@ -154,6 +251,11 @@ def build_parser(params_file: str, tuning_settings: dict[str, Any]) -> argparse.
     parser.add_argument("--params-file", default=params_file, help="参数文件路径")
     parser.add_argument("--dataset-path", default=str(param_tuning.DEFAULT_DATASET_PATH), help="回放数据集路径")
     parser.add_argument("--rebuild-dataset", action="store_true", help="重新构建历史回放数据集")
+    parser.add_argument(
+        "--no-auto-refresh-dataset",
+        action="store_true",
+        help="手动调参时不根据首日分时走势 CSV 自动同步回放数据集",
+    )
     parser.add_argument(
         "--months",
         type=int,
@@ -216,18 +318,18 @@ def main(argv: list[str] | None = None) -> int:
     sample_codes = _parse_csv_codes(args.sample_codes)
     output_dir = _resolve_output_dir(args)
 
-    if args.rebuild_dataset or not dataset_path.exists():
-        print("开始构建历史回放数据集...", flush=True)
-        dataset = param_tuning.build_replay_dataset(
-            params,
-            months=args.months,
-            sample_codes=sample_codes,
-            page_size=args.page_size,
-        )
-        param_tuning.save_replay_dataset(dataset, dataset_path)
-    else:
-        dataset = param_tuning.load_replay_dataset(dataset_path)
+    try:
+        dataset = _load_or_refresh_dataset(args, params, dataset_path, sample_codes)
+    except data_fetcher.DataFetcherError as exc:
+        print(f"数据集构建失败：{exc}", flush=True)
+        return 1
     print(f"数据集样本数：{dataset.get('available_count', 0)}", flush=True)
+    train_codes, validation_codes = param_tuning.split_target_codes(
+        dataset,
+        train_ratio=args.train_ratio,
+        min_train_samples=args.min_train_samples,
+    )
+    print(f"训练集样本数：{len(train_codes)}，验证集样本数：{len(validation_codes)}", flush=True)
 
     if args.mode == "search":
         if args.grid_file:

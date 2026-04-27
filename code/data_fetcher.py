@@ -119,6 +119,8 @@ def _request_data(params: dict[str, Any]) -> list[dict[str, Any]]:
             payload = json.loads(response.read().decode("utf-8"))
     except urllib.error.URLError as exc:
         raise DataFetcherError(f"东方财富请求失败: {exc.reason}") from exc
+    except TimeoutError as exc:
+        raise DataFetcherError(f"东方财富请求超时: {exc}") from exc
     except json.JSONDecodeError as exc:
         raise DataFetcherError("东方财富返回内容无法解析为 JSON") from exc
 
