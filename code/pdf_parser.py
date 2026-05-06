@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 import json
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
+import hashlib
 import re
 from functools import lru_cache
 from pathlib import Path
@@ -226,6 +227,9 @@ COMPARABLE_NAME_CODE_FALLBACKS = {
     "宏工科技": "301662.SZ",
     "福能东方": "300173.SZ",
 }
+PARSE_CACHE_SCHEMA = "pdf_parse_cache_v1"
+PARSE_CACHE_DIR = Path(__file__).resolve().parents[1] / "data" / "pdf_parse_cache"
+_CACHE_MISSING = object()
 
 
 @dataclass(frozen=True)
@@ -238,6 +242,69 @@ class OldSharesExtractionResult:
     confidence: float
     unit: str
     pre_unrestricted_wan_shares: float | None = None
+
+
+def _parse_cache_path(pdf_path: str | Path, kind: str) -> Path:
+    resolved = str(Path(pdf_path).resolve())
+    digest = hashlib.sha1(f"{kind}|{resolved}".encode("utf-8")).hexdigest()
+    return PARSE_CACHE_DIR / f"{digest}.json"
+
+
+def _load_parse_cache(pdf_path: str | Path, kind: str) -> object:
+    file_path = Path(pdf_path)
+    if not file_path.exists():
+        return _CACHE_MISSING
+    cache_path = _parse_cache_path(file_path, kind)
+    if not cache_path.exists():
+        return _CACHE_MISSING
+    try:
+        stat = file_path.stat()
+        payload = json.loads(cache_path.read_text(encoding="utf-8"))
+    except Exception:
+        return _CACHE_MISSING
+    if not isinstance(payload, dict):
+        return _CACHE_MISSING
+    if payload.get("schema") != PARSE_CACHE_SCHEMA or payload.get("kind") != kind:
+        return _CACHE_MISSING
+    if int(payload.get("mtime_ns") or -1) != stat.st_mtime_ns:
+        return _CACHE_MISSING
+    if int(payload.get("size") or -1) != stat.st_size:
+        return _CACHE_MISSING
+    return payload.get("value")
+
+
+def _save_parse_cache(pdf_path: str | Path, kind: str, value: object) -> None:
+    file_path = Path(pdf_path)
+    if not file_path.exists():
+        return
+    try:
+        stat = file_path.stat()
+        PARSE_CACHE_DIR.mkdir(parents=True, exist_ok=True)
+        payload = {
+            "schema": PARSE_CACHE_SCHEMA,
+            "kind": kind,
+            "path": str(file_path.resolve()),
+            "mtime_ns": stat.st_mtime_ns,
+            "size": stat.st_size,
+            "value": value,
+        }
+        _parse_cache_path(file_path, kind).write_text(
+            json.dumps(payload, ensure_ascii=False, indent=2),
+            encoding="utf-8",
+        )
+    except Exception:
+        return
+
+
+def _old_shares_result_from_cache(value: object) -> OldSharesExtractionResult | None:
+    if value is None:
+        return None
+    if not isinstance(value, dict):
+        return None
+    try:
+        return OldSharesExtractionResult(**value)
+    except TypeError:
+        return None
 
 
 def _normalize_text(text: str) -> str:
@@ -675,10 +742,21 @@ def _extract_old_shares_from_listing_table(text: str, source_file_type: str) -> 
 
 
 def extract_old_shares_result(pdf_path: str | Path) -> OldSharesExtractionResult | None:
+    cached = _load_parse_cache(pdf_path, "old_shares_result")
+    if cached is not _CACHE_MISSING:
+        if cached is None:
+            return None
+        cached_result = _old_shares_result_from_cache(cached)
+        if cached_result is not None:
+            return cached_result
+
     text = _read_pdf_text(pdf_path)
     if not text:
+        _save_parse_cache(pdf_path, "old_shares_result", None)
         return None
-    return _extract_old_shares_result_from_text(text, _infer_pdf_file_type(pdf_path))
+    result = _extract_old_shares_result_from_text(text, _infer_pdf_file_type(pdf_path))
+    _save_parse_cache(pdf_path, "old_shares_result", asdict(result) if result is not None else None)
+    return result
 
 
 def extract_old_shares(pdf_path: str | Path) -> float | None:
@@ -812,8 +890,13 @@ def _extract_comparable_companies_legacy(text: str) -> list[str]:
 
 
 def extract_comparable_companies(pdf_path: str | Path) -> list[str]:
+    cached = _load_parse_cache(pdf_path, "comparable_companies")
+    if cached is not _CACHE_MISSING and isinstance(cached, list):
+        return [str(code) for code in cached]
+
     text = _read_pdf_text(pdf_path)
     if not text:
+        _save_parse_cache(pdf_path, "comparable_companies", [])
         return []
 
     normalized_text = _normalize_text(text)
@@ -832,6 +915,7 @@ def extract_comparable_companies(pdf_path: str | Path) -> list[str]:
             target_code = Path(pdf_path).stem[:6]
             if len(result_codes) > 1:
                 result_codes = [code for code in result_codes if code.split(".", 1)[0] != target_code]
+            _save_parse_cache(pdf_path, "comparable_companies", result_codes)
             return result_codes
 
     generic_section_text, generic_section_anchor = _extract_compact_section(
@@ -852,6 +936,7 @@ def extract_comparable_companies(pdf_path: str | Path) -> list[str]:
             target_code = Path(pdf_path).stem[:6]
             if len(result_codes) > 1:
                 result_codes = [code for code in result_codes if code.split(".", 1)[0] != target_code]
+            _save_parse_cache(pdf_path, "comparable_companies", result_codes)
             return result_codes
 
     if glossary_codes:
@@ -859,12 +944,14 @@ def extract_comparable_companies(pdf_path: str | Path) -> list[str]:
         target_code = Path(pdf_path).stem[:6]
         if len(result_codes) > 1:
             result_codes = [code for code in result_codes if code.split(".", 1)[0] != target_code]
+        _save_parse_cache(pdf_path, "comparable_companies", result_codes)
         return result_codes
 
     result_codes = _extract_comparable_companies_legacy(text)
     target_code = Path(pdf_path).stem[:6]
     if len(result_codes) > 1:
         result_codes = [code for code in result_codes if code.split(".", 1)[0] != target_code]
+    _save_parse_cache(pdf_path, "comparable_companies", result_codes)
     return result_codes
 
 
@@ -988,7 +1075,14 @@ def _extract_business_desc_from_text(text: str) -> str:
 
 
 def extract_business_desc(pdf_path: str | Path) -> str:
+    cached = _load_parse_cache(pdf_path, "business_desc")
+    if cached is not _CACHE_MISSING and isinstance(cached, str):
+        return cached
+
     text = _read_pdf_text(pdf_path)
     if not text:
+        _save_parse_cache(pdf_path, "business_desc", "")
         return ""
-    return _extract_business_desc_from_text(text)
+    result = _extract_business_desc_from_text(text)
+    _save_parse_cache(pdf_path, "business_desc", result)
+    return result

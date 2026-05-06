@@ -16,6 +16,9 @@ EDGE_CANDIDATES = (
     Path(r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe"),
     Path(r"C:\Program Files\Microsoft\Edge\Application\msedge.exe"),
 )
+PDF_RENDER_TIMEOUT_SECONDS = 90.0
+PDF_READY_STABLE_SECONDS = 2.0
+PDF_READY_MIN_BYTES = 1024
 DISPLAY_MISSING_TEXT = "未取到数据"
 
 
@@ -652,6 +655,45 @@ def _decode_process_output(raw: bytes | None) -> str:
     return raw.decode("utf-8", errors="replace")
 
 
+def _pdf_file_looks_complete(pdf_path: Path) -> bool:
+    if not pdf_path.exists():
+        return False
+    try:
+        size = pdf_path.stat().st_size
+        if size < PDF_READY_MIN_BYTES:
+            return False
+        with pdf_path.open("rb") as file_obj:
+            file_obj.seek(max(0, size - 4096))
+            tail = file_obj.read()
+    except OSError:
+        return False
+    return b"%%EOF" in tail
+
+
+def _stop_process(process: subprocess.Popen[bytes]) -> None:
+    if process.poll() is None:
+        try:
+            process.terminate()
+            process.wait(timeout=3)
+        except subprocess.TimeoutExpired:
+            process.kill()
+            try:
+                process.wait(timeout=3)
+            except (subprocess.TimeoutExpired, OSError):
+                pass
+        except OSError:
+            pass
+
+
+def _read_edge_log(log_path: Path) -> str:
+    if not log_path.exists():
+        return ""
+    try:
+        return _decode_process_output(log_path.read_bytes()).strip()
+    except OSError:
+        return ""
+
+
 def _render_pdf_from_html(html_text: str, pdf_path: Path) -> None:
     edge_path = _find_edge_executable()
     pdf_path = pdf_path.resolve()
@@ -663,38 +705,86 @@ def _render_pdf_from_html(html_text: str, pdf_path: Path) -> None:
         temp_root = Path(temp_dir)
         html_path = temp_root / "report.html"
         user_data_dir = temp_root / "edge_profile"
+        edge_log_path = temp_root / "edge.log"
         html_path.write_text(html_text, encoding="utf-8")
 
         command = [
             str(edge_path),
-            "--headless",
+            "--headless=new",
             "--disable-gpu",
             "--no-first-run",
+            "--no-default-browser-check",
+            "--disable-background-mode",
+            "--disable-background-networking",
             "--disable-crash-reporter",
+            "--disable-extensions",
+            "--disable-features=msEdgeStartupBoost,StartupBoost",
             "--allow-file-access-from-files",
             f"--user-data-dir={user_data_dir}",
             f"--print-to-pdf={pdf_path.resolve()}",
             html_path.resolve().as_uri(),
         ]
-        result = subprocess.run(command, capture_output=True, timeout=120)
-        if result.returncode != 0 or not pdf_path.exists():
+
+        edge_log = edge_log_path.open("wb")
+        process = subprocess.Popen(command, stdout=edge_log, stderr=subprocess.STDOUT)
+        deadline = time.monotonic() + PDF_RENDER_TIMEOUT_SECONDS
+        stable_since: float | None = None
+        last_size = -1
+
+        try:
+            while True:
+                if _pdf_file_looks_complete(pdf_path):
+                    current_size = pdf_path.stat().st_size
+                    current_time = time.monotonic()
+                    if current_size == last_size:
+                        stable_since = stable_since or current_time
+                        if current_time - stable_since >= PDF_READY_STABLE_SECONDS:
+                            _stop_process(process)
+                            edge_log.close()
+                            return
+                    else:
+                        last_size = current_size
+                        stable_since = current_time
+
+                if process.poll() is not None:
+                    edge_log.close()
+                    if _pdf_file_looks_complete(pdf_path):
+                        return
+                    break
+
+                if time.monotonic() >= deadline:
+                    _stop_process(process)
+                    edge_log.close()
+                    if _pdf_file_looks_complete(pdf_path):
+                        return
+                    break
+
+                time.sleep(0.5)
+        finally:
+            if not edge_log.closed:
+                edge_log.close()
+
+        if not _pdf_file_looks_complete(pdf_path):
             debug_html_path = pdf_path.with_suffix(".html")
             debug_html_path.write_text(html_text, encoding="utf-8")
-            error_text = (_decode_process_output(result.stderr) or _decode_process_output(result.stdout)).strip()
+            error_text = _read_edge_log(edge_log_path)
             raise RuntimeError(
                 f"PDF 导出失败。已保留 HTML 调试文件：{debug_html_path}。"
                 + (f" Edge 输出：{error_text}" if error_text else "")
             )
     finally:
-        # Edge 偶尔会在退出后短暂占用 profile/cache 文件，清理失败不应让整次报告生成报错。
-        for _ in range(3):
+        # Edge can briefly keep profile/cache files locked after exit.
+        for attempt in range(3):
             try:
                 shutil.rmtree(temp_root)
                 break
-            except PermissionError:
-                time.sleep(0.5)
             except FileNotFoundError:
                 break
+            except OSError:
+                if attempt == 2:
+                    shutil.rmtree(temp_root, ignore_errors=True)
+                    break
+                time.sleep(0.5)
 
 
 def generate_report(all_data: dict[str, Any], output_dir: str) -> str:
