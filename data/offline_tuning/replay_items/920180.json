@@ -1,0 +1,191 @@
+{
+  "schema": "offline_tuning_replay_item_v1",
+  "cache_version": 3,
+  "generated_at": "2026-05-07 18:04:13",
+  "code": "920180",
+  "listing_date": "2026-02-10 00:00:00",
+  "record_signature": {
+    "SECURITY_CODE": "920180",
+    "SECURITY_NAME_ABBR": "爱得科技",
+    "APPLY_DATE": "2026-02-02 00:00:00",
+    "LISTING_DATE": "2026-02-10 00:00:00",
+    "ISSUE_PRICE": 7.67,
+    "AFTER_ISSUE_PE": 14.98,
+    "INDUSTRY_PE_NEW": 42.57,
+    "TOTAL_ISSUE_NUM": 2953.0762,
+    "ISSUE_NUM": 2953.0762,
+    "CLOSE_PRICE": 21.23,
+    "LD_CLOSE_CHANGE": 176.7927,
+    "TURNOVERRATE": 89.6132,
+    "SW_INDUSTRY": null,
+    "INDUSTRY": null
+  },
+  "pdf_signature": {
+    "listing": {
+      "name": "920180爱得科技上市公告书.pdf",
+      "size": 1646740,
+      "mtime_ns": 1776223598000000000
+    },
+    "old_shares": {
+      "name": "920180爱得科技招股说明书.pdf",
+      "size": 7904717,
+      "mtime_ns": 1776223556000000000
+    },
+    "comparables": {
+      "name": "920180爱得科技招股说明书.pdf",
+      "size": 7904717,
+      "mtime_ns": 1776223556000000000
+    }
+  },
+  "item": {
+    "SECURITY_CODE": "920180",
+    "SECURITY_NAME_ABBR": "爱得科技",
+    "APPLY_DATE": "2026-02-02 00:00:00",
+    "LISTING_DATE": "2026-02-10 00:00:00",
+    "ISSUE_PRICE": 7.67,
+    "AFTER_ISSUE_PE": 14.98,
+    "INDUSTRY_PE_NEW": 42.57,
+    "TOTAL_ISSUE_NUM": 2953.0762,
+    "CLOSE_PRICE": 21.23,
+    "LD_CLOSE_CHANGE": 176.7927,
+    "TURNOVERRATE": 89.6132,
+    "SW_INDUSTRY": "",
+    "INDUSTRY": "",
+    "industry_primary": "医药生物",
+    "industry_secondary": "医疗器械",
+    "industry_source": "built_in_sample_map",
+    "old_shares": 0.0,
+    "old_shares_desc": "0.00 万股（PDF 提取：上市公告书）",
+    "old_shares_meta": {
+      "value_wan_shares": 0.0,
+      "source_file_type": "上市公告书",
+      "source_rule": "listing_table",
+      "source_anchor": "本次发行前后的股本结构变动情况 -> 无限售流通股 -> 小计",
+      "raw_snippet": "-二、无限售流通股本次发行新股-公开发行--26,577,68622.50%--小计--26,577,68622.50%--合计88,592,284100.00%118,123,046100.00%--69六、",
+      "confidence": 0.95,
+      "unit": "股",
+      "pre_unrestricted_wan_shares": 0.0,
+      "listing_pdf_found": true,
+      "prospectus_pdf_found": true,
+      "selected_source_label": "上市公告书",
+      "fallback_used": false
+    },
+    "float_shares": 2953.0762,
+    "has_intraday_file": true,
+    "comparable_codes": [
+      "688161.SH",
+      "002901.SZ",
+      "300326.SZ",
+      "688085.SH",
+      "688236.SH"
+    ],
+    "comparable_data": [
+      {
+        "code": "688161.SH",
+        "name": "688161.SH",
+        "close": 29.85,
+        "pe_ttm": 44.7418,
+        "pb_lf": 2.9601,
+        "mkt_cap": 119.4,
+        "trade_date": "20260209",
+        "source": "tushare_historical",
+        "close_source": "tushare_historical",
+        "pe_source": "tushare_historical",
+        "pb_source": "tushare_historical",
+        "mkt_cap_source": "tushare_historical"
+      },
+      {
+        "code": "002901.SZ",
+        "name": "002901.SZ",
+        "close": 49.11,
+        "pe_ttm": 37.5434,
+        "pb_lf": 6.0938,
+        "mkt_cap": 203.3249794,
+        "trade_date": "20260209",
+        "source": "tushare_historical",
+        "close_source": "tushare_historical",
+        "pe_source": "tushare_historical",
+        "pb_source": "tushare_historical",
+        "mkt_cap_source": "tushare_historical"
+      },
+      {
+        "code": "300326.SZ",
+        "name": "300326.SZ",
+        "close": 6.24,
+        "pe_ttm": null,
+        "pb_lf": 1.6056,
+        "mkt_cap": 44.74159136,
+        "trade_date": "20260209",
+        "source": "tushare_historical",
+        "close_source": "tushare_historical",
+        "pe_source": "tushare_historical",
+        "pb_source": "tushare_historical",
+        "mkt_cap_source": "tushare_historical"
+      },
+      {
+        "code": "688085.SH",
+        "name": "688085.SH",
+        "close": 21.67,
+        "pe_ttm": 111.3781,
+        "pb_lf": 3.4823,
+        "mkt_cap": 72.26132332,
+        "trade_date": "20260209",
+        "source": "tushare_historical",
+        "close_source": "tushare_historical",
+        "pe_source": "tushare_historical",
+        "pb_source": "tushare_historical",
+        "mkt_cap_source": "tushare_historical"
+      },
+      {
+        "code": "688236.SH",
+        "name": "688236.SH",
+        "close": 23.0,
+        "pe_ttm": 34.5465,
+        "pb_lf": 3.0374,
+        "mkt_cap": 88.22075500000001,
+        "trade_date": "20260209",
+        "source": "tushare_historical",
+        "close_source": "tushare_historical",
+        "pe_source": "tushare_historical",
+        "pb_source": "tushare_historical",
+        "mkt_cap_source": "tushare_historical"
+      }
+    ],
+    "comparable_summary": {
+      "provider": "tushare_historical",
+      "requested_codes": [
+        "688161.SH",
+        "002901.SZ",
+        "300326.SZ",
+        "688085.SH",
+        "688236.SH"
+      ],
+      "returned_codes": [
+        "688161.SH",
+        "002901.SZ",
+        "300326.SZ",
+        "688085.SH",
+        "688236.SH"
+      ],
+      "cache_hits": [],
+      "api_fetched": [
+        "688161.SH",
+        "002901.SZ",
+        "300326.SZ",
+        "688085.SH",
+        "688236.SH"
+      ],
+      "skipped_unsupported": [],
+      "reference_trade_date": "20260209",
+      "reason": ""
+    },
+    "method1_replay_available": true,
+    "AVERAGE_PRICE": 23.23710907830547,
+    "LD_AVERAGE_CHANGE": 202.9610049322747,
+    "average_price_source": "intraday_csv",
+    "average_price_reason": "",
+    "average_price_calc_version": 3,
+    "average_price_unit_mode": "volume_shares_amount_yuan",
+    "average_price_reference": 22.695
+  }
+}

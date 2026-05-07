@@ -1,0 +1,141 @@
+{
+  "schema": "offline_tuning_replay_item_v1",
+  "cache_version": 3,
+  "generated_at": "2026-05-07 18:04:13",
+  "code": "920156",
+  "listing_date": "2026-04-27 00:00:00",
+  "record_signature": {
+    "SECURITY_CODE": "920156",
+    "SECURITY_NAME_ABBR": "海昌智能",
+    "APPLY_DATE": "2026-04-15 00:00:00",
+    "LISTING_DATE": "2026-04-27 00:00:00",
+    "ISSUE_PRICE": 20.93,
+    "AFTER_ISSUE_PE": 14.98,
+    "INDUSTRY_PE_NEW": 40.8,
+    "TOTAL_ISSUE_NUM": 2412.0,
+    "ISSUE_NUM": 2412.0,
+    "CLOSE_PRICE": 40.6,
+    "LD_CLOSE_CHANGE": 93.9799,
+    "TURNOVERRATE": 91.4428,
+    "SW_INDUSTRY": null,
+    "INDUSTRY": null
+  },
+  "pdf_signature": {
+    "listing": {
+      "name": "920156_海昌智能_上市公告书.pdf",
+      "size": 867947,
+      "mtime_ns": 1776935937366783600
+    },
+    "old_shares": {
+      "name": "920156海昌智能招股说明书.pdf",
+      "size": 7611725,
+      "mtime_ns": 1776223162000000000
+    },
+    "comparables": {
+      "name": "920156海昌智能招股说明书.pdf",
+      "size": 7611725,
+      "mtime_ns": 1776223162000000000
+    }
+  },
+  "item": {
+    "SECURITY_CODE": "920156",
+    "SECURITY_NAME_ABBR": "海昌智能",
+    "APPLY_DATE": "2026-04-15 00:00:00",
+    "LISTING_DATE": "2026-04-27 00:00:00",
+    "ISSUE_PRICE": 20.93,
+    "AFTER_ISSUE_PE": 14.98,
+    "INDUSTRY_PE_NEW": 40.8,
+    "TOTAL_ISSUE_NUM": 2412.0,
+    "CLOSE_PRICE": 40.6,
+    "AVERAGE_PRICE": 40.36260741001939,
+    "LD_CLOSE_CHANGE": 93.9799,
+    "LD_AVERAGE_CHANGE": 92.84571146688674,
+    "TURNOVERRATE": 91.4428,
+    "SW_INDUSTRY": "",
+    "INDUSTRY": "",
+    "industry_primary": "未分类",
+    "industry_secondary": "未分类",
+    "industry_source": "unclassified",
+    "old_shares": 0.0,
+    "old_shares_desc": "0.00 万股（PDF 提取：上市公告书）",
+    "old_shares_meta": {
+      "value_wan_shares": 0.0,
+      "source_file_type": "上市公告书",
+      "source_rule": "listing_table",
+      "source_anchor": "本次发行前后的股本结构变动情况 -> 无限售流通股小计",
+      "raw_snippet": "象小计8,000.0000100.00%8,241.200079.15%--二、无限售流通股小计--2,170.800020.85%--合计8,000.0000100.00%10,412.0000100.00%--注1：数据尾数如存有差异系四舍五入所致；注2：发行人不存在表决权差异安排的情况。53六、",
+      "confidence": 0.95,
+      "unit": "万股",
+      "pre_unrestricted_wan_shares": 0.0,
+      "listing_pdf_found": true,
+      "prospectus_pdf_found": true,
+      "selected_source_label": "上市公告书",
+      "fallback_used": false
+    },
+    "float_shares": 2412.0,
+    "has_intraday_file": true,
+    "comparable_codes": [
+      "837408.NQ",
+      "301128.SZ",
+      "603960.SH"
+    ],
+    "comparable_data": [
+      {
+        "code": "301128.SZ",
+        "name": "301128.SZ",
+        "close": 189.05,
+        "pe_ttm": 138.0549,
+        "pb_lf": 21.3289,
+        "mkt_cap": 195.55572094000001,
+        "trade_date": "20260424",
+        "source": "tushare_historical",
+        "close_source": "tushare_historical",
+        "pe_source": "tushare_historical",
+        "pb_source": "tushare_historical",
+        "mkt_cap_source": "tushare_historical"
+      },
+      {
+        "code": "603960.SH",
+        "name": "603960.SH",
+        "close": 22.09,
+        "pe_ttm": 273.2956,
+        "pb_lf": 5.1445,
+        "mkt_cap": 57.91951611,
+        "trade_date": "20260424",
+        "source": "tushare_historical",
+        "close_source": "tushare_historical",
+        "pe_source": "tushare_historical",
+        "pb_source": "tushare_historical",
+        "mkt_cap_source": "tushare_historical"
+      }
+    ],
+    "comparable_summary": {
+      "provider": "tushare_historical",
+      "requested_codes": [
+        "837408.NQ",
+        "301128.SZ",
+        "603960.SH"
+      ],
+      "returned_codes": [
+        "301128.SZ",
+        "603960.SH"
+      ],
+      "cache_hits": [],
+      "api_fetched": [
+        "301128.SZ",
+        "603960.SH"
+      ],
+      "skipped_unsupported": [
+        "837408.NQ"
+      ],
+      "reference_trade_date": "20260426",
+      "reason": ""
+    },
+    "method1_replay_available": true,
+    "average_price_source": "intraday_csv",
+    "average_price_reason": "",
+    "average_price_calc_version": 3,
+    "average_price_unit_mode": "volume_hands_amount_yuan",
+    "average_price_reference": 39.89
+  }
+}

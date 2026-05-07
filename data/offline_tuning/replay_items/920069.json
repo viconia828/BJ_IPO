@@ -1,0 +1,159 @@
+{
+  "schema": "offline_tuning_replay_item_v1",
+  "cache_version": 3,
+  "generated_at": "2026-05-07 18:04:13",
+  "code": "920069",
+  "listing_date": "2026-03-27 00:00:00",
+  "record_signature": {
+    "SECURITY_CODE": "920069",
+    "SECURITY_NAME_ABBR": "普昂医疗",
+    "APPLY_DATE": "2026-03-18 00:00:00",
+    "LISTING_DATE": "2026-03-27 00:00:00",
+    "ISSUE_PRICE": 18.38,
+    "AFTER_ISSUE_PE": 14.53,
+    "INDUSTRY_PE_NEW": 43.57,
+    "TOTAL_ISSUE_NUM": 1058.28,
+    "ISSUE_NUM": 1058.28,
+    "CLOSE_PRICE": 43.48,
+    "LD_CLOSE_CHANGE": 136.5615,
+    "TURNOVERRATE": 65.5272,
+    "SW_INDUSTRY": null,
+    "INDUSTRY": null
+  },
+  "pdf_signature": {
+    "listing": {
+      "name": "920069普昂医疗上市公告书.pdf",
+      "size": 1093767,
+      "mtime_ns": 1776222980000000000
+    },
+    "old_shares": {
+      "name": "920069普昂医疗招股说明书.pdf",
+      "size": 6293656,
+      "mtime_ns": 1776223042000000000
+    },
+    "comparables": {
+      "name": "920069普昂医疗招股说明书.pdf",
+      "size": 6293656,
+      "mtime_ns": 1776223042000000000
+    }
+  },
+  "item": {
+    "SECURITY_CODE": "920069",
+    "SECURITY_NAME_ABBR": "普昂医疗",
+    "APPLY_DATE": "2026-03-18 00:00:00",
+    "LISTING_DATE": "2026-03-27 00:00:00",
+    "ISSUE_PRICE": 18.38,
+    "AFTER_ISSUE_PE": 14.53,
+    "INDUSTRY_PE_NEW": 43.57,
+    "TOTAL_ISSUE_NUM": 1058.28,
+    "CLOSE_PRICE": 43.48,
+    "AVERAGE_PRICE": 42.34166168392811,
+    "LD_CLOSE_CHANGE": 136.5615,
+    "LD_AVERAGE_CHANGE": 130.3681266807841,
+    "TURNOVERRATE": 65.5272,
+    "SW_INDUSTRY": "",
+    "INDUSTRY": "",
+    "industry_primary": "医药生物",
+    "industry_secondary": "医疗器械",
+    "industry_source": "built_in_sample_map",
+    "old_shares": 525.3215,
+    "old_shares_desc": "525.32 万股（PDF 提取：上市公告书）",
+    "old_shares_meta": {
+      "value_wan_shares": 525.3215,
+      "source_file_type": "上市公告书",
+      "source_rule": "listing_table",
+      "source_anchor": "本次发行前后的股本结构变动情况 -> 无限售流通股小计",
+      "raw_snippet": "配售对象小计37,077,98587.5938,136,26572.07--二、无限售流通股小计5,253,21512.4114,777,73527.93--合计42,331,200100.0052,914,000100.00--注1：数据尾数如存有差异系四舍五入所致；注2：发行人不存在表决权差异安排的情况。62六、",
+      "confidence": 0.98,
+      "unit": "股",
+      "pre_unrestricted_wan_shares": 525.3215,
+      "listing_pdf_found": true,
+      "prospectus_pdf_found": true,
+      "selected_source_label": "上市公告书",
+      "fallback_used": false
+    },
+    "float_shares": 1583.6015,
+    "has_intraday_file": true,
+    "comparable_codes": [
+      "603987.SH",
+      "301122.SZ",
+      "301234.SZ",
+      "873804.NQ"
+    ],
+    "comparable_data": [
+      {
+        "code": "603987.SH",
+        "name": "603987.SH",
+        "close": 8.36,
+        "pe_ttm": 14.9761,
+        "pb_lf": 1.3687,
+        "mkt_cap": 36.51571757,
+        "trade_date": "20260326",
+        "source": "tushare_historical",
+        "close_source": "tushare_historical",
+        "pe_source": "tushare_historical",
+        "pb_source": "tushare_historical",
+        "mkt_cap_source": "tushare_historical"
+      },
+      {
+        "code": "301122.SZ",
+        "name": "301122.SZ",
+        "close": 29.26,
+        "pe_ttm": 919.1228,
+        "pb_lf": 2.0001,
+        "mkt_cap": 35.76907953,
+        "trade_date": "20260326",
+        "source": "tushare_historical",
+        "close_source": "tushare_historical",
+        "pe_source": "tushare_historical",
+        "pb_source": "tushare_historical",
+        "mkt_cap_source": "tushare_historical"
+      },
+      {
+        "code": "301234.SZ",
+        "name": "301234.SZ",
+        "close": 38.14,
+        "pe_ttm": 107.4194,
+        "pb_lf": 3.4097,
+        "mkt_cap": 25.9352,
+        "trade_date": "20260326",
+        "source": "tushare_historical",
+        "close_source": "tushare_historical",
+        "pe_source": "tushare_historical",
+        "pb_source": "tushare_historical",
+        "mkt_cap_source": "tushare_historical"
+      }
+    ],
+    "comparable_summary": {
+      "provider": "tushare_historical",
+      "requested_codes": [
+        "603987.SH",
+        "301122.SZ",
+        "301234.SZ",
+        "873804.NQ"
+      ],
+      "returned_codes": [
+        "603987.SH",
+        "301122.SZ",
+        "301234.SZ"
+      ],
+      "cache_hits": [],
+      "api_fetched": [
+        "603987.SH",
+        "301122.SZ",
+        "301234.SZ"
+      ],
+      "skipped_unsupported": [
+        "873804.NQ"
+      ],
+      "reference_trade_date": "20260326",
+      "reason": ""
+    },
+    "method1_replay_available": true,
+    "average_price_source": "intraday_csv",
+    "average_price_reason": "",
+    "average_price_calc_version": 3,
+    "average_price_unit_mode": "volume_shares_amount_yuan",
+    "average_price_reference": 43.8
+  }
+}

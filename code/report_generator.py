@@ -7,7 +7,7 @@ import statistics
 import subprocess
 import time
 import uuid
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
@@ -122,17 +122,17 @@ def _subtract_months(current_date: date, months: int) -> date:
     return date(year, month, min(current_date.day, _days_in_month(year, month)))
 
 
-def _filter_recent_items_by_months(
+def _filter_recent_items_by_days(
     recent_ipos: list[dict[str, Any]],
-    months: Any,
+    days: Any,
     reference_date: Any,
 ) -> list[dict[str, Any]]:
     try:
-        month_count = max(int(months), 1)
+        day_count = max(int(days), 1)
     except (TypeError, ValueError):
-        month_count = 3
+        day_count = 90
     end_date = _parse_date(reference_date) or date.today()
-    start_date = _subtract_months(end_date, month_count)
+    start_date = end_date - timedelta(days=day_count)
 
     filtered: list[dict[str, Any]] = []
     for item in recent_ipos:
@@ -214,18 +214,32 @@ def _build_recent_items(recent_ipos: list[dict[str, Any]]) -> list[list[str]]:
 
     rows: list[list[str]] = []
     for item in recent_ipos:
+        display_price = item.get("AVERAGE_PRICE")
+        if display_price in (None, "", "--"):
+            display_price = item.get("CLOSE_PRICE")
+        display_change = item.get("LD_AVERAGE_CHANGE")
+        if display_change in (None, "", "--"):
+            display_change = item.get("LD_CLOSE_CHANGE")
         rows.append(
             [
                 str(item.get("SECURITY_CODE", "-")),
                 str(item.get("SECURITY_NAME_ABBR", "-")),
                 _fmt_date(item.get("LISTING_DATE")),
                 _fmt_number(item.get("ISSUE_PRICE")),
-                _fmt_number(item.get("CLOSE_PRICE")),
-                _fmt_pct(item.get("LD_CLOSE_CHANGE"), 2),
+                _fmt_number(display_price),
+                _fmt_pct(display_change, 2),
                 str(item.get("industry_primary", "未分类")),
             ]
         )
     return rows
+
+
+def _build_overview_interval(final: dict[str, Any]) -> str:
+    low_text = _fmt_number(final.get("range_low"), fallback="")
+    high_text = _fmt_number(final.get("range_high"), fallback="")
+    if not low_text or not high_text:
+        return ""
+    return f"{low_text} - {high_text}"
 
 
 def _format_code_list(codes: list[Any], fallback: str = "无") -> str:
@@ -292,8 +306,8 @@ def _prepare_report_context(all_data: dict[str, Any]) -> dict[str, Any]:
     params = all_data["params"]
     notes = list(all_data.get("notes") or [])
     recent_ipos = all_data.get("recent_ipos") or []
-    recent_months = params.get("recent_months", 3)
-    display_recent_ipos = _filter_recent_items_by_months(recent_ipos, recent_months, analysis_date)
+    recent_days = params.get("recent_days", int(params.get("recent_months", 3)) * 30)
+    display_recent_ipos = _filter_recent_items_by_days(recent_ipos, recent_days, analysis_date)
     comparable_data = all_data.get("comparable_data") or []
     wind_source_text = report_source_helper.build_comparable_source_text(all_data)
     ipo_source_text = report_source_helper.build_ipo_source_text(all_data)
@@ -333,7 +347,7 @@ def _prepare_report_context(all_data: dict[str, Any]) -> dict[str, Any]:
         sample_codes_text = _format_code_list(method2.get("sample_codes") or [])
         method2_lines = [
             (
-                f"近{params.get('recent_months', 3)}月{sample_label}新股首日涨幅{base_stat_label} = "
+                f"近{recent_days}天{sample_label}新股首日均价涨幅{base_stat_label} = "
                 f"{_fmt_pct(method2.get('base_chg'))}（样本 {method2.get('sample_count', 0)} 只，{method2.get('sample_scope')}）"
             ),
             f"方法二样本范围 = 历史候选 {method2.get('historical_sample_count', 0)} 只，实际纳入 {method2.get('sample_count', 0)} 只",
@@ -377,9 +391,32 @@ def _prepare_report_context(all_data: dict[str, Any]) -> dict[str, Any]:
         ],
     ]
 
+    overview_listing_date = ""
+    if all_data.get("listing_pdf_found", True):
+        overview_listing_date = _fmt_date(ipo.get("LISTING_DATE"), fallback="")
+
+    overview_headers = [
+        "代码",
+        "名称",
+        "申购日期",
+        "市盈率",
+        "最大申购上限（万元）",
+        "上市日期",
+        "估价区间（元）",
+    ]
+    overview_row = [
+        str(ipo.get("SECURITY_CODE", "") or ""),
+        str(ipo.get("SECURITY_NAME_ABBR", "") or ""),
+        _fmt_date(ipo.get("APPLY_DATE"), fallback=""),
+        _fmt_number(issue_pe, fallback=""),
+        _fmt_number(ipo.get("TOP_APPLY_MARKETCAP"), fallback=""),
+        overview_listing_date,
+        _build_overview_interval(final),
+    ]
+
     return {
         "analysis_date": analysis_date,
-        "recent_months": recent_months,
+        "recent_days": recent_days,
         "generated_at_text": generated_at.strftime("%Y-%m-%d %H:%M:%S"),
         "file_timestamp": generated_at.strftime("%Y%m%d_%H%M%S"),
         "title": f"{ipo.get('SECURITY_NAME_ABBR', '未知')}（{ipo.get('SECURITY_CODE', '-')}）北交所新股上市首日估值分析",
@@ -400,6 +437,8 @@ def _prepare_report_context(all_data: dict[str, Any]) -> dict[str, Any]:
         "valuation_rows": valuation_rows,
         "note_items": note_items,
         "recent_rows": recent_rows,
+        "overview_headers": overview_headers,
+        "overview_row": overview_row,
     }
 
 
@@ -430,7 +469,7 @@ def build_report_markdown(all_data: dict[str, Any]) -> str:
     )
     notes_text = "\n".join(f"- {item}" for item in context["note_items"])
     recent_table = _markdown_table(
-        ["代码", "简称", "上市日", "发行价", "首日收盘", "首日涨幅", "行业"],
+        ["代码", "简称", "上市日", "发行价", "首日均价", "均价涨幅", "行业"],
         context["recent_rows"],
     )
 
@@ -479,12 +518,25 @@ def build_report_markdown(all_data: dict[str, Any]) -> str:
 
 ---
 
-> 近期北交所新股首日表现一览（近{context['recent_months']}月）
+> 近期北交所新股首日表现一览（近{context['recent_days']}天）
 
 {recent_table}
 
 *以上分析基于历史数据统计和公开数据整理，仅供参考，不构成投资建议。*
 """
+
+
+def _build_overview_text_from_context(context: dict[str, Any]) -> str:
+    headers = [str(item) for item in context.get("overview_headers") or []]
+    row = [str(item) for item in context.get("overview_row") or []]
+    lines = []
+    for header, value in zip(headers, row):
+        lines.append(f"{header} {value}".rstrip())
+    return "\n".join([*lines, ""])
+
+
+def build_report_overview_text(all_data: dict[str, Any]) -> str:
+    return _build_overview_text_from_context(_prepare_report_context(all_data))
 
 
 def _html_table(headers: list[str], rows: list[list[str]], bold_row_indices: set[int] | None = None) -> str:
@@ -514,7 +566,7 @@ def _build_report_html(context: dict[str, Any]) -> str:
         bold_row_indices={2},
     )
     recent_table = _html_table(
-        ["代码", "简称", "上市日", "发行价", "首日收盘", "首日涨幅", "行业"],
+        ["代码", "简称", "上市日", "发行价", "首日均价", "均价涨幅", "行业"],
         context["recent_rows"],
     )
 
@@ -628,7 +680,7 @@ def _build_report_html(context: dict[str, Any]) -> str:
   <h2>四、关注提示</h2>
   <ul>{notes_html}</ul>
 
-  <h2>近期北交所新股首日表现一览（近{html.escape(str(context['recent_months']))}月）</h2>
+  <h2>近期北交所新股首日表现一览（近{html.escape(str(context['recent_days']))}天）</h2>
   {recent_table}
 
   <p class="footnote">以上分析基于历史数据统计和公开数据整理，仅供参考，不构成投资建议。</p>
@@ -792,6 +844,8 @@ def generate_report(all_data: dict[str, Any], output_dir: str) -> str:
     output_path = Path(output_dir)
     output_path.mkdir(parents=True, exist_ok=True)
     pdf_path = output_path / f"{context['file_stem']}.pdf"
+    overview_path = output_path / f"{context['file_stem']}_一览.txt"
     html_text = _build_report_html(context)
     _render_pdf_from_html(html_text, pdf_path)
+    overview_path.write_text(_build_overview_text_from_context(context), encoding="utf-8-sig")
     return str(pdf_path.resolve())

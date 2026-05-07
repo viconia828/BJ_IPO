@@ -1,0 +1,137 @@
+{
+  "schema": "offline_tuning_replay_item_v1",
+  "cache_version": 3,
+  "generated_at": "2026-05-07 18:04:13",
+  "code": "920050",
+  "listing_date": "2026-01-21 00:00:00",
+  "record_signature": {
+    "SECURITY_CODE": "920050",
+    "SECURITY_NAME_ABBR": "爱舍伦",
+    "APPLY_DATE": "2026-01-12 00:00:00",
+    "LISTING_DATE": "2026-01-21 00:00:00",
+    "ISSUE_PRICE": 15.98,
+    "AFTER_ISSUE_PE": 14.99,
+    "INDUSTRY_PE_NEW": 29.79,
+    "TOTAL_ISSUE_NUM": 1691.9834,
+    "ISSUE_NUM": 1691.9834,
+    "CLOSE_PRICE": 44.04,
+    "LD_CLOSE_CHANGE": 175.5945,
+    "TURNOVERRATE": 78.2307,
+    "SW_INDUSTRY": null,
+    "INDUSTRY": null
+  },
+  "pdf_signature": {
+    "listing": {
+      "name": "920050爱舍伦上市公告书.pdf",
+      "size": 911772,
+      "mtime_ns": 1776223500000000000
+    },
+    "old_shares": {
+      "name": "920050爱舍伦招股说明书.pdf",
+      "size": 6007092,
+      "mtime_ns": 1776223462000000000
+    },
+    "comparables": {
+      "name": "920050爱舍伦招股说明书.pdf",
+      "size": 6007092,
+      "mtime_ns": 1776223462000000000
+    }
+  },
+  "item": {
+    "SECURITY_CODE": "920050",
+    "SECURITY_NAME_ABBR": "爱舍伦",
+    "APPLY_DATE": "2026-01-12 00:00:00",
+    "LISTING_DATE": "2026-01-21 00:00:00",
+    "ISSUE_PRICE": 15.98,
+    "AFTER_ISSUE_PE": 14.99,
+    "INDUSTRY_PE_NEW": 29.79,
+    "TOTAL_ISSUE_NUM": 1691.9834,
+    "CLOSE_PRICE": 44.04,
+    "AVERAGE_PRICE": 48.64295846657595,
+    "LD_CLOSE_CHANGE": 175.5945,
+    "LD_AVERAGE_CHANGE": 204.39898915254037,
+    "TURNOVERRATE": 78.2307,
+    "SW_INDUSTRY": "",
+    "INDUSTRY": "",
+    "industry_primary": "医药生物",
+    "industry_secondary": "医疗器械",
+    "industry_source": "built_in_sample_map",
+    "old_shares": 287.48,
+    "old_shares_desc": "287.48 万股（PDF 提取：上市公告书）",
+    "old_shares_meta": {
+      "value_wan_shares": 287.48,
+      "source_file_type": "上市公告书",
+      "source_rule": "listing_table",
+      "source_anchor": "本次发行前后的股本结构变动情况 -> 无限售流通股小计",
+      "raw_snippet": "小计47,884,70094.34%49,576,68373.25%————二、无限售流通股小计2,874,8005.66%18,102,65126.75%————合计50,759,500100.00%67,679,334100.00%————注1：上表中股份比例数值为保留2位小数，若出现各分项数值之和与合计数尾数不符的情况，为四舍五入原因造成；注2：发行人",
+      "confidence": 0.98,
+      "unit": "股",
+      "pre_unrestricted_wan_shares": 287.48,
+      "listing_pdf_found": true,
+      "prospectus_pdf_found": true,
+      "selected_source_label": "上市公告书",
+      "fallback_used": false
+    },
+    "float_shares": 1979.4634,
+    "has_intraday_file": true,
+    "comparable_codes": [
+      "603301.SH",
+      "002950.SZ"
+    ],
+    "comparable_data": [
+      {
+        "code": "603301.SH",
+        "name": "603301.SH",
+        "close": 69.21,
+        "pe_ttm": 65.4991,
+        "pb_lf": 3.2349,
+        "mkt_cap": 183.98477377,
+        "trade_date": "20260120",
+        "source": "tushare_historical",
+        "close_source": "tushare_historical",
+        "pe_source": "tushare_historical",
+        "pb_source": "tushare_historical",
+        "mkt_cap_source": "tushare_historical"
+      },
+      {
+        "code": "002950.SZ",
+        "name": "002950.SZ",
+        "close": 11.94,
+        "pe_ttm": 16.7165,
+        "pb_lf": 2.0266,
+        "mkt_cap": 75.6118896,
+        "trade_date": "20260120",
+        "source": "tushare_historical",
+        "close_source": "tushare_historical",
+        "pe_source": "tushare_historical",
+        "pb_source": "tushare_historical",
+        "mkt_cap_source": "tushare_historical"
+      }
+    ],
+    "comparable_summary": {
+      "provider": "tushare_historical",
+      "requested_codes": [
+        "603301.SH",
+        "002950.SZ"
+      ],
+      "returned_codes": [
+        "603301.SH",
+        "002950.SZ"
+      ],
+      "cache_hits": [],
+      "api_fetched": [
+        "603301.SH",
+        "002950.SZ"
+      ],
+      "skipped_unsupported": [],
+      "reference_trade_date": "20260120",
+      "reason": ""
+    },
+    "method1_replay_available": true,
+    "average_price_source": "intraday_csv",
+    "average_price_reason": "",
+    "average_price_calc_version": 3,
+    "average_price_unit_mode": "volume_shares_amount_yuan",
+    "average_price_reference": 46.89
+  }
+}

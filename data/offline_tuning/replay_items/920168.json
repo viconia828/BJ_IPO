@@ -1,0 +1,137 @@
+{
+  "schema": "offline_tuning_replay_item_v1",
+  "cache_version": 3,
+  "generated_at": "2026-05-07 18:04:13",
+  "code": "920168",
+  "listing_date": "2026-02-26 00:00:00",
+  "record_signature": {
+    "SECURITY_CODE": "920168",
+    "SECURITY_NAME_ABBR": "通宝光电",
+    "APPLY_DATE": "2026-02-09 00:00:00",
+    "LISTING_DATE": "2026-02-26 00:00:00",
+    "ISSUE_PRICE": 16.17,
+    "AFTER_ISSUE_PE": 14.99,
+    "INDUSTRY_PE_NEW": 30.5,
+    "TOTAL_ISSUE_NUM": 1879.34,
+    "ISSUE_NUM": 1879.34,
+    "CLOSE_PRICE": 27.49,
+    "LD_CLOSE_CHANGE": 70.0062,
+    "TURNOVERRATE": 66.753,
+    "SW_INDUSTRY": null,
+    "INDUSTRY": null
+  },
+  "pdf_signature": {
+    "listing": {
+      "name": "920168通宝光电上市公告书.pdf",
+      "size": 803974,
+      "mtime_ns": 1776223650000000000
+    },
+    "old_shares": {
+      "name": "920168通宝光电招股说明书.pdf",
+      "size": 6087976,
+      "mtime_ns": 1776223588000000000
+    },
+    "comparables": {
+      "name": "920168通宝光电招股说明书.pdf",
+      "size": 6087976,
+      "mtime_ns": 1776223588000000000
+    }
+  },
+  "item": {
+    "SECURITY_CODE": "920168",
+    "SECURITY_NAME_ABBR": "通宝光电",
+    "APPLY_DATE": "2026-02-09 00:00:00",
+    "LISTING_DATE": "2026-02-26 00:00:00",
+    "ISSUE_PRICE": 16.17,
+    "AFTER_ISSUE_PE": 14.99,
+    "INDUSTRY_PE_NEW": 30.5,
+    "TOTAL_ISSUE_NUM": 1879.34,
+    "CLOSE_PRICE": 27.49,
+    "LD_CLOSE_CHANGE": 70.0062,
+    "TURNOVERRATE": 66.753,
+    "SW_INDUSTRY": "",
+    "INDUSTRY": "",
+    "industry_primary": "高端装备",
+    "industry_secondary": "汽车零部件",
+    "industry_source": "built_in_sample_map",
+    "old_shares": 1126.0454,
+    "old_shares_desc": "1126.05 万股（PDF 提取：上市公告书）",
+    "old_shares_meta": {
+      "value_wan_shares": 1126.0454,
+      "source_file_type": "上市公告书",
+      "source_rule": "listing_table",
+      "source_anchor": "本次发行前后的股本结构变动情况 -> 无限售流通股小计",
+      "raw_snippet": "小计45,119,54680.03%46,998,88662.52%————二、无限售流通股小计11,260,45419.97%28,174,51437.48%————合计56,380,000100.00%75,173,400100.00%————注1：上表中股份比例数值为保留2位小数，若出现各分项数值之和与合计数尾数不符的情况，为四舍五入原因造成；注2：发",
+      "confidence": 0.98,
+      "unit": "股",
+      "pre_unrestricted_wan_shares": 1126.0454,
+      "listing_pdf_found": true,
+      "prospectus_pdf_found": true,
+      "selected_source_label": "上市公告书",
+      "fallback_used": false
+    },
+    "float_shares": 3005.3854,
+    "has_intraday_file": true,
+    "comparable_codes": [
+      "601799.SH",
+      "603786.SH"
+    ],
+    "comparable_data": [
+      {
+        "code": "601799.SH",
+        "name": "601799.SH",
+        "close": 151.6,
+        "pe_ttm": 27.5484,
+        "pb_lf": 3.9325,
+        "mkt_cap": 433.08999919999997,
+        "trade_date": "20260225",
+        "source": "tushare_historical",
+        "close_source": "tushare_historical",
+        "pe_source": "tushare_historical",
+        "pb_source": "tushare_historical",
+        "mkt_cap_source": "tushare_historical"
+      },
+      {
+        "code": "603786.SH",
+        "name": "603786.SH",
+        "close": 68.42,
+        "pe_ttm": 34.0299,
+        "pb_lf": 5.073,
+        "mkt_cap": 276.31875414,
+        "trade_date": "20260225",
+        "source": "tushare_historical",
+        "close_source": "tushare_historical",
+        "pe_source": "tushare_historical",
+        "pb_source": "tushare_historical",
+        "mkt_cap_source": "tushare_historical"
+      }
+    ],
+    "comparable_summary": {
+      "provider": "tushare_historical",
+      "requested_codes": [
+        "601799.SH",
+        "603786.SH"
+      ],
+      "returned_codes": [
+        "601799.SH",
+        "603786.SH"
+      ],
+      "cache_hits": [],
+      "api_fetched": [
+        "601799.SH",
+        "603786.SH"
+      ],
+      "skipped_unsupported": [],
+      "reference_trade_date": "20260225",
+      "reason": ""
+    },
+    "method1_replay_available": true,
+    "AVERAGE_PRICE": 29.448189549449722,
+    "LD_AVERAGE_CHANGE": 82.11620005843983,
+    "average_price_source": "intraday_csv",
+    "average_price_reason": "",
+    "average_price_calc_version": 3,
+    "average_price_unit_mode": "volume_shares_amount_yuan",
+    "average_price_reference": 29.41
+  }
+}

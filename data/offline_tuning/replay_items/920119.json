@@ -1,0 +1,191 @@
+{
+  "schema": "offline_tuning_replay_item_v1",
+  "cache_version": 3,
+  "generated_at": "2026-05-07 18:04:13",
+  "code": "920119",
+  "listing_date": "2026-01-30 00:00:00",
+  "record_signature": {
+    "SECURITY_CODE": "920119",
+    "SECURITY_NAME_ABBR": "美德乐",
+    "APPLY_DATE": "2026-01-21 00:00:00",
+    "LISTING_DATE": "2026-01-30 00:00:00",
+    "ISSUE_PRICE": 41.88,
+    "AFTER_ISSUE_PE": 14.99,
+    "INDUSTRY_PE_NEW": 47.63,
+    "TOTAL_ISSUE_NUM": 1600.0,
+    "ISSUE_NUM": 1600.0,
+    "CLOSE_PRICE": 109.5,
+    "LD_CLOSE_CHANGE": 161.4613,
+    "TURNOVERRATE": 71.6482,
+    "SW_INDUSTRY": null,
+    "INDUSTRY": null
+  },
+  "pdf_signature": {
+    "listing": {
+      "name": "920119美德乐上市公告书.pdf",
+      "size": 844065,
+      "mtime_ns": 1776223544000000000
+    },
+    "old_shares": {
+      "name": "920119美德乐招股说明书.pdf",
+      "size": 5711204,
+      "mtime_ns": 1776223522000000000
+    },
+    "comparables": {
+      "name": "920119美德乐招股说明书.pdf",
+      "size": 5711204,
+      "mtime_ns": 1776223522000000000
+    }
+  },
+  "item": {
+    "SECURITY_CODE": "920119",
+    "SECURITY_NAME_ABBR": "美德乐",
+    "APPLY_DATE": "2026-01-21 00:00:00",
+    "LISTING_DATE": "2026-01-30 00:00:00",
+    "ISSUE_PRICE": 41.88,
+    "AFTER_ISSUE_PE": 14.99,
+    "INDUSTRY_PE_NEW": 47.63,
+    "TOTAL_ISSUE_NUM": 1600.0,
+    "CLOSE_PRICE": 109.5,
+    "AVERAGE_PRICE": 120.16805492729866,
+    "LD_CLOSE_CHANGE": 161.4613,
+    "LD_AVERAGE_CHANGE": 186.93422857521168,
+    "TURNOVERRATE": 71.6482,
+    "SW_INDUSTRY": "",
+    "INDUSTRY": "",
+    "industry_primary": "高端装备",
+    "industry_secondary": "仪器仪表制造业",
+    "industry_source": "built_in_sample_map",
+    "old_shares": 0.0,
+    "old_shares_desc": "0.00 万股（PDF 提取：上市公告书）",
+    "old_shares_meta": {
+      "value_wan_shares": 0.0,
+      "source_file_type": "上市公告书",
+      "source_rule": "listing_table",
+      "source_anchor": "本次发行前后的股本结构变动情况 -> 无限售流通股小计",
+      "raw_snippet": "象小计56,123,267100.00%57,723,26780.03%--二、无限售流通股小计--14,400,00019.97%--合计56,123,267100.00%72,123,267100.00%--注：1、张永新、陈立波、林家忠、于丽敏、麻艳、大连伊美企业管理咨询合伙企业（有限合伙）、姜红泽、吴历朋、周洪、梁鑫业、美德乐1号资管计划、国泰君安证",
+      "confidence": 0.95,
+      "unit": "股",
+      "pre_unrestricted_wan_shares": 0.0,
+      "listing_pdf_found": true,
+      "prospectus_pdf_found": true,
+      "selected_source_label": "上市公告书",
+      "fallback_used": false
+    },
+    "float_shares": 1600.0,
+    "has_intraday_file": true,
+    "comparable_codes": [
+      "301029.SZ",
+      "688097.SH",
+      "300450.SZ",
+      "301662.SZ",
+      "300173.SZ"
+    ],
+    "comparable_data": [
+      {
+        "code": "301029.SZ",
+        "name": "301029.SZ",
+        "close": 27.36,
+        "pe_ttm": 35.1563,
+        "pb_lf": 4.0791,
+        "mkt_cap": 173.517862,
+        "trade_date": "20260129",
+        "source": "tushare_historical",
+        "close_source": "tushare_historical",
+        "pe_source": "tushare_historical",
+        "pb_source": "tushare_historical",
+        "mkt_cap_source": "tushare_historical"
+      },
+      {
+        "code": "688097.SH",
+        "name": "688097.SH",
+        "close": 39.44,
+        "pe_ttm": 36.9359,
+        "pb_lf": 3.7452,
+        "mkt_cap": 176.15787852,
+        "trade_date": "20260129",
+        "source": "tushare_historical",
+        "close_source": "tushare_historical",
+        "pe_source": "tushare_historical",
+        "pb_source": "tushare_historical",
+        "mkt_cap_source": "tushare_historical"
+      },
+      {
+        "code": "300450.SZ",
+        "name": "300450.SZ",
+        "close": 56.34,
+        "pe_ttm": 102.1332,
+        "pb_lf": 6.9243,
+        "mkt_cap": 882.3762533600001,
+        "trade_date": "20260129",
+        "source": "tushare_historical",
+        "close_source": "tushare_historical",
+        "pe_source": "tushare_historical",
+        "pb_source": "tushare_historical",
+        "mkt_cap_source": "tushare_historical"
+      },
+      {
+        "code": "301662.SZ",
+        "name": "301662.SZ",
+        "close": 168.44,
+        "pe_ttm": 107.1237,
+        "pb_lf": 9.3419,
+        "mkt_cap": 134.752,
+        "trade_date": "20260129",
+        "source": "tushare_historical",
+        "close_source": "tushare_historical",
+        "pe_source": "tushare_historical",
+        "pb_source": "tushare_historical",
+        "mkt_cap_source": "tushare_historical"
+      },
+      {
+        "code": "300173.SZ",
+        "name": "300173.SZ",
+        "close": 4.56,
+        "pe_ttm": 59.2713,
+        "pb_lf": 3.4661,
+        "mkt_cap": 33.50349183,
+        "trade_date": "20260129",
+        "source": "tushare_historical",
+        "close_source": "tushare_historical",
+        "pe_source": "tushare_historical",
+        "pb_source": "tushare_historical",
+        "mkt_cap_source": "tushare_historical"
+      }
+    ],
+    "comparable_summary": {
+      "provider": "tushare_historical",
+      "requested_codes": [
+        "301029.SZ",
+        "688097.SH",
+        "300450.SZ",
+        "301662.SZ",
+        "300173.SZ"
+      ],
+      "returned_codes": [
+        "301029.SZ",
+        "688097.SH",
+        "300450.SZ",
+        "301662.SZ",
+        "300173.SZ"
+      ],
+      "cache_hits": [],
+      "api_fetched": [
+        "301029.SZ",
+        "688097.SH",
+        "300450.SZ",
+        "301662.SZ",
+        "300173.SZ"
+      ],
+      "skipped_unsupported": [],
+      "reference_trade_date": "20260129",
+      "reason": ""
+    },
+    "method1_replay_available": true,
+    "average_price_source": "intraday_csv",
+    "average_price_reason": "",
+    "average_price_calc_version": 3,
+    "average_price_unit_mode": "volume_shares_amount_yuan",
+    "average_price_reference": 114.83500000000001
+  }
+}

@@ -3,9 +3,9 @@ setlocal
 chcp 65001 >nul
 cd /d "%~dp0"
 
-python "tools\manual_tune_prompt.py"
+python -u "tools\manual_tune_prompt.py"
 set "EXIT_CODE=%ERRORLEVEL%"
 
 echo.
-if not defined CODEX_BATCH_NO_PAUSE pause
+if /I not "%~1"=="--no-pause" pause
 exit /b %EXIT_CODE%

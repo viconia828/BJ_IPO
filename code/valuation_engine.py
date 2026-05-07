@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import statistics
-from datetime import date
+from datetime import date, timedelta
 from typing import Any
 
 from trend_scorer import get_trend_factor
@@ -61,6 +61,14 @@ def _get_sample_half_life_days(params: dict[str, Any]) -> float:
     return max(float(params.get("sample_decay_half_life_days", 20)), 1.0)
 
 
+def _get_recent_window_days(params: dict[str, Any]) -> int:
+    raw_days = params.get("recent_days")
+    if raw_days not in (None, ""):
+        return max(int(float(raw_days)), 1)
+    raw_months = params.get("recent_months", 3)
+    return max(int(float(raw_months)) * 30, 1)
+
+
 def _resolve_reference_date(target_listing_date: str | date | None, records: list[dict[str, Any]]) -> date:
     target_date = _parse_date(target_listing_date)
     if target_date:
@@ -71,6 +79,23 @@ def _resolve_reference_date(target_listing_date: str | date | None, records: lis
     if sample_dates:
         return max(sample_dates)
     return date.today()
+
+
+def _filter_samples_by_recent_days(
+    records: list[dict[str, Any]],
+    params: dict[str, Any],
+    reference_date: date,
+) -> list[dict[str, Any]]:
+    recent_days = _get_recent_window_days(params)
+    cutoff = reference_date - timedelta(days=recent_days)
+    filtered: list[dict[str, Any]] = []
+    for item in records:
+        sample_date = _parse_date(item.get("LISTING_DATE"))
+        if sample_date is None:
+            continue
+        if cutoff <= sample_date <= reference_date:
+            filtered.append(item)
+    return filtered
 
 
 def _get_sample_weight(sample_date: date | None, reference_date: date, params: dict[str, Any]) -> float:
@@ -84,6 +109,13 @@ def _get_sample_weight(sample_date: date | None, reference_date: date, params: d
     return 0.5 ** (day_gap / half_life_days)
 
 
+def _sample_first_day_change_pct(item: dict[str, Any]) -> float | None:
+    average_change = _safe_float(item.get("LD_AVERAGE_CHANGE"))
+    if average_change is not None:
+        return average_change
+    return _safe_float(item.get("LD_CLOSE_CHANGE"))
+
+
 def _summarize_change_stat(
     records: list[dict[str, Any]],
     params: dict[str, Any],
@@ -91,7 +123,7 @@ def _summarize_change_stat(
 ) -> tuple[float | None, str]:
     value_weight_pairs: list[tuple[float, float]] = []
     for item in records:
-        change_pct = _safe_float(item.get("LD_CLOSE_CHANGE"))
+        change_pct = _sample_first_day_change_pct(item)
         if change_pct is None:
             continue
         sample_date = _parse_date(item.get("LISTING_DATE"))
@@ -149,7 +181,7 @@ def _pick_industry_samples(
     recent_ipos: list[dict[str, Any]],
     min_samples: int,
 ) -> tuple[list[dict[str, Any]], str]:
-    valid_records = [item for item in recent_ipos if _safe_float(item.get("LD_CLOSE_CHANGE")) is not None]
+    valid_records = [item for item in recent_ipos if _sample_first_day_change_pct(item) is not None]
     secondary = industry.get("secondary")
     primary = industry.get("primary")
 
@@ -208,11 +240,18 @@ def method2_industry_momentum(
     if not historical_ipos:
         return {"available": False, "reason": "不存在早于标的上市日的历史样本，无法计算方法二。"}
 
+    reference_date = _resolve_reference_date(target_listing_date, historical_ipos)
+    historical_ipos = _filter_samples_by_recent_days(historical_ipos, params, reference_date)
+    if not historical_ipos:
+        return {
+            "available": False,
+            "reason": f"近{_get_recent_window_days(params)}天内不存在早于标的上市日的历史样本，无法计算方法二。",
+        }
+
     min_samples = int(params.get("min_industry_samples", 2))
     samples, sample_scope = _pick_industry_samples(industry, historical_ipos, min_samples)
-    reference_date = _resolve_reference_date(target_listing_date, historical_ipos)
     base_chg, base_stat_label = _summarize_change_stat(samples, params, reference_date)
-    clean_gains = [_safe_float(item.get("LD_CLOSE_CHANGE")) for item in samples]
+    clean_gains = [_sample_first_day_change_pct(item) for item in samples]
     clean_gains = [value for value in clean_gains if value is not None]
     if not clean_gains or base_chg is None:
         return {"available": False, "reason": "样本缺少首日涨幅字段，无法计算方法二。"}
@@ -264,6 +303,7 @@ def method2_industry_momentum(
         "sample_scope": sample_scope,
         "sample_codes": [item.get("SECURITY_CODE", "") for item in samples],
         "historical_sample_count": len(historical_ipos),
+        "recent_days": _get_recent_window_days(params),
         "base_stat_label": base_stat_label,
         "float_factor": float_factor,
         "float_note": float_note,

@@ -1,0 +1,102 @@
+{
+  "schema": "offline_tuning_replay_item_v1",
+  "cache_version": 3,
+  "generated_at": "2026-05-07 18:04:13",
+  "code": "920188",
+  "listing_date": "2026-03-30 00:00:00",
+  "record_signature": {
+    "SECURITY_CODE": "920188",
+    "SECURITY_NAME_ABBR": "悦龙科技",
+    "APPLY_DATE": "2026-03-16 00:00:00",
+    "LISTING_DATE": "2026-03-30 00:00:00",
+    "ISSUE_PRICE": 14.04,
+    "AFTER_ISSUE_PE": 14.99,
+    "INDUSTRY_PE_NEW": 28.52,
+    "TOTAL_ISSUE_NUM": 2199.3198,
+    "ISSUE_NUM": 2199.3198,
+    "CLOSE_PRICE": 30.2,
+    "LD_CLOSE_CHANGE": 115.0997,
+    "TURNOVERRATE": 87.4507,
+    "SW_INDUSTRY": null,
+    "INDUSTRY": null
+  },
+  "pdf_signature": {
+    "listing": {
+      "name": "920188悦龙科技上市公告书.pdf",
+      "size": 839444,
+      "mtime_ns": 1776222964000000000
+    },
+    "old_shares": {
+      "name": "920188悦龙科技招股说明书.pdf",
+      "size": 8404539,
+      "mtime_ns": 1776223052000000000
+    },
+    "comparables": {
+      "name": "920188悦龙科技招股说明书.pdf",
+      "size": 8404539,
+      "mtime_ns": 1776223052000000000
+    }
+  },
+  "item": {
+    "SECURITY_CODE": "920188",
+    "SECURITY_NAME_ABBR": "悦龙科技",
+    "APPLY_DATE": "2026-03-16 00:00:00",
+    "LISTING_DATE": "2026-03-30 00:00:00",
+    "ISSUE_PRICE": 14.04,
+    "AFTER_ISSUE_PE": 14.99,
+    "INDUSTRY_PE_NEW": 28.52,
+    "TOTAL_ISSUE_NUM": 2199.3198,
+    "CLOSE_PRICE": 30.2,
+    "LD_CLOSE_CHANGE": 115.0997,
+    "TURNOVERRATE": 87.4507,
+    "SW_INDUSTRY": "",
+    "INDUSTRY": "",
+    "industry_primary": "高端装备",
+    "industry_secondary": "机械设备",
+    "industry_source": "built_in_sample_map",
+    "old_shares": 0.0,
+    "old_shares_desc": "0.00 万股（PDF 提取：上市公告书）",
+    "old_shares_meta": {
+      "value_wan_shares": 0.0,
+      "source_file_type": "上市公告书",
+      "source_rule": "listing_table",
+      "source_anchor": "本次发行前后的股本结构变动情况 -> 无限售流通股小计",
+      "raw_snippet": "象小计61,000,000100.00%63,199,31976.15%--二、无限售流通股小计00.00%19,793,87923.85%--合计61,000,000100.00%82,993,198100.00%--注1：上表中股份比例数值为保留2位小数，若出现各分项数值之和与合计数尾数不符的情况，为四舍五入原因造成；注2：发行人不存在表决权差异安排的情",
+      "confidence": 0.98,
+      "unit": "股",
+      "pre_unrestricted_wan_shares": 0.0,
+      "listing_pdf_found": true,
+      "prospectus_pdf_found": true,
+      "selected_source_label": "上市公告书",
+      "fallback_used": false
+    },
+    "float_shares": 2199.3198,
+    "has_intraday_file": true,
+    "comparable_codes": [
+      "871694.BJ",
+      "836871.BJ"
+    ],
+    "comparable_data": [],
+    "comparable_summary": {
+      "provider": "tushare_historical",
+      "requested_codes": [
+        "871694.BJ",
+        "836871.BJ"
+      ],
+      "returned_codes": [],
+      "cache_hits": [],
+      "api_fetched": [],
+      "skipped_unsupported": [],
+      "reference_trade_date": "20260329",
+      "reason": "未取到可用的历史可比快照。"
+    },
+    "method1_replay_available": false,
+    "AVERAGE_PRICE": 33.940438585337475,
+    "LD_AVERAGE_CHANGE": 141.74101556508174,
+    "average_price_source": "intraday_csv",
+    "average_price_reason": "",
+    "average_price_calc_version": 3,
+    "average_price_unit_mode": "volume_shares_amount_yuan",
+    "average_price_reference": 31.9
+  }
+}

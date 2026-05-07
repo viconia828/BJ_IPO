@@ -3,6 +3,7 @@ from __future__ import annotations
 import itertools
 import json
 import math
+import time
 from collections import OrderedDict
 from datetime import date, datetime, timedelta
 from pathlib import Path
@@ -10,8 +11,10 @@ from typing import Any, Callable
 
 import bse_ipo_valuation
 import data_fetcher
+import listing_average_price_helper
 import pdf_parser
 import tushare_helper
+import tushare_ipo_helper
 import valuation_engine
 from industry_mapping import IndustryMapper
 from local_file_db import LocalFileDB
@@ -19,12 +22,18 @@ from local_file_db import LocalFileDB
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_DATASET_PATH = REPO_ROOT / "data" / "offline_tuning" / "replay_dataset.json"
+DEFAULT_REPLAY_ITEM_CACHE_DIR = REPO_ROOT / "data" / "offline_tuning" / "replay_items"
+DEFAULT_LISTING_AVERAGE_PRICE_CACHE_PATH = listing_average_price_helper.DEFAULT_CACHE_PATH
 DEFAULT_CANDIDATE_SET_DIR = REPO_ROOT / "data" / "offline_tuning" / "candidate_sets"
 DEFAULT_OUTPUT_DIR = REPO_ROOT / "输出" / "调参"
 DEFAULT_OBSERVE_OUTPUT_DIR = REPO_ROOT / "输出" / "观察期"
-INTRADAY_DIR = REPO_ROOT / "首日分时走势"
+DEFAULT_AUTO_TUNING_RECORD_PATH = REPO_ROOT / "自动调参记录.txt"
+INTRADAY_DIR = listing_average_price_helper.DEFAULT_INTRADAY_DIR
 PDF_DIR = REPO_ROOT / "公告文件"
 DATASET_SCHEMA = "offline_tuning_replay_v1"
+REPLAY_ITEM_SCHEMA = "offline_tuning_replay_item_v1"
+REPLAY_ITEM_CACHE_VERSION = 3
+REPLAY_AVERAGE_PRICE_CALC_VERSION = listing_average_price_helper.AVERAGE_PRICE_CALC_VERSION
 METHOD2_ONLY_SCOPE = "method2_only"
 COMPOSITE_EVALUATION_SCOPE = "composite"
 SUPPORTED_EVALUATION_SCOPES = {METHOD2_ONLY_SCOPE, COMPOSITE_EVALUATION_SCOPE}
@@ -47,6 +56,30 @@ AUTO_NORMALIZE_WEIGHT_GROUPS: tuple[tuple[str, ...], ...] = (
     tuple(WSI_WEIGHT_KEYS),
 )
 AUTO_NORMALIZE_EPSILON = 1e-9
+AUTO_TUNE_LOOKBACK_DAYS = 90
+AUTO_TUNE_RECENT_FLOOR_DAYS = 30
+AUTO_TUNE_RECENT_MIN_TOTAL_WEIGHT = 0.50
+AUTO_TUNE_WIDTH_DIAGNOSTIC_FACTOR = 0.50
+AUTO_TUNE_MAE_PENALTY = 0.002
+AUTO_TUNE_STAGE_TIME_LIMIT_SECONDS = 180.0
+AUTO_TUNE_STAGE_CANDIDATE_LIMIT = 650
+REPLAY_RECORD_SIGNATURE_KEYS = (
+    "SECURITY_CODE",
+    "SECURITY_NAME_ABBR",
+    "APPLY_DATE",
+    "LISTING_DATE",
+    "ISSUE_PRICE",
+    "AFTER_ISSUE_PE",
+    "INDUSTRY_PE_NEW",
+    "TOTAL_ISSUE_NUM",
+    "ISSUE_NUM",
+    "CLOSE_PRICE",
+    "LD_CLOSE_CHANGE",
+    "TURNOVERRATE",
+    "SW_INDUSTRY",
+    "INDUSTRY",
+)
+REPLAY_EXISTING_ITEM_SIGNATURE_KEYS = tuple(key for key in REPLAY_RECORD_SIGNATURE_KEYS if key != "ISSUE_NUM")
 
 
 def _build_wsi_turnover_candidates() -> list[dict[str, float]]:
@@ -200,6 +233,210 @@ def _previous_day_yyyymmdd(value: Any) -> str | None:
     return (parsed - timedelta(days=1)).strftime("%Y%m%d")
 
 
+def _replay_cache_scalar(value: Any) -> Any:
+    if value is None:
+        return None
+    if isinstance(value, (int, float)) and not isinstance(value, bool):
+        if isinstance(value, float) and (math.isnan(value) or math.isinf(value)):
+            return None
+        return value
+    text = str(value).strip()
+    return text if text else None
+
+
+def _build_replay_record_signature(record: dict[str, Any]) -> dict[str, Any]:
+    return {key: _replay_cache_scalar(record.get(key)) for key in REPLAY_RECORD_SIGNATURE_KEYS}
+
+
+def _is_existing_replay_item_compatible(item: dict[str, Any], record_signature: dict[str, Any]) -> bool:
+    item_signature = {key: _replay_cache_scalar(item.get(key)) for key in REPLAY_EXISTING_ITEM_SIGNATURE_KEYS}
+    record_subset = {key: record_signature.get(key) for key in REPLAY_EXISTING_ITEM_SIGNATURE_KEYS}
+    if item_signature != record_subset:
+        return False
+    if "AVERAGE_PRICE" not in item or "average_price_source" not in item:
+        return False
+    try:
+        item_calc_version = int(item.get("average_price_calc_version"))
+    except (TypeError, ValueError):
+        item_calc_version = None
+    if item_calc_version != REPLAY_AVERAGE_PRICE_CALC_VERSION:
+        return False
+    return True
+
+
+def _existing_replay_item_signature_matches(item: dict[str, Any], record_signature: dict[str, Any]) -> bool:
+    item_signature = {key: _replay_cache_scalar(item.get(key)) for key in REPLAY_EXISTING_ITEM_SIGNATURE_KEYS}
+    record_subset = {key: record_signature.get(key) for key in REPLAY_EXISTING_ITEM_SIGNATURE_KEYS}
+    return item_signature == record_subset
+
+
+def _file_signature(path: Path | None) -> dict[str, Any] | None:
+    if path is None:
+        return None
+    try:
+        stat = path.stat()
+    except OSError:
+        return {"name": path.name, "missing": True}
+    return {
+        "name": path.name,
+        "size": stat.st_size,
+        "mtime_ns": stat.st_mtime_ns,
+    }
+
+
+def _resolve_listing_average_price(
+    params: dict[str, Any],
+    code: str,
+    listing_date: Any,
+    record: dict[str, Any],
+    prefer_local_intraday: bool = False,
+) -> dict[str, Any]:
+    for key in ("AVERAGE_PRICE", "AVG_PRICE", "VWAP"):
+        average_price = _safe_float(record.get(key))
+        if average_price is not None and average_price > 0:
+            source = str(record.get("average_price_source") or key).strip().lower()
+            return {
+                "average_price": average_price,
+                "source": source,
+                "reason": "",
+                "calc_version": record.get("average_price_calc_version") or REPLAY_AVERAGE_PRICE_CALC_VERSION,
+                "unit_mode": record.get("average_price_unit_mode") or record.get("unit_mode"),
+                "price_reference": record.get("average_price_reference") or record.get("price_reference"),
+            }
+
+    local_intraday_result: dict[str, Any] | None = None
+    if prefer_local_intraday:
+        local_intraday_result = listing_average_price_helper.resolve_intraday_average_price(code)
+        average_price = _safe_float(local_intraday_result.get("average_price"))
+        if average_price is not None and average_price > 0:
+            return {
+                "average_price": average_price,
+                "source": str(local_intraday_result.get("source") or "intraday_csv").strip(),
+                "reason": str(local_intraday_result.get("reason") or "").strip(),
+                "calc_version": local_intraday_result.get("calc_version") or REPLAY_AVERAGE_PRICE_CALC_VERSION,
+                "unit_mode": local_intraday_result.get("unit_mode"),
+                "price_reference": local_intraday_result.get("price_reference"),
+            }
+
+    listing_date_text = str(listing_date or "").strip()
+    if listing_date_text:
+        try:
+            tushare_result = tushare_ipo_helper.get_listing_day_average_price(code, listing_date_text, params=params)
+        except Exception as exc:
+            tushare_result = {"average_price": None, "source": "", "reason": str(exc)}
+        average_price = _safe_float(tushare_result.get("average_price"))
+        if average_price is not None and average_price > 0:
+            return {
+                "average_price": average_price,
+                "source": "tushare_daily",
+                "reason": "",
+                "calc_version": REPLAY_AVERAGE_PRICE_CALC_VERSION,
+                "unit_mode": "tushare_daily_amount_thousand_yuan",
+                "price_reference": None,
+            }
+
+    csv_result = local_intraday_result or listing_average_price_helper.resolve_intraday_average_price(code)
+    average_price = _safe_float(csv_result.get("average_price"))
+    if average_price is not None and average_price > 0:
+        return {
+            "average_price": average_price,
+            "source": str(csv_result.get("source") or "intraday_csv").strip(),
+            "reason": str(csv_result.get("reason") or "").strip(),
+            "calc_version": csv_result.get("calc_version") or REPLAY_AVERAGE_PRICE_CALC_VERSION,
+            "unit_mode": csv_result.get("unit_mode"),
+            "price_reference": csv_result.get("price_reference"),
+        }
+
+    return {
+        "average_price": None,
+        "source": "",
+        "reason": str(csv_result.get("reason") or "未取得首日成交均价"),
+    }
+
+
+def _resolve_replay_pdf_paths(code: str) -> dict[str, Path | None]:
+    return {
+        "listing": bse_ipo_valuation._find_pdf(PDF_DIR, code, "上市公告书"),
+        "old_shares": bse_ipo_valuation._pick_prospectus_pdf(PDF_DIR, code, "old_shares"),
+        "comparables": bse_ipo_valuation._pick_prospectus_pdf(PDF_DIR, code, "comparables"),
+    }
+
+
+def _build_replay_pdf_signature(pdf_paths: dict[str, Path | None]) -> dict[str, Any]:
+    return {key: _file_signature(path) for key, path in pdf_paths.items()}
+
+
+def _replay_item_cache_path(code: str, cache_dir: str | Path = DEFAULT_REPLAY_ITEM_CACHE_DIR) -> Path:
+    normalized_code = str(code or "").strip()
+    if not normalized_code:
+        raise ValueError("回放样本缓存代码不能为空")
+    return Path(cache_dir) / f"{normalized_code}.json"
+
+
+def load_replay_item_cache(
+    code: str,
+    record_signature: dict[str, Any],
+    pdf_signature: dict[str, Any],
+    cache_dir: str | Path = DEFAULT_REPLAY_ITEM_CACHE_DIR,
+) -> dict[str, Any] | None:
+    cache_path = _replay_item_cache_path(code, cache_dir)
+    if not cache_path.exists():
+        return None
+    try:
+        payload = json.loads(cache_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return None
+
+    if payload.get("schema") != REPLAY_ITEM_SCHEMA:
+        return None
+    if payload.get("cache_version") != REPLAY_ITEM_CACHE_VERSION:
+        return None
+    if str(payload.get("code") or "").strip() != str(code or "").strip():
+        return None
+    if payload.get("record_signature") != record_signature:
+        return None
+    if payload.get("pdf_signature") != pdf_signature:
+        return None
+
+    item = payload.get("item")
+    if not isinstance(item, dict):
+        return None
+    if "AVERAGE_PRICE" not in item or "average_price_source" not in item:
+        return None
+    try:
+        item_calc_version = int(item.get("average_price_calc_version"))
+    except (TypeError, ValueError):
+        item_calc_version = None
+    if item_calc_version != REPLAY_AVERAGE_PRICE_CALC_VERSION:
+        return None
+    cached_item = dict(item)
+    cached_item["has_intraday_file"] = (INTRADAY_DIR / f"{code}.csv").exists()
+    return cached_item
+
+
+def save_replay_item_cache(
+    item: dict[str, Any],
+    record_signature: dict[str, Any],
+    pdf_signature: dict[str, Any],
+    cache_dir: str | Path = DEFAULT_REPLAY_ITEM_CACHE_DIR,
+) -> Path:
+    code = str(item.get("SECURITY_CODE") or "").strip()
+    cache_path = _replay_item_cache_path(code, cache_dir)
+    cache_path.parent.mkdir(parents=True, exist_ok=True)
+    payload = {
+        "schema": REPLAY_ITEM_SCHEMA,
+        "cache_version": REPLAY_ITEM_CACHE_VERSION,
+        "generated_at": _now_text(),
+        "code": code,
+        "listing_date": str(item.get("LISTING_DATE") or "").strip(),
+        "record_signature": record_signature,
+        "pdf_signature": pdf_signature,
+        "item": item,
+    }
+    cache_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+    return cache_path
+
+
 def _get_dataset_evaluation_scope(dataset: dict[str, Any]) -> str:
     scope = str(dataset.get("evaluation_scope") or "").strip().lower()
     if scope in SUPPORTED_EVALUATION_SCOPES:
@@ -279,6 +516,13 @@ def inspect_replay_dataset_sync(
             dataset_months_int = None
         if dataset_months_int != int(months):
             reasons.append(f"回放月份参数变化：数据集={dataset_months}，当前={months}")
+    dataset_cache_version = dataset.get("replay_item_cache_version")
+    try:
+        dataset_cache_version_int = int(dataset_cache_version)
+    except (TypeError, ValueError):
+        dataset_cache_version_int = None
+    if dataset_cache_version_int != REPLAY_ITEM_CACHE_VERSION:
+        reasons.append(f"回放样本缓存版本变化：数据集={dataset_cache_version}，当前={REPLAY_ITEM_CACHE_VERSION}")
 
     return {
         "needs_refresh": bool(reasons),
@@ -294,93 +538,133 @@ def list_stage_names() -> list[str]:
     return sorted(set(SEARCH_STAGE_GRIDS) | set(SEARCH_STAGE_CANDIDATES))
 
 
-def _build_pdf_inputs(params: dict[str, Any], code: str) -> tuple[float, str, dict[str, Any] | None]:
-    listing_pdf = bse_ipo_valuation._find_pdf(PDF_DIR, code, "上市公告书")
-    prospectus_pdf = bse_ipo_valuation._pick_prospectus_pdf(PDF_DIR, code, "old_shares")
-    return bse_ipo_valuation._resolve_old_shares(params, listing_pdf, prospectus_pdf)
-
-
-def build_replay_dataset(
+def _build_pdf_inputs_from_paths(
     params: dict[str, Any],
-    months: int = 12,
-    sample_codes: list[str] | None = None,
-    page_size: int = 100,
-) -> dict[str, Any]:
-    mapper = IndustryMapper(params)
-    requested_codes = sample_codes if sample_codes is not None else discover_local_sample_codes()
-    requested_codes = sorted(_normalize_codes(requested_codes))
-    raw_records = data_fetcher.fetch_recent_ipos(months=months, page_size=page_size)
-    enriched_records = mapper.enrich_recent_ipos(list(raw_records))
-    comparable_snapshot_cache: dict[tuple[str, str], dict[str, Any] | None] = {}
+    pdf_paths: dict[str, Path | None],
+) -> tuple[float, str, dict[str, Any] | None]:
+    return bse_ipo_valuation._resolve_old_shares(params, pdf_paths.get("listing"), pdf_paths.get("old_shares"))
 
-    record_by_code = {
-        str(item.get("SECURITY_CODE", "")).strip(): item
-        for item in enriched_records
-        if str(item.get("SECURITY_CODE", "")).strip()
+
+def _build_pdf_inputs(params: dict[str, Any], code: str) -> tuple[float, str, dict[str, Any] | None]:
+    return _build_pdf_inputs_from_paths(params, _resolve_replay_pdf_paths(code))
+
+
+def _upgrade_existing_replay_item_average_price(
+    item: dict[str, Any],
+    params: dict[str, Any],
+    code: str,
+    record: dict[str, Any],
+) -> dict[str, Any]:
+    upgraded = dict(item)
+    issue_price = _safe_float(upgraded.get("ISSUE_PRICE"))
+    if issue_price is None:
+        issue_price = _safe_float(record.get("ISSUE_PRICE"))
+    average_price_result = _resolve_listing_average_price(
+        params,
+        code,
+        record.get("LISTING_DATE") or upgraded.get("LISTING_DATE"),
+        record,
+        prefer_local_intraday=True,
+    )
+    average_price = _safe_float(average_price_result.get("average_price"))
+    upgraded["AVERAGE_PRICE"] = average_price
+    upgraded["LD_AVERAGE_CHANGE"] = _calc_change_pct(issue_price, average_price)
+    upgraded["average_price_source"] = str(average_price_result.get("source") or "").strip()
+    upgraded["average_price_reason"] = str(average_price_result.get("reason") or "").strip()
+    upgraded["average_price_calc_version"] = average_price_result.get("calc_version") or REPLAY_AVERAGE_PRICE_CALC_VERSION
+    upgraded["average_price_unit_mode"] = str(average_price_result.get("unit_mode") or "").strip()
+    upgraded["average_price_reference"] = _safe_float(average_price_result.get("price_reference"))
+    upgraded["has_intraday_file"] = (INTRADAY_DIR / f"{code}.csv").exists()
+    return upgraded
+
+
+def _build_replay_item(
+    params: dict[str, Any],
+    code: str,
+    record: dict[str, Any],
+    mapper: IndustryMapper,
+    comparable_snapshot_cache: dict[tuple[str, str], dict[str, Any] | None],
+    pdf_paths: dict[str, Path | None] | None = None,
+) -> dict[str, Any]:
+    if pdf_paths is None:
+        pdf_paths = _resolve_replay_pdf_paths(code)
+
+    old_shares, old_shares_desc, old_shares_meta = _build_pdf_inputs_from_paths(params, pdf_paths)
+    total_issue_num = _safe_float(record.get("TOTAL_ISSUE_NUM"))
+    if total_issue_num is None:
+        total_issue_num = _safe_float(record.get("ISSUE_NUM"))
+    issue_price = _safe_float(record.get("ISSUE_PRICE"))
+    average_price_result = _resolve_listing_average_price(
+        params,
+        code,
+        record.get("LISTING_DATE"),
+        record,
+        prefer_local_intraday=True,
+    )
+    average_price = _safe_float(average_price_result.get("average_price"))
+    average_change = _calc_change_pct(issue_price, average_price)
+
+    industry = mapper.resolve_stock_industry(code, record)
+    comparable_pdf = pdf_paths.get("comparables")
+    comparable_codes = pdf_parser.extract_comparable_companies(comparable_pdf) if comparable_pdf else []
+    comparable_data, comparable_summary = _fetch_historical_comparable_data(
+        comparable_codes,
+        record.get("LISTING_DATE"),
+        params,
+        comparable_snapshot_cache,
+    )
+    method1_replay = valuation_engine.method1_comparable(
+        issue_price=issue_price,
+        issue_pe=_safe_float(record.get("AFTER_ISSUE_PE")),
+        comparable_data=comparable_data,
+        params=params,
+    )
+    return {
+        "SECURITY_CODE": code,
+        "SECURITY_NAME_ABBR": str(record.get("SECURITY_NAME_ABBR") or "").strip(),
+        "APPLY_DATE": str(record.get("APPLY_DATE") or "").strip(),
+        "LISTING_DATE": str(record.get("LISTING_DATE") or "").strip(),
+        "ISSUE_PRICE": issue_price,
+        "AFTER_ISSUE_PE": _safe_float(record.get("AFTER_ISSUE_PE")),
+        "INDUSTRY_PE_NEW": _safe_float(record.get("INDUSTRY_PE_NEW")),
+        "TOTAL_ISSUE_NUM": total_issue_num,
+        "CLOSE_PRICE": _safe_float(record.get("CLOSE_PRICE")),
+        "AVERAGE_PRICE": average_price,
+        "LD_CLOSE_CHANGE": _safe_float(record.get("LD_CLOSE_CHANGE")),
+        "LD_AVERAGE_CHANGE": average_change,
+        "TURNOVERRATE": _safe_float(record.get("TURNOVERRATE")),
+        "SW_INDUSTRY": str(record.get("SW_INDUSTRY") or "").strip(),
+        "INDUSTRY": str(record.get("INDUSTRY") or "").strip(),
+        "industry_primary": industry.primary,
+        "industry_secondary": industry.secondary,
+        "industry_source": industry.source,
+        "old_shares": old_shares,
+        "old_shares_desc": old_shares_desc,
+        "old_shares_meta": old_shares_meta or {},
+        "float_shares": (total_issue_num or 0.0) + old_shares,
+        "has_intraday_file": (INTRADAY_DIR / f"{code}.csv").exists(),
+        "comparable_codes": comparable_codes,
+        "comparable_data": comparable_data,
+        "comparable_summary": comparable_summary,
+        "method1_replay_available": bool(method1_replay.get("available")),
+        "average_price_source": str(average_price_result.get("source") or "").strip(),
+        "average_price_reason": str(average_price_result.get("reason") or "").strip(),
+        "average_price_calc_version": average_price_result.get("calc_version") or REPLAY_AVERAGE_PRICE_CALC_VERSION,
+        "average_price_unit_mode": str(average_price_result.get("unit_mode") or "").strip(),
+        "average_price_reference": _safe_float(average_price_result.get("price_reference")),
     }
 
-    items: list[dict[str, Any]] = []
-    skipped: list[dict[str, Any]] = []
-    method1_ready_count = 0
-    for code in requested_codes:
-        record = record_by_code.get(code)
-        if record is None:
-            skipped.append({"code": code, "reason": f"最近 {months} 个月历史池中未找到该样本"})
-            continue
 
-        old_shares, old_shares_desc, old_shares_meta = _build_pdf_inputs(params, code)
-        total_issue_num = _safe_float(record.get("TOTAL_ISSUE_NUM"))
-        if total_issue_num is None:
-            total_issue_num = _safe_float(record.get("ISSUE_NUM"))
-
-        industry = mapper.resolve_stock_industry(code, record)
-        comparable_pdf = bse_ipo_valuation._pick_prospectus_pdf(PDF_DIR, code, "comparables")
-        comparable_codes = pdf_parser.extract_comparable_companies(comparable_pdf) if comparable_pdf else []
-        comparable_data, comparable_summary = _fetch_historical_comparable_data(
-            comparable_codes,
-            record.get("LISTING_DATE"),
-            params,
-            comparable_snapshot_cache,
-        )
-        method1_replay = valuation_engine.method1_comparable(
-            issue_price=_safe_float(record.get("ISSUE_PRICE")),
-            issue_pe=_safe_float(record.get("AFTER_ISSUE_PE")),
-            comparable_data=comparable_data,
-            params=params,
-        )
-        if method1_replay.get("available"):
-            method1_ready_count += 1
-        items.append(
-            {
-                "SECURITY_CODE": code,
-                "SECURITY_NAME_ABBR": str(record.get("SECURITY_NAME_ABBR") or "").strip(),
-                "APPLY_DATE": str(record.get("APPLY_DATE") or "").strip(),
-                "LISTING_DATE": str(record.get("LISTING_DATE") or "").strip(),
-                "ISSUE_PRICE": _safe_float(record.get("ISSUE_PRICE")),
-                "AFTER_ISSUE_PE": _safe_float(record.get("AFTER_ISSUE_PE")),
-                "INDUSTRY_PE_NEW": _safe_float(record.get("INDUSTRY_PE_NEW")),
-                "TOTAL_ISSUE_NUM": total_issue_num,
-                "CLOSE_PRICE": _safe_float(record.get("CLOSE_PRICE")),
-                "LD_CLOSE_CHANGE": _safe_float(record.get("LD_CLOSE_CHANGE")),
-                "TURNOVERRATE": _safe_float(record.get("TURNOVERRATE")),
-                "SW_INDUSTRY": str(record.get("SW_INDUSTRY") or "").strip(),
-                "INDUSTRY": str(record.get("INDUSTRY") or "").strip(),
-                "industry_primary": industry.primary,
-                "industry_secondary": industry.secondary,
-                "industry_source": industry.source,
-                "old_shares": old_shares,
-                "old_shares_desc": old_shares_desc,
-                "old_shares_meta": old_shares_meta or {},
-                "float_shares": (total_issue_num or 0.0) + old_shares,
-                "has_intraday_file": (INTRADAY_DIR / f"{code}.csv").exists(),
-                "comparable_codes": comparable_codes,
-                "comparable_data": comparable_data,
-                "comparable_summary": comparable_summary,
-                "method1_replay_available": bool(method1_replay.get("available")),
-            }
-        )
-
+def _build_replay_dataset_payload(
+    *,
+    items: list[dict[str, Any]],
+    skipped: list[dict[str, Any]],
+    requested_codes: list[str],
+    months: int,
+    item_cache: dict[str, Any],
+) -> dict[str, Any]:
     items.sort(key=lambda item: _parse_date_key(item.get("LISTING_DATE")))
+    method1_ready_count = sum(1 for item in items if item.get("method1_replay_available"))
     evaluation_scope = COMPOSITE_EVALUATION_SCOPE if method1_ready_count > 0 else METHOD2_ONLY_SCOPE
     caveats = [
         "每只样本只使用上市当时可见的发行字段、历史新股样本和本地首日分时数据。",
@@ -401,6 +685,7 @@ def build_replay_dataset(
         "evaluation_scope": evaluation_scope,
         "generated_at": _now_text(),
         "source_months": months,
+        "replay_item_cache_version": REPLAY_ITEM_CACHE_VERSION,
         "sample_codes": [item["SECURITY_CODE"] for item in items],
         "requested_codes": requested_codes,
         "available_count": len(items),
@@ -408,8 +693,117 @@ def build_replay_dataset(
         "method1_ready_rate": (method1_ready_count / len(items)) if items else 0.0,
         "skipped": skipped,
         "caveats": caveats,
+        "item_cache": item_cache,
         "items": items,
     }
+
+
+def build_replay_dataset(
+    params: dict[str, Any],
+    months: int = 12,
+    sample_codes: list[str] | None = None,
+    page_size: int = 100,
+    item_cache_dir: str | Path | None = DEFAULT_REPLAY_ITEM_CACHE_DIR,
+    use_item_cache: bool = True,
+    existing_dataset: dict[str, Any] | None = None,
+    progress_callback: Callable[[int, int, dict[str, Any]], None] | None = None,
+) -> dict[str, Any]:
+    mapper = IndustryMapper(params)
+    requested_codes = sample_codes if sample_codes is not None else discover_local_sample_codes()
+    requested_codes = sorted(_normalize_codes(requested_codes))
+    raw_records = data_fetcher.fetch_recent_ipos(months=months, page_size=page_size)
+    enriched_records = mapper.enrich_recent_ipos(list(raw_records))
+    comparable_snapshot_cache: dict[tuple[str, str], dict[str, Any] | None] = {}
+
+    record_by_code = {
+        str(item.get("SECURITY_CODE", "")).strip(): item
+        for item in enriched_records
+        if str(item.get("SECURITY_CODE", "")).strip()
+    }
+
+    cache_enabled = bool(use_item_cache and item_cache_dir is not None)
+    item_cache = {
+        "enabled": cache_enabled,
+        "dir": str(item_cache_dir) if item_cache_dir is not None else "",
+        "hits": 0,
+        "misses": 0,
+        "writes": 0,
+        "existing_dataset_reused": 0,
+    }
+    existing_items_by_code: dict[str, dict[str, Any]] = {}
+    try:
+        existing_months = int((existing_dataset or {}).get("source_months"))
+    except (TypeError, ValueError):
+        existing_months = None
+    can_reuse_existing_dataset = existing_months == int(months)
+    if can_reuse_existing_dataset:
+        existing_items_by_code = {
+            str(item.get("SECURITY_CODE") or "").strip(): dict(item)
+            for item in (existing_dataset or {}).get("items") or []
+            if str(item.get("SECURITY_CODE") or "").strip()
+        }
+
+    items: list[dict[str, Any]] = []
+    skipped: list[dict[str, Any]] = []
+    total_codes = len(requested_codes)
+    for index, code in enumerate(requested_codes, start=1):
+        record = record_by_code.get(code)
+        if record is None:
+            skipped.append({"code": code, "reason": f"最近 {months} 个月历史池中未找到该样本"})
+            if progress_callback:
+                progress_callback(index, total_codes, {"code": code, "status": "skipped"})
+            continue
+
+        record_signature = _build_replay_record_signature(record)
+        pdf_paths = _resolve_replay_pdf_paths(code)
+        pdf_signature = _build_replay_pdf_signature(pdf_paths)
+        existing_item = existing_items_by_code.get(code)
+        status = "built"
+        item = None
+        cache_path = _replay_item_cache_path(code, item_cache_dir) if cache_enabled else None
+
+        if cache_enabled:
+            item = load_replay_item_cache(code, record_signature, pdf_signature, item_cache_dir)
+            if item is not None:
+                item_cache["hits"] += 1
+                status = "cache_hit"
+
+        if (
+            item is None
+            and existing_item is not None
+            and _existing_replay_item_signature_matches(existing_item, record_signature)
+        ):
+            if _is_existing_replay_item_compatible(existing_item, record_signature):
+                item = dict(existing_item)
+                item["has_intraday_file"] = (INTRADAY_DIR / f"{code}.csv").exists()
+                status = "reused_dataset"
+            else:
+                item = _upgrade_existing_replay_item_average_price(existing_item, params, code, record)
+                status = "upgraded_dataset"
+            item_cache["existing_dataset_reused"] += 1
+            if cache_enabled:
+                save_replay_item_cache(item, record_signature, pdf_signature, item_cache_dir)
+                item_cache["writes"] += 1
+
+        if item is None:
+            if cache_enabled:
+                item_cache["misses"] += 1
+            item = _build_replay_item(params, code, record, mapper, comparable_snapshot_cache, pdf_paths)
+            if cache_enabled:
+                save_replay_item_cache(item, record_signature, pdf_signature, item_cache_dir)
+                item_cache["writes"] += 1
+
+        items.append(item)
+        if progress_callback:
+            progress_callback(index, total_codes, {"code": code, "status": status})
+
+    return _build_replay_dataset_payload(
+        items=items,
+        skipped=skipped,
+        requested_codes=requested_codes,
+        months=months,
+        item_cache=item_cache,
+    )
 
 
 def save_replay_dataset(dataset: dict[str, Any], path: str | Path = DEFAULT_DATASET_PATH) -> Path:
@@ -885,7 +1279,9 @@ def _build_recent_pool(items: list[dict[str, Any]]) -> list[dict[str, Any]]:
             "LISTING_DATE": item.get("LISTING_DATE"),
             "ISSUE_PRICE": item.get("ISSUE_PRICE"),
             "CLOSE_PRICE": item.get("CLOSE_PRICE"),
+            "AVERAGE_PRICE": item.get("AVERAGE_PRICE"),
             "LD_CLOSE_CHANGE": item.get("LD_CLOSE_CHANGE"),
+            "LD_AVERAGE_CHANGE": item.get("LD_AVERAGE_CHANGE"),
             "TURNOVERRATE": item.get("TURNOVERRATE"),
             "industry_primary": item.get("industry_primary"),
             "industry_secondary": item.get("industry_secondary"),
@@ -898,6 +1294,27 @@ def _calc_change_pct(issue_price: float | None, target_price: float | None) -> f
     if not issue_price or not target_price:
         return None
     return (target_price / issue_price - 1) * 100
+
+
+def _actual_interval_price(item: dict[str, Any]) -> float | None:
+    average_price = _safe_float(item.get("AVERAGE_PRICE"))
+    if average_price is not None and average_price > 0:
+        return average_price
+    return _safe_float(item.get("CLOSE_PRICE"))
+
+
+def _actual_interval_price_source(item: dict[str, Any]) -> str:
+    average_price = _safe_float(item.get("AVERAGE_PRICE"))
+    if average_price is not None and average_price > 0:
+        return str(item.get("average_price_source") or "首日成交均价").strip()
+    return "close_price_fallback"
+
+
+def _actual_interval_change_pct(item: dict[str, Any]) -> float | None:
+    average_change = _safe_float(item.get("LD_AVERAGE_CHANGE"))
+    if average_change is not None:
+        return average_change
+    return _calc_change_pct(_safe_float(item.get("ISSUE_PRICE")), _actual_interval_price(item))
 
 
 def _evaluate_replay_prediction(
@@ -969,7 +1386,11 @@ def evaluate_replay_targets(
             "name": str(item.get("SECURITY_NAME_ABBR") or "").strip(),
             "listing_date": str(item.get("LISTING_DATE") or "").strip(),
             "actual_close_price": _safe_float(item.get("CLOSE_PRICE")),
+            "actual_average_price": _safe_float(item.get("AVERAGE_PRICE")),
+            "actual_interval_price": _actual_interval_price(item),
+            "actual_interval_price_source": _actual_interval_price_source(item),
             "actual_change_pct": _safe_float(item.get("LD_CLOSE_CHANGE")),
+            "actual_interval_change_pct": _actual_interval_change_pct(item),
         }
         valuation_result, method1, method2 = _evaluate_replay_prediction(item, params, recent_pool, evaluation_scope)
         if not valuation_result.get("available"):
@@ -978,8 +1399,8 @@ def evaluate_replay_targets(
 
         predicted_price = _safe_float(valuation_result.get("target_price"))
         predicted_change = _calc_change_pct(_safe_float(item.get("ISSUE_PRICE")), predicted_price)
-        actual_price = _safe_float(item.get("CLOSE_PRICE"))
-        actual_change = _safe_float(item.get("LD_CLOSE_CHANGE"))
+        actual_price = _actual_interval_price(item)
+        actual_change = _actual_interval_change_pct(item)
 
         if predicted_change is not None and actual_change is not None:
             change_error = predicted_change - actual_change
@@ -1020,6 +1441,8 @@ def evaluate_replay_targets(
                 "method2_change_pct": _safe_float((method2 or {}).get("change_pct")),
                 "sample_scope": (method2 or {}).get("sample_scope"),
                 "sample_count": (method2 or {}).get("sample_count"),
+                "historical_sample_count": (method2 or {}).get("historical_sample_count"),
+                "recent_days": (method2 or {}).get("recent_days"),
                 "sample_codes": list((method2 or {}).get("sample_codes") or []),
                 "adj_factor": (method2 or {}).get("adj_factor"),
                 "trend_factor": (method2 or {}).get("trend_factor"),
@@ -1289,13 +1712,13 @@ def _index_metrics_results(metrics: dict[str, Any]) -> tuple[dict[str, dict[str,
 
 
 def _is_interval_hit(
-    actual_close_price: float | None,
+    actual_price: float | None,
     range_low: float | None,
     range_high: float | None,
 ) -> bool | None:
-    if actual_close_price is None or range_low is None or range_high is None:
+    if actual_price is None or range_low is None or range_high is None:
         return None
-    return range_low <= actual_close_price <= range_high
+    return range_low <= actual_price <= range_high
 
 
 def _build_observe_row_note(
@@ -1335,6 +1758,8 @@ def _build_candidate_observe_rows(
         baseline_reason = str((baseline_unavailable.get(code) or {}).get("reason") or "").strip()
         candidate_reason = str((candidate_unavailable.get(code) or {}).get("reason") or "").strip()
         actual_close_price = _safe_float(dataset_item.get("CLOSE_PRICE"))
+        actual_average_price = _safe_float(dataset_item.get("AVERAGE_PRICE"))
+        actual_interval_price = _actual_interval_price(dataset_item)
         baseline_range_low = _safe_float((baseline_result or {}).get("range_low"))
         baseline_range_high = _safe_float((baseline_result or {}).get("range_high"))
         candidate_range_low = _safe_float((candidate_result or {}).get("range_low"))
@@ -1346,7 +1771,11 @@ def _build_candidate_observe_rows(
                 "name": str(dataset_item.get("SECURITY_NAME_ABBR") or "").strip(),
                 "listing_date": str(dataset_item.get("LISTING_DATE") or "").strip(),
                 "actual_close_price": actual_close_price,
+                "actual_average_price": actual_average_price,
+                "actual_interval_price": actual_interval_price,
+                "actual_interval_price_source": _actual_interval_price_source(dataset_item),
                 "actual_change_pct": _safe_float(dataset_item.get("LD_CLOSE_CHANGE")),
+                "actual_interval_change_pct": _actual_interval_change_pct(dataset_item),
                 "baseline_available": baseline_result is not None,
                 "candidate_available": candidate_result is not None,
                 "baseline_reason": baseline_reason,
@@ -1363,8 +1792,8 @@ def _build_candidate_observe_rows(
                 "baseline_range_high": baseline_range_high,
                 "candidate_range_low": candidate_range_low,
                 "candidate_range_high": candidate_range_high,
-                "baseline_interval_hit": _is_interval_hit(actual_close_price, baseline_range_low, baseline_range_high),
-                "candidate_interval_hit": _is_interval_hit(actual_close_price, candidate_range_low, candidate_range_high),
+                "baseline_interval_hit": _is_interval_hit(actual_interval_price, baseline_range_low, baseline_range_high),
+                "candidate_interval_hit": _is_interval_hit(actual_interval_price, candidate_range_low, candidate_range_high),
                 "baseline_sample_scope": (baseline_result or {}).get("sample_scope"),
                 "candidate_sample_scope": (candidate_result or {}).get("sample_scope"),
                 "baseline_sample_count": (baseline_result or {}).get("sample_count"),
@@ -1480,6 +1909,715 @@ def observe_candidate_sets(
         "best_candidate": best_candidate,
         "ranked_results": ranking,
     }
+
+
+def _value_options_with_current(
+    base_params: dict[str, Any],
+    key: str,
+    values: list[Any],
+) -> list[Any]:
+    options = list(values)
+    current_value = base_params.get(key)
+    if current_value is not None:
+        options.append(current_value)
+
+    normalized: list[Any] = []
+    seen: set[str] = set()
+    for value in options:
+        signature = _candidate_signature({"value": value})
+        if signature in seen:
+            continue
+        seen.add(signature)
+        normalized.append(value)
+
+    if all(isinstance(value, (int, float)) and not isinstance(value, bool) for value in normalized):
+        return sorted(normalized, key=lambda item: float(item))
+    return normalized
+
+
+def _round_auto_value(value: float, decimals: int) -> float:
+    rounded = round(float(value), decimals)
+    if decimals <= 0:
+        rounded = round(rounded)
+    if abs(rounded) <= AUTO_NORMALIZE_EPSILON:
+        return 0.0
+    return float(rounded)
+
+
+def _auto_spread_values(
+    params: dict[str, Any],
+    key: str,
+    low: float,
+    high: float,
+    *,
+    midpoint: float | None = None,
+    decimals: int = 2,
+) -> list[float]:
+    current = _safe_float(params.get(key))
+    if current is None:
+        current = midpoint if midpoint is not None else (low + high) / 2
+    midpoint_value = midpoint if midpoint is not None else (low + high) / 2
+    values = [low, min(max(float(current), low), high), high, midpoint_value]
+    normalized: list[float] = []
+    seen: set[str] = set()
+    for value in values:
+        clipped = min(max(float(value), low), high)
+        rendered = _round_auto_value(clipped, decimals)
+        signature = _candidate_signature({"value": rendered})
+        if signature in seen:
+            continue
+        seen.add(signature)
+        normalized.append(rendered)
+        if len(normalized) >= 3:
+            break
+    return sorted(normalized)
+
+
+def _auto_local_values(
+    params: dict[str, Any],
+    key: str,
+    low: float,
+    high: float,
+    step: float,
+    *,
+    decimals: int = 2,
+) -> list[float]:
+    current = _safe_float(params.get(key))
+    if current is None:
+        current = (low + high) / 2
+    values = [float(current) - step, float(current), float(current) + step]
+    normalized: list[float] = []
+    seen: set[str] = set()
+    for value in values:
+        clipped = min(max(float(value), low), high)
+        rendered = _round_auto_value(clipped, decimals)
+        signature = _candidate_signature({"value": rendered})
+        if signature in seen:
+            continue
+        seen.add(signature)
+        normalized.append(rendered)
+    return sorted(normalized)
+
+
+def _auto_int_spread_values(
+    params: dict[str, Any],
+    key: str,
+    low: int,
+    high: int,
+    *,
+    midpoint: int | None = None,
+) -> list[int]:
+    return [int(round(value)) for value in _auto_spread_values(params, key, low, high, midpoint=midpoint, decimals=0)]
+
+
+def _auto_int_local_values(
+    params: dict[str, Any],
+    key: str,
+    low: int,
+    high: int,
+    step: int,
+) -> list[int]:
+    return [int(round(value)) for value in _auto_local_values(params, key, low, high, step, decimals=0)]
+
+
+def _auto_stage_values(
+    params: dict[str, Any],
+    key: str,
+    low: float,
+    high: float,
+    coarse_midpoint: float | None,
+    fine_steps: tuple[float, float],
+    stage_level: int,
+    *,
+    decimals: int = 2,
+) -> list[float]:
+    if stage_level <= 1:
+        return _auto_spread_values(params, key, low, high, midpoint=coarse_midpoint, decimals=decimals)
+    step = fine_steps[0] if stage_level == 2 else fine_steps[1]
+    return _auto_local_values(params, key, low, high, step, decimals=decimals)
+
+
+def _auto_stage_int_values(
+    params: dict[str, Any],
+    key: str,
+    low: int,
+    high: int,
+    coarse_midpoint: int | None,
+    fine_steps: tuple[int, int],
+    stage_level: int,
+) -> list[int]:
+    if stage_level <= 1:
+        return _auto_int_spread_values(params, key, low, high, midpoint=coarse_midpoint)
+    step = fine_steps[0] if stage_level == 2 else fine_steps[1]
+    return _auto_int_local_values(params, key, low, high, step)
+
+
+def _auto_product_candidates(option_groups: list[list[dict[str, Any]]]) -> list[dict[str, Any]]:
+    candidates: list[dict[str, Any]] = []
+    for combo in itertools.product(*option_groups):
+        merged: dict[str, Any] = {}
+        for overrides in combo:
+            merged.update(overrides)
+        candidates.append(merged)
+    return _dedupe_override_list(candidates)
+
+
+def build_auto_tune_candidate_groups(
+    base_params: dict[str, Any],
+    dataset: dict[str, Any],
+    stage_level: int = 1,
+    center_params: dict[str, Any] | None = None,
+) -> list[tuple[str, list[dict[str, Any]]]]:
+    evaluation_scope = _get_dataset_evaluation_scope(dataset)
+    params = dict(center_params or base_params)
+    groups: list[tuple[str, list[dict[str, Any]]]] = []
+
+    if evaluation_scope == COMPOSITE_EVALUATION_SCOPE:
+        weight_values = _auto_stage_values(params, "weight_comparable", 0.20, 0.80, 0.50, (0.05, 0.025), stage_level, decimals=3)
+        discount_values = _auto_stage_values(params, "bse_discount_factor", 0.55, 0.85, 0.70, (0.05, 0.025), stage_level, decimals=3)
+        groups.append(
+            (
+                "综合估值权重",
+                [
+                    {
+                        "weight_comparable": value,
+                        "weight_industry_momentum": round(1 - float(value), 10),
+                    }
+                    for value in weight_values
+                ],
+            )
+        )
+        groups.append(("北交所折扣", [{"bse_discount_factor": value} for value in discount_values]))
+
+    float_threshold_values = _auto_stage_int_values(params, "float_size_threshold", 800, 2800, 1800, (300, 100), stage_level)
+    small_cap_values = _auto_stage_values(params, "small_cap_premium", 0.00, 0.25, 0.10, (0.05, 0.025), stage_level, decimals=3)
+    groups.append(("流通盘阈值", [{"float_size_threshold": threshold} for threshold in float_threshold_values]))
+    groups.append(("小盘溢价", [{"small_cap_premium": premium} for premium in small_cap_values]))
+
+    pe_low_values = _auto_stage_values(params, "pe_low_threshold", 0.10, 0.35, 0.25, (0.05, 0.025), stage_level, decimals=3)
+    pe_boost_values = _auto_stage_values(params, "pe_discount_boost", 0.00, 0.20, 0.10, (0.05, 0.025), stage_level, decimals=3)
+    pe_high_values = _auto_stage_values(params, "pe_high_threshold", 0.45, 0.80, 0.60, (0.05, 0.025), stage_level, decimals=3)
+    pe_drag_values = _auto_stage_values(params, "pe_premium_drag", -0.20, 0.00, -0.10, (0.05, 0.025), stage_level, decimals=3)
+    groups.append(
+        (
+            "PE 低估修正",
+            _auto_product_candidates(
+                [
+                    [{"pe_low_threshold": low} for low in pe_low_values],
+                    [{"pe_discount_boost": boost} for boost in pe_boost_values],
+                ]
+            ),
+        )
+    )
+    groups.append(
+        (
+            "PE 高估修正",
+            _auto_product_candidates(
+                [
+                    [{"pe_high_threshold": high} for high in pe_high_values],
+                    [{"pe_premium_drag": drag} for drag in pe_drag_values],
+                ]
+            ),
+        )
+    )
+
+    half_life_values = _auto_stage_int_values(params, "sample_decay_half_life_days", 10, 60, 30, (10, 5), stage_level)
+    groups.append(("样本权重模式", [{"sample_weight_mode": "static"}, {"sample_weight_mode": "time_decay"}]))
+    groups.append(
+        (
+            "样本半衰期",
+            [
+                {"sample_weight_mode": "time_decay", "sample_decay_half_life_days": value}
+                for value in half_life_values
+            ],
+        )
+    )
+
+    trend_weight_values = _auto_stage_values(params, "industry_trend_weight", 0.30, 0.85, 0.60, (0.05, 0.025), stage_level, decimals=3)
+    groups.append(
+        (
+            "走势权重",
+            [
+                {
+                    "industry_trend_weight": value,
+                    "market_sentiment_weight": round(1 - float(value), 10),
+                }
+                for value in trend_weight_values
+            ],
+        )
+    )
+    groups.append(
+        (
+            "强势走势加成",
+            [
+                {"trend_strong_boost": value}
+                for value in _auto_stage_values(params, "trend_strong_boost", 0.00, 0.12, 0.05, (0.025, 0.01), stage_level, decimals=3)
+            ],
+        )
+    )
+    groups.append(
+        (
+            "弱势走势折价",
+            [
+                {"trend_weak_discount": value}
+                for value in _auto_stage_values(params, "trend_weak_discount", -0.12, 0.00, -0.05, (0.025, 0.01), stage_level, decimals=3)
+            ],
+        )
+    )
+    groups.append(
+        (
+            "强势走势阈值",
+            [
+                {"trend_strong_threshold": value}
+                for value in _auto_stage_int_values(params, "trend_strong_threshold", 60, 85, 70, (5, 2), stage_level)
+            ],
+        )
+    )
+    groups.append(
+        (
+            "弱势走势阈值",
+            [
+                {"trend_weak_threshold": value}
+                for value in _auto_stage_int_values(params, "trend_weak_threshold", 25, 55, 40, (5, 2), stage_level)
+            ],
+        )
+    )
+
+    groups.append(("WSI 权重组合", build_stage_candidates("wsi_turnover_balance")))
+    return [(name, _dedupe_override_list(candidates)) for name, candidates in groups if candidates]
+
+
+def _dedupe_override_list(candidates: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    deduped: list[dict[str, Any]] = []
+    seen: set[str] = set()
+    for candidate in candidates:
+        signature = _candidate_signature(candidate)
+        if signature in seen:
+            continue
+        seen.add(signature)
+        deduped.append(dict(candidate))
+    return deduped
+
+
+def _auto_tune_reference_date(dataset: dict[str, Any]) -> date:
+    dates = [_parse_date(item.get("LISTING_DATE")) for item in dataset.get("items") or []]
+    dates = [item for item in dates if item is not None]
+    if dates:
+        return max(dates)
+    return date.today()
+
+
+def _auto_sample_window_days(params: dict[str, Any]) -> int:
+    raw_days = params.get("recent_days")
+    if raw_days not in (None, ""):
+        return max(int(float(raw_days)), 1)
+    raw_months = params.get("recent_months")
+    if raw_months not in (None, ""):
+        return max(int(float(raw_months)) * 30, 1)
+    return AUTO_TUNE_LOOKBACK_DAYS
+
+
+def _auto_sample_weight(sample_date: date | None, reference_date: date) -> float:
+    if sample_date is None:
+        return 0.0
+    day_gap = max((reference_date - sample_date).days, 0)
+    if day_gap >= AUTO_TUNE_LOOKBACK_DAYS:
+        return 0.0
+    return ((AUTO_TUNE_LOOKBACK_DAYS - day_gap) / AUTO_TUNE_LOOKBACK_DAYS) ** 2
+
+
+def _is_recent_auto_sample(sample_date: date | None, reference_date: date) -> bool:
+    if sample_date is None:
+        return False
+    day_gap = max((reference_date - sample_date).days, 0)
+    return day_gap <= AUTO_TUNE_RECENT_FLOOR_DAYS
+
+
+def _build_auto_weighted_results(
+    results: list[dict[str, Any]],
+    reference_date: date,
+    *,
+    use_recency_weight: bool,
+) -> tuple[list[tuple[dict[str, Any], float]], dict[str, Any]]:
+    raw_items: list[dict[str, Any]] = []
+    for result in results:
+        sample_date = _parse_date(result.get("listing_date"))
+        weight = _auto_sample_weight(sample_date, reference_date) if use_recency_weight else 1.0
+        if weight <= 0:
+            continue
+        raw_items.append(
+            {
+                "result": result,
+                "weight": float(weight),
+                "is_recent": _is_recent_auto_sample(sample_date, reference_date),
+            }
+        )
+
+    total_weight = sum(float(item["weight"]) for item in raw_items)
+    if total_weight <= AUTO_NORMALIZE_EPSILON:
+        return [], {
+            "recent_weight_share": 0.0,
+            "recent_floor_applied": False,
+            "recent_sample_count": 0,
+        }
+
+    for item in raw_items:
+        item["weight"] = float(item["weight"]) / total_weight
+
+    recent_items = [item for item in raw_items if item["is_recent"]]
+    recent_weight_share = sum(float(item["weight"]) for item in recent_items)
+    recent_floor_applied = False
+    if (
+        use_recency_weight
+        and recent_items
+        and recent_weight_share > AUTO_NORMALIZE_EPSILON
+        and recent_weight_share < AUTO_TUNE_RECENT_MIN_TOTAL_WEIGHT
+    ):
+        older_weight_share = 1.0 - recent_weight_share
+        if older_weight_share > AUTO_NORMALIZE_EPSILON:
+            recent_scale = AUTO_TUNE_RECENT_MIN_TOTAL_WEIGHT / recent_weight_share
+            older_scale = (1.0 - AUTO_TUNE_RECENT_MIN_TOTAL_WEIGHT) / older_weight_share
+            for item in raw_items:
+                if item["is_recent"]:
+                    item["weight"] = float(item["weight"]) * recent_scale
+                else:
+                    item["weight"] = float(item["weight"]) * older_scale
+            recent_weight_share = AUTO_TUNE_RECENT_MIN_TOTAL_WEIGHT
+            recent_floor_applied = True
+
+    return [(dict(item["result"]), float(item["weight"])) for item in raw_items], {
+        "recent_weight_share": recent_weight_share,
+        "recent_floor_applied": recent_floor_applied,
+        "recent_sample_count": len(recent_items),
+    }
+
+
+def _score_auto_metrics(
+    metrics: dict[str, Any],
+    params: dict[str, Any],
+    reference_date: date,
+) -> dict[str, Any]:
+    def _weighted_components(use_recency_weight: bool) -> tuple[float, float, float, float, dict[str, Any]]:
+        total_weight = 0.0
+        hit_weight = 0.0
+        weighted_abs_change_error = 0.0
+        error_weight = 0.0
+        weighted_results, weight_summary = _build_auto_weighted_results(
+            list(metrics.get("available_results") or []),
+            reference_date,
+            use_recency_weight=use_recency_weight,
+        )
+        for result, weight in weighted_results:
+            actual_price = _safe_float(result.get("actual_interval_price"))
+            if actual_price is None:
+                actual_price = _safe_float(result.get("actual_close_price"))
+            range_low = _safe_float(result.get("range_low"))
+            range_high = _safe_float(result.get("range_high"))
+            total_weight += weight
+            if _is_interval_hit(actual_price, range_low, range_high):
+                hit_weight += weight
+
+            change_error = _safe_float(result.get("change_abs_error"))
+            if change_error is not None:
+                weighted_abs_change_error += weight * change_error
+                error_weight += weight
+        return total_weight, hit_weight, weighted_abs_change_error, error_weight, weight_summary
+
+    total_weight, hit_weight, weighted_abs_change_error, error_weight, weight_summary = _weighted_components(use_recency_weight=True)
+    recency_fallback_used = False
+    if total_weight <= AUTO_NORMALIZE_EPSILON:
+        total_weight, hit_weight, weighted_abs_change_error, error_weight, weight_summary = _weighted_components(use_recency_weight=False)
+        recency_fallback_used = True
+
+    weighted_hit_rate = (hit_weight / total_weight) if total_weight else 0.0
+    weighted_mae_change_pct = (weighted_abs_change_error / error_weight) if error_weight else None
+    width = max(float(params.get("price_range_width", 0.10)), 0.0)
+    width_diagnostic_penalty = width * AUTO_TUNE_WIDTH_DIAGNOSTIC_FACTOR
+    mae_penalty = (weighted_mae_change_pct or 0.0) * AUTO_TUNE_MAE_PENALTY
+    auto_score = weighted_hit_rate - mae_penalty
+
+    return {
+        "auto_score": auto_score,
+        "weighted_interval_hit_rate": weighted_hit_rate,
+        "weighted_hit_score": hit_weight,
+        "total_sample_weight": total_weight,
+        "weighted_mae_change_pct": weighted_mae_change_pct,
+        "price_range_width": width,
+        "width_diagnostic_penalty": width_diagnostic_penalty,
+        "mae_penalty": mae_penalty,
+        "recency_fallback_used": recency_fallback_used,
+        "lookback_days": AUTO_TUNE_LOOKBACK_DAYS,
+        "recent_floor_days": AUTO_TUNE_RECENT_FLOOR_DAYS,
+        "recent_min_total_weight": AUTO_TUNE_RECENT_MIN_TOTAL_WEIGHT,
+        "recent_weight_share": weight_summary.get("recent_weight_share", 0.0),
+        "recent_floor_applied": bool(weight_summary.get("recent_floor_applied")),
+        "recent_sample_count": weight_summary.get("recent_sample_count", 0),
+    }
+
+
+def _auto_entry_sort_key(item: dict[str, Any]) -> tuple[float, float, float, float, int, str]:
+    score = item.get("auto_score") or {}
+    return (
+        -(score.get("auto_score") if score.get("auto_score") is not None else float("-inf")),
+        -(score.get("weighted_interval_hit_rate") or 0.0),
+        score.get("weighted_mae_change_pct") if score.get("weighted_mae_change_pct") is not None else float("inf"),
+        score.get("price_range_width") if score.get("price_range_width") is not None else float("inf"),
+        len(dict(item.get("overrides") or {})),
+        str(item.get("name") or ""),
+    )
+
+
+def _diff_params(
+    base_params: dict[str, Any],
+    candidate_params: dict[str, Any],
+    keys: set[str],
+) -> dict[str, Any]:
+    diff: dict[str, Any] = {}
+    for key in sorted(keys):
+        if _values_differ(base_params.get(key), candidate_params.get(key)):
+            diff[key] = candidate_params.get(key)
+    return diff
+
+
+def _evaluate_auto_entry(
+    dataset: dict[str, Any],
+    candidate_params: dict[str, Any],
+    overrides: dict[str, Any],
+    reference_date: date,
+    *,
+    group_name: str,
+    name: str,
+) -> dict[str, Any]:
+    metrics = evaluate_replay_targets(dataset, candidate_params)
+    return {
+        "group": group_name,
+        "name": name,
+        "overrides": dict(overrides),
+        "metrics": metrics,
+        "auto_score": _score_auto_metrics(metrics, candidate_params, reference_date),
+    }
+
+
+def auto_tune_params(
+    dataset: dict[str, Any],
+    base_params: dict[str, Any],
+    top_n: int = 10,
+    max_passes: int = 1,
+    stage_level: int = 1,
+    center_params: dict[str, Any] | None = None,
+    candidate_limit: int | None = AUTO_TUNE_STAGE_CANDIDATE_LIMIT,
+    time_limit_seconds: float | None = AUTO_TUNE_STAGE_TIME_LIMIT_SECONDS,
+    progress_callback: Callable[[int, int, dict[str, Any]], None] | None = None,
+) -> dict[str, Any]:
+    search_start_params = dict(center_params or base_params)
+    groups = build_auto_tune_candidate_groups(base_params, dataset, stage_level=stage_level, center_params=search_start_params)
+    evaluation_scope = _get_dataset_evaluation_scope(dataset)
+    reference_date = _auto_tune_reference_date(dataset)
+    tunable_keys = {key for _, candidates in groups for candidate in candidates for key in candidate.keys()}
+    tunable_keys.update(key for key in search_start_params if _values_differ(base_params.get(key), search_start_params.get(key)))
+
+    current_params = dict(search_start_params)
+    current_overrides: dict[str, Any] = _diff_params(base_params, current_params, tunable_keys)
+    baseline_entry = _evaluate_auto_entry(
+        dataset,
+        base_params,
+        {},
+        reference_date,
+        group_name="baseline",
+        name="baseline",
+    )
+    stage_start_entry = _evaluate_auto_entry(
+        dataset,
+        current_params,
+        current_overrides,
+        reference_date,
+        group_name="stage_start",
+        name=f"stage_{stage_level}_start",
+    )
+    current_entry = stage_start_entry
+    evaluated_entries: list[dict[str, Any]] = [baseline_entry, stage_start_entry]
+    pass_summaries: list[dict[str, Any]] = []
+    planned_steps = sum(len(candidates) for _, candidates in groups) * max(max_passes, 1)
+    if candidate_limit is not None:
+        planned_steps = min(planned_steps, max(int(candidate_limit), 0))
+    total_steps = max(planned_steps, 1)
+    step_index = 0
+    stop_reason = ""
+    deadline = time.monotonic() + float(time_limit_seconds) if time_limit_seconds is not None else None
+
+    for pass_index in range(1, max_passes + 1):
+        pass_changed = False
+        for group_name, candidates in groups:
+            if stop_reason:
+                break
+            group_entries: list[dict[str, Any]] = [
+                {
+                    **current_entry,
+                    "group": group_name,
+                    "name": f"{group_name}_current",
+                }
+            ]
+            for candidate_index, group_overrides in enumerate(candidates, start=1):
+                if candidate_limit is not None and step_index >= int(candidate_limit):
+                    stop_reason = f"候选数达到本轮上限 {candidate_limit}"
+                    break
+                if deadline is not None and time.monotonic() >= deadline:
+                    stop_reason = f"达到本轮时间上限 {int(float(time_limit_seconds))} 秒"
+                    break
+                step_index += 1
+                candidate_params = dict(current_params)
+                candidate_params.update(group_overrides)
+                combined_overrides = _diff_params(base_params, candidate_params, tunable_keys)
+                spec = {
+                    "stage_level": stage_level,
+                    "group": group_name,
+                    "name": f"{group_name}_{candidate_index}",
+                    "overrides": combined_overrides,
+                }
+                if progress_callback is not None:
+                    progress_callback(step_index, total_steps, spec)
+                entry = _evaluate_auto_entry(
+                    dataset,
+                    candidate_params,
+                    combined_overrides,
+                    reference_date,
+                    group_name=group_name,
+                    name=f"{group_name}_{candidate_index}",
+                )
+                group_entries.append(entry)
+                evaluated_entries.append(entry)
+
+            group_entries.sort(key=_auto_entry_sort_key)
+            best_group_entry = group_entries[0]
+            current_score = (current_entry.get("auto_score") or {}).get("auto_score")
+            best_score = (best_group_entry.get("auto_score") or {}).get("auto_score")
+            if (
+                best_group_entry.get("name") != f"{group_name}_current"
+                and best_score is not None
+                and current_score is not None
+                and best_score > current_score + 1e-12
+            ):
+                current_overrides = dict(best_group_entry.get("overrides") or {})
+                current_params = dict(base_params)
+                current_params.update(current_overrides)
+                current_entry = best_group_entry
+                pass_changed = True
+                pass_summaries.append(
+                    {
+                        "stage_level": stage_level,
+                        "pass": pass_index,
+                        "group": group_name,
+                        "selected_overrides": current_overrides,
+                        "auto_score": best_group_entry.get("auto_score"),
+                    }
+                )
+        if stop_reason:
+            break
+        if not pass_changed:
+            break
+
+    current_overrides = _diff_params(base_params, current_params, tunable_keys)
+    best_entry = _evaluate_auto_entry(
+        dataset,
+        current_params,
+        current_overrides,
+        reference_date,
+        group_name="final",
+        name="best_auto",
+    )
+    evaluated_entries.append(best_entry)
+
+    unique_entries: list[dict[str, Any]] = []
+    seen: set[str] = set()
+    for entry in evaluated_entries:
+        signature = _candidate_signature(dict(entry.get("overrides") or {}))
+        if signature in seen:
+            continue
+        seen.add(signature)
+        unique_entries.append(entry)
+    unique_entries.sort(key=_auto_entry_sort_key)
+
+    return {
+        "generated_at": _now_text(),
+        "evaluation_scope": evaluation_scope,
+        "stage_level": stage_level,
+        "reference_date": reference_date.isoformat(),
+        "sample_window_days": _auto_sample_window_days(base_params),
+        "lookback_days": AUTO_TUNE_LOOKBACK_DAYS,
+        "recent_floor_days": AUTO_TUNE_RECENT_FLOOR_DAYS,
+        "recent_min_total_weight": AUTO_TUNE_RECENT_MIN_TOTAL_WEIGHT,
+        "candidate_group_count": len(groups),
+        "evaluated_candidate_count": len(unique_entries),
+        "evaluated_step_count": step_index,
+        "planned_candidate_count": sum(len(candidates) for _, candidates in groups) * max(max_passes, 1),
+        "stage_candidate_limit": candidate_limit,
+        "stage_time_limit_seconds": time_limit_seconds,
+        "stop_reason": stop_reason,
+        "baseline": baseline_entry,
+        "stage_start": stage_start_entry,
+        "best": best_entry,
+        "best_is_baseline": not bool(current_overrides),
+        "changed_overrides": current_overrides,
+        "pass_summaries": pass_summaries,
+        "top_candidates": unique_entries[:top_n],
+    }
+
+
+def build_auto_tune_change_lines(
+    base_params: dict[str, Any],
+    overrides: dict[str, Any],
+) -> list[str]:
+    lines: list[str] = []
+    for key, new_value in overrides.items():
+        old_value = base_params.get(key)
+        if isinstance(old_value, float):
+            old_text = f"{old_value:.4f}".rstrip("0").rstrip(".")
+        else:
+            old_text = str(old_value)
+        if isinstance(new_value, float):
+            new_text = f"{new_value:.4f}".rstrip("0").rstrip(".")
+        else:
+            new_text = str(new_value)
+        lines.append(f"{key}: {old_text} -> {new_text}")
+    return lines
+
+
+def prepend_auto_tuning_record(
+    record_path: str | Path,
+    result: dict[str, Any],
+    base_params: dict[str, Any],
+    params_file: str | Path,
+) -> Path:
+    output_path = Path(record_path)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    overrides = dict(result.get("changed_overrides") or {})
+    baseline_score = ((result.get("baseline") or {}).get("auto_score") or {})
+    best_score = ((result.get("best") or {}).get("auto_score") or {})
+    change_lines = build_auto_tune_change_lines(base_params, overrides) or ["无参数变化"]
+    record_lines = [
+        f"## {_now_text()} 自动调参（已接受）",
+        "",
+        f"- 参数文件：{Path(params_file)}",
+        f"- 评估范围：{result.get('evaluation_scope')}",
+        f"- 最终搜索轮次：第 {result.get('stage_level')} 轮",
+        f"- 方法二样本池截取窗口：{result.get('sample_window_days')} 天（recent_days）",
+        f"- 近期权重基准日：{result.get('reference_date')}，评分权重衰减窗口：{result.get('lookback_days')} 天",
+        f"- 最近 {result.get('recent_floor_days')} 天样本最低总权重：{_fmt_metric(result.get('recent_min_total_weight'))}",
+        f"- baseline 排序分：{_fmt_metric(baseline_score.get('auto_score'))}",
+        f"- 新参数排序分：{_fmt_metric(best_score.get('auto_score'))}",
+        f"- baseline 近期加权命中率：{_fmt_metric(baseline_score.get('weighted_interval_hit_rate'))}",
+        f"- 新参数近期加权命中率：{_fmt_metric(best_score.get('weighted_interval_hit_rate'))}",
+        f"- 新参数最近样本权重占比：{_fmt_metric(best_score.get('recent_weight_share'))}",
+        f"- 新参数加权 MAE(涨幅)：{_fmt_metric(best_score.get('weighted_mae_change_pct'))}",
+        f"- 当前手动区间宽度诊断扣分：{_fmt_metric(best_score.get('width_diagnostic_penalty'))}",
+        "",
+        "修改参数：",
+        *[f"- {line}" for line in change_lines],
+        "",
+    ]
+    old_text = output_path.read_text(encoding="utf-8") if output_path.exists() else ""
+    output_path.write_text("\n".join(record_lines) + ("\n" + old_text if old_text else ""), encoding="utf-8")
+    return output_path
 
 
 def _build_param_lines(overrides: dict[str, Any]) -> list[str]:
@@ -1677,7 +2815,7 @@ def _build_compare_summary_lines(summary: dict[str, Any]) -> list[str]:
 
 def _build_compare_table_lines(rows: list[dict[str, Any]]) -> list[str]:
     lines = [
-        "| 代码 | 名称 | 实际收盘 | 实际涨幅 | baseline 目标价 | 候选目标价 | baseline 涨幅误差 | 候选涨幅误差 | baseline 区间命中 | 候选区间命中 | 结论 | 备注 |",
+        "| 代码 | 名称 | 实际均价 | 实际涨幅 | baseline 目标价 | 候选目标价 | baseline 涨幅误差 | 候选涨幅误差 | baseline 区间命中 | 候选区间命中 | 结论 | 备注 |",
         "| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | --- | --- | --- | --- |",
     ]
     for row in rows:
@@ -1685,8 +2823,8 @@ def _build_compare_table_lines(rows: list[dict[str, Any]]) -> list[str]:
             "| {code} | {name} | {actual_close} | {actual_change} | {baseline_target} | {candidate_target} | {baseline_change_error} | {candidate_change_error} | {baseline_hit} | {candidate_hit} | {outcome} | {note} |".format(
                 code=row.get("code") or "-",
                 name=row.get("name") or "-",
-                actual_close=_fmt_metric(_safe_float(row.get("actual_close_price"))),
-                actual_change=_fmt_metric(_safe_float(row.get("actual_change_pct"))),
+                actual_close=_fmt_metric(_safe_float(row.get("actual_interval_price"))),
+                actual_change=_fmt_metric(_safe_float(row.get("actual_interval_change_pct"))),
                 baseline_target=_fmt_metric(_safe_float(row.get("baseline_target_price"))),
                 candidate_target=_fmt_metric(_safe_float(row.get("candidate_target_price"))),
                 baseline_change_error=_fmt_metric(_safe_float(row.get("baseline_change_abs_error"))),
@@ -2061,7 +3199,7 @@ def write_manual_observe_outputs(
         table_lines: list[str] = []
         if changed_rows:
             table_lines = [
-                "| 代码 | 名称 | 实际收盘 | baseline 目标价 | 候选目标价 | baseline 误差 | 候选误差 | baseline 区间命中 | 候选区间命中 | 备注 |",
+                "| 代码 | 名称 | 实际均价 | baseline 目标价 | 候选目标价 | baseline 误差 | 候选误差 | baseline 区间命中 | 候选区间命中 | 备注 |",
                 "| --- | --- | ---: | ---: | ---: | ---: | ---: | --- | --- | --- |",
             ]
             for row in changed_rows:
@@ -2069,7 +3207,7 @@ def write_manual_observe_outputs(
                     "| {code} | {name} | {actual_close} | {baseline_target} | {candidate_target} | {baseline_error} | {candidate_error} | {baseline_hit} | {candidate_hit} | {note} |".format(
                         code=row.get("code") or "-",
                         name=row.get("name") or "-",
-                        actual_close=_fmt_metric(_safe_float(row.get("actual_close_price"))),
+                        actual_close=_fmt_metric(_safe_float(row.get("actual_interval_price"))),
                         baseline_target=_fmt_metric(_safe_float(row.get("baseline_target_price"))),
                         candidate_target=_fmt_metric(_safe_float(row.get("candidate_target_price"))),
                         baseline_error=_fmt_metric(_safe_float(row.get("baseline_abs_price_error"))),

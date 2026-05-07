@@ -1,0 +1,123 @@
+{
+  "schema": "offline_tuning_replay_item_v1",
+  "cache_version": 3,
+  "generated_at": "2026-05-07 18:04:13",
+  "code": "920012",
+  "listing_date": "2026-04-13 00:00:00",
+  "record_signature": {
+    "SECURITY_CODE": "920012",
+    "SECURITY_NAME_ABBR": "创达新材",
+    "APPLY_DATE": "2026-04-01 00:00:00",
+    "LISTING_DATE": "2026-04-13 00:00:00",
+    "ISSUE_PRICE": 19.58,
+    "AFTER_ISSUE_PE": 14.99,
+    "INDUSTRY_PE_NEW": 63.36,
+    "TOTAL_ISSUE_NUM": 1232.9345,
+    "ISSUE_NUM": 1232.9345,
+    "CLOSE_PRICE": 51.67,
+    "LD_CLOSE_CHANGE": 163.8917,
+    "TURNOVERRATE": 88.1704,
+    "SW_INDUSTRY": null,
+    "INDUSTRY": null
+  },
+  "pdf_signature": {
+    "listing": {
+      "name": "920012_创达新材_上市公告书.pdf",
+      "size": 993928,
+      "mtime_ns": 1776767710428882700
+    },
+    "old_shares": {
+      "name": "920012_创达新材_招股说明书.pdf",
+      "size": 5980521,
+      "mtime_ns": 1776767709708857700
+    },
+    "comparables": {
+      "name": "920012_创达新材_招股说明书.pdf",
+      "size": 5980521,
+      "mtime_ns": 1776767709708857700
+    }
+  },
+  "item": {
+    "SECURITY_CODE": "920012",
+    "SECURITY_NAME_ABBR": "创达新材",
+    "APPLY_DATE": "2026-04-01 00:00:00",
+    "LISTING_DATE": "2026-04-13 00:00:00",
+    "ISSUE_PRICE": 19.58,
+    "AFTER_ISSUE_PE": 14.99,
+    "INDUSTRY_PE_NEW": 63.36,
+    "TOTAL_ISSUE_NUM": 1232.9345,
+    "CLOSE_PRICE": 51.67,
+    "AVERAGE_PRICE": 46.36499865971817,
+    "LD_CLOSE_CHANGE": 163.8917,
+    "LD_AVERAGE_CHANGE": 136.7977459638313,
+    "TURNOVERRATE": 88.1704,
+    "SW_INDUSTRY": "",
+    "INDUSTRY": "",
+    "industry_primary": "信息技术",
+    "industry_secondary": "半导体制造",
+    "industry_source": "built_in_sample_map",
+    "old_shares": 217.2256,
+    "old_shares_desc": "217.23 万股（PDF 提取：上市公告书）",
+    "old_shares_meta": {
+      "value_wan_shares": 217.2256,
+      "source_file_type": "上市公告书",
+      "source_rule": "listing_table",
+      "source_anchor": "本次发行前后的股本结构变动情况 -> 无限售流通股小计",
+      "raw_snippet": "对象小计34,815,77994.13%36,048,71373.10%--二、无限售流通股小计2,172,2565.87%13,268,66726.90%--合计36,988,035100.00%49,317,380100.00%--六、",
+      "confidence": 0.98,
+      "unit": "股",
+      "pre_unrestricted_wan_shares": 217.2256,
+      "listing_pdf_found": true,
+      "prospectus_pdf_found": true,
+      "selected_source_label": "上市公告书",
+      "fallback_used": false
+    },
+    "float_shares": 1450.1601,
+    "has_intraday_file": true,
+    "comparable_codes": [
+      "920526.BJ",
+      "874318.NQ"
+    ],
+    "comparable_data": [
+      {
+        "code": "920526.BJ",
+        "name": "920526.BJ",
+        "close": 19.11,
+        "pe_ttm": 109.6476,
+        "pb_lf": 6.9033,
+        "mkt_cap": 15.803970000000001,
+        "trade_date": "20260410",
+        "source": "tushare_historical",
+        "close_source": "tushare_historical",
+        "pe_source": "tushare_historical",
+        "pb_source": "tushare_historical",
+        "mkt_cap_source": "tushare_historical"
+      }
+    ],
+    "comparable_summary": {
+      "provider": "tushare_historical",
+      "requested_codes": [
+        "920526.BJ",
+        "874318.NQ"
+      ],
+      "returned_codes": [
+        "920526.BJ"
+      ],
+      "cache_hits": [],
+      "api_fetched": [
+        "920526.BJ"
+      ],
+      "skipped_unsupported": [
+        "874318.NQ"
+      ],
+      "reference_trade_date": "20260412",
+      "reason": ""
+    },
+    "method1_replay_available": true,
+    "average_price_source": "intraday_csv",
+    "average_price_reason": "",
+    "average_price_calc_version": 3,
+    "average_price_unit_mode": "volume_shares_amount_yuan",
+    "average_price_reference": 50.81
+  }
+}

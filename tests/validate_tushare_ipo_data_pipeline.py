@@ -23,6 +23,7 @@ TOKEN_ENV = "TUSHARE_TOKEN"
 _ORIGINAL_CALL_TUSHARE = tushare_ipo_helper._call_tushare
 _ORIGINAL_FETCH_IPO_INFO = data_fetcher.fetch_ipo_info
 _ORIGINAL_FETCH_RECENT_IPOS = data_fetcher.fetch_recent_ipos
+_ORIGINAL_FETCH_RECENT_IPOS_BY_DAYS = data_fetcher.fetch_recent_ipos_by_days
 
 
 def _reset_dir(path: Path) -> None:
@@ -95,6 +96,11 @@ def _fake_fetch_recent_ipos(months: int = 3, page_size: int = 50) -> list[dict[s
     ]
 
 
+def _fake_fetch_recent_ipos_by_days(days: int = 90, page_size: int = 50) -> list[dict[str, Any]]:
+    _ = days
+    return _fake_fetch_recent_ipos(page_size=page_size)
+
+
 def _fake_call_tushare_happy(
     api_name: str,
     params: dict[str, Any],
@@ -143,8 +149,26 @@ def _fake_call_tushare_happy(
         return ([{"ts_code": ts_code, **row}] if row else []), ""
     if api_name == "daily":
         mapping = {
-            "920177.BJ": {"trade_date": "20260416", "open": 40.0, "high": 41.01, "low": 36.54, "close": 36.58, "pct_chg": 67.7982},
-            "920181.BJ": {"trade_date": "20260410", "open": 51.0, "high": 55.6, "low": 46.2, "close": 49.8, "pct_chg": 77.8571},
+            "920177.BJ": {
+                "trade_date": "20260416",
+                "open": 40.0,
+                "high": 41.01,
+                "low": 36.54,
+                "close": 36.58,
+                "pct_chg": 67.7982,
+                "vol": 1000.0,
+                "amount": 3658.0,
+            },
+            "920181.BJ": {
+                "trade_date": "20260410",
+                "open": 51.0,
+                "high": 55.6,
+                "low": 46.2,
+                "close": 49.8,
+                "pct_chg": 77.8571,
+                "vol": 1000.0,
+                "amount": 4980.0,
+            },
         }
         row = mapping.get(ts_code)
         return ([{"ts_code": ts_code, **row}] if row else []), ""
@@ -333,6 +357,13 @@ def _run_merge_case(failures: list[str]) -> None:
     _assert(len(recent_ipos) == 2, "merge_case: expected two recent sample rows", failures)
     _assert(recent_ipos[0]["TURNOVERRATE"] is not None, "merge_case: expected turnover rate", failures)
     _assert(recent_ipos[0]["LD_CLOSE_CHANGE"] is not None, "merge_case: expected ld close change", failures)
+    recent_by_code = {item["SECURITY_CODE"]: item for item in recent_ipos}
+    _assert_close(recent_by_code["920177"]["AVERAGE_PRICE"], 36.58, "merge_case: expected Tushare daily average price", failures)
+    _assert(
+        recent_by_code["920177"]["LD_AVERAGE_CHANGE"] is not None,
+        "merge_case: expected average-price first-day change",
+        failures,
+    )
     print("OK merge_case: target IPO fields, industry PE, top apply marketcap and recent samples were built from Tushare with eastmoney display supplement")
 
 
@@ -490,6 +521,7 @@ def main() -> int:
     failures: list[str] = []
     data_fetcher.fetch_ipo_info = _fake_fetch_ipo_info
     data_fetcher.fetch_recent_ipos = _fake_fetch_recent_ipos
+    data_fetcher.fetch_recent_ipos_by_days = _fake_fetch_recent_ipos_by_days
     try:
         _run_merge_case(failures)
         _run_missing_token_case(failures)
@@ -502,6 +534,7 @@ def main() -> int:
         tushare_ipo_helper._call_tushare = _ORIGINAL_CALL_TUSHARE
         data_fetcher.fetch_ipo_info = _ORIGINAL_FETCH_IPO_INFO
         data_fetcher.fetch_recent_ipos = _ORIGINAL_FETCH_RECENT_IPOS
+        data_fetcher.fetch_recent_ipos_by_days = _ORIGINAL_FETCH_RECENT_IPOS_BY_DAYS
         os.environ.pop(TOKEN_ENV, None)
 
     if failures:

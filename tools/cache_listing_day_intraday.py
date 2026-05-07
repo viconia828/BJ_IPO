@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import argparse
 import json
-from datetime import date
+from datetime import date, datetime, time
 from pathlib import Path
 import sys
 from typing import Any, Callable
@@ -20,6 +20,7 @@ import tushare_helper
 
 
 DEFAULT_OUTPUT_DIR = ROOT_DIR / "首日分时走势"
+INTRADAY_CACHE_READY_TIME = time(15, 30)
 ProgressCallback = Callable[[str, dict[str, Any]], None]
 
 
@@ -54,6 +55,19 @@ def _base_code(code: str) -> str:
     if "." in normalized_code:
         return normalized_code.split(".", 1)[0]
     return normalized_code
+
+
+def _today_cache_block_reason(raw_listing_date: str | date | None, current_datetime: datetime | None = None) -> str:
+    now = current_datetime or datetime.now()
+    listing_date = date.fromisoformat(_normalize_trade_date(raw_listing_date))
+    if listing_date != now.date():
+        return ""
+    if now.time() >= INTRADAY_CACHE_READY_TIME:
+        return ""
+    return (
+        "上市日为今天，当前仍可能处于盘中或数据未完整阶段；"
+        f"为避免写入不完整首日走势，请在 {INTRADAY_CACHE_READY_TIME.strftime('%H:%M')} 后重新运行缓存程序。"
+    )
 
 
 def _prepare_params(params: dict[str, Any] | None) -> dict[str, Any]:
@@ -165,11 +179,24 @@ def _cache_single_candidate(
     output_path: Path,
     strategy_params: dict[str, Any],
     force: bool = False,
+    current_datetime: datetime | None = None,
 ) -> dict[str, Any]:
     code = str(item.get("SECURITY_CODE") or "").strip()
     name = str(item.get("SECURITY_NAME_ABBR") or item.get("SECURITY_NAME") or "").strip()
     listing_date = _normalize_trade_date(item.get("LISTING_DATE"))
     csv_path = output_path / f"{_base_code(code)}.csv"
+
+    block_reason = _today_cache_block_reason(listing_date, current_datetime=current_datetime)
+    if block_reason:
+        return {
+            "status": "deferred",
+            "code": code,
+            "name": name,
+            "listing_date": listing_date,
+            "reason": block_reason,
+            "source_api": "intraday_guard",
+            "attempted_apis": [],
+        }
 
     if csv_path.exists() and not force:
         return {
@@ -248,6 +275,7 @@ def run_cache_job(
     output_dir: str | Path | None = None,
     force: bool = False,
     params: dict[str, Any] | None = None,
+    current_datetime: datetime | None = None,
 ) -> dict[str, Any]:
     normalized_trade_date = _normalize_trade_date(target_date)
     output_path = Path(output_dir) if output_dir is not None else DEFAULT_OUTPUT_DIR
@@ -274,7 +302,7 @@ def run_cache_job(
         if not code:
             continue
         summary["checked_codes"].append(code)
-        result = _cache_single_candidate(item, output_path, strategy_params, force=force)
+        result = _cache_single_candidate(item, output_path, strategy_params, force=force, current_datetime=current_datetime)
         status = result.pop("status")
         if status == "existing":
             summary["skipped_existing"].append(result)
@@ -293,6 +321,7 @@ def run_latest_missing_cache_job(
     output_dir: str | Path | None = None,
     params: dict[str, Any] | None = None,
     progress_callback: ProgressCallback | None = None,
+    current_datetime: datetime | None = None,
 ) -> dict[str, Any]:
     output_path = Path(output_dir) if output_dir is not None else DEFAULT_OUTPUT_DIR
     output_path.mkdir(parents=True, exist_ok=True)
@@ -351,7 +380,7 @@ def run_latest_missing_cache_job(
             },
         )
         summary["checked_codes"].append(code)
-        result = _cache_single_candidate(item, output_path, strategy_params, force=False)
+        result = _cache_single_candidate(item, output_path, strategy_params, force=False, current_datetime=current_datetime)
         status = result.pop("status")
         current_code = _base_code(str(result.get("code") or code)).strip().upper()
         if current_code:

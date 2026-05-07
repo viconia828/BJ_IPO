@@ -1,8 +1,9 @@
 {
   "schema": "offline_tuning_replay_v1",
   "evaluation_scope": "composite",
-  "generated_at": "2026-04-27 15:20:08",
+  "generated_at": "2026-05-07 17:43:29",
   "source_months": 18,
+  "replay_item_cache_version": 3,
   "sample_codes": [
     "920086",
     "920050",
@@ -25,7 +26,9 @@
     "920012",
     "920177",
     "920191",
-    "920125"
+    "920125",
+    "920156",
+    "920186"
   ],
   "requested_codes": [
     "920011",
@@ -40,6 +43,7 @@
     "920086",
     "920119",
     "920125",
+    "920156",
     "920159",
     "920166",
     "920168",
@@ -47,19 +51,28 @@
     "920180",
     "920181",
     "920183",
+    "920186",
     "920187",
     "920188",
     "920191"
   ],
-  "available_count": 22,
-  "method1_ready_count": 21,
-  "method1_ready_rate": 0.9545454545454546,
+  "available_count": 24,
+  "method1_ready_count": 22,
+  "method1_ready_rate": 0.9166666666666666,
   "skipped": [],
   "caveats": [
     "方法一历史回放快照基于 Tushare `daily_basic`，按标的上市日前一日向前回看交易窗口，未取到时该样本自动降级为仅方法二。",
     "每只样本只使用上市当时可见的发行字段、历史新股样本和本地首日分时数据。",
     "历史流通盘使用本地 PDF 提取的 old_shares 结果，缺失时回退按 0 万股处理。"
   ],
+  "item_cache": {
+    "enabled": true,
+    "dir": "C:\\Users\\ai\\Desktop\\北交所新股估值\\data\\offline_tuning\\replay_items",
+    "hits": 13,
+    "misses": 0,
+    "writes": 11,
+    "existing_dataset_reused": 11
+  },
   "items": [
     {
       "SECURITY_CODE": "920086",
@@ -71,7 +84,9 @@
       "INDUSTRY_PE_NEW": 28.68,
       "TOTAL_ISSUE_NUM": 2092.0,
       "CLOSE_PRICE": 54.95,
+      "AVERAGE_PRICE": 54.55912543948198,
       "LD_CLOSE_CHANGE": 371.2693,
+      "LD_AVERAGE_CHANGE": 367.91702778286435,
       "TURNOVERRATE": 96.1425,
       "SW_INDUSTRY": "",
       "INDUSTRY": "",
@@ -131,7 +146,12 @@
         "reference_trade_date": "20260115",
         "reason": ""
       },
-      "method1_replay_available": true
+      "method1_replay_available": true,
+      "average_price_source": "intraday_csv",
+      "average_price_reason": "",
+      "average_price_calc_version": 3,
+      "average_price_unit_mode": "volume_shares_amount_yuan",
+      "average_price_reference": 58.46
     },
     {
       "SECURITY_CODE": "920050",
@@ -143,7 +163,9 @@
       "INDUSTRY_PE_NEW": 29.79,
       "TOTAL_ISSUE_NUM": 1691.9834,
       "CLOSE_PRICE": 44.04,
+      "AVERAGE_PRICE": 48.64295846657595,
       "LD_CLOSE_CHANGE": 175.5945,
+      "LD_AVERAGE_CHANGE": 204.39898915254037,
       "TURNOVERRATE": 78.2307,
       "SW_INDUSTRY": "",
       "INDUSTRY": "",
@@ -221,7 +243,12 @@
         "reference_trade_date": "20260120",
         "reason": ""
       },
-      "method1_replay_available": true
+      "method1_replay_available": true,
+      "average_price_source": "intraday_csv",
+      "average_price_reason": "",
+      "average_price_calc_version": 3,
+      "average_price_unit_mode": "volume_shares_amount_yuan",
+      "average_price_reference": 46.89
     },
     {
       "SECURITY_CODE": "920076",
@@ -233,7 +260,9 @@
       "INDUSTRY_PE_NEW": 33.44,
       "TOTAL_ISSUE_NUM": 1804.4853,
       "CLOSE_PRICE": 28.06,
+      "AVERAGE_PRICE": 29.91233555870802,
       "LD_CLOSE_CHANGE": 160.7807,
+      "LD_AVERAGE_CHANGE": 177.99568363111544,
       "TURNOVERRATE": 81.7337,
       "SW_INDUSTRY": "",
       "INDUSTRY": "",
@@ -351,7 +380,12 @@
         "reference_trade_date": "20260121",
         "reason": ""
       },
-      "method1_replay_available": true
+      "method1_replay_available": true,
+      "average_price_source": "intraday_csv",
+      "average_price_reason": "",
+      "average_price_calc_version": 3,
+      "average_price_unit_mode": "volume_shares_amount_yuan",
+      "average_price_reference": 28.88
     },
     {
       "SECURITY_CODE": "920159",
@@ -481,7 +515,14 @@
         "reference_trade_date": "20260127",
         "reason": ""
       },
-      "method1_replay_available": true
+      "method1_replay_available": true,
+      "AVERAGE_PRICE": 51.40855681867674,
+      "LD_AVERAGE_CHANGE": 105.63422727470697,
+      "average_price_source": "intraday_csv",
+      "average_price_reason": "",
+      "average_price_calc_version": 3,
+      "average_price_unit_mode": "volume_shares_amount_yuan",
+      "average_price_reference": 52.88
     },
     {
       "SECURITY_CODE": "920119",
@@ -493,7 +534,9 @@
       "INDUSTRY_PE_NEW": 47.63,
       "TOTAL_ISSUE_NUM": 1600.0,
       "CLOSE_PRICE": 109.5,
+      "AVERAGE_PRICE": 120.16805492729866,
       "LD_CLOSE_CHANGE": 161.4613,
+      "LD_AVERAGE_CHANGE": 186.93422857521168,
       "TURNOVERRATE": 71.6482,
       "SW_INDUSTRY": "",
       "INDUSTRY": "",
@@ -625,7 +668,12 @@
         "reference_trade_date": "20260129",
         "reason": ""
       },
-      "method1_replay_available": true
+      "method1_replay_available": true,
+      "average_price_source": "intraday_csv",
+      "average_price_reason": "",
+      "average_price_calc_version": 3,
+      "average_price_unit_mode": "volume_shares_amount_yuan",
+      "average_price_reference": 114.83500000000001
     },
     {
       "SECURITY_CODE": "920180",
@@ -769,7 +817,14 @@
         "reference_trade_date": "20260209",
         "reason": ""
       },
-      "method1_replay_available": true
+      "method1_replay_available": true,
+      "AVERAGE_PRICE": 23.23710907830547,
+      "LD_AVERAGE_CHANGE": 202.9610049322747,
+      "average_price_source": "intraday_csv",
+      "average_price_reason": "",
+      "average_price_calc_version": 3,
+      "average_price_unit_mode": "volume_shares_amount_yuan",
+      "average_price_reference": 22.695
     },
     {
       "SECURITY_CODE": "920166",
@@ -877,7 +932,14 @@
         "reference_trade_date": "20260211",
         "reason": ""
       },
-      "method1_replay_available": true
+      "method1_replay_available": true,
+      "AVERAGE_PRICE": 30.627913731031416,
+      "LD_AVERAGE_CHANGE": 142.30944407461564,
+      "average_price_source": "intraday_csv",
+      "average_price_reason": "",
+      "average_price_calc_version": 3,
+      "average_price_unit_mode": "volume_shares_amount_yuan",
+      "average_price_reference": 30.555
     },
     {
       "SECURITY_CODE": "920168",
@@ -967,7 +1029,14 @@
         "reference_trade_date": "20260225",
         "reason": ""
       },
-      "method1_replay_available": true
+      "method1_replay_available": true,
+      "AVERAGE_PRICE": 29.448189549449722,
+      "LD_AVERAGE_CHANGE": 82.11620005843983,
+      "average_price_source": "intraday_csv",
+      "average_price_reason": "",
+      "average_price_calc_version": 3,
+      "average_price_unit_mode": "volume_shares_amount_yuan",
+      "average_price_reference": 29.41
     },
     {
       "SECURITY_CODE": "920183",
@@ -1061,7 +1130,14 @@
         "reference_trade_date": "20260303",
         "reason": ""
       },
-      "method1_replay_available": true
+      "method1_replay_available": true,
+      "AVERAGE_PRICE": 54.68884135068119,
+      "LD_AVERAGE_CHANGE": 177.46748529011253,
+      "average_price_source": "intraday_csv",
+      "average_price_reason": "",
+      "average_price_calc_version": 3,
+      "average_price_unit_mode": "volume_shares_amount_yuan",
+      "average_price_reference": 55.02
     },
     {
       "SECURITY_CODE": "920187",
@@ -1187,7 +1263,14 @@
         "reference_trade_date": "20260304",
         "reason": ""
       },
-      "method1_replay_available": true
+      "method1_replay_available": true,
+      "AVERAGE_PRICE": 45.088701218865985,
+      "LD_AVERAGE_CHANGE": 52.223839361465174,
+      "average_price_source": "intraday_csv",
+      "average_price_reason": "",
+      "average_price_calc_version": 3,
+      "average_price_unit_mode": "volume_shares_amount_yuan",
+      "average_price_reference": 44.51
     },
     {
       "SECURITY_CODE": "920036",
@@ -1199,7 +1282,9 @@
       "INDUSTRY_PE_NEW": 65.47,
       "TOTAL_ISSUE_NUM": 1360.55,
       "CLOSE_PRICE": 41.3,
+      "AVERAGE_PRICE": 43.62645824954569,
       "LD_CLOSE_CHANGE": 91.9145,
+      "LD_AVERAGE_CHANGE": 102.72517773952461,
       "TURNOVERRATE": 88.8636,
       "SW_INDUSTRY": "",
       "INDUSTRY": "",
@@ -1295,7 +1380,12 @@
         "reference_trade_date": "20260308",
         "reason": ""
       },
-      "method1_replay_available": true
+      "method1_replay_available": true,
+      "average_price_source": "intraday_csv",
+      "average_price_reason": "",
+      "average_price_calc_version": 3,
+      "average_price_unit_mode": "volume_shares_amount_yuan",
+      "average_price_reference": 42.27
     },
     {
       "SECURITY_CODE": "920078",
@@ -1307,7 +1397,9 @@
       "INDUSTRY_PE_NEW": 34.76,
       "TOTAL_ISSUE_NUM": 2300.0,
       "CLOSE_PRICE": 35.3,
+      "AVERAGE_PRICE": 35.70731418099931,
       "LD_CLOSE_CHANGE": 405.7307,
+      "LD_AVERAGE_CHANGE": 411.5661057449758,
       "TURNOVERRATE": 96.391,
       "SW_INDUSTRY": "",
       "INDUSTRY": "",
@@ -1385,7 +1477,12 @@
         "reference_trade_date": "20260317",
         "reason": ""
       },
-      "method1_replay_available": true
+      "method1_replay_available": true,
+      "average_price_source": "intraday_csv",
+      "average_price_reason": "",
+      "average_price_calc_version": 3,
+      "average_price_unit_mode": "volume_shares_amount_yuan",
+      "average_price_reference": 37.57
     },
     {
       "SECURITY_CODE": "920028",
@@ -1397,7 +1494,9 @@
       "INDUSTRY_PE_NEW": 28.56,
       "TOTAL_ISSUE_NUM": 4109.0,
       "CLOSE_PRICE": 22.7,
+      "AVERAGE_PRICE": 21.21701028266926,
       "LD_CLOSE_CHANGE": 141.4894,
+      "LD_AVERAGE_CHANGE": 125.71287534754534,
       "TURNOVERRATE": 84.8896,
       "SW_INDUSTRY": "",
       "INDUSTRY": "",
@@ -1457,7 +1556,12 @@
         "reference_trade_date": "20260319",
         "reason": ""
       },
-      "method1_replay_available": true
+      "method1_replay_available": true,
+      "average_price_source": "intraday_csv",
+      "average_price_reason": "",
+      "average_price_calc_version": 3,
+      "average_price_unit_mode": "volume_shares_amount_yuan",
+      "average_price_reference": 20.84
     },
     {
       "SECURITY_CODE": "920069",
@@ -1469,7 +1573,9 @@
       "INDUSTRY_PE_NEW": 43.57,
       "TOTAL_ISSUE_NUM": 1058.28,
       "CLOSE_PRICE": 43.48,
+      "AVERAGE_PRICE": 42.34166168392811,
       "LD_CLOSE_CHANGE": 136.5615,
+      "LD_AVERAGE_CHANGE": 130.3681266807841,
       "TURNOVERRATE": 65.5272,
       "SW_INDUSTRY": "",
       "INDUSTRY": "",
@@ -1569,7 +1675,12 @@
         "reference_trade_date": "20260326",
         "reason": ""
       },
-      "method1_replay_available": true
+      "method1_replay_available": true,
+      "average_price_source": "intraday_csv",
+      "average_price_reason": "",
+      "average_price_calc_version": 3,
+      "average_price_unit_mode": "volume_shares_amount_yuan",
+      "average_price_reference": 43.8
     },
     {
       "SECURITY_CODE": "920188",
@@ -1624,7 +1735,14 @@
         "reference_trade_date": "20260329",
         "reason": "未取到可用的历史可比快照。"
       },
-      "method1_replay_available": false
+      "method1_replay_available": false,
+      "AVERAGE_PRICE": 33.940438585337475,
+      "LD_AVERAGE_CHANGE": 141.74101556508174,
+      "average_price_source": "intraday_csv",
+      "average_price_reason": "",
+      "average_price_calc_version": 3,
+      "average_price_unit_mode": "volume_shares_amount_yuan",
+      "average_price_reference": 31.9
     },
     {
       "SECURITY_CODE": "920055",
@@ -1636,7 +1754,9 @@
       "INDUSTRY_PE_NEW": 29.78,
       "TOTAL_ISSUE_NUM": 1700.0,
       "CLOSE_PRICE": 37.8,
+      "AVERAGE_PRICE": 38.07569298569772,
       "LD_CLOSE_CHANGE": 53.0364,
+      "LD_AVERAGE_CHANGE": 54.152603180962444,
       "TURNOVERRATE": 93.3504,
       "SW_INDUSTRY": "",
       "INDUSTRY": "",
@@ -1750,7 +1870,12 @@
         "reference_trade_date": "20260330",
         "reason": ""
       },
-      "method1_replay_available": true
+      "method1_replay_available": true,
+      "average_price_source": "intraday_csv",
+      "average_price_reason": "",
+      "average_price_calc_version": 3,
+      "average_price_unit_mode": "volume_shares_amount_yuan",
+      "average_price_reference": 38.4
     },
     {
       "SECURITY_CODE": "920011",
@@ -1762,7 +1887,9 @@
       "INDUSTRY_PE_NEW": 29.28,
       "TOTAL_ISSUE_NUM": 2066.6667,
       "CLOSE_PRICE": 29.04,
+      "AVERAGE_PRICE": 29.661284131630037,
       "LD_CLOSE_CHANGE": 87.3548,
+      "LD_AVERAGE_CHANGE": 91.36312342987121,
       "TURNOVERRATE": 92.7668,
       "SW_INDUSTRY": "",
       "INDUSTRY": "",
@@ -1898,7 +2025,12 @@
         "reference_trade_date": "20260407",
         "reason": ""
       },
-      "method1_replay_available": true
+      "method1_replay_available": true,
+      "average_price_source": "intraday_csv",
+      "average_price_reason": "",
+      "average_price_calc_version": 3,
+      "average_price_unit_mode": "volume_shares_amount_yuan",
+      "average_price_reference": 29.27
     },
     {
       "SECURITY_CODE": "920181",
@@ -1992,7 +2124,14 @@
         "reference_trade_date": "20260409",
         "reason": ""
       },
-      "method1_replay_available": true
+      "method1_replay_available": true,
+      "AVERAGE_PRICE": 62.999635707198955,
+      "LD_AVERAGE_CHANGE": 124.99869895428199,
+      "average_price_source": "intraday_csv",
+      "average_price_reason": "",
+      "average_price_calc_version": 3,
+      "average_price_unit_mode": "volume_shares_amount_yuan",
+      "average_price_reference": 63.08
     },
     {
       "SECURITY_CODE": "920012",
@@ -2004,7 +2143,9 @@
       "INDUSTRY_PE_NEW": 63.36,
       "TOTAL_ISSUE_NUM": 1232.9345,
       "CLOSE_PRICE": 51.67,
+      "AVERAGE_PRICE": 46.36499865971817,
       "LD_CLOSE_CHANGE": 163.8917,
+      "LD_AVERAGE_CHANGE": 136.7977459638313,
       "TURNOVERRATE": 88.1704,
       "SW_INDUSTRY": "",
       "INDUSTRY": "",
@@ -2068,7 +2209,12 @@
         "reference_trade_date": "20260412",
         "reason": ""
       },
-      "method1_replay_available": true
+      "method1_replay_available": true,
+      "average_price_source": "intraday_csv",
+      "average_price_reason": "",
+      "average_price_calc_version": 3,
+      "average_price_unit_mode": "volume_shares_amount_yuan",
+      "average_price_reference": 50.81
     },
     {
       "SECURITY_CODE": "920177",
@@ -2162,7 +2308,14 @@
         "reference_trade_date": "20260415",
         "reason": ""
       },
-      "method1_replay_available": true
+      "method1_replay_available": true,
+      "AVERAGE_PRICE": 38.377196329627246,
+      "LD_AVERAGE_CHANGE": 76.04218499829013,
+      "average_price_source": "intraday_csv",
+      "average_price_reason": "",
+      "average_price_calc_version": 3,
+      "average_price_unit_mode": "volume_shares_amount_yuan",
+      "average_price_reference": 37.22
     },
     {
       "SECURITY_CODE": "920191",
@@ -2288,7 +2441,14 @@
         "reference_trade_date": "20260419",
         "reason": ""
       },
-      "method1_replay_available": true
+      "method1_replay_available": true,
+      "AVERAGE_PRICE": 15.187777375895395,
+      "LD_AVERAGE_CHANGE": 96.98803340979761,
+      "average_price_source": "intraday_csv",
+      "average_price_reason": "",
+      "average_price_calc_version": 3,
+      "average_price_unit_mode": "volume_hands_amount_yuan",
+      "average_price_reference": 14.98
     },
     {
       "SECURITY_CODE": "920125",
@@ -2300,7 +2460,9 @@
       "INDUSTRY_PE_NEW": 40.88,
       "TOTAL_ISSUE_NUM": 1350.0,
       "CLOSE_PRICE": 50.02,
+      "AVERAGE_PRICE": 49.35879170148433,
       "LD_CLOSE_CHANGE": 201.8709,
+      "LD_AVERAGE_CHANGE": 197.88045685868636,
       "TURNOVERRATE": 81.0871,
       "SW_INDUSTRY": "",
       "INDUSTRY": "",
@@ -2414,7 +2576,169 @@
         "reference_trade_date": "20260423",
         "reason": ""
       },
-      "method1_replay_available": true
+      "method1_replay_available": true,
+      "average_price_source": "intraday_csv",
+      "average_price_reason": "",
+      "average_price_calc_version": 3,
+      "average_price_unit_mode": "volume_shares_amount_yuan",
+      "average_price_reference": 51.394999999999996
+    },
+    {
+      "SECURITY_CODE": "920156",
+      "SECURITY_NAME_ABBR": "海昌智能",
+      "APPLY_DATE": "2026-04-15 00:00:00",
+      "LISTING_DATE": "2026-04-27 00:00:00",
+      "ISSUE_PRICE": 20.93,
+      "AFTER_ISSUE_PE": 14.98,
+      "INDUSTRY_PE_NEW": 40.8,
+      "TOTAL_ISSUE_NUM": 2412.0,
+      "CLOSE_PRICE": 40.6,
+      "AVERAGE_PRICE": 40.36260741001939,
+      "LD_CLOSE_CHANGE": 93.9799,
+      "LD_AVERAGE_CHANGE": 92.84571146688674,
+      "TURNOVERRATE": 91.4428,
+      "SW_INDUSTRY": "",
+      "INDUSTRY": "",
+      "industry_primary": "未分类",
+      "industry_secondary": "未分类",
+      "industry_source": "unclassified",
+      "old_shares": 0.0,
+      "old_shares_desc": "0.00 万股（PDF 提取：上市公告书）",
+      "old_shares_meta": {
+        "value_wan_shares": 0.0,
+        "source_file_type": "上市公告书",
+        "source_rule": "listing_table",
+        "source_anchor": "本次发行前后的股本结构变动情况 -> 无限售流通股小计",
+        "raw_snippet": "象小计8,000.0000100.00%8,241.200079.15%--二、无限售流通股小计--2,170.800020.85%--合计8,000.0000100.00%10,412.0000100.00%--注1：数据尾数如存有差异系四舍五入所致；注2：发行人不存在表决权差异安排的情况。53六、",
+        "confidence": 0.95,
+        "unit": "万股",
+        "pre_unrestricted_wan_shares": 0.0,
+        "listing_pdf_found": true,
+        "prospectus_pdf_found": true,
+        "selected_source_label": "上市公告书",
+        "fallback_used": false
+      },
+      "float_shares": 2412.0,
+      "has_intraday_file": true,
+      "comparable_codes": [
+        "837408.NQ",
+        "301128.SZ",
+        "603960.SH"
+      ],
+      "comparable_data": [
+        {
+          "code": "301128.SZ",
+          "name": "301128.SZ",
+          "close": 189.05,
+          "pe_ttm": 138.0549,
+          "pb_lf": 21.3289,
+          "mkt_cap": 195.55572094000001,
+          "trade_date": "20260424",
+          "source": "tushare_historical",
+          "close_source": "tushare_historical",
+          "pe_source": "tushare_historical",
+          "pb_source": "tushare_historical",
+          "mkt_cap_source": "tushare_historical"
+        },
+        {
+          "code": "603960.SH",
+          "name": "603960.SH",
+          "close": 22.09,
+          "pe_ttm": 273.2956,
+          "pb_lf": 5.1445,
+          "mkt_cap": 57.91951611,
+          "trade_date": "20260424",
+          "source": "tushare_historical",
+          "close_source": "tushare_historical",
+          "pe_source": "tushare_historical",
+          "pb_source": "tushare_historical",
+          "mkt_cap_source": "tushare_historical"
+        }
+      ],
+      "comparable_summary": {
+        "provider": "tushare_historical",
+        "requested_codes": [
+          "837408.NQ",
+          "301128.SZ",
+          "603960.SH"
+        ],
+        "returned_codes": [
+          "301128.SZ",
+          "603960.SH"
+        ],
+        "cache_hits": [],
+        "api_fetched": [
+          "301128.SZ",
+          "603960.SH"
+        ],
+        "skipped_unsupported": [
+          "837408.NQ"
+        ],
+        "reference_trade_date": "20260426",
+        "reason": ""
+      },
+      "method1_replay_available": true,
+      "average_price_source": "intraday_csv",
+      "average_price_reason": "",
+      "average_price_calc_version": 3,
+      "average_price_unit_mode": "volume_hands_amount_yuan",
+      "average_price_reference": 39.89
+    },
+    {
+      "SECURITY_CODE": "920186",
+      "SECURITY_NAME_ABBR": "中科仪",
+      "APPLY_DATE": "2026-04-20 00:00:00",
+      "LISTING_DATE": "2026-04-29 00:00:00",
+      "ISSUE_PRICE": 16.21,
+      "AFTER_ISSUE_PE": 35.23,
+      "INDUSTRY_PE_NEW": null,
+      "TOTAL_ISSUE_NUM": 5200.0,
+      "CLOSE_PRICE": 71.98,
+      "LD_CLOSE_CHANGE": 344.0469,
+      "TURNOVERRATE": 55.8226,
+      "SW_INDUSTRY": "",
+      "INDUSTRY": "",
+      "industry_primary": "未分类",
+      "industry_secondary": "未分类",
+      "industry_source": "unclassified",
+      "old_shares": 4873.0478,
+      "old_shares_desc": "4873.05 万股（PDF 提取：上市公告书）",
+      "old_shares_meta": {
+        "value_wan_shares": 4873.0478,
+        "source_file_type": "上市公告书",
+        "source_rule": "listing_table",
+        "source_anchor": "本次发行前后的股本结构变动情况 -> 无限售流通股小计",
+        "raw_snippet": "小计123,108,62271.66128,308,62257.31————二、无限售流通股小计48,730,47828.3495,530,47842.69————合计171,839,100100.00223,839,100100.00————注1：若出现合计数与各单项加总数尾数不符的情况，系四舍五入所致；注2：发行人不存在表决权差异安排的情况。中国科学院沈",
+        "confidence": 0.98,
+        "unit": "股",
+        "pre_unrestricted_wan_shares": 4873.0478,
+        "listing_pdf_found": true,
+        "prospectus_pdf_found": true,
+        "selected_source_label": "上市公告书",
+        "fallback_used": false
+      },
+      "float_shares": 10073.0478,
+      "has_intraday_file": true,
+      "comparable_codes": [],
+      "comparable_data": [],
+      "comparable_summary": {
+        "provider": "tushare_historical",
+        "requested_codes": [],
+        "returned_codes": [],
+        "cache_hits": [],
+        "api_fetched": [],
+        "skipped_unsupported": [],
+        "reference_trade_date": "20260428",
+        "reason": "未提取到可比公司代码。"
+      },
+      "method1_replay_available": false,
+      "AVERAGE_PRICE": 64.70373673609356,
+      "LD_AVERAGE_CHANGE": 299.1593876378381,
+      "average_price_source": "intraday_csv",
+      "average_price_reason": "",
+      "average_price_calc_version": 3,
+      "average_price_unit_mode": "volume_shares_amount_yuan",
+      "average_price_reference": 67.35
     }
   ]
 }

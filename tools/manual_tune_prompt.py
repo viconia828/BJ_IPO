@@ -22,7 +22,7 @@ def _print_header() -> None:
     params = config_loader.load_params(DEFAULT_PARAMS_PATH)
     tuning_settings = config_loader.get_tuning_runtime_settings(params)
     print("========================================")
-    print("北交所新股估值 - 手动调参入口")
+    print("北交所新股估值 - 调参入口")
     print("========================================")
     print("说明：")
     print("1. 本入口会调用 tools\\tune_params.py。")
@@ -38,6 +38,7 @@ def _print_header() -> None:
     )
     print("5. 如无特殊需要，按提示逐步输入即可。")
     print("6. 若只输入权重组中的一个因子：二因子会自动补足到 1，多因子组会按当前策略参数比例缩放其余权重。")
+    print("7. 自动调参会先输出建议修改项，只有确认接受后才会写入 策略参数.txt。")
     print("")
 
 
@@ -94,9 +95,9 @@ def _collect_group_candidates() -> list[str]:
         groups.append(raw_value)
 
 
-def _build_command() -> tuple[list[str], dict[str, str]]:
+def _build_manual_command() -> tuple[list[str], dict[str, str]]:
     mode_choice = _prompt_choice(
-        "请选择执行模式：",
+        "请选择手动调参执行模式：",
         [
             ("1", "离线复核：比较候选参数在训练集 / 验证集上的表现"),
             ("2", "replay 观察：比较候选参数在指定样本上的逐样本结果"),
@@ -117,6 +118,7 @@ def _build_command() -> tuple[list[str], dict[str, str]]:
 
     command = [
         sys.executable,
+        "-u",
         str(TUNE_PARAMS_PATH),
         "--mode",
         "offline" if mode_choice == "1" else "observe",
@@ -162,6 +164,39 @@ def _build_command() -> tuple[list[str], dict[str, str]]:
     return command, summary
 
 
+def _build_auto_command() -> tuple[list[str], dict[str, str]]:
+    command = [
+        sys.executable,
+        "-u",
+        str(TUNE_PARAMS_PATH),
+        "--mode",
+        "auto",
+        "--dataset-path",
+        str(DEFAULT_DATASET_PATH),
+    ]
+    summary = {
+        "mode": "自动调参",
+        "input_mode": "系统自动搜索",
+        "manual_name": "不适用",
+        "candidate_summary": "按近期样本区间命中加权评分，自动选择参数组合；确认接受后写入参数文件",
+    }
+    return command, summary
+
+
+def _build_command() -> tuple[list[str], dict[str, str]]:
+    tuning_mode = _prompt_choice(
+        "请选择调参模式：",
+        [
+            ("1", "手动调参：沿用当前候选参数复核 / replay 观察模式"),
+            ("2", "自动调参：系统搜索参数组合，确认后写入 策略参数.txt"),
+        ],
+        default="1",
+    )
+    if tuning_mode == "2":
+        return _build_auto_command()
+    return _build_manual_command()
+
+
 def _print_summary(summary: dict[str, str]) -> None:
     print("")
     print("即将执行：")
@@ -179,11 +214,19 @@ def main() -> int:
     _print_header()
     command, summary = _build_command()
     _print_summary(summary)
+    if summary["mode"] == "自动调参":
+        print("正在启动自动调参子程序。它会先检查回放数据集，再进入粗步长暴力搜索；每轮完成后可选择是否继续细步长搜索。")
+        print("未出现“自动调参完成”前表示仍未跑完。")
+        print("")
+    sys.stdout.flush()
 
     completed = subprocess.run(command, cwd=ROOT_DIR, check=False)
     print("")
     if completed.returncode == 0:
-        print("执行完成。报告路径请以上方输出的 JSON / Markdown 报告为准。")
+        if summary["mode"] == "自动调参":
+            print("自动调参流程已结束。若上方没有出现“本次建议修改的参数”，表示本轮未找到优于当前参数的修改方案。")
+        else:
+            print("执行完成。报告路径请以上方输出的 JSON / Markdown 报告为准。")
     else:
         print(f"执行失败，退出码：{completed.returncode}")
     return completed.returncode

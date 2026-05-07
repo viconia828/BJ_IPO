@@ -5,7 +5,7 @@ import time
 import urllib.error
 import urllib.parse
 import urllib.request
-from datetime import date
+from datetime import date, timedelta
 from typing import Any
 
 
@@ -121,6 +121,8 @@ def _request_data(params: dict[str, Any]) -> list[dict[str, Any]]:
         raise DataFetcherError(f"东方财富请求失败: {exc.reason}") from exc
     except TimeoutError as exc:
         raise DataFetcherError(f"东方财富请求超时: {exc}") from exc
+    except OSError as exc:
+        raise DataFetcherError(f"东方财富网络请求异常: {exc}") from exc
     except json.JSONDecodeError as exc:
         raise DataFetcherError("东方财富返回内容无法解析为 JSON") from exc
 
@@ -139,6 +141,10 @@ def _request_json(url: str, params: dict[str, Any]) -> dict[str, Any]:
             payload = json.loads(response.read().decode("utf-8"))
     except urllib.error.URLError as exc:
         raise DataFetcherError(f"东方财富请求失败: {exc.reason}") from exc
+    except TimeoutError as exc:
+        raise DataFetcherError(f"东方财富请求超时: {exc}") from exc
+    except OSError as exc:
+        raise DataFetcherError(f"东方财富网络请求异常: {exc}") from exc
     except json.JSONDecodeError as exc:
         raise DataFetcherError("东方财富返回内容无法解析为 JSON") from exc
 
@@ -304,6 +310,25 @@ def fetch_recent_ipos(
     require_close_price: bool = True,
 ) -> list[dict[str, Any]]:
     cutoff = _subtract_months(date.today(), months).isoformat()
+    return fetch_recent_ipos_since(cutoff, page_size=page_size, require_close_price=require_close_price)
+
+
+def fetch_recent_ipos_by_days(
+    days: int,
+    page_size: int = 50,
+    require_close_price: bool = True,
+) -> list[dict[str, Any]]:
+    day_count = max(int(days), 1)
+    cutoff = (date.today() - timedelta(days=day_count)).isoformat()
+    return fetch_recent_ipos_since(cutoff, page_size=page_size, require_close_price=require_close_price)
+
+
+def fetch_recent_ipos_since(
+    cutoff_date: str | date,
+    page_size: int = 50,
+    require_close_price: bool = True,
+) -> list[dict[str, Any]]:
+    cutoff = cutoff_date.isoformat() if isinstance(cutoff_date, date) else str(cutoff_date).strip()[:10]
     page_number = 1
     records: list[dict[str, Any]] = []
 

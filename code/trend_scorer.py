@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import csv
+from functools import lru_cache
 import statistics
 from dataclasses import dataclass
 from datetime import date, datetime
@@ -139,10 +140,11 @@ def _get_sample_weight(sample_date: date | None, reference_date: date, params: d
     return 0.5 ** (day_gap / half_life_days)
 
 
-def _load_csv_bars(code: str) -> list[MinuteBar]:
+@lru_cache(maxsize=512)
+def _load_csv_bars(code: str) -> tuple[MinuteBar, ...]:
     file_path = CSV_DIR / f"{code}.csv"
     if not file_path.exists():
-        return []
+        return ()
 
     rows: list[MinuteBar] = []
     for encoding in ("gbk", "utf-8", "utf-8-sig"):
@@ -170,14 +172,14 @@ def _load_csv_bars(code: str) -> list[MinuteBar]:
                         )
                     )
             if rows:
-                return rows
+                return tuple(rows)
         except UnicodeDecodeError:
             rows = []
             continue
-    return rows
+    return tuple(rows)
 
 
-def _compute_metrics(bars: list[MinuteBar]) -> TrendMetrics | None:
+def _compute_metrics(bars: list[MinuteBar] | tuple[MinuteBar, ...]) -> TrendMetrics | None:
     if not bars:
         return None
 

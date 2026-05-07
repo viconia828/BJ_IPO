@@ -1,0 +1,177 @@
+{
+  "schema": "offline_tuning_replay_item_v1",
+  "cache_version": 3,
+  "generated_at": "2026-05-07 18:04:13",
+  "code": "920076",
+  "listing_date": "2026-01-22 00:00:00",
+  "record_signature": {
+    "SECURITY_CODE": "920076",
+    "SECURITY_NAME_ABBR": "国亮新材",
+    "APPLY_DATE": "2026-01-14 00:00:00",
+    "LISTING_DATE": "2026-01-22 00:00:00",
+    "ISSUE_PRICE": 10.76,
+    "AFTER_ISSUE_PE": 14.97,
+    "INDUSTRY_PE_NEW": 33.44,
+    "TOTAL_ISSUE_NUM": 1804.4853,
+    "ISSUE_NUM": 1804.4853,
+    "CLOSE_PRICE": 28.06,
+    "LD_CLOSE_CHANGE": 160.7807,
+    "TURNOVERRATE": 81.7337,
+    "SW_INDUSTRY": null,
+    "INDUSTRY": null
+  },
+  "pdf_signature": {
+    "listing": {
+      "name": "920076国亮新材上市公告书.pdf",
+      "size": 820695,
+      "mtime_ns": 1776223510000000000
+    },
+    "old_shares": {
+      "name": "920076国亮新材招股说明书.pdf",
+      "size": 6986039,
+      "mtime_ns": 1776223474000000000
+    },
+    "comparables": {
+      "name": "920076国亮新材招股说明书.pdf",
+      "size": 6986039,
+      "mtime_ns": 1776223474000000000
+    }
+  },
+  "item": {
+    "SECURITY_CODE": "920076",
+    "SECURITY_NAME_ABBR": "国亮新材",
+    "APPLY_DATE": "2026-01-14 00:00:00",
+    "LISTING_DATE": "2026-01-22 00:00:00",
+    "ISSUE_PRICE": 10.76,
+    "AFTER_ISSUE_PE": 14.97,
+    "INDUSTRY_PE_NEW": 33.44,
+    "TOTAL_ISSUE_NUM": 1804.4853,
+    "CLOSE_PRICE": 28.06,
+    "AVERAGE_PRICE": 29.91233555870802,
+    "LD_CLOSE_CHANGE": 160.7807,
+    "LD_AVERAGE_CHANGE": 177.99568363111544,
+    "TURNOVERRATE": 81.7337,
+    "SW_INDUSTRY": "",
+    "INDUSTRY": "",
+    "industry_primary": "化工新材",
+    "industry_secondary": "金属新材料",
+    "industry_source": "built_in_sample_map",
+    "old_shares": 352.1049,
+    "old_shares_desc": "352.10 万股（PDF 提取：上市公告书）",
+    "old_shares_meta": {
+      "value_wan_shares": 352.1049,
+      "source_file_type": "上市公告书",
+      "source_rule": "listing_table",
+      "source_anchor": "本次发行前后的股本结构变动情况 -> 无限售流通股小计",
+      "raw_snippet": "配售对象小计62,068,58994.6363,873,07476.37--二、无限售流通股小计3,521,0495.3719,761,41723.63--50序号股东名称本次发行前本次发行后限售期限备注数量（股）占比（%）数量（股）占比（%）合计65,589,638100.0083,634,491100.00--注1：本次发行不安排超额配售选择权；注2：以",
+      "confidence": 0.98,
+      "unit": "股",
+      "pre_unrestricted_wan_shares": 352.1049,
+      "listing_pdf_found": true,
+      "prospectus_pdf_found": true,
+      "selected_source_label": "上市公告书",
+      "fallback_used": false
+    },
+    "float_shares": 2156.5902,
+    "has_intraday_file": true,
+    "comparable_codes": [
+      "002392.SZ",
+      "002225.SZ",
+      "688119.SH",
+      "002066.SZ",
+      "833580.NQ"
+    ],
+    "comparable_data": [
+      {
+        "code": "002392.SZ",
+        "name": "002392.SZ",
+        "close": 8.74,
+        "pe_ttm": 29.175,
+        "pb_lf": 1.8041,
+        "mkt_cap": 104.04889933,
+        "trade_date": "20260121",
+        "source": "tushare_historical",
+        "close_source": "tushare_historical",
+        "pe_source": "tushare_historical",
+        "pb_source": "tushare_historical",
+        "mkt_cap_source": "tushare_historical"
+      },
+      {
+        "code": "002225.SZ",
+        "name": "002225.SZ",
+        "close": 6.35,
+        "pe_ttm": 68.7835,
+        "pb_lf": 1.7859,
+        "mkt_cap": 73.61168583,
+        "trade_date": "20260121",
+        "source": "tushare_historical",
+        "close_source": "tushare_historical",
+        "pe_source": "tushare_historical",
+        "pb_source": "tushare_historical",
+        "mkt_cap_source": "tushare_historical"
+      },
+      {
+        "code": "688119.SH",
+        "name": "688119.SH",
+        "close": 6.88,
+        "pe_ttm": null,
+        "pb_lf": 2.5969,
+        "mkt_cap": 77.4,
+        "trade_date": "20260121",
+        "source": "tushare_historical",
+        "close_source": "tushare_historical",
+        "pe_source": "tushare_historical",
+        "pb_source": "tushare_historical",
+        "mkt_cap_source": "tushare_historical"
+      },
+      {
+        "code": "002066.SZ",
+        "name": "002066.SZ",
+        "close": 20.92,
+        "pe_ttm": 271.1249,
+        "pb_lf": 6.9552,
+        "mkt_cap": 49.1425444,
+        "trade_date": "20260121",
+        "source": "tushare_historical",
+        "close_source": "tushare_historical",
+        "pe_source": "tushare_historical",
+        "pb_source": "tushare_historical",
+        "mkt_cap_source": "tushare_historical"
+      }
+    ],
+    "comparable_summary": {
+      "provider": "tushare_historical",
+      "requested_codes": [
+        "002392.SZ",
+        "002225.SZ",
+        "688119.SH",
+        "002066.SZ",
+        "833580.NQ"
+      ],
+      "returned_codes": [
+        "002392.SZ",
+        "002225.SZ",
+        "688119.SH",
+        "002066.SZ"
+      ],
+      "cache_hits": [],
+      "api_fetched": [
+        "002392.SZ",
+        "002225.SZ",
+        "688119.SH",
+        "002066.SZ"
+      ],
+      "skipped_unsupported": [
+        "833580.NQ"
+      ],
+      "reference_trade_date": "20260121",
+      "reason": ""
+    },
+    "method1_replay_available": true,
+    "average_price_source": "intraday_csv",
+    "average_price_reason": "",
+    "average_price_calc_version": 3,
+    "average_price_unit_mode": "volume_shares_amount_yuan",
+    "average_price_reference": 28.88
+  }
+}

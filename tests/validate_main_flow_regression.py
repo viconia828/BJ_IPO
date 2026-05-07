@@ -444,7 +444,7 @@ def _assert_recent_table_time_window(failures: list[str]) -> None:
         },
         "params": {
             "price_range_width": 0.15,
-            "recent_months": 3,
+            "recent_days": 90,
             "ipo_data_source": "eastmoney",
             "comparable_data_source": "wind",
         },
@@ -500,7 +500,63 @@ def _assert_recent_table_time_window(failures: list[str]) -> None:
     _assert_not_contains(markdown, ("过旧样本", "未来样本"), failures, "recent table window")
 
 
+def _assert_report_overview_text(failures: list[str]) -> None:
+    overview = report_generator.build_report_overview_text(
+        {
+            "analysis_date": "2026-04-18",
+            "ipo_info": {
+                "SECURITY_CODE": "920000",
+                "SECURITY_NAME_ABBR": "占位样本",
+                "ISSUE_PRICE": 10.0,
+                "AFTER_ISSUE_PE": 15.0,
+                "INDUSTRY_PE_NEW": 20.0,
+                "APPLY_DATE": "2026-04-18",
+                "LISTING_DATE": "2026-04-25",
+                "TOP_APPLY_MARKETCAP": 1234.5,
+            },
+            "industry": {"display_name": "通用设备"},
+            "method1": {"available": False, "reason": "test"},
+            "method2": {"available": False, "reason": "test"},
+            "final": {
+                "available": True,
+                "target_price": 13.4,
+                "range_low": 12.3,
+                "range_high": 14.5,
+            },
+            "params": {
+                "price_range_width": 0.10,
+                "recent_days": 90,
+                "ipo_data_source": "eastmoney",
+                "comparable_data_source": "wind",
+            },
+            "notes": [],
+            "recent_ipos": [],
+            "comparable_data": [],
+            "float_shares": 500.0,
+            "old_shares_desc": "无",
+            "company_description": "",
+            "final_change_pct": None,
+            "range_change_low": None,
+            "range_change_high": None,
+            "listing_pdf_found": False,
+        }
+    )
+    expected = (
+        "代码 920000\n"
+        "名称 占位样本\n"
+        "申购日期 2026-04-18\n"
+        "市盈率 15.00\n"
+        "最大申购上限（万元） 1234.50\n"
+        "上市日期\n"
+        "估价区间（元） 12.30 - 14.50\n"
+    )
+    if overview != expected:
+        failures.append(f"overview text mismatch: {overview!r}")
+
+
 def _assert_note_builder_focus_scope(params: dict[str, Any], failures: list[str]) -> None:
+    note_params = dict(params)
+    note_params["float_size_threshold"] = 2000
     noisy_notes = note_builder.generate_notes(
         {
             "ipo_info": {
@@ -536,7 +592,7 @@ def _assert_note_builder_focus_scope(params: dict[str, Any], failures: list[str]
                 "reason": "这条 IPO 说明不应再出现在关注提示里。",
             },
         },
-        params,
+        note_params,
     )
     expected_notes = [
         "当前标的尚未完成行业映射，方法二已自动回退全市场样本。建议在 `策略参数.txt` 中补充 `stock_industry` 或行业映射。",
@@ -558,7 +614,7 @@ def _assert_note_builder_focus_scope(params: dict[str, Any], failures: list[str]
             "old_shares_desc": "0.00 万股（PDF 提取：上市公告书）",
             "old_shares_meta": {},
         },
-        params,
+        note_params,
     )
     if low_pe_notes != ["发行 PE 显著低于行业 PE，定价具备一定折价优势。"]:
         failures.append(f"note_builder low PE mismatch: {low_pe_notes}")
@@ -591,6 +647,7 @@ def main() -> int:
     failures: list[str] = []
     _assert_missing_online_va_num_placeholder(failures)
     _assert_recent_table_time_window(failures)
+    _assert_report_overview_text(failures)
     _assert_note_builder_focus_scope(params, failures)
 
     for case in REGRESSION_CASES:

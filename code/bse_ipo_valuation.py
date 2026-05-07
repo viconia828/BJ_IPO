@@ -279,7 +279,9 @@ def build_analysis_data(
     params = dict(params) if params is not None else config_loader.load_params(ROOT_DIR / "策略参数.txt")
     mapper = IndustryMapper(params)
 
-    ipo_data_bundle = ipo_data_helper.prepare_ipo_data(code, int(params.get("recent_months", 3)), params)
+    recent_days = config_loader.resolve_recent_days(params)
+    recent_months_compat = max((recent_days + 29) // 30, 1)
+    ipo_data_bundle = ipo_data_helper.prepare_ipo_data(code, recent_months_compat, params)
     ipo_info = ipo_data_bundle.get("ipo_info") or {}
     ipo_data_summary = ipo_data_bundle.get("summary") or {}
     industry = mapper.resolve_stock_industry(code, ipo_info)
@@ -422,6 +424,7 @@ def build_analysis_data(
         "company_description": company_description,
         "prospectus_download_error": prospectus_download_error,
         "listing_download_error": listing_download_error,
+        "listing_pdf_found": listing_pdf is not None,
         "comparable_codes": comparable_codes,
         "comparable_data": comparable_data,
         "comparable_summary": comparable_summary,
@@ -500,7 +503,10 @@ def main() -> int:
         return 1
 
     report_path = Path(output_path).resolve()
+    overview_path = report_path.with_name(f"{report_path.stem}_一览.txt")
     print(f"报告已生成：{report_path}")
+    if overview_path.exists():
+        print(f"一览已生成：{overview_path}")
     print(f"报告所在目录：{report_path.parent}")
     if interactive:
         print("可直接打开上面的完整路径，或到“输出”文件夹中查看生成的 PDF 报告。")

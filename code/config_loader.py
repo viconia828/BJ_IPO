@@ -22,6 +22,7 @@ TUNING_RUNTIME_DEFAULTS: dict[str, Any] = {
     "tuning_min_train_samples": 8,
     "tuning_top_n": 10,
 }
+DEFAULT_RECENT_DAYS = 90
 
 
 def _strip_inline_comment(raw_line: str) -> str:
@@ -84,6 +85,18 @@ def _parse_old_shares(raw_value: Any) -> str | float:
         raise ValueError(f"old_shares_transfer 配置非法: {raw_value}") from exc
 
 
+def resolve_recent_days(params: dict[str, Any]) -> int:
+    raw_days = params.get("recent_days")
+    if raw_days not in (None, ""):
+        return max(int(float(raw_days)), 1)
+
+    raw_months = params.get("recent_months")
+    if raw_months not in (None, ""):
+        return max(int(float(raw_months)) * 30, 1)
+
+    return DEFAULT_RECENT_DAYS
+
+
 def _validate_params(params: dict[str, Any]) -> None:
     comparable_data_source = str(params.get("comparable_data_source", SYSTEM_SOURCE_DEFAULTS["comparable_data_source"])).strip().lower() or SYSTEM_SOURCE_DEFAULTS["comparable_data_source"]
     if comparable_data_source not in {"wind", "tushare"}:
@@ -127,6 +140,8 @@ def _validate_params(params: dict[str, Any]) -> None:
 
     if float(params.get("sample_decay_half_life_days", 20)) <= 0:
         raise ValueError("sample_decay_half_life_days 必须大于 0")
+    if int(params.get("recent_days", DEFAULT_RECENT_DAYS)) <= 0:
+        raise ValueError("recent_days 必须大于 0")
     if int(params.get("wind_daily_request_quota", 20)) < 0:
         raise ValueError("wind_daily_request_quota 不能小于 0")
     if int(params.get("wind_batch_size", 20)) <= 0:
@@ -216,6 +231,9 @@ def load_params(filepath: str | Path = ROOT_DIR / "策略参数.txt") -> dict[st
     params["tushare_token_env"] = str(params.get("tushare_token_env", SYSTEM_SOURCE_DEFAULTS["tushare_token_env"])).strip() or SYSTEM_SOURCE_DEFAULTS["tushare_token_env"]
     params["tushare_cache_root"] = str(params.get("tushare_cache_root", SYSTEM_SOURCE_DEFAULTS["tushare_cache_root"])).strip() or SYSTEM_SOURCE_DEFAULTS["tushare_cache_root"]
     params["stock_industry"] = str(params.get("stock_industry", "auto")).strip() or "auto"
+    params["recent_days"] = resolve_recent_days(params)
+    if "recent_months" not in params:
+        params["recent_months"] = max((int(params["recent_days"]) + 29) // 30, 1)
     for key, default_value in TUNING_RUNTIME_DEFAULTS.items():
         params[key] = params.get(key, default_value)
 

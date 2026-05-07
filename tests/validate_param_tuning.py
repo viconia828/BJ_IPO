@@ -5,6 +5,7 @@ import os
 import re
 import shutil
 import subprocess
+from datetime import date
 from types import SimpleNamespace
 from pathlib import Path
 import sys
@@ -18,6 +19,8 @@ if str(CODE_DIR) not in sys.path:
     sys.path.insert(0, str(CODE_DIR))
 
 import param_tuning
+import listing_average_price_helper
+import valuation_engine
 
 import importlib.util
 
@@ -78,6 +81,7 @@ def _base_params(**overrides: Any) -> dict[str, Any]:
         "market_sentiment_weight": 0.40,
         "sample_weight_mode": "static",
         "sample_decay_half_life_days": 20,
+        "recent_days": 365,
         "price_range_width": 0.10,
         "weight_comparable": 0.50,
         "weight_industry_momentum": 0.50,
@@ -115,7 +119,11 @@ def _make_item_with_comparables(
         "INDUSTRY_PE_NEW": 20.0,
         "TOTAL_ISSUE_NUM": float_shares,
         "CLOSE_PRICE": round(close_price, 4),
+        "AVERAGE_PRICE": round(close_price, 4),
         "LD_CLOSE_CHANGE": change_pct,
+        "LD_AVERAGE_CHANGE": change_pct,
+        "average_price_source": "fixture",
+        "average_price_reason": "",
         "TURNOVERRATE": 75.0,
         "SW_INDUSTRY": "电子",
         "INDUSTRY": "半导体",
@@ -173,6 +181,7 @@ def _make_method2_dataset() -> dict[str, Any]:
     ]
     return {
         "schema": param_tuning.DATASET_SCHEMA,
+        "replay_item_cache_version": param_tuning.REPLAY_ITEM_CACHE_VERSION,
         "evaluation_scope": param_tuning.METHOD2_ONLY_SCOPE,
         "generated_at": "2026-04-18 18:00:00",
         "source_months": 12,
@@ -200,6 +209,7 @@ def _make_composite_dataset() -> dict[str, Any]:
     ]
     return {
         "schema": param_tuning.DATASET_SCHEMA,
+        "replay_item_cache_version": param_tuning.REPLAY_ITEM_CACHE_VERSION,
         "evaluation_scope": param_tuning.COMPOSITE_EVALUATION_SCOPE,
         "generated_at": "2026-04-20 10:00:00",
         "source_months": 12,
@@ -341,6 +351,126 @@ def manual_dataset_auto_refresh_failure_fallback_case(failures: list[str]) -> No
     )
 
 
+def replay_item_cache_incremental_case(failures: list[str]) -> None:
+    _reset_dir(TEMP_ROOT)
+    cache_dir = TEMP_ROOT / "replay_items"
+    existing_dataset = _make_method2_dataset()
+    existing_dataset["items"] = [existing_dataset["items"][0]]
+    for key in ("AVERAGE_PRICE", "LD_AVERAGE_CHANGE", "average_price_source", "average_price_reason"):
+        existing_dataset["items"][0].pop(key, None)
+    existing_dataset["sample_codes"] = ["000001"]
+    existing_dataset["requested_codes"] = ["000001"]
+    existing_dataset["available_count"] = 1
+
+    def _record(code: str, listing_date: str, change_pct: float) -> dict[str, Any]:
+        issue_price = 10.0
+        return {
+            "SECURITY_CODE": code,
+            "SECURITY_NAME_ABBR": f"样本{code}",
+            "APPLY_DATE": listing_date,
+            "LISTING_DATE": listing_date,
+            "ISSUE_PRICE": issue_price,
+            "AFTER_ISSUE_PE": 10.0,
+            "INDUSTRY_PE_NEW": 20.0,
+            "TOTAL_ISSUE_NUM": 3000.0,
+            "CLOSE_PRICE": issue_price * (1 + change_pct / 100),
+            "LD_CLOSE_CHANGE": change_pct,
+            "TURNOVERRATE": 75.0,
+            "SW_INDUSTRY": "电子",
+            "INDUSTRY": "半导体",
+        }
+
+    records = [
+        _record("000001", "2026-01-01", 40.0),
+        _record("000002", "2026-01-10", 50.0),
+    ]
+    build_calls: list[str] = []
+
+    class FakeIndustryMapper:
+        def __init__(self, params: dict[str, Any]) -> None:
+            self.params = params
+
+        def enrich_recent_ipos(self, raw_records: list[dict[str, Any]]) -> list[dict[str, Any]]:
+            return list(raw_records)
+
+        def resolve_stock_industry(self, code: str, record: dict[str, Any]) -> SimpleNamespace:
+            _ = (code, record)
+            return SimpleNamespace(primary="信息技术", secondary="电子", source="fixture")
+
+    original_fetch = param_tuning.data_fetcher.fetch_recent_ipos
+    original_mapper = param_tuning.IndustryMapper
+    original_pdf_paths = param_tuning._resolve_replay_pdf_paths
+    original_pdf_inputs = param_tuning._build_pdf_inputs_from_paths
+    original_resolve_average = param_tuning._resolve_listing_average_price
+    try:
+        param_tuning.data_fetcher.fetch_recent_ipos = lambda months=12, page_size=100: list(records)
+        param_tuning.IndustryMapper = FakeIndustryMapper
+        param_tuning._resolve_replay_pdf_paths = lambda code: {"listing": None, "old_shares": None, "comparables": None}
+        param_tuning._resolve_listing_average_price = lambda *args, **kwargs: {
+            "average_price": 11.0,
+            "source": "fixture_average",
+            "reason": "",
+        }
+        invalid_cached_item = dict(existing_dataset["items"][0])
+        invalid_record_signature = param_tuning._build_replay_record_signature(records[0])
+        invalid_pdf_signature = {"listing": None, "old_shares": None, "comparables": None}
+        param_tuning.save_replay_item_cache(
+            invalid_cached_item,
+            invalid_record_signature,
+            invalid_pdf_signature,
+            cache_dir,
+        )
+
+        def _fake_pdf_inputs(params: dict[str, Any], pdf_paths: dict[str, Any]) -> tuple[float, str, dict[str, Any]]:
+            _ = (params, pdf_paths)
+            build_calls.append("built")
+            return 0.0, "0 万股（fixture）", {}
+
+        param_tuning._build_pdf_inputs_from_paths = _fake_pdf_inputs
+
+        first_dataset = param_tuning.build_replay_dataset(
+            _base_params(),
+            months=12,
+            sample_codes=["000001", "000002"],
+            item_cache_dir=cache_dir,
+            existing_dataset=existing_dataset,
+        )
+        first_cache = first_dataset.get("item_cache") or {}
+        _assert(first_dataset.get("sample_codes") == ["000001", "000002"], "增量同步后样本代码不正确", failures)
+        _assert(len(build_calls) == 1, "已有样本应轻量补齐均价后复用旧聚合数据集，只新建新增样本", failures)
+        _assert(first_cache.get("existing_dataset_reused") == 1, "应记录复用旧数据集条目数", failures)
+        _assert(first_cache.get("misses") == 1, "应只为新增样本产生一次缓存 miss", failures)
+        _assert(first_cache.get("writes") == 2, "复用旧条目和新建条目都应写入单样本缓存", failures)
+        _assert_close(
+            (first_dataset.get("items") or [{}])[0].get("AVERAGE_PRICE"),
+            11.0,
+            "旧回放条目应只补齐首日成交均价",
+            failures,
+        )
+        _assert(
+            (first_dataset.get("items") or [{}])[0].get("average_price_source") == "fixture_average",
+            "旧回放条目应记录补齐均价来源",
+            failures,
+        )
+
+        build_calls.clear()
+        second_dataset = param_tuning.build_replay_dataset(
+            _base_params(),
+            months=12,
+            sample_codes=["000001", "000002"],
+            item_cache_dir=cache_dir,
+        )
+        second_cache = second_dataset.get("item_cache") or {}
+        _assert(len(build_calls) == 0, "单样本缓存齐全时不应重新构建回放条目", failures)
+        _assert(second_cache.get("hits") == 2, "第二次构建应命中两个单样本缓存", failures)
+    finally:
+        param_tuning.data_fetcher.fetch_recent_ipos = original_fetch
+        param_tuning.IndustryMapper = original_mapper
+        param_tuning._resolve_replay_pdf_paths = original_pdf_paths
+        param_tuning._build_pdf_inputs_from_paths = original_pdf_inputs
+        param_tuning._resolve_listing_average_price = original_resolve_average
+
+
 def replay_metrics_case(failures: list[str]) -> None:
     dataset = _make_method2_dataset()
     base_metrics = param_tuning.evaluate_replay_targets(
@@ -382,6 +512,340 @@ def ranking_case(failures: list[str]) -> None:
         "ranking 推荐参数应命中 small_cap_premium=0.10",
         failures,
     )
+
+
+def auto_score_case(failures: list[str]) -> None:
+    reference_date = date(2026, 2, 20)
+    same_hit_metrics = {
+        "available_results": [
+            {
+                "listing_date": "2026-02-20",
+                "actual_close_price": 10.0,
+                "range_low": 9.0,
+                "range_high": 11.0,
+                "change_abs_error": 0.0,
+            }
+        ]
+    }
+    narrow_score = param_tuning._score_auto_metrics(
+        same_hit_metrics,
+        _base_params(price_range_width=0.10),
+        reference_date,
+    )
+    wide_score = param_tuning._score_auto_metrics(
+        same_hit_metrics,
+        _base_params(price_range_width=0.50),
+        reference_date,
+    )
+    _assert_close(narrow_score["auto_score"], wide_score["auto_score"], "固定手动区间宽度不应影响自动调参排序分", failures)
+    _assert(
+        float(wide_score["width_diagnostic_penalty"]) > float(narrow_score["width_diagnostic_penalty"]),
+        "自动调参应单独展示更宽手动区间对应的诊断扣分",
+        failures,
+    )
+
+    recency_metrics = {
+        "available_results": [
+            {
+                "listing_date": "2025-11-01",
+                "actual_close_price": 10.0,
+                "range_low": 9.0,
+                "range_high": 11.0,
+                "change_abs_error": 0.0,
+            },
+            {
+                "listing_date": "2026-02-20",
+                "actual_close_price": 13.0,
+                "range_low": 9.0,
+                "range_high": 11.0,
+                "change_abs_error": 30.0,
+            },
+        ]
+    }
+    recency_score = param_tuning._score_auto_metrics(
+        recency_metrics,
+        _base_params(price_range_width=0.10),
+        reference_date,
+    )
+    _assert_close(
+        recency_score.get("weighted_interval_hit_rate"),
+        0.0,
+        "3 个月前命中样本应衰减到忽略不计",
+        failures,
+    )
+
+    recent_floor_metrics = {
+        "available_results": [
+            {
+                "listing_date": "2026-03-31",
+                "actual_close_price": 10.0,
+                "range_low": 9.0,
+                "range_high": 11.0,
+                "change_abs_error": 0.0,
+            },
+            *[
+                {
+                    "listing_date": "2026-02-14",
+                    "actual_close_price": 13.0,
+                    "range_low": 9.0,
+                    "range_high": 11.0,
+                    "change_abs_error": 30.0,
+                }
+                for _ in range(6)
+            ],
+        ]
+    }
+    recent_floor_score = param_tuning._score_auto_metrics(
+        recent_floor_metrics,
+        _base_params(price_range_width=0.10),
+        date(2026, 3, 31),
+    )
+    _assert_close(
+        recent_floor_score.get("recent_weight_share"),
+        0.5,
+        "最近 30 天样本总权重不足时应抬到 50%",
+        failures,
+    )
+    _assert(
+        recent_floor_score.get("recent_floor_applied") is True,
+        "最近 30 天样本权重下限应标记为已生效",
+        failures,
+    )
+    _assert_close(
+        recent_floor_score.get("weighted_interval_hit_rate"),
+        0.5,
+        "最近 30 天样本命中且被抬权后，加权命中率应体现 50% 权重",
+        failures,
+    )
+
+
+def auto_tune_case(failures: list[str]) -> None:
+    dataset = _make_method2_dataset()
+    params = _base_params(small_cap_premium=0.0, price_range_width=0.10)
+    result = param_tuning.auto_tune_params(
+        dataset,
+        params,
+        top_n=3,
+        max_passes=1,
+        candidate_limit=120,
+    )
+    overrides = dict(result.get("changed_overrides") or {})
+    baseline_score = (((result.get("baseline") or {}).get("auto_score") or {}).get("auto_score"))
+    best_score = (((result.get("best") or {}).get("auto_score") or {}).get("auto_score"))
+    _assert(overrides, "自动调参应给出优于 fixture baseline 的参数修改", failures)
+    _assert(float(best_score) > float(baseline_score), "自动调参组合分应优于 baseline", failures)
+    _assert(
+        "small_cap_premium" in overrides,
+        "自动调参应能识别 fixture 中的小盘溢价参数",
+        failures,
+    )
+    _assert("price_range_width" not in overrides, "自动调参不应建议修改 price_range_width", failures)
+
+
+def replay_recent_days_window_case(failures: list[str]) -> None:
+    dataset = _make_method2_dataset()
+    wide_metrics = param_tuning.evaluate_replay_targets(
+        dataset,
+        _base_params(recent_days=365),
+        target_codes=["000006"],
+    )
+    narrow_metrics = param_tuning.evaluate_replay_targets(
+        dataset,
+        _base_params(recent_days=20),
+        target_codes=["000006"],
+    )
+    wide_result = (wide_metrics.get("available_results") or [{}])[0]
+    narrow_result = (narrow_metrics.get("available_results") or [{}])[0]
+    _assert(
+        wide_result.get("historical_sample_count") == 5,
+        "replay 宽窗口应纳入目标上市日前全部历史样本",
+        failures,
+    )
+    _assert(
+        narrow_result.get("historical_sample_count") == 2,
+        "replay 窄窗口应只纳入 recent_days 天内历史样本",
+        failures,
+    )
+    _assert(
+        narrow_result.get("sample_codes") == ["000005", "000004"],
+        "replay 窄窗口样本代码应按目标上市日前 recent_days 截取",
+        failures,
+    )
+
+
+def interval_hit_uses_average_price_case(failures: list[str]) -> None:
+    item1 = _make_item("000001", "2026-01-01", 0.0, 3000.0)
+    item2 = _make_item("000002", "2026-01-10", 30.0, 3000.0)
+    item2["CLOSE_PRICE"] = 13.0
+    item2["AVERAGE_PRICE"] = 10.0
+    item2["LD_AVERAGE_CHANGE"] = 0.0
+    item2["average_price_source"] = "fixture"
+    dataset = {
+        "schema": param_tuning.DATASET_SCHEMA,
+        "evaluation_scope": param_tuning.METHOD2_ONLY_SCOPE,
+        "generated_at": "2026-04-18 18:00:00",
+        "source_months": 12,
+        "sample_codes": ["000001", "000002"],
+        "requested_codes": ["000001", "000002"],
+        "available_count": 2,
+        "method1_ready_count": 0,
+        "method1_ready_rate": 0.0,
+        "skipped": [],
+        "caveats": [],
+        "items": [item1, item2],
+    }
+    metrics = param_tuning.evaluate_replay_targets(
+        dataset,
+        _base_params(price_range_width=0.05, recent_days=365),
+        target_codes=["000002"],
+    )
+    result = (metrics.get("available_results") or [{}])[0]
+    _assert_close(
+        metrics.get("interval_hit_rate"),
+        1.0,
+        "区间命中应按首日成交均价而不是收盘价判断",
+        failures,
+    )
+    _assert_close(
+        result.get("actual_interval_price"),
+        10.0,
+        "命中判定实际价格应使用首日成交均价",
+        failures,
+    )
+
+
+def method2_uses_average_change_case(failures: list[str]) -> None:
+    recent_ipos = [
+        {
+            "SECURITY_CODE": "000001",
+            "SECURITY_NAME_ABBR": "样本000001",
+            "LISTING_DATE": "2026-01-01",
+            "ISSUE_PRICE": 10.0,
+            "CLOSE_PRICE": 20.0,
+            "AVERAGE_PRICE": 10.0,
+            "LD_CLOSE_CHANGE": 100.0,
+            "LD_AVERAGE_CHANGE": 0.0,
+            "industry_primary": "电子",
+            "industry_secondary": "半导体",
+        }
+    ]
+    result = valuation_engine.method2_industry_momentum(
+        issue_price=10.0,
+        issue_pe=10.0,
+        industry_pe=20.0,
+        float_shares=3000.0,
+        industry={"primary": "电子", "secondary": "半导体"},
+        recent_ipos=recent_ipos,
+        params=_base_params(min_industry_samples=1, recent_days=365),
+        target_code="000002",
+        target_listing_date="2026-02-01",
+    )
+    _assert(result.get("available"), "方法二应可基于样本生成结果", failures)
+    _assert_close(
+        result.get("target_price"),
+        10.0,
+        "正式估值方法二应使用首日成交均价涨幅而不是收盘涨幅",
+        failures,
+    )
+
+
+def intraday_average_price_cache_case(failures: list[str]) -> None:
+    temp_root = TEMP_ROOT / "listing_average_price_cache"
+    _reset_dir(temp_root)
+    intraday_dir = temp_root / "intraday"
+    intraday_dir.mkdir(parents=True, exist_ok=True)
+    cache_path = temp_root / "cache.json"
+    (intraday_dir / "999998.csv").write_text(
+        "DateTime,open,high,low,close,volume,amount\n"
+        "2026-01-01 09:30,10,10,10,10,100,1000\n"
+        "2026-01-01 09:31,12,12,12,12,200,2400\n",
+        encoding="utf-8-sig",
+    )
+    (intraday_dir / "999997.csv").write_text(
+        "DateTime,open,high,low,close,volume,amount,备注\n"
+        "2026-01-01 09:30,10,10,10,10,100,1000,中文\n"
+        "2026-01-01 09:31,12,12,12,12,200,2400,中文\n",
+        encoding="gbk",
+    )
+    (intraday_dir / "999996.csv").write_text(
+        "DateTime,open,high,low,close,volume,amount\n"
+        "2026-01-01 09:30,10,10,10,10,1,1000\n"
+        "2026-01-01 09:31,12,12,12,12,2,2400\n",
+        encoding="utf-8-sig",
+    )
+    first = listing_average_price_helper.resolve_intraday_average_price(
+        "999998",
+        intraday_dir=intraday_dir,
+        cache_path=cache_path,
+    )
+    second = listing_average_price_helper.resolve_intraday_average_price(
+        "999998",
+        intraday_dir=intraday_dir,
+        cache_path=cache_path,
+    )
+    legacy = listing_average_price_helper.resolve_intraday_average_price(
+        "999997",
+        intraday_dir=intraday_dir,
+        cache_path=cache_path,
+    )
+    _assert_close(first.get("average_price"), 11.3333333333, "CSV 首日成交均价计算不正确", failures)
+    _assert_close(second.get("average_price"), 11.3333333333, "CSV 首日成交均价缓存读取不正确", failures)
+    _assert_close(legacy.get("average_price"), 11.3333333333, "GBK CSV 首日成交均价计算不正确", failures)
+    _assert(legacy.get("source") == "intraday_csv", "GBK CSV 应使用本地分时 CSV 来源", failures)
+    _assert(cache_path.exists(), "CSV 首日成交均价应写入缓存", failures)
+
+
+def intraday_average_price_hands_unit_case(failures: list[str]) -> None:
+    temp_root = TEMP_ROOT / "listing_average_price_hands_unit"
+    _reset_dir(temp_root)
+    intraday_dir = temp_root / "intraday"
+    intraday_dir.mkdir(parents=True, exist_ok=True)
+    cache_path = temp_root / "cache.json"
+    (intraday_dir / "999996.csv").write_text(
+        "DateTime,open,high,low,close,volume,amount\n"
+        "2026-01-01 09:30,10,10,10,10,1,1000\n"
+        "2026-01-01 09:31,12,12,12,12,2,2400\n",
+        encoding="utf-8-sig",
+    )
+    result = listing_average_price_helper.resolve_intraday_average_price(
+        "999996",
+        intraday_dir=intraday_dir,
+        cache_path=cache_path,
+    )
+    _assert_close(result.get("average_price"), 11.3333333333, "成交量为手的 CSV 首日成交均价计算不正确", failures)
+    _assert(result.get("unit_mode") == "volume_hands_amount_yuan", "成交量为手的 CSV 应识别成交量单位", failures)
+
+
+def auto_candidate_groups_exclude_width_case(failures: list[str]) -> None:
+    groups = param_tuning.build_auto_tune_candidate_groups(_base_params(price_range_width=0.10), _make_method2_dataset())
+    group_names = [name for name, _ in groups]
+    _assert("估值区间宽度" not in group_names, "自动调参不应包含估值区间宽度候选组", failures)
+    width_candidates = [
+        candidate
+        for _, candidates in groups
+        for candidate in candidates
+        if "price_range_width" in candidate
+    ]
+    _assert(not width_candidates, "自动调参候选不应修改 price_range_width", failures)
+    trend_keys = {
+        "trend_strong_boost",
+        "trend_weak_discount",
+        "trend_strong_threshold",
+        "trend_weak_threshold",
+    }
+    all_candidate_keys = {
+        key
+        for _, candidates in groups
+        for candidate in candidates
+        for key in candidate
+    }
+    _assert(
+        trend_keys.issubset(all_candidate_keys),
+        "自动调参应覆盖强弱加成和强弱阈值四项",
+        failures,
+    )
+    for expected_group in ["强势走势加成", "弱势走势折价", "强势走势阈值", "弱势走势阈值"]:
+        _assert(expected_group in group_names, f"自动调参应拆出模块：{expected_group}", failures)
 
 
 def review_case(failures: list[str]) -> None:
@@ -877,18 +1341,33 @@ def manual_observe_no_change_cli_case(failures: list[str]) -> None:
     dataset = _make_method2_dataset()
     dataset_path = TEMP_ROOT / "replay_dataset.json"
     output_dir = TEMP_ROOT / "manual_observe_no_change_reports"
+    params_path = TEMP_ROOT / "manual_observe_no_change_params.txt"
 
     param_tuning.save_replay_dataset(dataset, dataset_path)
+    _write_temp_params_file(
+        params_path,
+        {
+            "small_cap_premium": 0.10,
+            "price_range_width": 0.10,
+            "float_size_threshold": 1500,
+            "pe_low_threshold": 0.20,
+            "pe_discount_boost": 0.10,
+            "pe_high_threshold": 0.60,
+            "pe_premium_drag": -0.10,
+        },
+    )
 
     command = [
         sys.executable,
         str(ROOT_DIR / "tools" / "tune_params.py"),
         "--mode",
         "observe",
+        "--params-file",
+        str(params_path),
         "--dataset-path",
         str(dataset_path),
         "--candidate",
-        "small_cap_premium=0.10,price_range_width=0.12,float_size_threshold=1500,pe_low_threshold=0.20,pe_discount_boost=0.10,pe_high_threshold=0.60,pe_premium_drag=-0.10",
+        "small_cap_premium=0.10,price_range_width=0.10,float_size_threshold=1500,pe_low_threshold=0.20,pe_discount_boost=0.10,pe_high_threshold=0.60,pe_premium_drag=-0.10",
         "--codes",
         "000004,000005,000006",
         "--output-dir",
@@ -915,11 +1394,132 @@ def manual_observe_no_change_cli_case(failures: list[str]) -> None:
         _assert("本轮无变化样本" in markdown, "manual observe no-change CLI 应提示无变化样本", failures)
 
 
+def auto_cli_accept_case(failures: list[str]) -> None:
+    _reset_dir(TEMP_ROOT)
+    dataset = _make_method2_dataset()
+    dataset_path = TEMP_ROOT / "auto_replay_dataset.json"
+    params_path = TEMP_ROOT / "auto_params.txt"
+    record_path = TEMP_ROOT / "auto_record.txt"
+
+    param_tuning.save_replay_dataset(dataset, dataset_path)
+    _write_temp_params_file(
+        params_path,
+        {
+            "small_cap_premium": 0.0,
+            "price_range_width": 0.10,
+            "recent_days": 365,
+            "tuning_top_n": 3,
+        },
+    )
+
+    command = [
+        sys.executable,
+        str(ROOT_DIR / "tools" / "tune_params.py"),
+        "--mode",
+        "auto",
+        "--params-file",
+        str(params_path),
+        "--dataset-path",
+        str(dataset_path),
+        "--auto-record-path",
+        str(record_path),
+        "--top-n",
+        "3",
+        "--auto-max-refine-stages",
+        "1",
+        "--auto-stage-candidate-limit",
+        "120",
+    ]
+    completed = subprocess.run(
+        command,
+        cwd=ROOT_DIR,
+        input="1\n",
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+        check=False,
+    )
+    _assert(
+        completed.returncode == 0,
+        f"auto CLI 退出码异常: {completed.returncode}\n{completed.stdout}\n{completed.stderr}",
+        failures,
+    )
+    _assert("自动调参阶段完成" in completed.stdout, "auto CLI 应打印阶段完成提示", failures)
+    _assert("第 1 轮后请选择下一步" in completed.stdout, "auto CLI 应在每轮结束后提示下一步", failures)
+    _assert("当前累计建议修改的参数" in completed.stdout, "auto CLI 应打印建议修改参数", failures)
+    _assert("已写入参数文件" in completed.stdout, "auto CLI 接受后应写入参数文件", failures)
+    _assert(record_path.exists(), "auto CLI 接受后应写入自动调参记录", failures)
+    if record_path.exists():
+        record_text = record_path.read_text(encoding="utf-8")
+        _assert("自动调参（已接受）" in record_text, "auto 调参记录应包含接受标题", failures)
+        _assert("修改参数：" in record_text and "->" in record_text, "auto 调参记录应包含修改参数", failures)
+        _assert("方法二样本池截取窗口" in record_text, "auto 调参记录应说明 recent_days 样本池窗口", failures)
+        _assert("评分权重衰减窗口" in record_text, "auto 调参记录应区分评分权重衰减窗口", failures)
+
+
+def auto_cli_continue_then_accept_case(failures: list[str]) -> None:
+    _reset_dir(TEMP_ROOT)
+    dataset = _make_method2_dataset()
+    dataset_path = TEMP_ROOT / "auto_replay_dataset.json"
+    params_path = TEMP_ROOT / "auto_params.txt"
+    record_path = TEMP_ROOT / "auto_record.txt"
+
+    param_tuning.save_replay_dataset(dataset, dataset_path)
+    _write_temp_params_file(
+        params_path,
+        {
+            "small_cap_premium": 0.0,
+            "price_range_width": 0.10,
+            "recent_days": 365,
+            "tuning_top_n": 3,
+        },
+    )
+
+    command = [
+        sys.executable,
+        str(ROOT_DIR / "tools" / "tune_params.py"),
+        "--mode",
+        "auto",
+        "--params-file",
+        str(params_path),
+        "--dataset-path",
+        str(dataset_path),
+        "--auto-record-path",
+        str(record_path),
+        "--top-n",
+        "3",
+        "--auto-max-refine-stages",
+        "2",
+        "--auto-stage-candidate-limit",
+        "120",
+    ]
+    completed = subprocess.run(
+        command,
+        cwd=ROOT_DIR,
+        input="2\n1\n",
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+        check=False,
+    )
+    _assert(
+        completed.returncode == 0,
+        f"auto CLI 二轮接受退出码异常: {completed.returncode}\n{completed.stdout}\n{completed.stderr}",
+        failures,
+    )
+    _assert("第 2 轮完成" in completed.stdout, "auto CLI 选择继续后应执行第二轮", failures)
+    _assert("已写入参数文件" in completed.stdout, "auto CLI 第二轮接受后应写入参数文件", failures)
+    _assert(record_path.exists(), "auto CLI 第二轮接受后应写入自动调参记录", failures)
+
+
 def manual_batch_entry_case(failures: list[str]) -> None:
     _reset_dir(TEMP_ROOT)
     output_dir = TEMP_ROOT / "manual_batch_reports"
     input_text = "\n".join(
         [
+            "1",
             "1",
             "1",
             "",
@@ -929,11 +1529,10 @@ def manual_batch_entry_case(failures: list[str]) -> None:
         ]
     )
     env = os.environ.copy()
-    env["CODEX_BATCH_NO_PAUSE"] = "1"
     env["BSE_TUNING_NO_AUTO_REFRESH"] = "1"
     env["PYTHONIOENCODING"] = "utf-8"
 
-    command = ["cmd", "/c", "手动调参.bat"]
+    command = ["cmd", "/c", "调参.bat", "--no-pause"]
     completed = subprocess.run(
         command,
         cwd=ROOT_DIR,
@@ -950,7 +1549,8 @@ def manual_batch_entry_case(failures: list[str]) -> None:
         f"manual batch 入口退出码异常: {completed.returncode}\n{completed.stdout}\n{completed.stderr}",
         failures,
     )
-    _assert("请选择执行模式" in completed.stdout, "manual batch 入口应显示模式提示词", failures)
+    _assert("请选择调参模式" in completed.stdout, "manual batch 入口应显示总模式提示词", failures)
+    _assert("请选择手动调参执行模式" in completed.stdout, "manual batch 入口应显示手动模式提示词", failures)
     _assert("候选值列表，逗号分隔" in completed.stdout, "manual batch 入口应显示规范候选值提示词", failures)
     _assert("执行完成" in completed.stdout, "manual batch 入口应打印执行完成提示", failures)
     reports = sorted((ROOT_DIR / "输出" / "调参").glob("review_candidate_manual_small_cap_premium_*.json"))
@@ -1128,8 +1728,17 @@ def main() -> int:
     replay_dataset_sync_inspection_case(failures)
     manual_dataset_auto_refresh_gate_case(failures)
     manual_dataset_auto_refresh_failure_fallback_case(failures)
+    replay_item_cache_incremental_case(failures)
     replay_metrics_case(failures)
     ranking_case(failures)
+    auto_score_case(failures)
+    auto_tune_case(failures)
+    replay_recent_days_window_case(failures)
+    interval_hit_uses_average_price_case(failures)
+    method2_uses_average_change_case(failures)
+    intraday_average_price_cache_case(failures)
+    intraday_average_price_hands_unit_case(failures)
+    auto_candidate_groups_exclude_width_case(failures)
     review_case(failures)
     cli_case(failures)
     config_default_cli_case(failures)
@@ -1141,6 +1750,8 @@ def main() -> int:
     manual_auto_normalize_cli_case(failures)
     manual_observe_cli_case(failures)
     manual_observe_no_change_cli_case(failures)
+    auto_cli_accept_case(failures)
+    auto_cli_continue_then_accept_case(failures)
     manual_batch_entry_case(failures)
     wsi_turnover_stage_case(failures)
     unsupported_composite_weight_case(failures)
@@ -1151,7 +1762,7 @@ def main() -> int:
     if failures:
         raise AssertionError("\n".join(failures))
 
-    print("Param tuning validation passed: 23 cases")
+    print("Param tuning validation passed: 34 cases")
     return 0
 
 

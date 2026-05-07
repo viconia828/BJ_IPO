@@ -1,0 +1,137 @@
+{
+  "schema": "offline_tuning_replay_item_v1",
+  "cache_version": 3,
+  "generated_at": "2026-05-07 18:04:13",
+  "code": "920078",
+  "listing_date": "2026-03-18 00:00:00",
+  "record_signature": {
+    "SECURITY_CODE": "920078",
+    "SECURITY_NAME_ABBR": "族兴新材",
+    "APPLY_DATE": "2026-03-09 00:00:00",
+    "LISTING_DATE": "2026-03-18 00:00:00",
+    "ISSUE_PRICE": 6.98,
+    "AFTER_ISSUE_PE": 14.99,
+    "INDUSTRY_PE_NEW": 34.76,
+    "TOTAL_ISSUE_NUM": 2300.0,
+    "ISSUE_NUM": 2300.0,
+    "CLOSE_PRICE": 35.3,
+    "LD_CLOSE_CHANGE": 405.7307,
+    "TURNOVERRATE": 96.391,
+    "SW_INDUSTRY": null,
+    "INDUSTRY": null
+  },
+  "pdf_signature": {
+    "listing": {
+      "name": "920078族兴新材上市公告书.pdf",
+      "size": 885663,
+      "mtime_ns": 1776223032000000000
+    },
+    "old_shares": {
+      "name": "920078族兴新材招股说明书.pdf",
+      "size": 7167071,
+      "mtime_ns": 1776223074000000000
+    },
+    "comparables": {
+      "name": "920078族兴新材招股说明书.pdf",
+      "size": 7167071,
+      "mtime_ns": 1776223074000000000
+    }
+  },
+  "item": {
+    "SECURITY_CODE": "920078",
+    "SECURITY_NAME_ABBR": "族兴新材",
+    "APPLY_DATE": "2026-03-09 00:00:00",
+    "LISTING_DATE": "2026-03-18 00:00:00",
+    "ISSUE_PRICE": 6.98,
+    "AFTER_ISSUE_PE": 14.99,
+    "INDUSTRY_PE_NEW": 34.76,
+    "TOTAL_ISSUE_NUM": 2300.0,
+    "CLOSE_PRICE": 35.3,
+    "AVERAGE_PRICE": 35.70731418099931,
+    "LD_CLOSE_CHANGE": 405.7307,
+    "LD_AVERAGE_CHANGE": 411.5661057449758,
+    "TURNOVERRATE": 96.391,
+    "SW_INDUSTRY": "",
+    "INDUSTRY": "",
+    "industry_primary": "化工新材",
+    "industry_secondary": "金属新材料",
+    "industry_source": "built_in_sample_map",
+    "old_shares": 0.0,
+    "old_shares_desc": "0.00 万股（PDF 提取：上市公告书）",
+    "old_shares_meta": {
+      "value_wan_shares": 0.0,
+      "source_file_type": "上市公告书",
+      "source_rule": "listing_table",
+      "source_anchor": "本次发行前后的股本结构变动情况 -> 无限售流通股小计",
+      "raw_snippet": "售对象小计97,000,000100.0099,300,00082.75--二、无限售流通股小计--20,700,00017.25--合计97,000,000100.00120,000,000100.00--注1：上表中股份比例数值为保留2位小数，若出现各分项数值之和与合计数尾数不符的情况，为四舍五入原因造成；注2：发行人不存在表决权差异安排的情况。65六、",
+      "confidence": 0.95,
+      "unit": "股",
+      "pre_unrestricted_wan_shares": 0.0,
+      "listing_pdf_found": true,
+      "prospectus_pdf_found": true,
+      "selected_source_label": "上市公告书",
+      "fallback_used": false
+    },
+    "float_shares": 2300.0,
+    "has_intraday_file": true,
+    "comparable_codes": [
+      "688157.SH",
+      "300665.SZ"
+    ],
+    "comparable_data": [
+      {
+        "code": "688157.SH",
+        "name": "688157.SH",
+        "close": 37.58,
+        "pe_ttm": 269.0234,
+        "pb_lf": 4.3516,
+        "mkt_cap": 58.78679986,
+        "trade_date": "20260317",
+        "source": "tushare_historical",
+        "close_source": "tushare_historical",
+        "pe_source": "tushare_historical",
+        "pb_source": "tushare_historical",
+        "mkt_cap_source": "tushare_historical"
+      },
+      {
+        "code": "300665.SZ",
+        "name": "300665.SZ",
+        "close": 7.89,
+        "pe_ttm": null,
+        "pb_lf": 3.1278,
+        "mkt_cap": 17.2748181,
+        "trade_date": "20260317",
+        "source": "tushare_historical",
+        "close_source": "tushare_historical",
+        "pe_source": "tushare_historical",
+        "pb_source": "tushare_historical",
+        "mkt_cap_source": "tushare_historical"
+      }
+    ],
+    "comparable_summary": {
+      "provider": "tushare_historical",
+      "requested_codes": [
+        "688157.SH",
+        "300665.SZ"
+      ],
+      "returned_codes": [
+        "688157.SH",
+        "300665.SZ"
+      ],
+      "cache_hits": [],
+      "api_fetched": [
+        "688157.SH",
+        "300665.SZ"
+      ],
+      "skipped_unsupported": [],
+      "reference_trade_date": "20260317",
+      "reason": ""
+    },
+    "method1_replay_available": true,
+    "average_price_source": "intraday_csv",
+    "average_price_reason": "",
+    "average_price_calc_version": 3,
+    "average_price_unit_mode": "volume_shares_amount_yuan",
+    "average_price_reference": 37.57
+  }
+}

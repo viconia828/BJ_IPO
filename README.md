@@ -13,12 +13,13 @@
 ## 你最常用的入口
 
 - 生成估值报告：双击 `运行.bat`
-- 手动调参：双击 `手动调参.bat`
+- 调参（手动 / 自动）：双击 `调参.bat`
 - 补最新首日分时走势：双击 `添加新股首日走势.bat`
 
 也可以直接用命令行：
 
 - `python code\bse_ipo_valuation.py 920177`
+- `python tools\tune_params.py --mode auto`
 - `python tools\tune_params.py --mode offline --param-name small_cap_premium --candidate-values 0.10,0.15`
 - `python tools\cache_listing_day_intraday.py --latest-until-cached --months 18`
 
@@ -54,7 +55,7 @@
 
 - `python code\bse_ipo_valuation.py 920177`
 
-运行后会提示输入 6 位代码，并生成带时间戳的 PDF 报告到 `输出/`。
+运行后会提示输入 6 位代码，并生成带时间戳的 PDF 报告到 `输出/`。同时会生成同名 `_一览.txt`，方便复制代码、名称、申购日期、市盈率、最大申购上限、上市日期和估价区间。
 
 主程序取资料的顺序是：
 
@@ -63,19 +64,24 @@
 3. 若招股说明书仍缺失，则本次报告终止
 4. 若上市公告书缺失，但招股说明书已拿到，则报告仍可继续生成
 
-### 2. 手动调参
+### 2. 调参
 
 推荐直接双击：
 
-- `手动调参.bat`
+- `调参.bat`
 
-它会按顺序提示你：
+它会先提示你选择两种调参模式：
+
+- `手动调参`：沿用原来的候选参数复核 / replay 观察模式
+- `自动调参`：系统自动搜索参数组合，每轮结束都会列出当前累计建议修改的参数，并询问接受写入或继续下一轮
+
+手动调参会继续按顺序提示你：
 
 1. 选择模式：`离线复核` 或 `replay 观察`
 2. 选择输入方式：`单参数多候选值` / `手动候选组` / `候选文件`
 3. 输入必要参数
 
-每次手动调参启动时，系统会先扫描 `首日分时走势/` 里的 CSV。如果本地样本文件比 `data/offline_tuning/replay_dataset.json` 更新，会自动重建回放数据集；训练集和验证集样本数会随之更新。若外部数据源临时超时或拒绝连接，本次会继续使用旧回放数据集，不会中断调参；网络恢复后再次运行即可自动重试同步。
+每次手动调参启动时，系统会先扫描 `首日分时走势/` 里的 CSV。如果本地样本文件比 `data/offline_tuning/replay_dataset.json` 更新，会增量同步回放数据集：已有样本优先复用旧数据集条目和 `data/offline_tuning/replay_items/代码.json` 单样本缓存，只为新增样本补齐回放资料；训练集和验证集样本数会随之更新。若外部数据源临时超时或拒绝连接，本次会继续使用旧回放数据集，不会中断调参；网络恢复后再次运行即可自动重试同步。
 
 底层统一调用：
 
@@ -84,15 +90,35 @@
 三种模式分别是：
 
 - `--mode search`：按内置阶段批量调参
+- `--mode auto`：自动搜索参数组合，确认接受后写入 `策略参数.txt`
 - `--mode offline`：手动候选离线复核，输出到 `输出/调参/`
 - `--mode observe`：手动候选 replay 观察，输出到 `输出/观察期/`
 
 常见例子：
 
+- `python tools\tune_params.py --mode auto`
 - `python tools\tune_params.py --mode offline --param-name small_cap_premium --candidate-values 0.10,0.15`
 - `python tools\tune_params.py --mode observe --param-name pe_low_threshold --candidate-values 0.20,0.25 --codes 920012,920036,920183`
 - `python tools\tune_params.py --mode offline --candidate "price_range_width=0.12,float_size_threshold=1500,small_cap_premium=0.10"`
 - `python tools\tune_params.py --mode offline --candidate-file data\offline_tuning\candidate_sets\quick_method2_pe_candidate_set_v1.json`
+
+自动调参的评分规则：
+
+- 越新的本地样本权重越高
+- 3 个月前的样本权重衰减到 0；最近 30 天上市样本存在时，总权重至少 50%
+- 每个历史样本回放时，只使用该样本上市日前 `recent_days` 天内可见的新股样本
+- 命中估值区间会提高组合分
+- `price_range_width` 只读取当前手动参数，不参与自动调参搜索和排序扣分；系统会单独展示当前手动区间宽度对应的诊断扣分
+
+自动调参的搜索规则：
+
+- 第 1 轮使用粗步长，后续轮次围绕上一轮最优参数继续细步长搜索
+- 搜索模块已拆为更细的参数项，例如综合权重、北交所折扣、流通盘阈值、小盘溢价、PE 低估/高估修正、样本权重、走势权重和强弱走势参数
+- 走势参数包括 `industry_trend_weight` / `market_sentiment_weight`，以及 `trend_strong_boost`、`trend_weak_discount`、`trend_strong_threshold`、`trend_weak_threshold`
+- 每轮默认最多评估 650 组候选，时间上限 180 秒
+- 每轮结束后，窗口会询问是否接受当前累计最优参数并写入，或进入下一轮继续搜索
+
+如果接受自动调参结果，系统会写入 `策略参数.txt`，并在根目录维护 `自动调参记录.txt`；记录按最新在最前排列。如果不接受，本次不会改参数，后续仍可手动修改 `策略参数.txt`。
 
 手动调参现在有两个重要规则：
 
@@ -104,6 +130,8 @@
 最简单的方式：
 
 - 双击 `添加新股首日走势.bat`
+
+如果当天有正在交易的新股，程序会在盘中跳过当日上市样本，不写入不完整的首日分时 CSV，并提示盘后再运行。默认盘后缓存时间为 15:30 后。
 
 常用命令：
 
@@ -129,7 +157,8 @@
 ### 1. 估值报告
 
 - 主程序 PDF 报告：`输出/`
-- 报告末尾的“近期北交所新股首日表现一览”会按 `recent_months` 截断，只展示对应月份窗口内的样本。
+- 报告一览 TXT：`输出/` 中同名 `_一览.txt`
+- 报告末尾的“近期北交所新股首日表现一览”会按 `recent_days` 截断，只展示对应天数窗口内的样本。
 
 ### 2. 调参报告
 
@@ -162,16 +191,17 @@
 
 当前文件已经按用途分成几类：
 
-- 用户最常调：目标股、综合权重、估值区间宽度
-- 调参专用：离线回放与候选复核
-- 偶尔调：方法二核心阈值
-- 基本别动：方法一口径、走势细项、WSI 细项
+- 仅手动可调：单只标的输入，例如行业、可比公司、流通老股
+- 仅手动可调：正式估值和自动调参都会使用，但自动调参不会修改，例如 `recent_days`、`price_range_width`
+- 自动调参可写回：综合权重、北交所折价、方法二样本修正、趋势参数、WSI 权重
+- 训练/回放运行设置：调参入口构建数据集和展示结果时使用
 
 如果你只想做日常使用，通常重点关注这些参数：
 
 - `weight_comparable`
 - `weight_industry_momentum`
 - `price_range_width`
+- `recent_days`
 - `float_size_threshold`
 - `small_cap_premium`
 - `pe_low_threshold`
@@ -179,23 +209,28 @@
 - `pe_high_threshold`
 - `pe_premium_drag`
 
+自动调参会搜索并可能写回 `自动调参可写回` 分组里的参数；`price_range_width` 只作为当前手动区间宽度参与命中判断，不会被自动放大。
+
 调参工具默认也会读取 `策略参数.txt` 里的这几项运行参数：
 
 - `tuning_replay_months`
 - `tuning_page_size`
-- `tuning_train_ratio`
-- `tuning_min_train_samples`
 - `tuning_top_n`
+- `tuning_train_ratio`（仅旧版批量搜索与手动候选复核使用）
+- `tuning_min_train_samples`（仅旧版批量搜索与手动候选复核使用）
 
 ## 当前默认口径
 
 截至目前，主程序默认使用：
 
 - 综合权重：`weight_comparable = 0.20`，`weight_industry_momentum = 0.80`
-- 方法二核心：`price_range_width = 0.12`，`float_size_threshold = 1500`，`small_cap_premium = 0.10`
-- 方法二 PE：`pe_low_threshold = 0.20`，`pe_discount_boost = 0.10`，`pe_high_threshold = 0.60`，`pe_premium_drag = -0.10`
+- 估值区间：`price_range_width = 0.10`
+- 方法二核心：`recent_days = 60`，`float_size_threshold = 1200`，`small_cap_premium = 0.175`
+- 方法二 PE：`pe_low_threshold = 0.20`，`pe_discount_boost = 0.10`，`pe_high_threshold = 0.45`，`pe_premium_drag = -0.20`
+- 趋势权重：`industry_trend_weight = 0.85`，`market_sentiment_weight = 0.15`
+- 首日表现判断：正式估值与调参回放统一使用首日成交均价；本地分时 CSV 会自动缓存均价
 
-`trend_balance` 和 `WSI` 的扩展调参结论目前保留在项目里，但还没有继续吸收到默认参数中。
+WSI 细项权重仍保留在 `策略参数.txt` 中，通常无需手动改动；如接受自动调参结果，系统会自动写回对应权重。
 
 ## 如果你要看项目过程记录
 
@@ -223,4 +258,4 @@
 - `tools/download_bse_official_pdf.py`：下载公告 PDF
 - `tools/scan_pdf_samples.py`：批量扫描本地 PDF 样本
 
-早期按单一主题拆分的专用观察脚本已经清理，避免入口重复；现在统一通过 `tools/tune_params.py` 和 `手动调参.bat` 使用。
+早期按单一主题拆分的专用观察脚本已经清理，避免入口重复；现在统一通过 `tools/tune_params.py` 和 `调参.bat` 使用。

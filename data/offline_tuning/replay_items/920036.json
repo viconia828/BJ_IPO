@@ -1,0 +1,155 @@
+{
+  "schema": "offline_tuning_replay_item_v1",
+  "cache_version": 3,
+  "generated_at": "2026-05-07 18:04:13",
+  "code": "920036",
+  "listing_date": "2026-03-09 00:00:00",
+  "record_signature": {
+    "SECURITY_CODE": "920036",
+    "SECURITY_NAME_ABBR": "觅睿科技",
+    "APPLY_DATE": "2026-02-26 00:00:00",
+    "LISTING_DATE": "2026-03-09 00:00:00",
+    "ISSUE_PRICE": 21.52,
+    "AFTER_ISSUE_PE": 14.99,
+    "INDUSTRY_PE_NEW": 65.47,
+    "TOTAL_ISSUE_NUM": 1360.55,
+    "ISSUE_NUM": 1360.55,
+    "CLOSE_PRICE": 41.3,
+    "LD_CLOSE_CHANGE": 91.9145,
+    "TURNOVERRATE": 88.8636,
+    "SW_INDUSTRY": null,
+    "INDUSTRY": null
+  },
+  "pdf_signature": {
+    "listing": {
+      "name": "920036觅睿科技上市公告书.pdf",
+      "size": 947694,
+      "mtime_ns": 1776223086000000000
+    },
+    "old_shares": {
+      "name": "920036觅睿科技招股说明书.pdf",
+      "size": 6497434,
+      "mtime_ns": 1776223114000000000
+    },
+    "comparables": {
+      "name": "920036觅睿科技招股说明书.pdf",
+      "size": 6497434,
+      "mtime_ns": 1776223114000000000
+    }
+  },
+  "item": {
+    "SECURITY_CODE": "920036",
+    "SECURITY_NAME_ABBR": "觅睿科技",
+    "APPLY_DATE": "2026-02-26 00:00:00",
+    "LISTING_DATE": "2026-03-09 00:00:00",
+    "ISSUE_PRICE": 21.52,
+    "AFTER_ISSUE_PE": 14.99,
+    "INDUSTRY_PE_NEW": 65.47,
+    "TOTAL_ISSUE_NUM": 1360.55,
+    "CLOSE_PRICE": 41.3,
+    "AVERAGE_PRICE": 43.62645824954569,
+    "LD_CLOSE_CHANGE": 91.9145,
+    "LD_AVERAGE_CHANGE": 102.72517773952461,
+    "TURNOVERRATE": 88.8636,
+    "SW_INDUSTRY": "",
+    "INDUSTRY": "",
+    "industry_primary": "消费服务",
+    "industry_secondary": "消费电子",
+    "industry_source": "built_in_sample_map",
+    "old_shares": 81.6327,
+    "old_shares_desc": "81.63 万股（PDF 提取：上市公告书）",
+    "old_shares_meta": {
+      "value_wan_shares": 81.6327,
+      "source_file_type": "上市公告书",
+      "source_rule": "listing_table",
+      "source_anchor": "本次发行前后的股本结构变动情况 -> 无限售流通股小计",
+      "raw_snippet": "对象59小计40,000,00098.0041,360,55076.00--二、无限售流通股小计816,3272.0013,061,27724.00--合计40,816,327100.0054,421,827100.00--60六、",
+      "confidence": 0.98,
+      "unit": "股",
+      "pre_unrestricted_wan_shares": 81.6327,
+      "listing_pdf_found": true,
+      "prospectus_pdf_found": true,
+      "selected_source_label": "上市公告书",
+      "fallback_used": false
+    },
+    "float_shares": 1442.1826999999998,
+    "has_intraday_file": true,
+    "comparable_codes": [
+      "688475.SH",
+      "301189.SZ",
+      "301042.SZ"
+    ],
+    "comparable_data": [
+      {
+        "code": "688475.SH",
+        "name": "688475.SH",
+        "close": 27.26,
+        "pe_ttm": 37.8902,
+        "pb_lf": 3.7078,
+        "mkt_cap": 214.6725,
+        "trade_date": "20260306",
+        "source": "tushare_historical",
+        "close_source": "tushare_historical",
+        "pe_source": "tushare_historical",
+        "pb_source": "tushare_historical",
+        "mkt_cap_source": "tushare_historical"
+      },
+      {
+        "code": "301189.SZ",
+        "name": "301189.SZ",
+        "close": 42.97,
+        "pe_ttm": null,
+        "pb_lf": 2.3797,
+        "mkt_cap": 50.01556101,
+        "trade_date": "20260306",
+        "source": "tushare_historical",
+        "close_source": "tushare_historical",
+        "pe_source": "tushare_historical",
+        "pb_source": "tushare_historical",
+        "mkt_cap_source": "tushare_historical"
+      },
+      {
+        "code": "301042.SZ",
+        "name": "301042.SZ",
+        "close": 88.3,
+        "pe_ttm": 547.9773,
+        "pb_lf": 5.8567,
+        "mkt_cap": 61.56591849,
+        "trade_date": "20260306",
+        "source": "tushare_historical",
+        "close_source": "tushare_historical",
+        "pe_source": "tushare_historical",
+        "pb_source": "tushare_historical",
+        "mkt_cap_source": "tushare_historical"
+      }
+    ],
+    "comparable_summary": {
+      "provider": "tushare_historical",
+      "requested_codes": [
+        "688475.SH",
+        "301189.SZ",
+        "301042.SZ"
+      ],
+      "returned_codes": [
+        "688475.SH",
+        "301189.SZ",
+        "301042.SZ"
+      ],
+      "cache_hits": [],
+      "api_fetched": [
+        "688475.SH",
+        "301189.SZ",
+        "301042.SZ"
+      ],
+      "skipped_unsupported": [],
+      "reference_trade_date": "20260308",
+      "reason": ""
+    },
+    "method1_replay_available": true,
+    "average_price_source": "intraday_csv",
+    "average_price_reason": "",
+    "average_price_calc_version": 3,
+    "average_price_unit_mode": "volume_shares_amount_yuan",
+    "average_price_reference": 42.27
+  }
+}

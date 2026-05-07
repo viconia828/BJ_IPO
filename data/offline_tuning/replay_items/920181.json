@@ -1,0 +1,141 @@
+{
+  "schema": "offline_tuning_replay_item_v1",
+  "cache_version": 3,
+  "generated_at": "2026-05-07 18:04:13",
+  "code": "920181",
+  "listing_date": "2026-04-10 00:00:00",
+  "record_signature": {
+    "SECURITY_CODE": "920181",
+    "SECURITY_NAME_ABBR": "赛英电子",
+    "APPLY_DATE": "2026-03-30 00:00:00",
+    "LISTING_DATE": "2026-04-10 00:00:00",
+    "ISSUE_PRICE": 28.0,
+    "AFTER_ISSUE_PE": 13.79,
+    "INDUSTRY_PE_NEW": 29.27,
+    "TOTAL_ISSUE_NUM": 1080.0,
+    "ISSUE_NUM": 1080.0,
+    "CLOSE_PRICE": 61.8,
+    "LD_CLOSE_CHANGE": 120.7143,
+    "TURNOVERRATE": 91.4467,
+    "SW_INDUSTRY": null,
+    "INDUSTRY": null
+  },
+  "pdf_signature": {
+    "listing": {
+      "name": "920181赛英电子上市公告书.pdf",
+      "size": 1464595,
+      "mtime_ns": 1776222862000000000
+    },
+    "old_shares": {
+      "name": "920181赛英电子招股说明书.pdf",
+      "size": 6638741,
+      "mtime_ns": 1776222950000000000
+    },
+    "comparables": {
+      "name": "920181赛英电子招股说明书.pdf",
+      "size": 6638741,
+      "mtime_ns": 1776222950000000000
+    }
+  },
+  "item": {
+    "SECURITY_CODE": "920181",
+    "SECURITY_NAME_ABBR": "赛英电子",
+    "APPLY_DATE": "2026-03-30 00:00:00",
+    "LISTING_DATE": "2026-04-10 00:00:00",
+    "ISSUE_PRICE": 28.0,
+    "AFTER_ISSUE_PE": 13.79,
+    "INDUSTRY_PE_NEW": 29.27,
+    "TOTAL_ISSUE_NUM": 1080.0,
+    "CLOSE_PRICE": 61.8,
+    "LD_CLOSE_CHANGE": 120.7143,
+    "TURNOVERRATE": 91.4467,
+    "SW_INDUSTRY": "",
+    "INDUSTRY": "",
+    "industry_primary": "信息技术",
+    "industry_secondary": "半导体制造",
+    "industry_source": "built_in_sample_map",
+    "old_shares": 30.0,
+    "old_shares_desc": "30.00 万股（PDF 提取：上市公告书）",
+    "old_shares_meta": {
+      "value_wan_shares": 30.0,
+      "source_file_type": "上市公告书",
+      "source_rule": "listing_table",
+      "source_anchor": "本次发行前后的股本结构变动情况 -> 无限售流通股小计",
+      "raw_snippet": "小计32,100,00099.07%33,180,00076.81%————二、无限售流通股小计300,0000.93%10,020,00023.19%————合计32,400,000100.00%43,200,000100.00%————注1：上表中股份比例数值为保留2位小数，若出现各分项数值之和与合计数尾数不符的情况，为四舍五入原因造成；注2：发行人不存",
+      "confidence": 0.98,
+      "unit": "股",
+      "pre_unrestricted_wan_shares": 30.0,
+      "listing_pdf_found": true,
+      "prospectus_pdf_found": true,
+      "selected_source_label": "上市公告书",
+      "fallback_used": false
+    },
+    "float_shares": 1110.0,
+    "has_intraday_file": true,
+    "comparable_codes": [
+      "301581.SZ",
+      "688103.SH",
+      "873913.NQ"
+    ],
+    "comparable_data": [
+      {
+        "code": "301581.SZ",
+        "name": "301581.SZ",
+        "close": 45.14,
+        "pe_ttm": 50.4117,
+        "pb_lf": 3.5951,
+        "mkt_cap": 36.112,
+        "trade_date": "20260409",
+        "source": "tushare_historical",
+        "close_source": "tushare_historical",
+        "pe_source": "tushare_historical",
+        "pb_source": "tushare_historical",
+        "mkt_cap_source": "tushare_historical"
+      },
+      {
+        "code": "688103.SH",
+        "name": "688103.SH",
+        "close": 55.0,
+        "pe_ttm": 74.245,
+        "pb_lf": 4.6682,
+        "mkt_cap": 52.4235613,
+        "trade_date": "20260409",
+        "source": "tushare_historical",
+        "close_source": "tushare_historical",
+        "pe_source": "tushare_historical",
+        "pb_source": "tushare_historical",
+        "mkt_cap_source": "tushare_historical"
+      }
+    ],
+    "comparable_summary": {
+      "provider": "tushare_historical",
+      "requested_codes": [
+        "301581.SZ",
+        "688103.SH",
+        "873913.NQ"
+      ],
+      "returned_codes": [
+        "301581.SZ",
+        "688103.SH"
+      ],
+      "cache_hits": [],
+      "api_fetched": [
+        "301581.SZ",
+        "688103.SH"
+      ],
+      "skipped_unsupported": [
+        "873913.NQ"
+      ],
+      "reference_trade_date": "20260409",
+      "reason": ""
+    },
+    "method1_replay_available": true,
+    "AVERAGE_PRICE": 62.999635707198955,
+    "LD_AVERAGE_CHANGE": 124.99869895428199,
+    "average_price_source": "intraday_csv",
+    "average_price_reason": "",
+    "average_price_calc_version": 3,
+    "average_price_unit_mode": "volume_shares_amount_yuan",
+    "average_price_reference": 63.08
+  }
+}

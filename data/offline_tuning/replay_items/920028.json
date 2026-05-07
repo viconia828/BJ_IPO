@@ -1,0 +1,119 @@
+{
+  "schema": "offline_tuning_replay_item_v1",
+  "cache_version": 3,
+  "generated_at": "2026-05-07 18:04:13",
+  "code": "920028",
+  "listing_date": "2026-03-20 00:00:00",
+  "record_signature": {
+    "SECURITY_CODE": "920028",
+    "SECURITY_NAME_ABBR": "新恒泰",
+    "APPLY_DATE": "2026-03-11 00:00:00",
+    "LISTING_DATE": "2026-03-20 00:00:00",
+    "ISSUE_PRICE": 9.4,
+    "AFTER_ISSUE_PE": 14.99,
+    "INDUSTRY_PE_NEW": 28.56,
+    "TOTAL_ISSUE_NUM": 4109.0,
+    "ISSUE_NUM": 4109.0,
+    "CLOSE_PRICE": 22.7,
+    "LD_CLOSE_CHANGE": 141.4894,
+    "TURNOVERRATE": 84.8896,
+    "SW_INDUSTRY": null,
+    "INDUSTRY": null
+  },
+  "pdf_signature": {
+    "listing": {
+      "name": "920028_新恒泰_上市公告书.pdf",
+      "size": 906408,
+      "mtime_ns": 1776757142299917800
+    },
+    "old_shares": {
+      "name": "920028_新恒泰_招股说明书.pdf",
+      "size": 5672247,
+      "mtime_ns": 1776754322873785300
+    },
+    "comparables": {
+      "name": "920028_新恒泰_招股说明书.pdf",
+      "size": 5672247,
+      "mtime_ns": 1776754322873785300
+    }
+  },
+  "item": {
+    "SECURITY_CODE": "920028",
+    "SECURITY_NAME_ABBR": "新恒泰",
+    "APPLY_DATE": "2026-03-11 00:00:00",
+    "LISTING_DATE": "2026-03-20 00:00:00",
+    "ISSUE_PRICE": 9.4,
+    "AFTER_ISSUE_PE": 14.99,
+    "INDUSTRY_PE_NEW": 28.56,
+    "TOTAL_ISSUE_NUM": 4109.0,
+    "CLOSE_PRICE": 22.7,
+    "AVERAGE_PRICE": 21.21701028266926,
+    "LD_CLOSE_CHANGE": 141.4894,
+    "LD_AVERAGE_CHANGE": 125.71287534754534,
+    "TURNOVERRATE": 84.8896,
+    "SW_INDUSTRY": "",
+    "INDUSTRY": "",
+    "industry_primary": "化工新材",
+    "industry_secondary": "橡胶和塑料制品业",
+    "industry_source": "built_in_sample_map",
+    "old_shares": 557.81,
+    "old_shares_desc": "557.81 万股（PDF 提取：上市公告书）",
+    "old_shares_meta": {
+      "value_wan_shares": 557.81,
+      "source_file_type": "上市公告书",
+      "source_rule": "listing_table",
+      "source_anchor": "本次发行前后的股本结构变动情况 -> 无限售流通股小计",
+      "raw_snippet": "对象小计117,691,90095.47121,800,90074.11--二、无限售流通股小计5,578,1004.5342,559,10025.89-合计123,270,000100.00164,360,000100.00--注1：数据尾数差异系四舍五入所致。注2：发行人不存在表决权差异安排的情况。55六、",
+      "confidence": 0.98,
+      "unit": "股",
+      "pre_unrestricted_wan_shares": 557.81,
+      "listing_pdf_found": true,
+      "prospectus_pdf_found": true,
+      "selected_source_label": "上市公告书",
+      "fallback_used": false
+    },
+    "float_shares": 4666.8099999999995,
+    "has_intraday_file": true,
+    "comparable_codes": [
+      "002130.SZ"
+    ],
+    "comparable_data": [
+      {
+        "code": "002130.SZ",
+        "name": "002130.SZ",
+        "close": 25.2,
+        "pe_ttm": 31.0732,
+        "pb_lf": 4.1015,
+        "mkt_cap": 352.77161522,
+        "trade_date": "20260319",
+        "source": "tushare_historical",
+        "close_source": "tushare_historical",
+        "pe_source": "tushare_historical",
+        "pb_source": "tushare_historical",
+        "mkt_cap_source": "tushare_historical"
+      }
+    ],
+    "comparable_summary": {
+      "provider": "tushare_historical",
+      "requested_codes": [
+        "002130.SZ"
+      ],
+      "returned_codes": [
+        "002130.SZ"
+      ],
+      "cache_hits": [],
+      "api_fetched": [
+        "002130.SZ"
+      ],
+      "skipped_unsupported": [],
+      "reference_trade_date": "20260319",
+      "reason": ""
+    },
+    "method1_replay_available": true,
+    "average_price_source": "intraday_csv",
+    "average_price_reason": "",
+    "average_price_calc_version": 3,
+    "average_price_unit_mode": "volume_shares_amount_yuan",
+    "average_price_reference": 20.84
+  }
+}

@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 import os
+import ssl
 from pathlib import Path
 import shutil
 import sys
+from datetime import datetime
 from typing import Any
 
 
@@ -26,6 +28,12 @@ TOKEN_ENV = "TUSHARE_TOKEN"
 _ORIGINAL_CALL_TUSHARE_API = tushare_helper._call_tushare_api
 _ORIGINAL_FETCH_RECENT_IPOS = cache_listing_day_intraday.data_fetcher.fetch_recent_ipos
 _ORIGINAL_FETCH_INTRADAY_TRENDS = cache_listing_day_intraday.data_fetcher.fetch_intraday_trends
+_ORIGINAL_URL_OPEN = cache_listing_day_intraday.data_fetcher.urllib.request.urlopen
+
+
+def _today_at(hour: int, minute: int = 0) -> datetime:
+    today = cache_listing_day_intraday.date.today()
+    return datetime(today.year, today.month, today.day, hour, minute)
 
 
 def _assert(condition: bool, message: str, failures: list[str]) -> None:
@@ -174,6 +182,7 @@ def _run_today_scan_fallback_case(failures: list[str]) -> None:
         months=1,
         output_dir=output_dir,
         params=_make_params(cache_root),
+        current_datetime=_today_at(16, 0),
     )
 
     csv_path = output_dir / "920191.csv"
@@ -198,6 +207,50 @@ def _run_today_scan_fallback_case(failures: list[str]) -> None:
         failures,
     )
     print("OK today_scan: listed-today scan fell back from rt_min_daily to stk_mins and cached csv")
+
+
+def _run_today_intraday_guard_case(failures: list[str]) -> None:
+    cache_root = TEMP_ROOT / "today_intraday_guard" / "cache_db"
+    output_dir = TEMP_ROOT / "today_intraday_guard" / "csv"
+    today = cache_listing_day_intraday.date.today().isoformat()
+    call_log: list[tuple[str, str]] = []
+
+    def _fake_fetch_recent_ipos(months: int = 3, page_size: int = 50, require_close_price: bool = True) -> list[dict[str, Any]]:
+        return [
+            {
+                "SECURITY_CODE": "920200",
+                "SECURITY_NAME_ABBR": "振宏股份",
+                "LISTING_DATE": today,
+                "CLOSE_PRICE": None,
+            },
+            {
+                "SECURITY_CODE": "920188",
+                "SECURITY_NAME_ABBR": "无关旧样本",
+                "LISTING_DATE": "2026-04-19",
+                "CLOSE_PRICE": 12.3,
+            },
+        ]
+
+    os.environ[TOKEN_ENV] = "dummy"
+    cache_listing_day_intraday.data_fetcher.fetch_recent_ipos = _fake_fetch_recent_ipos
+    tushare_helper._call_tushare_api = _build_fake_call(call_log)
+
+    summary = cache_listing_day_intraday.run_cache_job(
+        target_date=today,
+        months=1,
+        output_dir=output_dir,
+        params=_make_params(cache_root),
+        current_datetime=_today_at(10, 0),
+    )
+
+    _assert(summary["matched_count"] == 1, "today_intraday_guard: expected one matched code", failures)
+    _assert(summary["cached_count"] == 0, "today_intraday_guard: should not cache during active listing day", failures)
+    _assert(summary["deferred_count"] == 1, "today_intraday_guard: expected one deferred code", failures)
+    _assert(summary["deferred"][0]["source_api"] == "intraday_guard", "today_intraday_guard: expected guard source", failures)
+    _assert("15:30" in summary["deferred"][0]["reason"], "today_intraday_guard: reason should mention after-close retry time", failures)
+    _assert(not (output_dir / "920200.csv").exists(), "today_intraday_guard: should not write today csv before ready time", failures)
+    _assert(call_log == [], "today_intraday_guard: should not request minute APIs before ready time", failures)
+    print("OK today_intraday_guard: listed-today IPO was deferred before after-close cache time")
 
 
 def _run_history_fetch_case(failures: list[str]) -> None:
@@ -239,6 +292,7 @@ def _run_latest_until_cached_case(failures: list[str]) -> None:
         months=18,
         output_dir=output_dir,
         params=_make_params(cache_root),
+        current_datetime=_today_at(16, 0),
     )
 
     _assert([item["code"] for item in summary["cached"]] == ["920191", "920177"], "latest_until_cached: expected two cached codes", failures)
@@ -289,6 +343,7 @@ def _run_eastmoney_fallback_case(failures: list[str]) -> None:
         months=18,
         output_dir=output_dir,
         params=_make_params(cache_root),
+        current_datetime=_today_at(16, 0),
     )
 
     _assert(summary["cached_count"] == 1, "eastmoney_fallback: expected one cached csv", failures)
@@ -335,6 +390,7 @@ def _run_eastmoney_imprecise_case(failures: list[str]) -> None:
         months=18,
         output_dir=output_dir,
         params=_make_params(cache_root),
+        current_datetime=_today_at(16, 0),
     )
 
     _assert(summary["cached_count"] == 0, "eastmoney_imprecise: expected zero cached csv", failures)
@@ -386,6 +442,7 @@ def _run_retry_deferred_case(failures: list[str]) -> None:
         months=18,
         output_dir=output_dir,
         params=_make_params(cache_root),
+        current_datetime=_today_at(16, 0),
     )
 
     _assert(summary["checked_codes"] == ["920177", "920191"], "retry_deferred: expected deferred code retried before chronological scan", failures)
@@ -441,6 +498,7 @@ def _run_error_retry_persistence_case(failures: list[str]) -> None:
         months=18,
         output_dir=output_dir,
         params=_make_params(cache_root),
+        current_datetime=_today_at(16, 0),
     )
 
     _assert(first_summary["error_count"] == 1, "error_retry_persistence: expected one failed code on first run", failures)
@@ -454,6 +512,7 @@ def _run_error_retry_persistence_case(failures: list[str]) -> None:
         months=18,
         output_dir=output_dir,
         params=_make_params(cache_root),
+        current_datetime=_today_at(16, 0),
     )
 
     _assert(second_summary["pending_deferred_before"] == ["920177"], "error_retry_persistence: expected pending marker on second run", failures)
@@ -486,6 +545,7 @@ def _run_progress_callback_case(failures: list[str]) -> None:
         output_dir=output_dir,
         params=_make_params(cache_root),
         progress_callback=lambda event, payload: events.append(event),
+        current_datetime=_today_at(16, 0),
     )
 
     _assert(summary["cached_count"] == 1, "progress_callback: expected one cached csv", failures)
@@ -497,12 +557,36 @@ def _run_progress_callback_case(failures: list[str]) -> None:
     print("OK progress_callback: latest cache job emitted real-time progress events in sequence")
 
 
+def _run_eastmoney_ssl_error_wrapped_case(failures: list[str]) -> None:
+    def _raise_ssl_error(*args: Any, **kwargs: Any) -> Any:
+        _ = (args, kwargs)
+        raise ssl.SSLError("fixture bad record mac")
+
+    previous_fetch_intraday_trends = cache_listing_day_intraday.data_fetcher.fetch_intraday_trends
+    cache_listing_day_intraday.data_fetcher.fetch_intraday_trends = _ORIGINAL_FETCH_INTRADAY_TRENDS
+    cache_listing_day_intraday.data_fetcher.urllib.request.urlopen = _raise_ssl_error
+    try:
+        try:
+            cache_listing_day_intraday.data_fetcher.fetch_intraday_trends("920200", trade_date=cache_listing_day_intraday.date.today())
+        except cache_listing_day_intraday.data_fetcher.DataFetcherError as exc:
+            _assert("东方财富网络请求异常" in str(exc), "eastmoney_ssl: expected wrapped network error", failures)
+        except ssl.SSLError:
+            failures.append("eastmoney_ssl: raw ssl.SSLError should be wrapped as DataFetcherError")
+        else:
+            failures.append("eastmoney_ssl: expected DataFetcherError")
+    finally:
+        cache_listing_day_intraday.data_fetcher.fetch_intraday_trends = previous_fetch_intraday_trends
+        cache_listing_day_intraday.data_fetcher.urllib.request.urlopen = _ORIGINAL_URL_OPEN
+    print("OK eastmoney_ssl: raw SSL errors are wrapped as DataFetcherError")
+
+
 def main() -> int:
     failures: list[str] = []
     if TEMP_ROOT.exists():
         shutil.rmtree(TEMP_ROOT)
 
     try:
+        _run_today_intraday_guard_case(failures)
         _run_today_scan_fallback_case(failures)
         _run_history_fetch_case(failures)
         _run_latest_until_cached_case(failures)
@@ -511,10 +595,12 @@ def main() -> int:
         _run_retry_deferred_case(failures)
         _run_error_retry_persistence_case(failures)
         _run_progress_callback_case(failures)
+        _run_eastmoney_ssl_error_wrapped_case(failures)
     finally:
         tushare_helper._call_tushare_api = _ORIGINAL_CALL_TUSHARE_API
         cache_listing_day_intraday.data_fetcher.fetch_recent_ipos = _ORIGINAL_FETCH_RECENT_IPOS
         cache_listing_day_intraday.data_fetcher.fetch_intraday_trends = _ORIGINAL_FETCH_INTRADAY_TRENDS
+        cache_listing_day_intraday.data_fetcher.urllib.request.urlopen = _ORIGINAL_URL_OPEN
         os.environ.pop(TOKEN_ENV, None)
 
     if failures:
@@ -523,7 +609,7 @@ def main() -> int:
             print(f"- {item}")
         return 1
 
-    print("\nIntraday cache validation passed: 8 cases")
+    print("\nIntraday cache validation passed: 10 cases")
     return 0
 
 

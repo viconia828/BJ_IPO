@@ -88,6 +88,32 @@ def _to_ymd(raw_value: Any) -> str:
     return _to_iso_date(raw_value).replace("-", "")
 
 
+def _parse_iso_date(raw_value: Any) -> date | None:
+    text = _to_iso_date(raw_value).strip()
+    if not text:
+        return None
+    try:
+        return date.fromisoformat(text[:10])
+    except ValueError:
+        return None
+
+
+def _resolve_recent_days(months: int, params: dict[str, Any] | None = None) -> int:
+    settings = params or {}
+    raw_days = settings.get("recent_days")
+    if raw_days not in (None, ""):
+        return max(int(float(raw_days)), 1)
+    return max(int(months) * 30, 1)
+
+
+def _is_within_recent_days(raw_date: Any, recent_days: int, reference_date: date) -> bool:
+    parsed = _parse_iso_date(raw_date)
+    if parsed is None:
+        return False
+    cutoff = reference_date - timedelta(days=max(int(recent_days), 1))
+    return cutoff <= parsed <= reference_date
+
+
 def _shift_ymd(ymd_text: str, days: int) -> str:
     base_date = datetime.strptime(ymd_text, "%Y%m%d").date()
     return (base_date + timedelta(days=days)).strftime("%Y%m%d")
@@ -129,11 +155,19 @@ def _normalize_industry_name(name: Any) -> str:
     )
 
 
-def _build_summary(code: str, months: int, settings: dict[str, Any], db: LocalFileDB) -> dict[str, Any]:
+def _build_summary(
+    code: str,
+    months: int,
+    settings: dict[str, Any],
+    db: LocalFileDB,
+    recent_days: int | None = None,
+) -> dict[str, Any]:
+    resolved_recent_days = int(recent_days) if recent_days is not None else _resolve_recent_days(months)
     summary = {
         "provider": "tushare",
         "target_code": _base_code(code),
         "recent_months": months,
+        "recent_days": resolved_recent_days,
         "target_source": "tushare",
         "recent_source": "tushare",
         "cache_root": str(settings["cache_root"]),
@@ -228,6 +262,16 @@ def _extract_listing_day(record: dict[str, Any] | None) -> dict[str, Any] | None
     if isinstance(snapshot, dict):
         return dict(snapshot)
     return None
+
+
+def _calc_daily_average_price(daily_row: dict[str, Any]) -> float | None:
+    volume_hands = tushare_helper._safe_float(daily_row.get("vol"))
+    amount_thousand_yuan = tushare_helper._safe_float(daily_row.get("amount"))
+    if volume_hands is None or amount_thousand_yuan is None:
+        return None
+    if volume_hands <= 0 or amount_thousand_yuan <= 0:
+        return None
+    return amount_thousand_yuan * 10 / volume_hands
 
 
 def _extract_sw_classify(record: dict[str, Any] | None, field_name: str) -> list[dict[str, Any]] | None:
@@ -727,7 +771,7 @@ def _get_listing_day_snapshot(
     variable_record = db.load_variable_record(ts_code)
     cached = _extract_listing_day(variable_record)
     if cached and cached.get("listing_date") == _to_iso_date(listing_date):
-        if tushare_helper._snapshot_is_fresh(cached, settings["fixed_ttl"]):
+        if tushare_helper._snapshot_is_fresh(cached, settings["fixed_ttl"]) and tushare_helper._safe_float(cached.get("average_price")) is not None:
             _record_summary_item(summary, "variable_cache_hits", f"listing_day:{ts_code}:{_to_iso_date(listing_date)}")
             return cached
 
@@ -773,6 +817,9 @@ def _get_listing_day_snapshot(
         "close": tushare_helper._safe_float(daily_row.get("close") or daily_basic_row.get("close")),
         "high": tushare_helper._safe_float(daily_row.get("high")),
         "low": tushare_helper._safe_float(daily_row.get("low")),
+        "volume": tushare_helper._safe_float(daily_row.get("vol")),
+        "amount": tushare_helper._safe_float(daily_row.get("amount")),
+        "average_price": _calc_daily_average_price(daily_row),
         "pct_chg": tushare_helper._safe_float(daily_row.get("pct_chg")),
         "turnover_rate": tushare_helper._safe_float(daily_basic_row.get("turnover_rate")),
         "updated_at": datetime.now().isoformat(timespec="seconds"),
@@ -781,6 +828,31 @@ def _get_listing_day_snapshot(
     _save_listing_day(db, ts_code, snapshot)
     _record_summary_item(summary, "api_fetched_variable", f"listing_day:{ts_code}:{_to_iso_date(listing_date)}")
     return snapshot
+
+
+def get_listing_day_average_price(
+    code: str,
+    listing_date: str,
+    params: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    settings = tushare_helper._build_settings(params)
+    if not settings["token"]:
+        return {"average_price": None, "source": "", "reason": f"Tushare token 未配置：{settings['token_env']}"}
+
+    ts_code = _to_ts_code(code)
+    if not tushare_helper._supports_tushare_code(ts_code):
+        return {"average_price": None, "source": "", "reason": f"{code} 不是当前支持的 Tushare 股票代码。"}
+
+    db = LocalFileDB(settings["cache_root"])
+    summary = _build_summary(code, 1, settings, db, recent_days=1)
+    snapshot = _get_listing_day_snapshot(ts_code, listing_date, settings, db, summary)
+    average_price = tushare_helper._safe_float((snapshot or {}).get("average_price"))
+    return {
+        "average_price": average_price,
+        "source": str((snapshot or {}).get("source") or "tushare_api").strip() if average_price is not None else "",
+        "reason": str(summary.get("reason") or "").strip(),
+        "summary": summary,
+    }
 
 
 def _build_exact_sw_candidates(industry_name: str, sw_rows: list[dict[str, Any]]) -> list[str]:
@@ -980,12 +1052,16 @@ def _build_recent_ipo_record(
 ) -> dict[str, Any] | None:
     issue_price = tushare_helper._safe_float(new_share_row.get("price"))
     close_price = tushare_helper._safe_float((listing_day or {}).get("close"))
+    average_price = tushare_helper._safe_float((listing_day or {}).get("average_price"))
     if not new_share_row.get("issue_date") or close_price is None:
         return None
 
     ld_close_change = None
     if issue_price and issue_price > 0 and close_price is not None:
         ld_close_change = (close_price / issue_price - 1) * 100
+    ld_average_change = None
+    if issue_price and issue_price > 0 and average_price is not None:
+        ld_average_change = (average_price / issue_price - 1) * 100
 
     ts_code = _normalize_code(new_share_row.get("ts_code"))
     return {
@@ -998,7 +1074,11 @@ def _build_recent_ipo_record(
         "TOTAL_ISSUE_NUM": tushare_helper._safe_float(new_share_row.get("amount")),
         "OPEN_PRICE": tushare_helper._safe_float((listing_day or {}).get("open")),
         "CLOSE_PRICE": close_price,
+        "AVERAGE_PRICE": average_price,
         "LD_CLOSE_CHANGE": ld_close_change,
+        "LD_AVERAGE_CHANGE": ld_average_change,
+        "average_price_source": "tushare_daily" if average_price is not None else "",
+        "average_price_reason": "",
         "TURNOVERRATE": tushare_helper._safe_float((listing_day or {}).get("turnover_rate")),
         "INDUSTRY": str((profile or {}).get("industry") or "").strip(),
         "source": "tushare",
@@ -1087,13 +1167,14 @@ def _build_eastmoney_bundle(
     months: int,
     summary: dict[str, Any],
 ) -> dict[str, Any]:
+    recent_days = int(summary.get("recent_days") or _resolve_recent_days(months))
     summary["provider"] = "eastmoney"
     summary["target_source"] = "eastmoney"
     summary["recent_source"] = "eastmoney"
     summary["target_fallback_used"] = True
     summary["eastmoney_recent_fallback_used"] = True
     ipo_info = data_fetcher.fetch_ipo_info(_base_code(code))
-    recent_ipos = data_fetcher.fetch_recent_ipos(months)
+    recent_ipos = data_fetcher.fetch_recent_ipos_by_days(recent_days)
     summary["recent_returned_codes"] = [str(item.get("SECURITY_CODE", "")).strip() for item in recent_ipos]
     summary["recent_sample_count"] = len(recent_ipos)
     return {"ipo_info": ipo_info, "recent_ipos": recent_ipos, "summary": summary}
@@ -1106,14 +1187,16 @@ def prepare_ipo_data(
 ) -> dict[str, Any]:
     settings = tushare_helper._build_settings(params)
     db = LocalFileDB(settings["cache_root"])
-    summary = _build_summary(code, months, settings, db)
+    recent_days = _resolve_recent_days(months, params)
+    summary = _build_summary(code, months, settings, db, recent_days)
 
     if not settings["token"]:
         summary["reason"] = f"Tushare token 未配置，请先设置环境变量 {settings['token_env']}。"
         return _build_eastmoney_bundle(code, months, summary)
     target_ts_code = _to_ts_code(code)
     today_ymd = date.today().strftime("%Y%m%d")
-    cutoff_ymd = (date.today() - timedelta(days=max(months * 35, 40))).strftime("%Y%m%d")
+    today_date = date.today()
+    cutoff_ymd = (today_date - timedelta(days=max(recent_days, 40))).strftime("%Y%m%d")
 
     recent_new_share_rows = _get_recent_new_share_rows(cutoff_ymd, today_ymd, settings, db, summary)
 
@@ -1154,11 +1237,13 @@ def prepare_ipo_data(
         sample = _build_recent_ipo_record(row, profile, listing_day)
         if sample is None:
             continue
+        if not _is_within_recent_days(sample.get("LISTING_DATE"), recent_days, today_date):
+            continue
         recent_ipos.append(sample)
 
     if not recent_ipos:
         try:
-            fallback_recent_ipos = data_fetcher.fetch_recent_ipos(months)
+            fallback_recent_ipos = data_fetcher.fetch_recent_ipos_by_days(recent_days)
         except data_fetcher.DataFetcherError as exc:
             summary["reason"] = summary["reason"] or str(exc)
             fallback_recent_ipos = []
