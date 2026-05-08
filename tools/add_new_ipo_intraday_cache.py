@@ -64,6 +64,12 @@ def _emit_progress(event: str, payload: dict[str, Any]) -> None:
             print(f"正在检查 {_format_item(payload)} ...", flush=True)
         return
 
+    if event == "source_failed":
+        source = str(payload.get("source") or "数据源")
+        reason = str(payload.get("reason") or "未取到可用分钟线")
+        print(f"{source}取数失败 {_format_item(payload)}：{reason}", flush=True)
+        return
+
     if event == "cached":
         print(f"已缓存 {_format_item(payload)}。", flush=True)
         return

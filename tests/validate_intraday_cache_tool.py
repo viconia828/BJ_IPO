@@ -401,6 +401,85 @@ def _run_eastmoney_imprecise_case(failures: list[str]) -> None:
     print("OK eastmoney_imprecise: imprecise Eastmoney minute data was deferred instead of being cached")
 
 
+def _run_manual_file_fallback_case(failures: list[str]) -> None:
+    cache_root = TEMP_ROOT / "manual_file_fallback" / "cache_db"
+    output_dir = TEMP_ROOT / "manual_file_fallback" / "csv"
+    manual_root = TEMP_ROOT / "manual_file_fallback" / "manual_files"
+    today = cache_listing_day_intraday.date.today().isoformat()
+    events: list[str] = []
+    manual_root.mkdir(parents=True, exist_ok=True)
+    (manual_root / "920191.csv").write_text(
+        "\n".join(
+            [
+                "代码,名称,日期,开盘价(元),最高价(元),最低价(元),收盘价(元),涨跌幅,成交额(百万),成交量",
+                f"920191.BJ,瑞尔竞达,{today} 09:31,16.2,16.8,16.0,16.4,0.02,2.46,150000",
+                f"920191.BJ,瑞尔竞达,{today} 09:30,15.0,15.8,14.9,15.5,0.01,1.23,100000",
+            ]
+        ),
+        encoding="utf-8-sig",
+    )
+
+    def _fake_call_tushare_api(
+        api_name: str,
+        params: dict[str, Any],
+        fields: str,
+        settings: dict[str, Any],
+        db: Any,
+    ) -> tuple[list[dict[str, Any]], str]:
+        return [], f"Tushare 接口 {api_name} 调用失败: fixture failure"
+
+    def _fake_fetch_recent_ipos(months: int = 3, page_size: int = 50, require_close_price: bool = True) -> list[dict[str, Any]]:
+        return [{"SECURITY_CODE": "920191", "SECURITY_NAME_ABBR": "瑞尔竞达", "LISTING_DATE": today}]
+
+    def _fake_fetch_intraday_trends(code: str, trade_date: str | Any = None) -> list[dict[str, Any]]:
+        raise cache_listing_day_intraday.data_fetcher.DataFetcherError(
+            f"东方财富返回的 {code} 上市首日分钟串存在 open=0，数据不精确，已取消缓存，留待下次执行补缓存程序再取"
+        )
+
+    params = _make_params(cache_root)
+    params["manual_intraday_file_root"] = str(manual_root)
+    os.environ[TOKEN_ENV] = "dummy"
+    cache_listing_day_intraday.data_fetcher.fetch_recent_ipos = _fake_fetch_recent_ipos
+    cache_listing_day_intraday.data_fetcher.fetch_intraday_trends = _fake_fetch_intraday_trends
+    tushare_helper._call_tushare_api = _fake_call_tushare_api
+
+    summary = cache_listing_day_intraday.run_latest_missing_cache_job(
+        months=18,
+        output_dir=output_dir,
+        params=params,
+        progress_callback=lambda event, payload: events.append(event),
+        current_datetime=_today_at(16, 0),
+    )
+
+    csv_path = output_dir / "920191.csv"
+    content = csv_path.read_text(encoding="utf-8-sig").splitlines()
+
+    _assert(summary["cached_count"] == 1, "manual_file_fallback: expected one cached csv", failures)
+    _assert(summary["cached"][0]["source_api"] == "manual_file", "manual_file_fallback: expected manual file source", failures)
+    _assert(summary["cached"][0]["attempted_files"] == ["920191.csv"], "manual_file_fallback: expected attempted manual csv", failures)
+    _assert(
+        [item["source"] for item in summary["cached"][0]["source_failures"]] == ["Tushare", "东方财富"],
+        "manual_file_fallback: expected both online source failures to be recorded",
+        failures,
+    )
+    _assert(
+        events == ["start", "scan_completed", "checking", "source_failed", "source_failed", "cached", "finished"],
+        f"manual_file_fallback: unexpected event sequence {events}",
+        failures,
+    )
+    _assert(
+        content[:3]
+        == [
+            "DateTime,open,high,low,close,volume,amount",
+            f"{today.replace('-', '/')} 09:30,15.0,15.8,14.9,15.5,100000.0,1230000.0",
+            f"{today.replace('-', '/')} 09:31,16.2,16.8,16.0,16.4,150000.0,2460000.0",
+        ],
+        "manual_file_fallback: csv content/order/unit conversion mismatch",
+        failures,
+    )
+    print("OK manual_file_fallback: local CSV was parsed after Tushare and Eastmoney failures")
+
+
 def _run_retry_deferred_case(failures: list[str]) -> None:
     cache_root = TEMP_ROOT / "retry_deferred" / "cache_db"
     output_dir = TEMP_ROOT / "retry_deferred" / "csv"
@@ -592,6 +671,7 @@ def main() -> int:
         _run_latest_until_cached_case(failures)
         _run_eastmoney_fallback_case(failures)
         _run_eastmoney_imprecise_case(failures)
+        _run_manual_file_fallback_case(failures)
         _run_retry_deferred_case(failures)
         _run_error_retry_persistence_case(failures)
         _run_progress_callback_case(failures)
@@ -609,7 +689,7 @@ def main() -> int:
             print(f"- {item}")
         return 1
 
-    print("\nIntraday cache validation passed: 10 cases")
+    print("\nIntraday cache validation passed: 11 cases")
     return 0
 
 

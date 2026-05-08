@@ -29,14 +29,14 @@ trend_score_stocks = 5                # 走势评分最多纳入多少只历史�
 
 # === 自动调参可写回：综合估值权重与方法一折价 ===
 bse_discount_factor = 0.55            # 北交所相对可比公司估值折价系数
-weight_comparable = 0.2               # 方法一在综合估值中的权重
-weight_industry_momentum = 0.8        # 方法二在综合估值中的权重
+weight_comparable = 0.25               # 方法一在综合估值中的权重
+weight_industry_momentum = 0.75        # 方法二在综合估值中的权重
 
 # === 自动调参可写回：方法二样本修正 ===
 float_size_threshold = 1200           # 首日流通盘阈值（万股）；低于该值视为小盘
 small_cap_premium = 0.175             # 小盘样本给予的额外溢价系数
-pe_low_threshold = 0.20               # 发行 PE / 行业 PE 低估阈值
-pe_discount_boost = 0.10              # 低估阈值命中后的上调幅度
+pe_low_threshold = 0.35               # 发行 PE / 行业 PE 低估阈值
+pe_discount_boost = 0.075              # 低估阈值命中后的上调幅度
 pe_high_threshold = 0.45              # 发行 PE / 行业 PE 高估阈值
 pe_premium_drag = -0.2                # 高估阈值命中后的下调幅度
 sample_weight_mode = time_decay       # 历史样本加权方式：static / time_decay

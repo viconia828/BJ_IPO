@@ -133,6 +133,14 @@
 
 如果当天有正在交易的新股，程序会在盘中跳过当日上市样本，不写入不完整的首日分时 CSV，并提示盘后再运行。默认盘后缓存时间为 15:30 后。
 
+盘后补缓存时，取数顺序为：
+
+1. 先取 Tushare 分钟线
+2. Tushare 失败时打印失败原因，再取东方财富分钟线
+3. 东方财富也失败时继续打印失败原因，并尝试读取项目根目录中用户拖入的 Excel/CSV 文件
+
+如果两个在线数据源都失败，可以把该股票首日分钟文件拖入项目根目录后重试。文件名建议包含股票代码，例如 `920200.BJ.xlsx`；表头可使用常见字段如 `代码`、`日期` / `时间`、`开盘价(元)`、`最高价(元)`、`最低价(元)`、`收盘价(元)`、`成交额(百万)`、`成交量`。成功后会统一写入 `首日分时走势/代码.csv`。
+
 常用命令：
 
 - `python tools\add_new_ipo_intraday_cache.py`
@@ -223,10 +231,10 @@
 
 截至目前，主程序默认使用：
 
-- 综合权重：`weight_comparable = 0.20`，`weight_industry_momentum = 0.80`
+- 综合权重：`weight_comparable = 0.25`，`weight_industry_momentum = 0.75`
 - 估值区间：`price_range_width = 0.10`
 - 方法二核心：`recent_days = 60`，`float_size_threshold = 1200`，`small_cap_premium = 0.175`
-- 方法二 PE：`pe_low_threshold = 0.20`，`pe_discount_boost = 0.10`，`pe_high_threshold = 0.45`，`pe_premium_drag = -0.20`
+- 方法二 PE：`pe_low_threshold = 0.35`，`pe_discount_boost = 0.075`，`pe_high_threshold = 0.45`，`pe_premium_drag = -0.20`
 - 趋势权重：`industry_trend_weight = 0.85`，`market_sentiment_weight = 0.15`
 - 首日表现判断：正式估值与调参回放统一使用首日成交均价；本地分时 CSV 会自动缓存均价
 
