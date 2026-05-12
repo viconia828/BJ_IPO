@@ -159,6 +159,31 @@ def _safe_int(raw_value: Any) -> int:
         return 0
 
 
+def _safe_float(raw_value: Any) -> float | None:
+    if raw_value in (None, "", "--"):
+        return None
+    try:
+        return float(raw_value)
+    except (TypeError, ValueError):
+        return None
+
+
+def _amount_to_wan_shares(raw_value: Any) -> float | None:
+    amount = _safe_float(raw_value)
+    if amount is None:
+        return None
+    if amount > 100000:
+        return amount / 10000
+    return amount
+
+
+def _network_error_reason(exc: BaseException) -> str:
+    reason = getattr(exc, "reason", None)
+    if reason:
+        return str(reason)
+    return str(exc) or exc.__class__.__name__
+
+
 def _date_sort_key(raw_value: str) -> int:
     normalized = _normalize_date_text(raw_value)
     digits = normalized.replace("-", "")
@@ -397,19 +422,35 @@ class BSEOfficialClient:
         headers: dict[str, str] | None = None,
     ) -> str:
         request = self._build_request(path_or_url, params=params, referer=referer, headers=headers)
-        try:
-            with self.opener.open(request, timeout=self.timeout) as response:
-                raw_bytes = response.read()
-                charset = response.headers.get_content_charset()
-        except urllib.error.HTTPError as exc:
-            reason = f"HTTP {exc.code}"
-            if exc.reason:
-                reason = f"{reason} {exc.reason}"
-            raise BSEOfficialError(f"北交所官网请求失败: {reason}") from exc
-        except urllib.error.URLError as exc:
-            reason = getattr(exc, "reason", exc)
-            raise BSEOfficialError(f"北交所官网请求失败: {reason}") from exc
-        return self._decode_response(raw_bytes, charset)
+        max_attempts = 3
+        last_retryable_error: tuple[str, BaseException] | None = None
+        for attempt in range(max_attempts):
+            try:
+                with self.opener.open(request, timeout=self.timeout) as response:
+                    raw_bytes = response.read()
+                    charset = response.headers.get_content_charset()
+                return self._decode_response(raw_bytes, charset)
+            except urllib.error.HTTPError as exc:
+                reason = f"HTTP {exc.code}"
+                if exc.reason:
+                    reason = f"{reason} {exc.reason}"
+                raise BSEOfficialError(f"北交所官网请求失败: {reason}") from exc
+            except urllib.error.URLError as exc:
+                last_retryable_error = ("北交所官网请求失败", exc)
+            except TimeoutError as exc:
+                last_retryable_error = ("北交所官网请求超时", exc)
+            except (http.client.IncompleteRead, OSError) as exc:
+                last_retryable_error = ("北交所官网网络请求异常", exc)
+
+            if attempt < max_attempts - 1:
+                self._notify_status(f"官网接口响应不稳定，正在重试（{attempt + 2}/{max_attempts}）...")
+                time.sleep(0.8 + attempt * 0.7)
+                continue
+
+        if last_retryable_error is None:
+            raise BSEOfficialError("北交所官网请求失败")
+        message, exc = last_retryable_error
+        raise BSEOfficialError(f"{message}: {_network_error_reason(exc)}") from exc
 
     def _download_binary(
         self,
@@ -801,6 +842,27 @@ class BSEOfficialClient:
         if not isinstance(payload, list) or not payload or not isinstance(payload[0], dict):
             raise BSEOfficialError(f"unexpected newshare issue detail payload: {normalized_id}")
         return payload[0]
+
+    def build_newshare_ipo_info_by_post_listing_code(self, code: str) -> dict[str, Any]:
+        issue = self.resolve_newshare_issue_by_post_listing_code(code)
+        issue_detail = self.get_newshare_issue_detail(issue.issue_id)
+        new_share = issue_detail.get("newShare") or {}
+        if not isinstance(new_share, dict):
+            new_share = {}
+
+        listing_date = issue.listing_date or _normalize_bse_date_value(new_share.get("enterPremiumDate"))
+        return {
+            "SECURITY_CODE": issue.post_listing_code,
+            "SECURITY_NAME_ABBR": issue.stock_name or issue.company_name or issue.post_listing_code,
+            "APPLY_DATE": _normalize_bse_date_value(new_share.get("purchaseDate")),
+            "LISTING_DATE": listing_date,
+            "ISSUE_RESULT_DATE": issue.issue_result_date,
+            "ISSUE_PRICE": _safe_float(new_share.get("issuePrice")),
+            "AFTER_ISSUE_PE": _safe_float(new_share.get("peRatio")),
+            "TOTAL_ISSUE_NUM": _amount_to_wan_shares(new_share.get("initialIssueAmount")),
+            "PRE_LISTING_CODE": issue.pre_listing_code,
+            "source": "bse_newshare",
+        }
 
     def list_newshare_disclosure_files(
         self,

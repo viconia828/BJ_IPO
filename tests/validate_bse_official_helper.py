@@ -186,12 +186,32 @@ class FakeBSEOfficialClient(bse_official_helper.BSEOfficialClient):
         return b"%PDF-1.7 fake disclosure"
 
 
+class TimeoutOpener:
+    def open(self, request, timeout=0):
+        _ = (request, timeout)
+        raise TimeoutError("The read operation timed out")
+
+
 def _run_parse_jsonp_case(failures: list[str]) -> None:
     payload = bse_official_helper._parse_jsonp_payload('null({"stockCode":"920177","ok":true});')
     _assert(isinstance(payload, dict), "parse_jsonp: expected dict payload", failures)
     _assert(payload.get("stockCode") == "920177", "parse_jsonp: stockCode mismatch", failures)
     _assert(payload.get("ok") is True, "parse_jsonp: boolean mismatch", failures)
     print("OK parse_jsonp: JSONP wrapper parsed successfully")
+
+
+def _run_network_timeout_wrapping_case(failures: list[str]) -> None:
+    client = bse_official_helper.BSEOfficialClient(timeout=1)
+    client.opener = TimeoutOpener()
+    try:
+        client._fetch_text_once("/newShareController/infoResult.do")
+    except bse_official_helper.BSEOfficialError as exc:
+        message = str(exc)
+        _assert("北交所官网请求超时" in message, "network timeout: expected BSEOfficialError timeout message", failures)
+        _assert("The read operation timed out" in message, "network timeout: original reason missing", failures)
+    else:
+        failures.append("network timeout: expected BSEOfficialError")
+    print("OK network timeout: raw read timeout is wrapped as BSEOfficialError")
 
 
 def _run_mapping_case(failures: list[str]) -> None:
@@ -315,6 +335,7 @@ def _run_eastmoney_listing_fallback_case(failures: list[str]) -> None:
 def main() -> int:
     failures: list[str] = []
     _run_parse_jsonp_case(failures)
+    _run_network_timeout_wrapping_case(failures)
     _run_mapping_case(failures)
     _run_prospectus_resolution_case(failures)
     _run_prospectus_download_case(failures)
@@ -327,7 +348,7 @@ def main() -> int:
             print(f"- {item}")
         return 1
 
-    print("\nBSE official helper validation passed: 6 cases")
+    print("\nBSE official helper validation passed: 7 cases")
     return 0
 
 

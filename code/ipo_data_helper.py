@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
+import bse_official_helper
 import data_fetcher
 import listing_average_price_helper
 import tushare_ipo_helper
@@ -47,6 +48,11 @@ def _build_eastmoney_summary(code: str, months: int, params: dict[str, Any] | No
         "reason": "",
         "token_env": str(settings.get("tushare_token_env", "TUSHARE_TOKEN")).strip() or "TUSHARE_TOKEN",
     }
+
+
+def _fetch_bse_newshare_ipo_info(code: str, status_callback=None) -> dict[str, Any]:
+    client = bse_official_helper.BSEOfficialClient(status_callback=status_callback)
+    return client.build_newshare_ipo_info_by_post_listing_code(code)
 
 
 def _resolve_record_average_price(
@@ -147,10 +153,22 @@ def prepare_ipo_data(
         bundle["summary"] = summary
         return bundle
 
-    ipo_info = data_fetcher.fetch_ipo_info(code)
+    summary = _build_eastmoney_summary(code, months, params=settings)
+    try:
+        ipo_info = data_fetcher.fetch_ipo_info(code)
+    except data_fetcher.DataFetcherError as exc:
+        try:
+            ipo_info = _fetch_bse_newshare_ipo_info(code)
+        except bse_official_helper.BSEOfficialError as fallback_exc:
+            raise data_fetcher.DataFetcherError(
+                f"东方财富未查询到目标新股，且北交所公开发行一览兜底失败：{fallback_exc}"
+            ) from exc
+        summary["target_source"] = "bse_newshare"
+        summary["target_fallback_used"] = True
+        summary["reason"] = f"东方财富目标新股数据不可用，已改用北交所公开发行一览：{exc}"
+
     recent_days = _resolve_recent_days(months, settings)
     recent_ipos = data_fetcher.fetch_recent_ipos_by_days(recent_days)
-    summary = _build_eastmoney_summary(code, months, params=settings)
     recent_ipos = _supplement_average_prices(recent_ipos, settings, summary, try_tushare=True)
     summary["recent_returned_codes"] = [str(item.get("SECURITY_CODE", "")).strip() for item in recent_ipos]
     summary["recent_sample_count"] = len(recent_ipos)

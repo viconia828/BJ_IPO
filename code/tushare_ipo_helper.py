@@ -3,6 +3,7 @@ from __future__ import annotations
 from datetime import date, datetime, timedelta
 from typing import Any
 
+import bse_official_helper
 import data_fetcher
 from local_file_db import LocalFileDB
 import tushare_helper
@@ -1162,6 +1163,32 @@ def _apply_tushare_industry_pe(
         summary["industry_pe_source"] = "eastmoney"
 
 
+def _missing_target_core_fields(record: dict[str, Any] | None) -> bool:
+    if not record:
+        return True
+    return not any(
+        tushare_helper._safe_float(record.get(field_name)) is not None
+        for field_name in ("ISSUE_PRICE", "AFTER_ISSUE_PE", "TOTAL_ISSUE_NUM")
+    )
+
+
+def _merge_missing_values(base: dict[str, Any] | None, fallback: dict[str, Any]) -> dict[str, Any]:
+    merged = dict(base or {})
+    for key, value in fallback.items():
+        if merged.get(key) in (None, "", "--"):
+            merged[key] = value
+    return merged
+
+
+def _fetch_bse_newshare_supplement(code: str, summary: dict[str, Any]) -> dict[str, Any] | None:
+    try:
+        client = bse_official_helper.BSEOfficialClient()
+        return client.build_newshare_ipo_info_by_post_listing_code(_base_code(code))
+    except bse_official_helper.BSEOfficialError as exc:
+        summary["reason"] = summary["reason"] or f"北交所公开发行一览兜底失败：{exc}"
+        return None
+
+
 def _build_eastmoney_bundle(
     code: str,
     months: int,
@@ -1216,11 +1243,20 @@ def prepare_ipo_data(
     except data_fetcher.DataFetcherError as exc:
         summary["reason"] = summary["reason"] or str(exc)
 
+    if not target_new_share and _missing_target_core_fields(supplement):
+        had_eastmoney_supplement = supplement is not None
+        bse_supplement = _fetch_bse_newshare_supplement(code, summary)
+        if bse_supplement:
+            supplement = _merge_missing_values(supplement, bse_supplement)
+            summary["target_source"] = "eastmoney+bse_newshare" if had_eastmoney_supplement else "bse_newshare"
+            summary["target_fallback_used"] = True
+
     if not target_new_share and supplement is None:
         summary["reason"] = summary["reason"] or "Tushare 未取到目标 IPO 核心字段，且东方财富补充也不可用。"
         return _build_eastmoney_bundle(code, months, summary)
     if not target_new_share and supplement is not None:
-        summary["target_source"] = "eastmoney"
+        if summary["target_source"] == "tushare":
+            summary["target_source"] = "eastmoney"
         summary["target_fallback_used"] = True
 
     recent_ipos: list[dict[str, Any]] = []
