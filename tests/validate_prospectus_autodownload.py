@@ -156,7 +156,7 @@ class FakeSuccessClient:
         target_dir = Path(output_dir)
         target_dir.mkdir(parents=True, exist_ok=True)
         target_path = target_dir / f"{code}_测试公司_招股说明书.pdf"
-        target_path.write_bytes(b"%PDF-1.7 fake prospectus")
+        target_path.write_bytes(b"%PDF-1.7 fake prospectus\n%%EOF\n")
         return None, target_path
 
     def download_listing_announcement_from_newshare_by_post_listing_code(
@@ -172,7 +172,7 @@ class FakeSuccessClient:
         target_dir = Path(output_dir)
         target_dir.mkdir(parents=True, exist_ok=True)
         target_path = target_dir / f"{code}_上市公告书.pdf"
-        target_path.write_bytes(b"%PDF-1.7 fake listing announcement")
+        target_path.write_bytes(b"%PDF-1.7 fake listing announcement\n%%EOF\n")
         return None, target_path
 
 
@@ -203,7 +203,7 @@ class FakeListingFailureClient:
         target_dir = Path(output_dir)
         target_dir.mkdir(parents=True, exist_ok=True)
         target_path = target_dir / f"{code}_测试公司_招股说明书.pdf"
-        target_path.write_bytes(b"%PDF-1.7 fake prospectus")
+        target_path.write_bytes(b"%PDF-1.7 fake prospectus\n%%EOF\n")
         return None, target_path
 
     def download_listing_announcement_from_newshare_by_post_listing_code(
@@ -260,7 +260,7 @@ class FakeFailureClient:
 
 def _prepare_local_prospectus(code: str) -> None:
     TEMP_PDF_DIR.mkdir(parents=True, exist_ok=True)
-    (TEMP_PDF_DIR / f"{code}_测试公司_招股说明书.pdf").write_bytes(b"%PDF-1.7 local prospectus")
+    (TEMP_PDF_DIR / f"{code}_测试公司_招股说明书.pdf").write_bytes(b"%PDF-1.7 local prospectus\n%%EOF\n")
 
 
 def _run_case(

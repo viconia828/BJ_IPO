@@ -177,7 +177,7 @@ class FakeNewShareFallbackClient(bse_official_helper.BSEOfficialClient):
     ) -> bytes:
         _ = headers
         self.download_requests.append((str(path_or_url), referer))
-        return b"%PDF-1.7 fake newshare disclosure"
+        return b"%PDF-1.7 fake newshare disclosure\n%%EOF\n"
 
 
 def _run_issue_mapping_case(failures: list[str]) -> None:

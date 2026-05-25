@@ -45,7 +45,7 @@ def _find_pdf(directory: Path, code: str, suffix: str) -> Path | None:
 
 def _find_pdf_candidates(directory: Path, code: str, suffix: str) -> list[Path]:
     candidate = directory / f"{code}_{suffix}.pdf"
-    if candidate.exists():
+    if candidate.exists() and bse_official_helper.is_complete_pdf_file(candidate):
         return [candidate]
 
     aliases = {
@@ -61,6 +61,8 @@ def _find_pdf_candidates(directory: Path, code: str, suffix: str) -> list[Path]:
     prioritized: list[Path] = []
     fallback: list[Path] = []
     for file_path in pdf_files:
+        if not bse_official_helper.is_complete_pdf_file(file_path):
+            continue
         stem = file_path.stem
         if code not in stem:
             continue

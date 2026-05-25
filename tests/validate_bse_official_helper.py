@@ -183,7 +183,7 @@ class FakeBSEOfficialClient(bse_official_helper.BSEOfficialClient):
     ) -> bytes:
         _ = headers
         self.download_requests.append((str(path_or_url), referer))
-        return b"%PDF-1.7 fake disclosure"
+        return b"%PDF-1.7 fake disclosure\n%%EOF\n"
 
 
 class TimeoutOpener:
@@ -332,6 +332,43 @@ def _run_eastmoney_listing_fallback_case(failures: list[str]) -> None:
     print("OK listing fallback: resolved and downloaded Eastmoney listing announcement pdf")
 
 
+def _run_incomplete_existing_pdf_redownload_case(failures: list[str]) -> None:
+    messages: list[str] = []
+    client = FakeBSEOfficialClient(status_callback=messages.append)
+    if TEMP_DIR.exists():
+        shutil.rmtree(TEMP_DIR)
+    TEMP_DIR.mkdir(parents=True, exist_ok=True)
+
+    target_path = TEMP_DIR / "920177_恒道科技_招股说明书(注册稿).pdf"
+    target_path.write_bytes(b"%PDF-1.7 partial pdf without eof")
+    disclosure = bse_official_helper.DisclosureFile(
+        title="恒道科技:招股说明书(注册稿)",
+        publish_date="2026-03-30",
+        relative_path="/disclosure/2026/2026-03-30/1774855822_070697.pdf",
+        full_url="https://www.bse.cn/disclosure/2026/2026-03-30/1774855822_070697.pdf",
+        bucket="BHG",
+        bucket_label="project_detail",
+        document_type="prospectus",
+        file_ext=".pdf",
+    )
+
+    output_path = client.download_disclosure_file(disclosure, target_path, overwrite=False)
+    file_bytes = output_path.read_bytes()
+
+    _assert(b"%%EOF" in file_bytes, "integrity redownload: expected complete replacement", failures)
+    _assert(
+        client.download_requests == [("https://www.bse.cn/disclosure/2026/2026-03-30/1774855822_070697.pdf", "/audit/project_news.html")],
+        "integrity redownload: expected download after incomplete local file",
+        failures,
+    )
+    _assert(
+        any("本地 PDF 不完整" in item for item in messages),
+        "integrity redownload: missing incomplete-file progress message",
+        failures,
+    )
+    print("OK integrity redownload: incomplete local PDF was not reused")
+
+
 def main() -> int:
     failures: list[str] = []
     _run_parse_jsonp_case(failures)
@@ -341,6 +378,7 @@ def main() -> int:
     _run_prospectus_download_case(failures)
     _run_official_listing_case(failures)
     _run_eastmoney_listing_fallback_case(failures)
+    _run_incomplete_existing_pdf_redownload_case(failures)
 
     if failures:
         print("\nBSE official helper validation failed:")
@@ -348,7 +386,7 @@ def main() -> int:
             print(f"- {item}")
         return 1
 
-    print("\nBSE official helper validation passed: 7 cases")
+    print("\nBSE official helper validation passed: 8 cases")
     return 0
 
 

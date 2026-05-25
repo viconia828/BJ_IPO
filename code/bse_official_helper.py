@@ -42,6 +42,10 @@ HTML_MARKERS = (
     "访问验证",
     "开启javascript",
 )
+PDF_HEADER_MARKER = b"%PDF-"
+PDF_EOF_MARKER = b"%%EOF"
+PDF_HEADER_SCAN_BYTES = 1024
+PDF_EOF_SCAN_BYTES = 4096
 PROSPECTUS_STAGE_PRIORITY = {
     "BHG": 0,
     "SYG": 1,
@@ -66,6 +70,10 @@ EASTMONEY_PDF_LINK_PATTERN = re.compile(
 
 
 class BSEOfficialError(RuntimeError):
+    pass
+
+
+class _PDFIntegrityError(RuntimeError):
     pass
 
 
@@ -182,6 +190,45 @@ def _network_error_reason(exc: BaseException) -> str:
     if reason:
         return str(reason)
     return str(exc) or exc.__class__.__name__
+
+
+def _parse_content_length(headers: Any) -> int | None:
+    try:
+        raw_value = headers.get("Content-Length")
+    except AttributeError:
+        return None
+    if raw_value in (None, ""):
+        return None
+    try:
+        value = int(str(raw_value).strip())
+    except ValueError:
+        return None
+    return value if value > 0 else None
+
+
+def _validate_pdf_binary(binary: bytes, expected_size: int | None = None) -> None:
+    actual_size = len(binary)
+    if expected_size is not None and actual_size != expected_size:
+        raise _PDFIntegrityError(f"期望 {expected_size} 字节，实际 {actual_size} 字节")
+    if PDF_HEADER_MARKER not in binary[:PDF_HEADER_SCAN_BYTES]:
+        raise _PDFIntegrityError("未找到 PDF 文件头")
+    if PDF_EOF_MARKER not in binary[-PDF_EOF_SCAN_BYTES:]:
+        raise _PDFIntegrityError("未找到 PDF 结束标记")
+
+
+def is_complete_pdf_file(file_path: str | Path) -> bool:
+    try:
+        path = Path(file_path)
+        size = path.stat().st_size
+        if size <= 0:
+            return False
+        with path.open("rb") as file_obj:
+            head = file_obj.read(PDF_HEADER_SCAN_BYTES)
+            file_obj.seek(max(0, size - PDF_EOF_SCAN_BYTES))
+            tail = file_obj.read()
+    except OSError:
+        return False
+    return PDF_HEADER_MARKER in head and PDF_EOF_MARKER in tail
 
 
 def _date_sort_key(raw_value: str) -> int:
@@ -471,13 +518,15 @@ class BSEOfficialClient:
                         if not chunk:
                             break
                         chunks.append(chunk)
-                    return b"".join(chunks)
+                    binary = b"".join(chunks)
+                    _validate_pdf_binary(binary, expected_size=_parse_content_length(response.headers))
+                    return binary
             except urllib.error.HTTPError as exc:
                 reason = f"HTTP {exc.code}"
                 if exc.reason:
                     reason = f"{reason} {exc.reason}"
                 raise BSEOfficialError(f"北交所 PDF 下载失败: {reason}") from exc
-            except (urllib.error.URLError, TimeoutError, http.client.IncompleteRead, OSError) as exc:
+            except (urllib.error.URLError, TimeoutError, http.client.IncompleteRead, OSError, _PDFIntegrityError) as exc:
                 last_retryable_error = exc
                 if attempt < max_attempts - 1:
                     self._notify_status(f"官网 PDF 下载较慢，正在重试（{attempt + 2}/{max_attempts}）...")
@@ -545,7 +594,12 @@ class BSEOfficialClient:
 
             if not output_path.exists():
                 raise BSEOfficialError("curl download did not create a file")
-            return output_path.read_bytes()
+            binary = output_path.read_bytes()
+            try:
+                _validate_pdf_binary(binary)
+            except _PDFIntegrityError as exc:
+                raise BSEOfficialError(f"curl download integrity check failed: {exc}") from exc
+            return binary
 
     def _warm_up(self, urls: Iterable[str]) -> None:
         for item in urls:
@@ -1385,7 +1439,9 @@ class BSEOfficialClient:
     ) -> Path:
         target_path = Path(output_path)
         if target_path.exists() and not overwrite:
-            return target_path.resolve()
+            if is_complete_pdf_file(target_path):
+                return target_path.resolve()
+            self._notify_status(f"本地 PDF 不完整，正在重新下载：{target_path.name}")
 
         referer = "/audit/project_news.html"
         headers: dict[str, str] | None = None
@@ -1400,7 +1456,24 @@ class BSEOfficialClient:
             "官网 PDF 仍在下载，请稍候...",
         )
         target_path.parent.mkdir(parents=True, exist_ok=True)
-        target_path.write_bytes(binary)
+        _validate_pdf_binary(binary)
+        temp_path: Path | None = None
+        try:
+            with tempfile.NamedTemporaryFile(
+                dir=target_path.parent,
+                prefix=f".{target_path.name}.",
+                suffix=".tmp",
+                delete=False,
+            ) as file_obj:
+                temp_path = Path(file_obj.name)
+                file_obj.write(binary)
+            temp_path.replace(target_path)
+        finally:
+            if temp_path is not None and temp_path.exists():
+                try:
+                    temp_path.unlink()
+                except OSError:
+                    pass
         return target_path.resolve()
 
     def download_best_prospectus_by_post_listing_code(
