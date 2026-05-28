@@ -131,11 +131,13 @@ def _fake_extract_business_desc(file_path: str | Path) -> str:
 
 class FakeSuccessClient:
     prospectus_calls = 0
+    issue_calls = 0
     listing_calls = 0
 
     @classmethod
     def reset_counters(cls) -> None:
         cls.prospectus_calls = 0
+        cls.issue_calls = 0
         cls.listing_calls = 0
 
     def __init__(self, timeout: float = 20.0, status_callback=None) -> None:
@@ -157,6 +159,22 @@ class FakeSuccessClient:
         target_dir.mkdir(parents=True, exist_ok=True)
         target_path = target_dir / f"{code}_测试公司_招股说明书.pdf"
         target_path.write_bytes(b"%PDF-1.7 fake prospectus\n%%EOF\n")
+        return None, target_path
+
+    def download_issue_announcement_from_newshare_by_post_listing_code(
+        self,
+        code: str,
+        output_dir: str | Path,
+        overwrite: bool = False,
+    ) -> tuple[None, Path]:
+        _ = overwrite
+        type(self).issue_calls += 1
+        if self.status_callback is not None:
+            self.status_callback(f"resolved issue announcement: {code}")
+        target_dir = Path(output_dir)
+        target_dir.mkdir(parents=True, exist_ok=True)
+        target_path = target_dir / f"{code}_发行公告.pdf"
+        target_path.write_bytes(b"%PDF-1.7 fake issue announcement\n%%EOF\n")
         return None, target_path
 
     def download_listing_announcement_from_newshare_by_post_listing_code(
@@ -178,11 +196,13 @@ class FakeSuccessClient:
 
 class FakeListingFailureClient:
     prospectus_calls = 0
+    issue_calls = 0
     listing_calls = 0
 
     @classmethod
     def reset_counters(cls) -> None:
         cls.prospectus_calls = 0
+        cls.issue_calls = 0
         cls.listing_calls = 0
 
     def __init__(self, timeout: float = 20.0, status_callback=None) -> None:
@@ -206,6 +226,22 @@ class FakeListingFailureClient:
         target_path.write_bytes(b"%PDF-1.7 fake prospectus\n%%EOF\n")
         return None, target_path
 
+    def download_issue_announcement_from_newshare_by_post_listing_code(
+        self,
+        code: str,
+        output_dir: str | Path,
+        overwrite: bool = False,
+    ) -> tuple[None, Path]:
+        _ = overwrite
+        type(self).issue_calls += 1
+        if self.status_callback is not None:
+            self.status_callback(f"resolved issue announcement: {code}")
+        target_dir = Path(output_dir)
+        target_dir.mkdir(parents=True, exist_ok=True)
+        target_path = target_dir / f"{code}_发行公告.pdf"
+        target_path.write_bytes(b"%PDF-1.7 fake issue announcement\n%%EOF\n")
+        return None, target_path
+
     def download_listing_announcement_from_newshare_by_post_listing_code(
         self,
         code: str,
@@ -221,11 +257,13 @@ class FakeListingFailureClient:
 
 class FakeFailureClient:
     prospectus_calls = 0
+    issue_calls = 0
     listing_calls = 0
 
     @classmethod
     def reset_counters(cls) -> None:
         cls.prospectus_calls = 0
+        cls.issue_calls = 0
         cls.listing_calls = 0
 
     def __init__(self, timeout: float = 20.0, status_callback=None) -> None:
@@ -245,6 +283,18 @@ class FakeFailureClient:
             self.status_callback("downloading official pdf")
         raise bse_ipo_valuation.bse_official_helper.BSEOfficialError("模拟下载失败")
 
+    def download_issue_announcement_from_newshare_by_post_listing_code(
+        self,
+        code: str,
+        output_dir: str | Path,
+        overwrite: bool = False,
+    ) -> tuple[None, Path]:
+        _ = (code, output_dir, overwrite)
+        type(self).issue_calls += 1
+        if self.status_callback is not None:
+            self.status_callback(f"resolved issue announcement: {code}")
+        raise bse_ipo_valuation.bse_official_helper.BSEOfficialError("模拟未找到发行公告")
+
     def download_listing_announcement_from_newshare_by_post_listing_code(
         self,
         code: str,
@@ -263,6 +313,11 @@ def _prepare_local_prospectus(code: str) -> None:
     (TEMP_PDF_DIR / f"{code}_测试公司_招股说明书.pdf").write_bytes(b"%PDF-1.7 local prospectus\n%%EOF\n")
 
 
+def _prepare_local_issue_announcement(code: str) -> None:
+    TEMP_PDF_DIR.mkdir(parents=True, exist_ok=True)
+    (TEMP_PDF_DIR / f"{code}_发行公告.pdf").write_bytes(b"%PDF-1.7 local issue announcement\n%%EOF\n")
+
+
 def _run_case(
     client_cls: type,
     failures: list[str],
@@ -272,8 +327,10 @@ def _run_case(
     should_raise: bool,
     expect_listing_warning: bool,
     expect_prospectus_probe: bool,
+    expect_issue_probe: bool,
     expect_listing_probe: bool,
     expected_pdf_count: int,
+    expected_issue_error: str,
     expected_listing_error: str,
 ) -> None:
     if TEMP_ROOT.exists():
@@ -334,6 +391,16 @@ def _run_case(
         failures,
     )
     _assert(
+        client_cls.issue_calls == (1 if expect_issue_probe else 0),
+        f"autodownload: unexpected issue announcement probe count {client_cls.issue_calls}",
+        failures,
+    )
+    _assert(
+        any("resolved issue announcement" in item for item in messages) == expect_issue_probe,
+        "autodownload: issue announcement probe progress mismatch",
+        failures,
+    )
+    _assert(
         any("resolved listing" in item for item in messages) == expect_listing_probe,
         "autodownload: listing probe progress mismatch",
         failures,
@@ -373,7 +440,17 @@ def _run_case(
     if payload is None:
         return
     _assert(payload.get("prospectus_download_error") == "", "autodownload success: unexpected prospectus error", failures)
+    _assert(
+        payload.get("issue_announcement_download_error") == expected_issue_error,
+        "autodownload success: issue announcement error text mismatch",
+        failures,
+    )
     _assert(payload.get("listing_download_error") == expected_listing_error, "autodownload success: listing error text mismatch", failures)
+    _assert(
+        payload.get("issue_announcement_pdf_found") == (expected_issue_error == ""),
+        "autodownload success: issue announcement found flag mismatch",
+        failures,
+    )
     _assert(payload.get("comparable_codes") == ["300001.SZ"], "autodownload success: comparable codes mismatch", failures)
     _assert(payload.get("company_description") == "来自招股书的主营业务", "autodownload success: business description mismatch", failures)
     _assert(
@@ -390,56 +467,165 @@ def _run_case(
         print("OK prospectus autodownload: missing local files were downloaded and reused")
 
 
+def _run_issue_fallback_after_prospectus_parse_failure_case(failures: list[str]) -> None:
+    if TEMP_ROOT.exists():
+        shutil.rmtree(TEMP_ROOT)
+    TEMP_PDF_DIR.mkdir(parents=True, exist_ok=True)
+    _prepare_local_prospectus("920177")
+    _prepare_local_issue_announcement("920177")
+
+    def fake_prepare_missing_fields(
+        code: str,
+        months: int,
+        params: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        bundle = _fake_prepare_ipo_data(code, months, params)
+        ipo_info = bundle["ipo_info"]
+        for field_name in ("APPLY_DATE", "ISSUE_PRICE", "AFTER_ISSUE_PE", "TOP_APPLY_MARKETCAP"):
+            ipo_info[field_name] = None
+        return bundle
+
+    def fake_prospectus_parse_failure(file_path: str | Path) -> dict[str, Any]:
+        _ = file_path
+        raise RuntimeError("mock prospectus parse failure")
+
+    def fake_issue_announcement_info(file_path: str | Path) -> dict[str, Any]:
+        _ = file_path
+        return {
+            "fields": {
+                "APPLY_DATE": "2026-06-01",
+                "ISSUE_PRICE": 9.65,
+                "AFTER_ISSUE_PE": 14.93,
+                "TOP_APPLY_MARKETCAP": 969.25,
+            },
+            "field_sources": {
+                "APPLY_DATE": "issue_announcement:test",
+                "ISSUE_PRICE": "issue_announcement:test",
+                "AFTER_ISSUE_PE": "issue_announcement:test",
+                "TOP_APPLY_MARKETCAP": "issue_announcement:test",
+            },
+            "raw_snippets": {},
+        }
+
+    params = config_loader.load_params(ROOT_DIR / "策略参数.txt")
+    messages: list[str] = []
+    original_root = bse_ipo_valuation.ROOT_DIR
+    original_prepare = ipo_data_helper.prepare_ipo_data
+    original_comparables = comparable_data_helper.get_comparable_valuations
+    original_extract_old_shares = pdf_parser.extract_old_shares_result
+    original_extract_comparables = pdf_parser.extract_comparable_companies
+    original_extract_business = pdf_parser.extract_business_desc
+    original_extract_prospectus_issue = pdf_parser.extract_prospectus_issue_info
+    original_extract_issue_announcement = pdf_parser.extract_issue_announcement_info
+    original_client = bse_ipo_valuation.bse_official_helper.BSEOfficialClient
+
+    bse_ipo_valuation.ROOT_DIR = TEMP_ROOT
+    ipo_data_helper.prepare_ipo_data = fake_prepare_missing_fields
+    comparable_data_helper.get_comparable_valuations = _fake_get_comparable_valuations
+    pdf_parser.extract_old_shares_result = _fake_extract_old_shares_result
+    pdf_parser.extract_comparable_companies = _fake_extract_comparable_companies
+    pdf_parser.extract_business_desc = _fake_extract_business_desc
+    pdf_parser.extract_prospectus_issue_info = fake_prospectus_parse_failure
+    pdf_parser.extract_issue_announcement_info = fake_issue_announcement_info
+    bse_ipo_valuation.bse_official_helper.BSEOfficialClient = FakeListingFailureClient
+    FakeListingFailureClient.reset_counters()
+
+    try:
+        payload = bse_ipo_valuation.build_analysis_data(
+            "920177",
+            params=params,
+            progress_callback=messages.append,
+        )
+    finally:
+        bse_ipo_valuation.ROOT_DIR = original_root
+        ipo_data_helper.prepare_ipo_data = original_prepare
+        comparable_data_helper.get_comparable_valuations = original_comparables
+        pdf_parser.extract_old_shares_result = original_extract_old_shares
+        pdf_parser.extract_comparable_companies = original_extract_comparables
+        pdf_parser.extract_business_desc = original_extract_business
+        pdf_parser.extract_prospectus_issue_info = original_extract_prospectus_issue
+        pdf_parser.extract_issue_announcement_info = original_extract_issue_announcement
+        bse_ipo_valuation.bse_official_helper.BSEOfficialClient = original_client
+
+    ipo_info = payload.get("ipo_info") or {}
+    summary = payload.get("ipo_data_summary") or {}
+    _assert(ipo_info.get("APPLY_DATE") == "2026-06-01", "issue fallback: apply date mismatch", failures)
+    _assert(ipo_info.get("ISSUE_PRICE") == 9.65, "issue fallback: issue price mismatch", failures)
+    _assert(ipo_info.get("TOP_APPLY_MARKETCAP") == 969.25, "issue fallback: top apply mismatch", failures)
+    _assert(
+        summary.get("prospectus_issue_parse_error") == "mock prospectus parse failure",
+        "issue fallback: prospectus parse error not recorded",
+        failures,
+    )
+    _assert(
+        set(summary.get("issue_announcement_supplemented_fields") or []) >= {"APPLY_DATE", "ISSUE_PRICE", "TOP_APPLY_MARKETCAP"},
+        "issue fallback: supplemented fields missing",
+        failures,
+    )
+    _assert(FakeListingFailureClient.issue_calls == 0, "issue fallback: local issue announcement should not download", failures)
+    _assert(FakeListingFailureClient.listing_calls == 1, "issue fallback: listing probe count mismatch", failures)
+    print("OK issue announcement fallback: prospectus parse failure does not block issue fields")
+
+
 def main() -> int:
     failures: list[str] = []
     _run_case(
         FakeSuccessClient,
         failures,
         local_prospectus=False,
-        expected_start_message="招股说明书/上市公告书探测中，请稍候。",
+        expected_start_message="招股说明书/发行公告/上市公告书探测中，请稍候。",
         should_raise=False,
         expect_listing_warning=False,
         expect_prospectus_probe=True,
+        expect_issue_probe=True,
         expect_listing_probe=True,
-        expected_pdf_count=2,
+        expected_pdf_count=3,
+        expected_issue_error="",
         expected_listing_error="",
     )
     _run_case(
         FakeListingFailureClient,
         failures,
         local_prospectus=False,
-        expected_start_message="招股说明书/上市公告书探测中，请稍候。",
+        expected_start_message="招股说明书/发行公告/上市公告书探测中，请稍候。",
         should_raise=False,
         expect_listing_warning=True,
         expect_prospectus_probe=True,
+        expect_issue_probe=True,
         expect_listing_probe=True,
-        expected_pdf_count=1,
+        expected_pdf_count=2,
+        expected_issue_error="",
         expected_listing_error="模拟未找到上市公告书",
     )
     _run_case(
         FakeListingFailureClient,
         failures,
         local_prospectus=True,
-        expected_start_message="上市公告书探测中，请稍候。",
+        expected_start_message="发行公告/上市公告书探测中，请稍候。",
         should_raise=False,
         expect_listing_warning=True,
         expect_prospectus_probe=False,
+        expect_issue_probe=True,
         expect_listing_probe=True,
-        expected_pdf_count=1,
+        expected_pdf_count=2,
+        expected_issue_error="",
         expected_listing_error="模拟未找到上市公告书",
     )
     _run_case(
         FakeFailureClient,
         failures,
         local_prospectus=False,
-        expected_start_message="招股说明书/上市公告书探测中，请稍候。",
+        expected_start_message="招股说明书/发行公告/上市公告书探测中，请稍候。",
         should_raise=True,
         expect_listing_warning=False,
         expect_prospectus_probe=True,
+        expect_issue_probe=True,
         expect_listing_probe=True,
         expected_pdf_count=0,
+        expected_issue_error="模拟未找到发行公告",
         expected_listing_error="模拟未找到上市公告书",
     )
+    _run_issue_fallback_after_prospectus_parse_failure_case(failures)
 
     if failures:
         print("\nProspectus autodownload validation failed:")
@@ -447,7 +633,7 @@ def main() -> int:
             print(f"- {item}")
         return 1
 
-    print("\nProspectus autodownload validation passed: 4 cases")
+    print("\nProspectus autodownload validation passed: 5 cases")
     return 0
 
 

@@ -129,6 +129,19 @@ BUSINESS_TRIM_MARKERS = (
     "二、 控股股东",
     "（一）技术创新",
 )
+PROSPECTUS_ISSUE_SECTION_PATTERNS = (
+    "本次发行概况",
+    "本次发行基本情况",
+    "发行概况",
+)
+PROSPECTUS_ISSUE_SECTION_STOP_PATTERNS = (
+    "本次发行的有关机构",
+    "本次发行相关机构",
+    "风险因素",
+    "发行人基本情况",
+    "募集资金运用",
+    "投资者保护",
+)
 OLD_SHARE_PATTERNS = (
     "老股转让",
     "存量股份发售",
@@ -227,7 +240,100 @@ COMPARABLE_NAME_CODE_FALLBACKS = {
     "宏工科技": "301662.SZ",
     "福能东方": "300173.SZ",
 }
+FULLWIDTH_TRANSLATION = str.maketrans(
+    {
+        "０": "0",
+        "１": "1",
+        "２": "2",
+        "３": "3",
+        "４": "4",
+        "５": "5",
+        "６": "6",
+        "７": "7",
+        "８": "8",
+        "９": "9",
+        "．": ".",
+        "，": ",",
+        "：": ":",
+        "（": "(",
+        "）": ")",
+        "－": "-",
+        "—": "-",
+        "／": "/",
+    }
+)
+NUMERIC_TOKEN_PATTERN = r"[0-9][0-9,]*(?:\.[0-9]+)?"
+CHINESE_DATE_PATTERN = r"20[0-9]{2}年[0-9]{1,2}月[0-9]{1,2}日"
+ISO_DATE_PATTERN = r"20[0-9]{2}[-/][0-9]{1,2}[-/][0-9]{1,2}"
+PROSPECTUS_ISSUE_PRICE_PATTERNS = (
+    re.compile(rf"(?:每股发行价格|发行价格|发行价)[^0-9]{{0,24}}(?P<value>{NUMERIC_TOKEN_PATTERN})元(?:/股)?"),
+    re.compile(rf"(?P<value>{NUMERIC_TOKEN_PATTERN})元/股"),
+)
+PROSPECTUS_TOTAL_ISSUE_PATTERNS = (
+    re.compile(
+        rf"(?:本次公开发行股票数量|本次公开发行股份数量|本次发行股票数量|本次发行股份数量|"
+        rf"公开发行股票数量|公开发行股份数量|发行股票数量|发行股份数量|发行股数|初始发行数量)"
+        rf"[^0-9]{{0,30}}(?P<value>{NUMERIC_TOKEN_PATTERN})(?P<unit>万股|股)"
+    ),
+    re.compile(
+        rf"(?<!网上)(?<!网下)(?<!战略配售)(?:发行数量)"
+        rf"[^0-9]{{0,24}}(?P<value>{NUMERIC_TOKEN_PATTERN})(?P<unit>万股|股)"
+    ),
+)
+PROSPECTUS_AFTER_ISSUE_PE_PATTERNS = (
+    re.compile(rf"(?:发行市盈率|发行后市盈率|发行后每股收益市盈率)[^0-9]{{0,24}}(?P<value>{NUMERIC_TOKEN_PATTERN})倍"),
+    re.compile(rf"(?:发行市盈率|发行后市盈率|发行后每股收益市盈率)[(]?倍[)]?[^0-9]{{0,12}}(?P<value>{NUMERIC_TOKEN_PATTERN})"),
+)
+PROSPECTUS_INDUSTRY_PE_PATTERNS = (
+    re.compile(rf"(?:行业平均静态市盈率|行业平均市盈率|最近一个月平均静态市盈率)[^0-9]{{0,32}}(?P<value>{NUMERIC_TOKEN_PATTERN})倍"),
+    re.compile(rf"(?:所属行业|所处行业)[^。；;]{{0,60}}?(?:平均静态市盈率|平均市盈率)[^0-9]{{0,24}}(?P<value>{NUMERIC_TOKEN_PATTERN})倍"),
+)
+PROSPECTUS_TOTAL_CAPITAL_PATTERNS = (
+    re.compile(rf"(?:发行后总股本|本次发行后总股本)[^0-9]{{0,24}}(?P<value>{NUMERIC_TOKEN_PATTERN})(?P<unit>万股|股)"),
+)
+PROSPECTUS_APPLY_DATE_PATTERNS = (
+    re.compile(
+        rf"(?:预计发行日期|申购日期|网上申购日期|网上申购日|网上申购时间|申购时间|发行日期)"
+        rf"[^0-9]{{0,18}}(?P<date>{CHINESE_DATE_PATTERN}|{ISO_DATE_PATTERN})"
+    ),
+)
+PROSPECTUS_SUBSCRIPTION_LIMIT_PATTERNS = (
+    re.compile(
+        rf"(?:网上每笔申购数量上限|网上申购数量上限|申购数量上限|申购上限)"
+        rf"[(](?P<unit>万股)[)][^0-9]{{0,12}}(?P<value>{NUMERIC_TOKEN_PATTERN})"
+    ),
+    re.compile(
+        rf"(?:申购上限|申购数量上限|网上申购数量上限|网上每笔申购数量上限|每笔申购数量上限)"
+        rf"[^。；;]{{0,80}}(?:即|为|不超过)[^0-9]{{0,12}}(?P<value>{NUMERIC_TOKEN_PATTERN})(?P<unit>万股|股)"
+    ),
+    re.compile(
+        rf"(?:申购上限|申购数量上限|网上申购数量上限|网上每笔申购数量上限|每笔申购数量上限)"
+        rf"[^0-9]{{0,32}}(?P<value>{NUMERIC_TOKEN_PATTERN})(?P<unit>万股|股)"
+    ),
+    re.compile(
+        rf"(?:申购数量|网上申购数量|每笔申购数量)[^。；;]{{0,48}}(?:不得超过|不超过|上限为)"
+        rf"[^0-9]{{0,12}}(?P<value>{NUMERIC_TOKEN_PATTERN})(?P<unit>万股|股)"
+    ),
+)
+PROSPECTUS_INDUSTRY_PATTERNS = (
+    re.compile(r"C制造业(?P<code>[0-9]{2})(?P<industry>[\u4e00-\u9fff、和]{2,36}?业)"),
+    re.compile(
+        r"(?:所属行业(?:为|:)?|所处行业(?:为|:)?|属于)"
+        r"(?P<industry>[\u4e00-\u9fff]{2,24}业)"
+        r"[(]行业代码[:：]?(?P<code>[A-Z][0-9]{2})[)]"
+    ),
+    re.compile(
+        r"(?P<industry>[\u4e00-\u9fff]{2,24}业)"
+        r"[(]行业代码[:：]?(?P<code>[A-Z][0-9]{2})[)]"
+    ),
+    re.compile(r"(?P<industry>[\u4e00-\u9fff、和]{2,36}?业)[(](?P<code>C[0-9]{2,4})[)]"),
+    re.compile(r"(?P<code>C[0-9]{2,4})(?P<industry>[\u4e00-\u9fff、和]{2,36}?业)"),
+)
 PARSE_CACHE_SCHEMA = "pdf_parse_cache_v1"
+PARSE_CACHE_KIND_VERSIONS = {
+    "prospectus_issue_info": 7,
+    "issue_announcement_info": 3,
+}
 PARSE_CACHE_DIR = Path(__file__).resolve().parents[1] / "data" / "pdf_parse_cache"
 _CACHE_MISSING = object()
 
@@ -266,6 +372,9 @@ def _load_parse_cache(pdf_path: str | Path, kind: str) -> object:
         return _CACHE_MISSING
     if payload.get("schema") != PARSE_CACHE_SCHEMA or payload.get("kind") != kind:
         return _CACHE_MISSING
+    expected_version = PARSE_CACHE_KIND_VERSIONS.get(kind)
+    if expected_version is not None and int(payload.get("parser_version") or -1) != expected_version:
+        return _CACHE_MISSING
     if int(payload.get("mtime_ns") or -1) != stat.st_mtime_ns:
         return _CACHE_MISSING
     if int(payload.get("size") or -1) != stat.st_size:
@@ -288,6 +397,8 @@ def _save_parse_cache(pdf_path: str | Path, kind: str, value: object) -> None:
             "size": stat.st_size,
             "value": value,
         }
+        if kind in PARSE_CACHE_KIND_VERSIONS:
+            payload["parser_version"] = PARSE_CACHE_KIND_VERSIONS[kind]
         _parse_cache_path(file_path, kind).write_text(
             json.dumps(payload, ensure_ascii=False, indent=2),
             encoding="utf-8",
@@ -423,6 +534,305 @@ def _read_pdf_text_cached(path_text: str) -> str:
 def _read_pdf_text(pdf_path: str | Path) -> str:
     file_path = Path(pdf_path)
     return _read_pdf_text_cached(str(file_path.resolve()))
+
+
+def _normalize_fullwidth_text(text: str) -> str:
+    return (text or "").translate(FULLWIDTH_TRANSLATION)
+
+
+def _parse_numeric_token(value: str) -> float | None:
+    try:
+        return float(str(value or "").replace(",", ""))
+    except (TypeError, ValueError):
+        return None
+
+
+def _normalize_issue_date(value: str) -> str:
+    text = str(value or "").strip().replace("/", "-")
+    chinese_match = re.fullmatch(r"(?P<year>20[0-9]{2})年(?P<month>[0-9]{1,2})月(?P<day>[0-9]{1,2})日", text)
+    if chinese_match:
+        return "{year}-{month:02d}-{day:02d}".format(
+            year=chinese_match.group("year"),
+            month=int(chinese_match.group("month")),
+            day=int(chinese_match.group("day")),
+        )
+    iso_match = re.fullmatch(r"(?P<year>20[0-9]{2})-(?P<month>[0-9]{1,2})-(?P<day>[0-9]{1,2})", text)
+    if iso_match:
+        return "{year}-{month:02d}-{day:02d}".format(
+            year=iso_match.group("year"),
+            month=int(iso_match.group("month")),
+            day=int(iso_match.group("day")),
+        )
+    return text
+
+
+def _shares_to_wan(value: float, unit: str) -> float:
+    return value if unit == "万股" else value / 10000
+
+
+def _clean_prospectus_industry_name(value: str) -> str:
+    current = str(value or "").strip(" ：:，,。；;")
+    for marker in ("所属行业为", "所处行业为", "所属行业:", "所处行业:", "行业为", "属于"):
+        if marker in current:
+            current = current.split(marker, 1)[-1]
+    for marker in ("指", "管理型行业分类", "上市公司行业分类"):
+        index = current.find(marker)
+        if index > 0:
+            current = current[:index]
+    return current.strip(" ：:，,。；;")
+
+
+def _valid_issue_field_value(value: object) -> bool:
+    return value not in (None, "", "--")
+
+
+def _set_prospectus_issue_field(
+    result: dict[str, dict[str, object]],
+    field_name: str,
+    value: object,
+    rule: str,
+    source_text: str,
+    start_index: int,
+) -> None:
+    if not _valid_issue_field_value(value) or field_name in result["fields"]:
+        return
+    result["fields"][field_name] = value
+    result["field_sources"][field_name] = f"prospectus:{rule}"
+    result["raw_snippets"][field_name] = _make_raw_snippet(source_text, start_index)
+
+
+def _extract_price_way_from_prospectus_text(result: dict[str, dict[str, object]], search_text: str, rule: str) -> None:
+    if "PRICE_WAY" in result["fields"]:
+        return
+    for keyword, label in (("直接定价", "直接定价"), ("询价", "询价"), ("竞价", "竞价")):
+        index = search_text.find(keyword)
+        if index < 0:
+            continue
+        context = search_text[max(0, index - 80) : index + 120]
+        if keyword == "直接定价" or any(marker in context for marker in ("定价方式", "发行价格", "确定发行价格", "发行方式")):
+            _set_prospectus_issue_field(result, "PRICE_WAY", label, rule, search_text, index)
+            return
+
+
+def _extract_industry_from_prospectus_text(result: dict[str, dict[str, object]], search_text: str, rule: str) -> None:
+    if "INDUSTRY" in result["fields"] and "INDUSTRY_CODE" in result["fields"]:
+        return
+    anchors = (
+        "公司所属行业",
+        "公司所处行业",
+        "公司属于",
+        "所属行业",
+        "行业代码",
+        "国民经济行业分类",
+        "上市公司行业统计分类",
+        "上市公司行业分类",
+        "行业分类",
+    )
+    windows: list[tuple[str, int]] = []
+    for anchor in anchors:
+        start = 0
+        while True:
+            index = search_text.find(anchor, start)
+            if index < 0:
+                break
+            windows.append((search_text[max(0, index - 80) : index + 420], max(0, index - 80)))
+            start = index + len(anchor)
+    if not windows:
+        windows = [(search_text, 0)]
+
+    for window, offset in windows:
+        for pattern in PROSPECTUS_INDUSTRY_PATTERNS:
+            match = pattern.search(window)
+            if not match:
+                continue
+            industry = _clean_prospectus_industry_name(match.group("industry"))
+            industry_code = str(match.group("code") or "").strip().upper()
+            if industry_code and industry_code[0].isdigit():
+                industry_code = f"C{industry_code}"
+            if not industry or not industry_code.startswith("C") or not industry.endswith("业"):
+                continue
+            if industry == "制造业":
+                continue
+            if any(
+                marker in industry
+                for marker in (
+                    "合伙企业",
+                    "执行事务",
+                    "股权投资",
+                    "科技产业",
+                    "上市公司行业",
+                    "管理型行业",
+                )
+            ):
+                continue
+            if industry_code.startswith("C") and len(industry_code) > 3:
+                industry_code = industry_code[:3]
+            _set_prospectus_issue_field(result, "INDUSTRY", industry, rule, search_text, offset + match.start())
+            _set_prospectus_issue_field(result, "INDUSTRY_CODE", industry_code, rule, search_text, offset + match.start())
+            return
+
+
+def _extract_numeric_patterns(
+    result: dict[str, dict[str, object]],
+    search_text: str,
+    rule: str,
+    field_name: str,
+    patterns: Iterable[re.Pattern[str]],
+) -> None:
+    if field_name in result["fields"]:
+        return
+    for pattern in patterns:
+        match = pattern.search(search_text)
+        if not match:
+            continue
+        value = _parse_numeric_token(match.group("value"))
+        if value is None:
+            continue
+        _set_prospectus_issue_field(result, field_name, value, rule, search_text, match.start())
+        return
+
+
+def _extract_wan_share_patterns(
+    result: dict[str, dict[str, object]],
+    search_text: str,
+    rule: str,
+    field_name: str,
+    patterns: Iterable[re.Pattern[str]],
+) -> None:
+    if field_name in result["fields"]:
+        return
+    for pattern in patterns:
+        match = pattern.search(search_text)
+        if not match:
+            continue
+        value = _parse_numeric_token(match.group("value"))
+        if value is None:
+            continue
+        unit = str(match.group("unit") or "").strip()
+        _set_prospectus_issue_field(result, field_name, _shares_to_wan(value, unit), rule, search_text, match.start())
+        return
+
+
+def _extract_apply_date_from_prospectus_text(result: dict[str, dict[str, object]], search_text: str, rule: str) -> None:
+    if "APPLY_DATE" in result["fields"]:
+        return
+    for pattern in PROSPECTUS_APPLY_DATE_PATTERNS:
+        match = pattern.search(search_text)
+        if not match:
+            continue
+        _set_prospectus_issue_field(
+            result,
+            "APPLY_DATE",
+            _normalize_issue_date(match.group("date")),
+            rule,
+            search_text,
+            match.start(),
+        )
+        return
+
+
+def _build_prospectus_issue_search_targets(text: str) -> list[tuple[str, str]]:
+    compact_text = _compact_text(_normalize_fullwidth_text(text))
+    if not compact_text:
+        return []
+    section_text, section_anchor = _extract_compact_section(
+        compact_text,
+        PROSPECTUS_ISSUE_SECTION_PATTERNS,
+        PROSPECTUS_ISSUE_SECTION_STOP_PATTERNS,
+        fallback_radius=3600,
+    )
+    targets: list[tuple[str, str]] = []
+    if section_text:
+        targets.append((section_text, section_anchor or "本次发行概况"))
+    if not section_text or section_text != compact_text:
+        targets.append((compact_text, "全文"))
+    return targets
+
+
+def _extract_prospectus_issue_info_from_text(text: str) -> dict[str, object]:
+    result: dict[str, dict[str, object]] = {
+        "fields": {},
+        "field_sources": {},
+        "raw_snippets": {},
+    }
+    for search_text, rule in _build_prospectus_issue_search_targets(text):
+        _extract_price_way_from_prospectus_text(result, search_text, rule)
+        _extract_industry_from_prospectus_text(result, search_text, rule)
+        _extract_numeric_patterns(result, search_text, rule, "ISSUE_PRICE", PROSPECTUS_ISSUE_PRICE_PATTERNS)
+        _extract_numeric_patterns(result, search_text, rule, "AFTER_ISSUE_PE", PROSPECTUS_AFTER_ISSUE_PE_PATTERNS)
+        _extract_numeric_patterns(result, search_text, rule, "INDUSTRY_PE_NEW", PROSPECTUS_INDUSTRY_PE_PATTERNS)
+        _extract_wan_share_patterns(result, search_text, rule, "TOTAL_ISSUE_NUM", PROSPECTUS_TOTAL_ISSUE_PATTERNS)
+        _extract_wan_share_patterns(result, search_text, rule, "TOTAL_SHARE_CAPITAL_AFTER_ISSUE", PROSPECTUS_TOTAL_CAPITAL_PATTERNS)
+        _extract_wan_share_patterns(result, search_text, rule, "SUBSCRIPTION_LIMIT_WAN_SHARES", PROSPECTUS_SUBSCRIPTION_LIMIT_PATTERNS)
+        _extract_apply_date_from_prospectus_text(result, search_text, rule)
+
+    limit_wan_shares = _parse_numeric_token(str(result["fields"].get("SUBSCRIPTION_LIMIT_WAN_SHARES") or ""))
+    issue_price = _parse_numeric_token(str(result["fields"].get("ISSUE_PRICE") or ""))
+    if (
+        limit_wan_shares is not None
+        and limit_wan_shares > 0
+        and issue_price is not None
+        and issue_price > 0
+        and "TOP_APPLY_MARKETCAP" not in result["fields"]
+    ):
+        result["fields"]["TOP_APPLY_MARKETCAP"] = limit_wan_shares * issue_price
+        result["field_sources"]["TOP_APPLY_MARKETCAP"] = result["field_sources"].get(
+            "SUBSCRIPTION_LIMIT_WAN_SHARES",
+            "prospectus:subscription_limit",
+        )
+        result["raw_snippets"]["TOP_APPLY_MARKETCAP"] = result["raw_snippets"].get("SUBSCRIPTION_LIMIT_WAN_SHARES", "")
+
+    return result
+
+
+def _rewrite_issue_info_sources(result: dict[str, object], source_prefix: str) -> dict[str, object]:
+    rewritten = {
+        "fields": dict(result.get("fields") or {}),
+        "field_sources": dict(result.get("field_sources") or {}),
+        "raw_snippets": dict(result.get("raw_snippets") or {}),
+    }
+    field_sources = rewritten["field_sources"]
+    if isinstance(field_sources, dict):
+        for field_name, source in list(field_sources.items()):
+            source_text = str(source or "")
+            if source_text.startswith("prospectus:"):
+                field_sources[field_name] = f"{source_prefix}:{source_text.split(':', 1)[1]}"
+            elif source_text:
+                field_sources[field_name] = f"{source_prefix}:{source_text}"
+    return rewritten
+
+
+def _extract_issue_announcement_info_from_text(text: str) -> dict[str, object]:
+    result = _extract_prospectus_issue_info_from_text(text)
+    return _rewrite_issue_info_sources(result, "issue_announcement")
+
+
+def extract_prospectus_issue_info(pdf_path: str | Path) -> dict[str, object]:
+    cached = _load_parse_cache(pdf_path, "prospectus_issue_info")
+    if cached is not _CACHE_MISSING and isinstance(cached, dict):
+        return cached
+
+    text = _read_pdf_text(pdf_path)
+    if not text:
+        result: dict[str, object] = {"fields": {}, "field_sources": {}, "raw_snippets": {}}
+        return result
+    result = _extract_prospectus_issue_info_from_text(text)
+    _save_parse_cache(pdf_path, "prospectus_issue_info", result)
+    return result
+
+
+def extract_issue_announcement_info(pdf_path: str | Path) -> dict[str, object]:
+    cached = _load_parse_cache(pdf_path, "issue_announcement_info")
+    if cached is not _CACHE_MISSING and isinstance(cached, dict):
+        return cached
+
+    text = _read_pdf_text(pdf_path)
+    if not text:
+        result: dict[str, object] = {"fields": {}, "field_sources": {}, "raw_snippets": {}}
+        return result
+    result = _extract_issue_announcement_info_from_text(text)
+    _save_parse_cache(pdf_path, "issue_announcement_info", result)
+    return result
 
 
 def _extract_windows(text: str, keywords: Iterable[str], radius: int = 2000) -> list[str]:

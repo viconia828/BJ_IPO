@@ -62,7 +62,13 @@ class IndustryMapper:
     def get_industry(self, sw_industry_name: str | None) -> tuple[str, str]:
         if not sw_industry_name:
             return UNCLASSIFIED
-        raw_value = self.mapping.get(str(sw_industry_name).strip())
+        industry_name = str(sw_industry_name).strip()
+        raw_value = self.mapping.get(industry_name)
+        if not raw_value:
+            for key in sorted((str(item).strip() for item in self.mapping), key=len, reverse=True):
+                if len(key) >= 3 and key in industry_name:
+                    raw_value = self.mapping.get(key)
+                    break
         if not raw_value:
             return UNCLASSIFIED
         return self._parse_mapping_value(raw_value)

@@ -50,10 +50,14 @@ def _find_pdf_candidates(directory: Path, code: str, suffix: str) -> list[Path]:
 
     aliases = {
         "上市公告书": ["上市公告书", "上市公告"],
+        "发行公告": ["上市发行公告", "发行公告"],
         "招股说明书摘要": ["招股说明书摘要", "招股说明书", "招股书摘要", "招股书", "招股意向书摘要", "招股意向书"],
     }
     keywords = aliases.get(suffix, [suffix])
     other_keywords = [item for key, values in aliases.items() if key != suffix for item in values]
+    excluded_keywords = {
+        "发行公告": ["发行结果", "结果公告", "上市公告书", "招股说明书", "招股意向书"],
+    }.get(suffix, [])
     if not directory.exists():
         return []
 
@@ -66,11 +70,15 @@ def _find_pdf_candidates(directory: Path, code: str, suffix: str) -> list[Path]:
         stem = file_path.stem
         if code not in stem:
             continue
+        if any(keyword in stem for keyword in excluded_keywords):
+            continue
         if any(keyword in stem for keyword in keywords):
             prioritized.append(file_path)
         elif not any(keyword in stem for keyword in other_keywords):
             fallback.append(file_path)
 
+    if suffix == "发行公告":
+        return prioritized
     return prioritized + fallback
 
 
@@ -179,6 +187,131 @@ def _load_comparable_codes(params: dict[str, Any], prospectus_pdf: Path | None) 
     return []
 
 
+ISSUE_DOCUMENT_SUPPLEMENT_FIELDS = (
+    "PRICE_WAY",
+    "APPLY_DATE",
+    "ISSUE_PRICE",
+    "AFTER_ISSUE_PE",
+    "INDUSTRY_PE_NEW",
+    "TOTAL_ISSUE_NUM",
+    "TOP_APPLY_MARKETCAP",
+    "INDUSTRY",
+    "INDUSTRY_CODE",
+    "TOTAL_SHARE_CAPITAL_AFTER_ISSUE",
+    "SUBSCRIPTION_LIMIT_WAN_SHARES",
+)
+PROSPECTUS_SUPPLEMENT_FIELDS = ISSUE_DOCUMENT_SUPPLEMENT_FIELDS
+
+
+def _value_is_missing(value: Any) -> bool:
+    return value in (None, "", "--")
+
+
+def _apply_issue_document_info(
+    ipo_info: dict[str, Any],
+    summary: dict[str, Any],
+    issue_info: dict[str, Any],
+    document_pdf: Path | None = None,
+    *,
+    source_prefix: str,
+    supplement_used_key: str,
+    supplemented_fields_key: str,
+    info_file_key: str,
+    field_sources_key: str,
+) -> list[str]:
+    fields = dict(issue_info.get("fields") or {}) if isinstance(issue_info, dict) else {}
+    if not fields:
+        return []
+
+    limit_wan_shares = _safe_float(fields.get("SUBSCRIPTION_LIMIT_WAN_SHARES"))
+    issue_price = _safe_float(fields.get("ISSUE_PRICE")) or _safe_float(ipo_info.get("ISSUE_PRICE"))
+    if (
+        _value_is_missing(ipo_info.get("TOP_APPLY_MARKETCAP"))
+        and _value_is_missing(fields.get("TOP_APPLY_MARKETCAP"))
+        and limit_wan_shares is not None
+        and limit_wan_shares > 0
+        and issue_price is not None
+        and issue_price > 0
+    ):
+        fields["TOP_APPLY_MARKETCAP"] = limit_wan_shares * issue_price
+        field_sources = dict(issue_info.get("field_sources") or {})
+        field_sources["TOP_APPLY_MARKETCAP"] = field_sources.get(
+            "SUBSCRIPTION_LIMIT_WAN_SHARES",
+            f"{source_prefix}:subscription_limit",
+        )
+        issue_info = dict(issue_info)
+        issue_info["field_sources"] = field_sources
+
+    applied: list[str] = []
+    for field_name in ISSUE_DOCUMENT_SUPPLEMENT_FIELDS:
+        value = fields.get(field_name)
+        if _value_is_missing(value) or not _value_is_missing(ipo_info.get(field_name)):
+            continue
+        ipo_info[field_name] = value
+        applied.append(field_name)
+
+    if not applied:
+        return []
+
+    existing_fields = list(summary.get(supplemented_fields_key) or [])
+    for field_name in applied:
+        if field_name not in existing_fields:
+            existing_fields.append(field_name)
+    summary[supplement_used_key] = True
+    summary[supplemented_fields_key] = existing_fields
+    if document_pdf is not None:
+        summary[info_file_key] = document_pdf.name
+
+    field_sources = issue_info.get("field_sources") if isinstance(issue_info, dict) else {}
+    if isinstance(field_sources, dict):
+        source_bucket = dict(summary.get(field_sources_key) or {})
+        for field_name in applied:
+            if field_name in field_sources:
+                source_bucket[field_name] = field_sources[field_name]
+        if source_bucket:
+            summary[field_sources_key] = source_bucket
+
+    return applied
+
+
+def _apply_prospectus_issue_info(
+    ipo_info: dict[str, Any],
+    summary: dict[str, Any],
+    issue_info: dict[str, Any],
+    prospectus_pdf: Path | None = None,
+) -> list[str]:
+    return _apply_issue_document_info(
+        ipo_info,
+        summary,
+        issue_info,
+        prospectus_pdf,
+        source_prefix="prospectus",
+        supplement_used_key="prospectus_supplement_used",
+        supplemented_fields_key="prospectus_supplemented_fields",
+        info_file_key="prospectus_issue_info_file",
+        field_sources_key="prospectus_issue_field_sources",
+    )
+
+
+def _apply_issue_announcement_info(
+    ipo_info: dict[str, Any],
+    summary: dict[str, Any],
+    issue_info: dict[str, Any],
+    issue_announcement_pdf: Path | None = None,
+) -> list[str]:
+    return _apply_issue_document_info(
+        ipo_info,
+        summary,
+        issue_info,
+        issue_announcement_pdf,
+        source_prefix="issue_announcement",
+        supplement_used_key="issue_announcement_supplement_used",
+        supplemented_fields_key="issue_announcement_supplemented_fields",
+        info_file_key="issue_announcement_info_file",
+        field_sources_key="issue_announcement_field_sources",
+    )
+
+
 def _calc_change_pct(issue_price: float | None, target_price: float | None) -> float | None:
     if not issue_price or not target_price:
         return None
@@ -214,26 +347,35 @@ def _ensure_local_prospectus_pdf(
         return None, f"招股说明书已下载到本地，但未识别为可用文件：{downloaded_path.name}"
     return None, "招股说明书下载后仍未在本地找到可用文件"
 
+
 def _ensure_local_official_documents(
     directory: Path,
     code: str,
     progress_callback: Callable[[str], None] | None = None,
-) -> tuple[Path | None, str, Path | None, str]:
+) -> tuple[Path | None, str, Path | None, str, Path | None, str]:
     existing_prospectus = _pick_prospectus_pdf(directory, code, "old_shares")
+    existing_issue_announcement = _find_pdf(directory, code, "发行公告")
     existing_listing = _find_pdf(directory, code, "上市公告书")
-    if existing_prospectus is not None and existing_listing is not None:
-        return existing_prospectus, "", existing_listing, ""
+    if existing_prospectus is not None and existing_issue_announcement is not None and existing_listing is not None:
+        return existing_prospectus, "", existing_issue_announcement, "", existing_listing, ""
 
     if progress_callback is not None:
-        if existing_prospectus is None and existing_listing is None:
-            progress_callback("招股说明书/上市公告书探测中，请稍候。")
-        elif existing_prospectus is None:
+        pending_labels: list[str] = []
+        if existing_prospectus is None:
+            pending_labels.append("招股说明书")
+        if existing_issue_announcement is None:
+            pending_labels.append("发行公告")
+        if existing_listing is None:
+            pending_labels.append("上市公告书")
+        pending_text = "/".join(pending_labels)
+        if len(pending_labels) == 1 and pending_labels[0] == "招股说明书":
             progress_callback("招股说明书下载中，请稍候。")
         else:
-            progress_callback("上市公告书探测中，请稍候。")
+            progress_callback(f"{pending_text}探测中，请稍候。")
 
     client = bse_official_helper.BSEOfficialClient(status_callback=progress_callback)
     prospectus_download_error = ""
+    issue_announcement_download_error = ""
     listing_download_error = ""
     downloaded_path: Path | None = None
 
@@ -247,6 +389,16 @@ def _ensure_local_official_documents(
         except bse_official_helper.BSEOfficialError as exc:
             prospectus_download_error = str(exc)
 
+    if existing_issue_announcement is None:
+        try:
+            _, existing_issue_announcement = client.download_issue_announcement_from_newshare_by_post_listing_code(
+                code,
+                directory,
+                overwrite=False,
+            )
+        except bse_official_helper.BSEOfficialError as exc:
+            issue_announcement_download_error = str(exc)
+
     if existing_listing is None:
         try:
             _, existing_listing = client.download_listing_announcement_from_newshare_by_post_listing_code(
@@ -258,16 +410,38 @@ def _ensure_local_official_documents(
             listing_download_error = str(exc)
 
     refreshed_prospectus = _pick_prospectus_pdf(directory, code, "old_shares")
+    refreshed_issue_announcement = _find_pdf(directory, code, "发行公告")
     refreshed_listing = _find_pdf(directory, code, "上市公告书")
     if refreshed_prospectus is not None:
-        return refreshed_prospectus, "", refreshed_listing or existing_listing, listing_download_error
+        return (
+            refreshed_prospectus,
+            "",
+            refreshed_issue_announcement or existing_issue_announcement,
+            issue_announcement_download_error,
+            refreshed_listing or existing_listing,
+            listing_download_error,
+        )
     if existing_prospectus is not None:
-        return existing_prospectus, "", refreshed_listing or existing_listing, listing_download_error
+        return (
+            existing_prospectus,
+            "",
+            refreshed_issue_announcement or existing_issue_announcement,
+            issue_announcement_download_error,
+            refreshed_listing or existing_listing,
+            listing_download_error,
+        )
     if not prospectus_download_error and downloaded_path is not None and downloaded_path.exists():
         prospectus_download_error = f"招股说明书已下载到本地，但未识别为可用文件：{downloaded_path.name}"
     if not prospectus_download_error:
         prospectus_download_error = "招股说明书下载后仍未在本地找到可用文件"
-    return None, prospectus_download_error, refreshed_listing or existing_listing, listing_download_error
+    return (
+        None,
+        prospectus_download_error,
+        refreshed_issue_announcement or existing_issue_announcement,
+        issue_announcement_download_error,
+        refreshed_listing or existing_listing,
+        listing_download_error,
+    )
 
 
 def build_analysis_data(
@@ -286,21 +460,26 @@ def build_analysis_data(
     ipo_data_bundle = ipo_data_helper.prepare_ipo_data(code, recent_months_compat, params)
     ipo_info = ipo_data_bundle.get("ipo_info") or {}
     ipo_data_summary = ipo_data_bundle.get("summary") or {}
-    industry = mapper.resolve_stock_industry(code, ipo_info)
 
     pdf_dir = ROOT_DIR / "公告文件"
     listing_pdf = _find_pdf(pdf_dir, code, "上市公告书")
+    issue_announcement_pdf = _find_pdf(pdf_dir, code, "发行公告")
     old_shares_fallback_pdf = _pick_prospectus_pdf(pdf_dir, code, "old_shares")
     comparable_pdf = _pick_prospectus_pdf(pdf_dir, code, "comparables")
     business_pdf = _pick_prospectus_pdf(pdf_dir, code, "business")
     prospectus_download_error = ""
+    issue_announcement_download_error = ""
     listing_download_error = ""
+    prospectus_issue_parse_error = ""
+    issue_announcement_parse_error = ""
     prospectus_available = any((old_shares_fallback_pdf, comparable_pdf, business_pdf))
 
-    if not prospectus_available or listing_pdf is None:
+    if not prospectus_available or issue_announcement_pdf is None or listing_pdf is None:
         (
             old_shares_fallback_pdf,
             prospectus_download_error,
+            issue_announcement_pdf,
+            issue_announcement_download_error,
             listing_pdf,
             listing_download_error,
         ) = _ensure_local_official_documents(
@@ -309,6 +488,7 @@ def build_analysis_data(
             progress_callback=progress_callback,
         )
         old_shares_fallback_pdf = _pick_prospectus_pdf(pdf_dir, code, "old_shares")
+        issue_announcement_pdf = _find_pdf(pdf_dir, code, "发行公告") or issue_announcement_pdf
         listing_pdf = _find_pdf(pdf_dir, code, "上市公告书") or listing_pdf
         comparable_pdf = _pick_prospectus_pdf(pdf_dir, code, "comparables")
         business_pdf = _pick_prospectus_pdf(pdf_dir, code, "business")
@@ -323,6 +503,25 @@ def build_analysis_data(
             if listing_download_error:
                 message = f"{message} 原因：{listing_download_error}"
             progress_callback(message)
+
+    prospectus_issue_pdf = old_shares_fallback_pdf or comparable_pdf or business_pdf
+    if prospectus_issue_pdf:
+        try:
+            prospectus_issue_info = pdf_parser.extract_prospectus_issue_info(prospectus_issue_pdf)
+            _apply_prospectus_issue_info(ipo_info, ipo_data_summary, prospectus_issue_info, prospectus_issue_pdf)
+        except Exception as exc:
+            prospectus_issue_parse_error = str(exc)
+            ipo_data_summary["prospectus_issue_parse_error"] = prospectus_issue_parse_error
+
+    if issue_announcement_pdf:
+        try:
+            issue_announcement_info = pdf_parser.extract_issue_announcement_info(issue_announcement_pdf)
+            _apply_issue_announcement_info(ipo_info, ipo_data_summary, issue_announcement_info, issue_announcement_pdf)
+        except Exception as exc:
+            issue_announcement_parse_error = str(exc)
+            ipo_data_summary["issue_announcement_parse_error"] = issue_announcement_parse_error
+
+    industry = mapper.resolve_stock_industry(code, ipo_info)
 
     old_shares, old_shares_desc, old_shares_meta = _resolve_old_shares(params, listing_pdf, old_shares_fallback_pdf)
     total_issue_num = _safe_float(ipo_info.get("TOTAL_ISSUE_NUM")) or 0.0
@@ -425,8 +624,12 @@ def build_analysis_data(
         "old_shares_meta": old_shares_meta,
         "company_description": company_description,
         "prospectus_download_error": prospectus_download_error,
+        "issue_announcement_download_error": issue_announcement_download_error,
         "listing_download_error": listing_download_error,
+        "issue_announcement_pdf_found": issue_announcement_pdf is not None,
         "listing_pdf_found": listing_pdf is not None,
+        "prospectus_issue_parse_error": prospectus_issue_parse_error,
+        "issue_announcement_parse_error": issue_announcement_parse_error,
         "comparable_codes": comparable_codes,
         "comparable_data": comparable_data,
         "comparable_summary": comparable_summary,

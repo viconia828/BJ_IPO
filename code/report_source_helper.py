@@ -4,13 +4,21 @@ from typing import Any
 
 
 SUPPLEMENT_FIELD_LABELS = {
+    "APPLY_DATE": "申购日期",
     "PRICE_WAY": "定价方式",
+    "ISSUE_PRICE": "发行价格",
+    "AFTER_ISSUE_PE": "发行市盈率",
+    "TOTAL_ISSUE_NUM": "发行总量",
     "TOP_APPLY_MARKETCAP": "顶格打新金额",
     "ONLINE_VA_NUM": "有效申购户数",
     "ONLINE_ISSUE_LWR": "中签率",
     "INDUSTRY_PE_NEW": "行业 PE",
+    "INDUSTRY": "所属行业",
+    "INDUSTRY_CODE": "行业代码",
     "SW_INDUSTRY": "申万行业",
     "MAIN_BUSINESS": "主营业务",
+    "TOTAL_SHARE_CAPITAL_AFTER_ISSUE": "发行后总股本",
+    "SUBSCRIPTION_LIMIT_WAN_SHARES": "申购上限",
 }
 
 DISPLAY_ONLY_SUPPLEMENT_FIELDS = frozenset(
@@ -53,8 +61,15 @@ def supplemented_fields_are_display_only(fields: Any) -> bool:
 def build_ipo_source_text(all_data: dict[str, Any]) -> str:
     ipo_summary = all_data.get("ipo_data_summary") or {}
     provider = str(ipo_summary.get("provider") or all_data.get("params", {}).get("ipo_data_source", "eastmoney")).strip().lower() or "eastmoney"
+    prospectus_labels = get_supplemented_field_labels(ipo_summary.get("prospectus_supplemented_fields"))
+    prospectus_suffix = f"+ 招股说明书（字段补充：{'、'.join(prospectus_labels)}）" if prospectus_labels else ""
+    issue_announcement_labels = get_supplemented_field_labels(ipo_summary.get("issue_announcement_supplemented_fields"))
+    issue_announcement_suffix = (
+        f"+ 发行公告（字段补充：{'、'.join(issue_announcement_labels)}）" if issue_announcement_labels else ""
+    )
+    document_suffix = f"{prospectus_suffix}{issue_announcement_suffix}"
     if provider != "tushare":
-        return "东方财富（IPO 信息与近期样本）"
+        return f"东方财富（IPO 信息与近期样本）{document_suffix}"
 
     tushare_label = "Tushare（IPO 关键字段与近期样本）"
     if ipo_summary.get("industry_pe_source") == "tushare_sw_daily":
@@ -73,8 +88,8 @@ def build_ipo_source_text(all_data: dict[str, Any]) -> str:
         else:
             extra_parts.append("报告字段补充")
     if extra_parts:
-        return f"{tushare_label}+ 东方财富（{'；'.join(extra_parts)}）"
-    return tushare_label
+        return f"{tushare_label}+ 东方财富（{'；'.join(extra_parts)}）{document_suffix}"
+    return f"{tushare_label}{document_suffix}"
 
 
 def build_comparable_source_text(all_data: dict[str, Any]) -> str:

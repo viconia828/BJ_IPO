@@ -63,6 +63,12 @@ LISTING_ANNOUNCEMENT_KEYWORDS = (
     "上市公告书",
     "上市公告",
 )
+ISSUE_ANNOUNCEMENT_KEYWORDS = (
+    "向不特定合格投资者公开发行股票并在北京证券交易所上市发行公告",
+    "公开发行股票并在北京证券交易所上市发行公告",
+    "上市发行公告",
+    "发行公告",
+)
 EASTMONEY_PDF_LINK_PATTERN = re.compile(
     r'href="(?P<url>https://pdf\.dfcfw\.com/pdf/[^"]+)"',
     re.IGNORECASE,
@@ -136,6 +142,12 @@ class ProspectusResolution:
 
 @dataclass(frozen=True)
 class ListingAnnouncementResolution:
+    mapping: PostListingCodeMapping
+    disclosure: DisclosureFile
+
+
+@dataclass(frozen=True)
+class IssueAnnouncementResolution:
     mapping: PostListingCodeMapping
     disclosure: DisclosureFile
 
@@ -277,6 +289,20 @@ def _listing_announcement_priority(title: str) -> int:
         return 2
     if "上市公告" in normalized:
         return 3
+    return 99
+
+
+def _issue_announcement_priority(title: str) -> int:
+    normalized = _normalize_title_text(title)
+    if _listing_announcement_priority(normalized) <= 3:
+        return 99
+    if "发行结果" in normalized or "结果公告" in normalized:
+        return 99
+    if "招股说明书" in normalized or "招股意向书" in normalized:
+        return 99
+    for priority, keyword in enumerate(ISSUE_ANNOUNCEMENT_KEYWORDS):
+        if keyword in normalized:
+            return priority
     return 99
 
 
@@ -949,6 +975,10 @@ class BSEOfficialClient:
                 bucket = "listing_announcement"
                 document_type = "listing_announcement"
                 bucket_label = "listing_announcement"
+            elif _issue_announcement_priority(title) <= 3:
+                bucket = "issue_announcement"
+                document_type = "issue_announcement"
+                bucket_label = "issue_announcement"
             elif bucket:
                 document_type = "prospectus"
                 bucket_label = "newshare_detail"
@@ -1001,6 +1031,25 @@ class BSEOfficialClient:
             files,
             key=lambda item: (
                 _listing_announcement_priority(item.title),
+                -_date_sort_key(item.publish_date),
+                item.title,
+            ),
+        )
+
+    def list_newshare_issue_announcement_files(
+        self,
+        issue_detail: dict[str, Any],
+        issue: NewShareIssue,
+    ) -> list[DisclosureFile]:
+        files = [
+            item
+            for item in self.list_newshare_disclosure_files(issue_detail, issue)
+            if _issue_announcement_priority(item.title) <= 3
+        ]
+        return sorted(
+            files,
+            key=lambda item: (
+                _issue_announcement_priority(item.title),
                 -_date_sort_key(item.publish_date),
                 item.title,
             ),
@@ -1356,6 +1405,18 @@ class BSEOfficialClient:
             ),
         )[0]
 
+    def pick_best_issue_announcement_file(self, files: list[DisclosureFile]) -> DisclosureFile:
+        if not files:
+            raise BSEOfficialError("未找到发行公告 PDF")
+        return sorted(
+            files,
+            key=lambda item: (
+                _issue_announcement_priority(item.title),
+                -_date_sort_key(item.publish_date),
+                item.title,
+            ),
+        )[0]
+
     def resolve_listing_announcement_from_newshare_by_post_listing_code(
         self,
         code: str,
@@ -1370,6 +1431,24 @@ class BSEOfficialClient:
             mapping=mapping,
             disclosure=self.pick_best_listing_announcement_file(issue_files),
         )
+
+    def resolve_issue_announcement_from_newshare_by_post_listing_code(
+        self,
+        code: str,
+    ) -> IssueAnnouncementResolution:
+        issue = self.resolve_newshare_issue_by_post_listing_code(code)
+        mapping = self._mapping_from_newshare_issue(issue)
+        issue_detail = self.get_newshare_issue_detail(issue.issue_id)
+        issue_files = self.list_newshare_issue_announcement_files(issue_detail, issue)
+        if not issue_files:
+            raise BSEOfficialError("公开发行一览未找到发行公告")
+        return IssueAnnouncementResolution(
+            mapping=mapping,
+            disclosure=self.pick_best_issue_announcement_file(issue_files),
+        )
+
+    def resolve_issue_announcement_by_post_listing_code(self, code: str) -> IssueAnnouncementResolution:
+        return self.resolve_issue_announcement_from_newshare_by_post_listing_code(code)
 
     def resolve_listing_announcement_by_post_listing_code(self, code: str) -> ListingAnnouncementResolution:
         mapping: PostListingCodeMapping | None = None
@@ -1430,6 +1509,13 @@ class BSEOfficialClient:
         if not suffix.startswith("."):
             suffix = f".{suffix}"
         return f"{company.post_listing_code}_{_sanitize_filename_component(company.short_name)}_上市公告书{suffix}"
+
+    def build_issue_announcement_filename(self, resolution: IssueAnnouncementResolution) -> str:
+        company = resolution.mapping.listed_company
+        suffix = resolution.disclosure.file_ext or ".pdf"
+        if not suffix.startswith("."):
+            suffix = f".{suffix}"
+        return f"{company.post_listing_code}_{_sanitize_filename_component(company.short_name)}_发行公告{suffix}"
 
     def download_disclosure_file(
         self,
@@ -1507,6 +1593,37 @@ class BSEOfficialClient:
             f"{resolution.mapping.listed_company.short_name} / {resolution.disclosure.title}"
         )
         output_path = Path(output_dir) / self.build_listing_announcement_filename(resolution)
+        downloaded_path = self.download_disclosure_file(
+            resolution.disclosure,
+            output_path,
+            overwrite=overwrite,
+        )
+        return resolution, downloaded_path
+
+    def download_issue_announcement_by_post_listing_code(
+        self,
+        code: str,
+        output_dir: str | Path,
+        overwrite: bool = False,
+    ) -> tuple[IssueAnnouncementResolution, Path]:
+        return self.download_issue_announcement_from_newshare_by_post_listing_code(
+            code,
+            output_dir,
+            overwrite=overwrite,
+        )
+
+    def download_issue_announcement_from_newshare_by_post_listing_code(
+        self,
+        code: str,
+        output_dir: str | Path,
+        overwrite: bool = False,
+    ) -> tuple[IssueAnnouncementResolution, Path]:
+        resolution = self.resolve_issue_announcement_from_newshare_by_post_listing_code(code)
+        self._notify_status(
+            f"已定位发行公告：{resolution.mapping.listed_company.post_listing_code} "
+            f"{resolution.mapping.listed_company.short_name} / {resolution.disclosure.title}"
+        )
+        output_path = Path(output_dir) / self.build_issue_announcement_filename(resolution)
         downloaded_path = self.download_disclosure_file(
             resolution.disclosure,
             output_path,
