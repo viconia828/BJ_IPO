@@ -1,3 +1,53 @@
+## 2026-05-28 17:45:21 自动调参（已接受）
+
+- 参数文件：C:\Users\ai\Desktop\北交所新股估值\策略参数.txt
+- 评估范围：composite
+- 最终搜索轮次：第 2 轮
+- 方法二样本池截取窗口：60 天（recent_days）
+- 近期权重基准日：2026-05-27，评分权重衰减窗口：90 天
+- 最近 30 天样本最低总权重：0.5000
+- baseline 排序分：0.1021
+- 新参数排序分：0.1076
+- baseline 近期加权命中率：0.3241
+- 新参数近期加权命中率：0.3241
+- 新参数最近样本权重占比：0.6896
+- 新参数加权 MAE(涨幅)：108.2788
+- 当前手动区间宽度诊断扣分：0.0500
+
+修改参数：
+- pe_discount_boost: 0.2 -> 0.1
+- trend_weak_discount: -0.105 -> -0.12
+
+## 2026-05-25 13:32:37 自动调参（已接受）
+
+- 参数文件：C:\Users\ai\Desktop\北交所新股估值\策略参数.txt
+- 评估范围：composite
+- 最终搜索轮次：第 5 轮
+- 方法二样本池截取窗口：60 天（recent_days）
+- 近期权重基准日：2026-05-22，评分权重衰减窗口：90 天
+- 最近 30 天样本最低总权重：0.5000
+- baseline 排序分：-0.0494
+- 新参数排序分：0.1685
+- baseline 近期加权命中率：0.2781
+- 新参数近期加权命中率：0.3754
+- 新参数最近样本权重占比：0.6791
+- 新参数加权 MAE(涨幅)：103.4392
+- 当前手动区间宽度诊断扣分：0.0500
+
+修改参数：
+- float_size_threshold: 1200 -> 1400
+- industry_trend_weight: 0.85 -> 0.3
+- market_sentiment_weight: 0.15 -> 0.7
+- pe_discount_boost: 0.075 -> 0.2
+- pe_high_threshold: 0.45 -> 0.475
+- pe_premium_drag: -0.2 -> -0.175
+- sample_decay_half_life_days: 30 -> 10
+- small_cap_premium: 0.175 -> 0.25
+- trend_strong_boost: 0.05 -> 0.12
+- trend_weak_discount: -0.12 -> -0.105
+- weight_comparable: 0.25 -> 0.35
+- weight_industry_momentum: 0.75 -> 0.65
+
 ## 2026-05-08 13:07:59 自动调参（已接受）
 
 - 参数文件：C:\Users\ai\Desktop\北交所新股估值\策略参数.txt

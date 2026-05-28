@@ -1,0 +1,137 @@
+{
+  "schema": "offline_tuning_replay_item_v1",
+  "cache_version": 3,
+  "generated_at": "2026-05-28 10:14:12",
+  "code": "920161",
+  "listing_date": "2026-05-27 00:00:00",
+  "record_signature": {
+    "SECURITY_CODE": "920161",
+    "SECURITY_NAME_ABBR": "龙辰科技",
+    "APPLY_DATE": "2026-05-18 00:00:00",
+    "LISTING_DATE": "2026-05-27 00:00:00",
+    "ISSUE_PRICE": 9.21,
+    "AFTER_ISSUE_PE": 14.98,
+    "INDUSTRY_PE_NEW": 70.47,
+    "TOTAL_ISSUE_NUM": 3399.85,
+    "ISSUE_NUM": 3399.85,
+    "CLOSE_PRICE": 40.95,
+    "LD_CLOSE_CHANGE": 344.6254,
+    "TURNOVERRATE": 90.1798,
+    "SW_INDUSTRY": null,
+    "INDUSTRY": null
+  },
+  "pdf_signature": {
+    "listing": {
+      "name": "920161_龙辰科技_上市公告书.pdf",
+      "size": 947058,
+      "mtime_ns": 1779703900827553700
+    },
+    "old_shares": {
+      "name": "920161_龙辰科技_招股说明书.pdf",
+      "size": 6040036,
+      "mtime_ns": 1779426070089818600
+    },
+    "comparables": {
+      "name": "920161_龙辰科技_招股说明书.pdf",
+      "size": 6040036,
+      "mtime_ns": 1779426070089818600
+    }
+  },
+  "item": {
+    "SECURITY_CODE": "920161",
+    "SECURITY_NAME_ABBR": "龙辰科技",
+    "APPLY_DATE": "2026-05-18 00:00:00",
+    "LISTING_DATE": "2026-05-27 00:00:00",
+    "ISSUE_PRICE": 9.21,
+    "AFTER_ISSUE_PE": 14.98,
+    "INDUSTRY_PE_NEW": 70.47,
+    "TOTAL_ISSUE_NUM": 3399.85,
+    "CLOSE_PRICE": 40.95,
+    "AVERAGE_PRICE": 50.61606076085736,
+    "LD_CLOSE_CHANGE": 344.6254,
+    "LD_AVERAGE_CHANGE": 449.5772069582775,
+    "TURNOVERRATE": 90.1798,
+    "SW_INDUSTRY": "",
+    "INDUSTRY": "",
+    "industry_primary": "未分类",
+    "industry_secondary": "未分类",
+    "industry_source": "unclassified",
+    "old_shares": 630.019,
+    "old_shares_desc": "630.02 万股（PDF 提取：上市公告书）",
+    "old_shares_meta": {
+      "value_wan_shares": 630.019,
+      "source_file_type": "上市公告书",
+      "source_rule": "listing_table",
+      "source_anchor": "本次发行前后的股本结构变动情况 -> 无限售流通股小计",
+      "raw_snippet": "对象小计95,695,25193.82%99,095,10172.87%--二、无限售流通股小计6,300,1906.18%36,898,84027.13%--合计101,995,441100.00%135,993,941100.00%--注:1、若出现合计数与各单项加总数尾数不符的情况，系四舍五入所致；注2、发行人不存在表决权差异安排的情况。六、",
+      "confidence": 0.98,
+      "unit": "股",
+      "pre_unrestricted_wan_shares": 630.019,
+      "listing_pdf_found": true,
+      "prospectus_pdf_found": true,
+      "selected_source_label": "上市公告书",
+      "fallback_used": false
+    },
+    "float_shares": 4029.8689999999997,
+    "has_intraday_file": true,
+    "comparable_codes": [
+      "002263.SZ",
+      "600237.SH"
+    ],
+    "comparable_data": [
+      {
+        "code": "002263.SZ",
+        "name": "002263.SZ",
+        "close": 3.72,
+        "pe_ttm": 385.5319,
+        "pb_lf": 2.5154,
+        "mkt_cap": 69.87499572,
+        "trade_date": "20260526",
+        "source": "tushare_historical",
+        "close_source": "tushare_historical",
+        "pe_source": "tushare_historical",
+        "pb_source": "tushare_historical",
+        "mkt_cap_source": "tushare_historical"
+      },
+      {
+        "code": "600237.SH",
+        "name": "600237.SH",
+        "close": 10.05,
+        "pe_ttm": 54.0422,
+        "pb_lf": 3.1661,
+        "mkt_cap": 63.36422038,
+        "trade_date": "20260526",
+        "source": "tushare_historical",
+        "close_source": "tushare_historical",
+        "pe_source": "tushare_historical",
+        "pb_source": "tushare_historical",
+        "mkt_cap_source": "tushare_historical"
+      }
+    ],
+    "comparable_summary": {
+      "provider": "tushare_historical",
+      "requested_codes": [
+        "002263.SZ",
+        "600237.SH"
+      ],
+      "returned_codes": [
+        "002263.SZ",
+        "600237.SH"
+      ],
+      "cache_hits": [],
+      "api_fetched": [
+        "002263.SZ",
+        "600237.SH"
+      ],
+      "skipped_unsupported": [],
+      "reference_trade_date": "20260526",
+      "reason": ""
+    },
+    "method1_replay_available": true,
+    "average_price_source": "intraday_csv",
+    "average_price_reason": "",
+    "average_price_calc_version": 3,
+    "average_price_unit_mode": "volume_shares_amount_yuan",
+    "average_price_reference": 46.025000000000006
+  }
+}
