@@ -239,6 +239,11 @@ COMPARABLE_NAME_CODE_FALLBACKS = {
     "先导智能": "300450.SZ",
     "宏工科技": "301662.SZ",
     "福能东方": "300173.SZ",
+    "壹石通": "688733.SH",
+    "万盛股份": "603010.SH",
+    "天马新材": "920971.BJ",
+    "联瑞新材": "688300.SH",
+    "百图股份": "875029.NQ",
 }
 FULLWIDTH_TRANSLATION = str.maketrans(
     {
@@ -333,6 +338,8 @@ PARSE_CACHE_SCHEMA = "pdf_parse_cache_v1"
 PARSE_CACHE_KIND_VERSIONS = {
     "prospectus_issue_info": 7,
     "issue_announcement_info": 3,
+    "comparable_companies": 2,
+    "business_desc": 2,
 }
 PARSE_CACHE_DIR = Path(__file__).resolve().parents[1] / "data" / "pdf_parse_cache"
 _CACHE_MISSING = object()
@@ -1179,21 +1186,23 @@ def extract_old_shares(pdf_path: str | Path) -> float | None:
 def _extract_named_comparables(text: str) -> list[str]:
     names: list[str] = []
     sentence_patterns = [
+        re.compile(r"(?:因此|故|基于上述标准[，,]?)?公司选取(?:了)?(?P<names>[\u4e00-\u9fffA-Za-z、，,\s及和与]{2,100}?)作为(?:同行业)?可比公司"),
         re.compile(r"基于上述标准，公司选取了(?P<names>[^。；\n]+?)作为(?:同行业)?可比公司"),
-        re.compile(r"选取(?:了)?(?P<names>[^。；\n]+?)作为(?:同行业)?可比公司"),
+        re.compile(r"选取(?!可比公司时)(?:了)?(?P<names>[^。；\n]+?)作为(?:同行业)?可比公司"),
         re.compile(r"(?:基于上述标准，公司|公司)?选取(?:了)?(?:国内)?上市公司(?P<names>[^。；\n]+?)作为(?:同行业)?可比公司"),
     ]
     for pattern in sentence_patterns:
         for match in pattern.finditer(text):
-            raw_names = match.group("names")
+            raw_names = re.sub(r"\s+", "", match.group("names"))
             for part in re.split(r"[、，,及和与]", raw_names):
                 name = part.strip()
                 name = re.sub(r"^(?:国内)?上市公司", "", name).strip()
+                name = re.sub(r"(?:等|等公司|股份有限公司)$", "", name).strip()
                 if "的" in name:
                     candidate = name.rsplit("的", 1)[-1].strip()
                     if 1 < len(candidate) <= 24:
                         name = candidate
-                if 1 < len(name) <= 24 and "可比公司" not in name:
+                if 1 < len(name) <= 24 and "可比公司" not in name and name not in names:
                     names.append(name)
     return names
 
@@ -1299,19 +1308,19 @@ def _extract_comparable_companies_legacy(text: str) -> list[str]:
     return _dedupe_codes(collected_codes)
 
 
-def extract_comparable_companies(pdf_path: str | Path) -> list[str]:
-    cached = _load_parse_cache(pdf_path, "comparable_companies")
-    if cached is not _CACHE_MISSING and isinstance(cached, list):
-        return [str(code) for code in cached]
+def _filter_target_code(codes: list[str], target_code: str) -> list[str]:
+    if len(codes) <= 1 or not target_code:
+        return codes
+    return [code for code in codes if code.split(".", 1)[0] != target_code]
 
-    text = _read_pdf_text(pdf_path)
+
+def _extract_comparable_companies_from_text(text: str, target_code: str = "") -> list[str]:
     if not text:
-        _save_parse_cache(pdf_path, "comparable_companies", [])
         return []
 
     normalized_text = _normalize_text(text)
     glossary_codes = _extract_glossary_labeled_comparable_codes(text, normalized_text)
-    specific_section_text, specific_section_anchor = _extract_compact_section(
+    specific_section_text, _ = _extract_compact_section(
         normalized_text,
         SPECIFIC_SECTION_PATTERNS,
         COMPARABLE_SECTION_STOP_PATTERNS,
@@ -1322,11 +1331,7 @@ def extract_comparable_companies(pdf_path: str | Path) -> list[str]:
         specific_codes = _extract_comparable_codes_from_section(specific_section_text, normalized_text)
         if specific_codes:
             result_codes = _dedupe_codes(specific_codes + glossary_codes)
-            target_code = Path(pdf_path).stem[:6]
-            if len(result_codes) > 1:
-                result_codes = [code for code in result_codes if code.split(".", 1)[0] != target_code]
-            _save_parse_cache(pdf_path, "comparable_companies", result_codes)
-            return result_codes
+            return _filter_target_code(result_codes, target_code)
 
     generic_section_text, generic_section_anchor = _extract_compact_section(
         normalized_text,
@@ -1339,28 +1344,30 @@ def extract_comparable_companies(pdf_path: str | Path) -> list[str]:
         generic_codes = _extract_comparable_codes_from_section(generic_section_text, normalized_text)
         if generic_codes and (
             generic_section_anchor not in GENERIC_SECTION_PATTERNS
-            or len(generic_codes) <= 4
+            or len(generic_codes) <= 5
             or any(marker in generic_section_text for marker in ("选取", "作为同行业可比公司", "可比公司基本情况", "可比公司选取标准"))
         ):
             result_codes = _dedupe_codes(generic_codes + glossary_codes)
-            target_code = Path(pdf_path).stem[:6]
-            if len(result_codes) > 1:
-                result_codes = [code for code in result_codes if code.split(".", 1)[0] != target_code]
-            _save_parse_cache(pdf_path, "comparable_companies", result_codes)
-            return result_codes
+            return _filter_target_code(result_codes, target_code)
 
     if glossary_codes:
-        result_codes = list(glossary_codes)
-        target_code = Path(pdf_path).stem[:6]
-        if len(result_codes) > 1:
-            result_codes = [code for code in result_codes if code.split(".", 1)[0] != target_code]
-        _save_parse_cache(pdf_path, "comparable_companies", result_codes)
-        return result_codes
+        return _filter_target_code(list(glossary_codes), target_code)
 
     result_codes = _extract_comparable_companies_legacy(text)
-    target_code = Path(pdf_path).stem[:6]
-    if len(result_codes) > 1:
-        result_codes = [code for code in result_codes if code.split(".", 1)[0] != target_code]
+    return _filter_target_code(result_codes, target_code)
+
+
+def extract_comparable_companies(pdf_path: str | Path) -> list[str]:
+    cached = _load_parse_cache(pdf_path, "comparable_companies")
+    if cached is not _CACHE_MISSING and isinstance(cached, list):
+        return [str(code) for code in cached]
+
+    text = _read_pdf_text(pdf_path)
+    if not text:
+        _save_parse_cache(pdf_path, "comparable_companies", [])
+        return []
+
+    result_codes = _extract_comparable_companies_from_text(text, target_code=Path(pdf_path).stem[:6])
     _save_parse_cache(pdf_path, "comparable_companies", result_codes)
     return result_codes
 
@@ -1421,13 +1428,15 @@ def _score_business_desc(text: str) -> tuple[int, int]:
         score += 1
     if re.search(r"20\d{2}\s*年", current):
         score -= 2
+    if any(name in current for name in COMPARABLE_NAME_CODE_FALLBACKS):
+        score -= 4
     for marker in BUSINESS_NOISE_MARKERS:
         if marker in current:
             score -= 3 if marker in ("产能", "产量", "销量", "产销率") else 5
     return score, -len(current)
 
 
-def _pick_best_business_sentence(text: str) -> str:
+def _collect_business_sentence_candidates(text: str) -> list[str]:
     candidates: list[str] = []
     for pattern in BUSINESS_SENTENCE_PATTERNS:
         for match in pattern.finditer(text):
@@ -1437,6 +1446,11 @@ def _pick_best_business_sentence(text: str) -> str:
             candidate = _clean_business_desc(raw_candidate)
             if candidate and _is_plausible_business_desc(candidate):
                 candidates.append(candidate)
+    return candidates
+
+
+def _pick_best_business_sentence(text: str) -> str:
+    candidates = _collect_business_sentence_candidates(text)
     if not candidates:
         return ""
     return max(candidates, key=_score_business_desc)
@@ -1447,6 +1461,18 @@ def _extract_business_desc_from_text(text: str) -> str:
     if not normalized_text:
         return ""
 
+    candidate_sentences: list[str] = []
+    preferred_sections: list[str] = []
+    exact_section_text, _ = _extract_compact_section(
+        normalized_text,
+        ("发行人主营业务情况",),
+        BUSINESS_SECTION_STOP_PATTERNS,
+        chapter_anchors=PROSPECTUS_BUSINESS_CHAPTER_PATTERNS,
+        fallback_radius=1800,
+    )
+    if exact_section_text:
+        preferred_sections.append(exact_section_text)
+
     section_text, _ = _extract_compact_section(
         normalized_text,
         BUSINESS_PRIMARY_PATTERNS,
@@ -1455,9 +1481,7 @@ def _extract_business_desc_from_text(text: str) -> str:
         fallback_radius=1800,
     )
     if section_text:
-        candidate = _pick_best_business_sentence(section_text)
-        if candidate:
-            return candidate
+        preferred_sections.append(section_text)
 
     fallback_section_text, _ = _extract_compact_section(
         normalized_text,
@@ -1467,15 +1491,16 @@ def _extract_business_desc_from_text(text: str) -> str:
         fallback_radius=1800,
     )
     if fallback_section_text and fallback_section_text != section_text:
-        candidate = _pick_best_business_sentence(fallback_section_text)
-        if candidate:
-            return candidate
+        preferred_sections.append(fallback_section_text)
 
-    candidate = _pick_best_business_sentence(normalized_text)
-    if candidate:
-        return candidate
+    for current_section in preferred_sections:
+        candidate_sentences.extend(_collect_business_sentence_candidates(current_section))
+    candidate_sentences.extend(_collect_business_sentence_candidates(normalized_text))
 
-    preferred_section = fallback_section_text or section_text
+    if candidate_sentences:
+        return max(candidate_sentences, key=_score_business_desc)
+
+    preferred_section = fallback_section_text or exact_section_text or section_text
     if preferred_section:
         fallback_section = _clean_business_desc(preferred_section[:240].strip())
         if fallback_section:
