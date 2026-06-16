@@ -1,11 +1,14 @@
 from __future__ import annotations
 
+from contextlib import contextmanager
 from dataclasses import asdict
 import re
 import sys
+import threading
+import time
 from datetime import date
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any, Callable, Iterator
 
 import bse_official_helper
 import config_loader
@@ -25,6 +28,51 @@ ROOT_DIR = Path(__file__).resolve().parents[1]
 
 class RequiredProspectusNotFoundError(RuntimeError):
     """Raised when no usable prospectus is available after official probing."""
+
+
+@contextmanager
+def _progress_heartbeat(
+    progress_callback: Callable[[str], None] | None,
+    *,
+    interval_seconds: float = 30.0,
+) -> Iterator[Callable[[str], None] | None]:
+    if progress_callback is None or interval_seconds <= 0:
+        yield progress_callback
+        return
+
+    stop_event = threading.Event()
+    start_time = time.monotonic()
+    last_progress_time = start_time
+    last_progress_lock = threading.Lock()
+
+    def emit_progress(message: str) -> None:
+        nonlocal last_progress_time
+        with last_progress_lock:
+            last_progress_time = time.monotonic()
+        progress_callback(message)
+
+    def emit_heartbeat() -> None:
+        nonlocal last_progress_time
+        while not stop_event.wait(interval_seconds):
+            now = time.monotonic()
+            with last_progress_lock:
+                silence_seconds = now - last_progress_time
+                if silence_seconds < interval_seconds:
+                    continue
+                last_progress_time = now
+            elapsed_seconds = int(now - start_time)
+            try:
+                progress_callback(f"报告生成仍在进行，请稍候（已运行约 {elapsed_seconds} 秒）。")
+            except Exception:
+                return
+
+    heartbeat_thread = threading.Thread(target=emit_heartbeat, name="report-progress-heartbeat", daemon=True)
+    heartbeat_thread.start()
+    try:
+        yield emit_progress
+    finally:
+        stop_event.set()
+        heartbeat_thread.join(timeout=1.0)
 
 
 def _safe_float(value: Any) -> float | None:
@@ -654,9 +702,10 @@ def run(
     output_dir: str | Path | None = None,
     progress_callback: Callable[[str], None] | None = None,
 ) -> str:
-    payload = build_analysis_data(code, params=params, progress_callback=progress_callback)
-    target_output_dir = str(Path(output_dir)) if output_dir is not None else str(ROOT_DIR / "输出")
-    return report_generator.generate_report(payload, target_output_dir)
+    with _progress_heartbeat(progress_callback) as heartbeat_progress_callback:
+        payload = build_analysis_data(code, params=params, progress_callback=heartbeat_progress_callback)
+        target_output_dir = str(Path(output_dir)) if output_dir is not None else str(ROOT_DIR / "输出")
+        return report_generator.generate_report(payload, target_output_dir)
 
 
 def _prompt_code_interactively() -> str | None:

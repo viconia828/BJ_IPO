@@ -426,7 +426,7 @@ class BSEOfficialClient:
         self,
         task: Callable[[], bytes],
         wait_message: str,
-        interval_seconds: float = 10.0,
+        interval_seconds: float = 30.0,
     ) -> bytes:
         result: dict[str, Any] = {}
 
