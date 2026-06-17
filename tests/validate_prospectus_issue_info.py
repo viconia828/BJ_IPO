@@ -41,6 +41,19 @@ ISSUE_ANNOUNCEMENT_TEXT = """
 行业平均静态市盈率为 21.30 倍
 """
 
+ISSUE_RESULT_TEXT = """
+发行结果公告
+本次网上发行数量为 1,000,000 股。
+网上投资者有效申购户数为 12,345 户，有效申购数量为 30,000,000 股，冻结资金总额为 30,000.00 万元。
+网上发行最终中签率为 3.3333%，有效申购倍数为 30.00 倍。
+申购数量为 3,000 股的投资者获配100股，同等申购数量按申购时间优先排序。
+申购数量（股） 户数
+5000 100
+4900 200
+3000 300
+网上获配户数为 1,000 户
+"""
+
 
 def _assert(condition: bool, message: str, failures: list[str]) -> None:
     if not condition:
@@ -190,6 +203,28 @@ def _run_issue_announcement_fallback_case(failures: list[str]) -> None:
     _assert("发行公告（字段补充：" in source_text, "source text: issue announcement supplement missing", failures)
 
 
+def _run_issue_result_parser_case(failures: list[str]) -> None:
+    result = pdf_parser._extract_issue_result_info_from_text(ISSUE_RESULT_TEXT)
+    fields = result.get("fields") or {}
+    sources = result.get("field_sources") or {}
+    _assert_close(fields.get("ONLINE_ISSUE_NUM"), 1000000.0, "issue result parser: online issue shares mismatch", failures)
+    _assert_close(fields.get("ONLINE_VA_NUM"), 12345.0, "issue result parser: valid accounts mismatch", failures)
+    _assert_close(fields.get("ONLINE_ALLOCATED_ACCOUNTS"), 1000.0, "issue result parser: allocated accounts mismatch", failures)
+    _assert_close(fields.get("ONLINE_VA_SHARES"), 30000000.0, "issue result parser: valid shares mismatch", failures)
+    _assert_close(fields.get("FROZEN_FUNDS_YI"), 3.0, "issue result parser: frozen funds mismatch", failures)
+    _assert_close(fields.get("ONLINE_ISSUE_LWR"), 3.3333, "issue result parser: lwr mismatch", failures)
+    _assert_close(fields.get("ONLINE_ES_MULTIPLE"), 30.0, "issue result parser: multiple mismatch", failures)
+    _assert_close(fields.get("FRACTIONAL_THRESHOLD_SHARES"), 3000.0, "issue result parser: fractional threshold mismatch", failures)
+    _assert(fields.get("FRACTIONAL_TIME_PRIORITY_REQUIRED") is True, "issue result parser: time priority missing", failures)
+    distribution = fields.get("SUBSCRIPTION_AMOUNT_DISTRIBUTION") or []
+    _assert(len(distribution) == 3, "issue result parser: distribution rows mismatch", failures)
+    _assert(
+        str(sources.get("ONLINE_VA_SHARES") or "").startswith("issue_result:"),
+        "issue result parser: source prefix mismatch",
+        failures,
+    )
+
+
 def _run_industry_mapping_case(failures: list[str]) -> None:
     mapper = IndustryMapper({"industry_mapping": {"矿物制品": "化工新材 / 非金属材料"}})
     industry = mapper.resolve_stock_industry("920083", {"INDUSTRY": "非金属矿物制品业"})
@@ -202,6 +237,7 @@ def main() -> int:
     _run_industry_variant_cases(failures)
     _run_apply_case(result, failures)
     _run_issue_announcement_fallback_case(failures)
+    _run_issue_result_parser_case(failures)
     _run_industry_mapping_case(failures)
     if failures:
         for failure in failures:

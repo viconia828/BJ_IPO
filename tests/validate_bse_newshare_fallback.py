@@ -118,6 +118,15 @@ class FakeNewShareFallbackClient(bse_official_helper.BSEOfficialClient):
                             {
                                 "companyCd": "920028",
                                 "companyName": "新恒泰",
+                                "disclosureTitle": "新恒泰:向不特定合格投资者公开发行股票并在北京证券交易所上市发行结果公告",
+                                "disclosurePostTitle": "",
+                                "destFilePath": "/disclosure/2026/2026-03-16/1773600000_000002.pdf",
+                                "publishDate": "2026-03-16",
+                                "fileExt": "pdf",
+                            },
+                            {
+                                "companyCd": "920028",
+                                "companyName": "新恒泰",
                                 "disclosureTitle": "新恒泰:向不特定合格投资者公开发行股票并在北京证券交易所上市公告书",
                                 "disclosurePostTitle": "",
                                 "destFilePath": "/disclosure/2026/2026-03-18/1773829213_519645.pdf",
@@ -280,6 +289,36 @@ def _run_issue_announcement_download_case(failures: list[str]) -> None:
     print("OK newshare issue announcement: downloaded official issue announcement independently")
 
 
+def _run_issue_result_announcement_download_case(failures: list[str]) -> None:
+    client = FakeNewShareFallbackClient()
+    if TEMP_DIR.exists():
+        shutil.rmtree(TEMP_DIR)
+    TEMP_DIR.mkdir(parents=True, exist_ok=True)
+
+    resolution, output_path = client.download_issue_result_announcement_from_newshare_by_post_listing_code(
+        "920028",
+        TEMP_DIR,
+        overwrite=True,
+    )
+    file_bytes = output_path.read_bytes()
+
+    _assert(output_path.exists(), "newshare issue result announcement: expected output file", failures)
+    _assert(output_path.name == "920028_新恒泰_发行结果公告.pdf", "newshare issue result announcement: filename mismatch", failures)
+    _assert(resolution.disclosure.source == "bse_newshare", "newshare issue result announcement: source mismatch", failures)
+    _assert(file_bytes.startswith(b"%PDF-1.7"), "newshare issue result announcement: pdf bytes mismatch", failures)
+    _assert(
+        client.download_requests == [
+            (
+                "https://www.bse.cn/disclosure/2026/2026-03-16/1773600000_000002.pdf",
+                "https://www.bse.cn/newshare/listofissues_detail.html?id=304",
+            )
+        ],
+        "newshare issue result announcement: download request mismatch",
+        failures,
+    )
+    print("OK newshare issue result announcement: downloaded official result announcement independently")
+
+
 def _run_listing_download_case(failures: list[str]) -> None:
     client = FakeNewShareFallbackClient()
     if TEMP_DIR.exists():
@@ -316,6 +355,7 @@ def main() -> int:
     _run_prospectus_case(failures)
     _run_prospectus_priority_case(failures)
     _run_issue_announcement_download_case(failures)
+    _run_issue_result_announcement_download_case(failures)
     _run_listing_download_case(failures)
 
     if failures:
@@ -324,7 +364,7 @@ def main() -> int:
             print(f"- {item}")
         return 1
 
-    print("\nBSE newshare fallback validation passed: 5 cases")
+    print("\nBSE newshare fallback validation passed: 6 cases")
     return 0
 
 

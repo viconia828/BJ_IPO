@@ -412,7 +412,7 @@ def _assert_missing_online_va_num_placeholder(failures: list[str]) -> None:
         ("| 顶格打新金额 | 未取到数据 |", "TOP_APPLY_MARKETCAP"),
         ("| 有效申购户数 | 未取到数据 |", "ONLINE_VA_NUM"),
         ("| 中签率 | 未取到数据 |", "ONLINE_ISSUE_LWR"),
-        ("## 二、公司概况\n\n未取到数据", "MAIN_BUSINESS"),
+        ("## 三、公司概况\n\n未取到数据", "MAIN_BUSINESS"),
     ):
         if snippet not in markdown:
             failures.append(f"report placeholder: missing {label} empty-state text")
@@ -513,6 +513,8 @@ def _assert_report_overview_text(failures: list[str]) -> None:
                 "APPLY_DATE": "2026-04-18",
                 "LISTING_DATE": "2026-04-25",
                 "TOP_APPLY_MARKETCAP": 1234.5,
+                "ONLINE_ISSUE_NUM": 1000000.0,
+                "ONLINE_VA_SHARES": 30000000.0,
             },
             "industry": {"display_name": "通用设备"},
             "method1": {"available": False, "reason": "test"},
@@ -548,6 +550,9 @@ def _assert_report_overview_text(failures: list[str]) -> None:
         "市盈率 15.00\n"
         "发行价 10.00\n"
         "最大申购上限（万元） 1234.50\n"
+        "正股门槛（万元） 3.00\n"
+        "碎股门槛（万元） 2.90\n"
+        "碎股抢时间 是\n"
         "上市日期\n"
         "估价区间（元） 12.30 - 14.50\n"
     )

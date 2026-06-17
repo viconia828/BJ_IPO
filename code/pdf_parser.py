@@ -320,6 +320,47 @@ PROSPECTUS_SUBSCRIPTION_LIMIT_PATTERNS = (
         rf"[^0-9]{{0,12}}(?P<value>{NUMERIC_TOKEN_PATTERN})(?P<unit>万股|股)"
     ),
 )
+PROSPECTUS_ONLINE_ISSUE_PATTERNS = (
+    re.compile(
+        rf"(?:网上发行数量|网上发行股数|网上初始发行数量|网上初始发行股数|本次网上发行数量|本次网上发行股数)"
+        rf"[^0-9]{{0,32}}(?P<value>{NUMERIC_TOKEN_PATTERN})(?P<unit>万股|股)"
+    ),
+)
+ISSUE_RESULT_VALID_ACCOUNT_PATTERNS = (
+    re.compile(rf"(?:有效申购户数|有效申购账户数|网上投资者有效申购户数)[^0-9]{{0,32}}(?P<value>{NUMERIC_TOKEN_PATTERN})户"),
+)
+ISSUE_RESULT_ALLOCATED_ACCOUNT_PATTERNS = (
+    re.compile(rf"(?:网上发行获配户数|网上投资者获配户数|网上获配户数|获配户数)[^0-9]{{0,32}}(?P<value>{NUMERIC_TOKEN_PATTERN})户"),
+)
+ISSUE_RESULT_VALID_SHARE_PATTERNS = (
+    re.compile(
+        rf"(?:有效申购数量|有效申购总量|有效申购股数|网上投资者有效申购数量|网上投资者有效申购总量)"
+        rf"[^0-9]{{0,32}}(?P<value>{NUMERIC_TOKEN_PATTERN})(?P<unit>万股|股)"
+    ),
+)
+ISSUE_RESULT_FROZEN_FUNDS_PATTERNS = (
+    re.compile(rf"(?:冻结资金|冻结资金总额|申购资金总额|有效申购资金总额)[^0-9]{{0,32}}(?P<value>{NUMERIC_TOKEN_PATTERN})(?P<unit>亿元|万元|元)"),
+)
+ISSUE_RESULT_LWR_PATTERNS = (
+    re.compile(rf"(?:网上发行最终中签率|网上发行中签率|中签率|配售比例)[^0-9]{{0,32}}(?P<value>{NUMERIC_TOKEN_PATTERN})%?"),
+)
+ISSUE_RESULT_MULTIPLE_PATTERNS = (
+    re.compile(rf"(?:有效申购倍数|超额认购倍数|认购倍数)[^0-9]{{0,32}}(?P<value>{NUMERIC_TOKEN_PATTERN})倍?"),
+)
+ISSUE_RESULT_THRESHOLD_PATTERNS = (
+    re.compile(
+        rf"(?:申购数量|申购股数|申购金额)[^0-9]{{0,16}}(?P<value>{NUMERIC_TOKEN_PATTERN})(?P<unit>万股|股|万元|元)"
+        rf"[^。；;]{{0,80}}?(?:获配|配售)100股"
+    ),
+)
+ISSUE_RESULT_TIME_PRIORITY_PATTERNS = (
+    re.compile(r"(?:申购时间|同等申购数量).*?(?:优先|先后|排序)"),
+    re.compile(r"(?:时间优先|申购时间优先|按申购时间顺序)"),
+)
+SUBSCRIPTION_DISTRIBUTION_ROW_PATTERN = re.compile(
+    rf"(?P<shares>{NUMERIC_TOKEN_PATTERN})\s*(?:股|万股)?\s+"
+    rf"(?P<accounts>{NUMERIC_TOKEN_PATTERN})\s*(?:户|个)?"
+)
 PROSPECTUS_INDUSTRY_PATTERNS = (
     re.compile(r"C制造业(?P<code>[0-9]{2})(?P<industry>[\u4e00-\u9fff、和]{2,36}?业)"),
     re.compile(
@@ -337,7 +378,8 @@ PROSPECTUS_INDUSTRY_PATTERNS = (
 PARSE_CACHE_SCHEMA = "pdf_parse_cache_v1"
 PARSE_CACHE_KIND_VERSIONS = {
     "prospectus_issue_info": 7,
-    "issue_announcement_info": 3,
+    "issue_announcement_info": 4,
+    "issue_result_info": 2,
     "comparable_companies": 2,
     "business_desc": 2,
 }
@@ -577,6 +619,26 @@ def _shares_to_wan(value: float, unit: str) -> float:
     return value if unit == "万股" else value / 10000
 
 
+def _shares_to_raw(value: float, unit: str) -> float:
+    return value * 10000 if unit == "万股" else value
+
+
+def _funds_to_yi(value: float, unit: str) -> float:
+    if unit == "亿元":
+        return value
+    if unit == "万元":
+        return value / 10000
+    return value / 100000000
+
+
+def _money_to_wan(value: float, unit: str) -> float:
+    if unit == "万元":
+        return value
+    if unit == "亿元":
+        return value * 10000
+    return value / 10000
+
+
 def _clean_prospectus_industry_name(value: str) -> str:
     current = str(value or "").strip(" ：:，,。；;")
     for marker in ("所属行业为", "所处行业为", "所属行业:", "所处行业:", "行业为", "属于"):
@@ -720,6 +782,48 @@ def _extract_wan_share_patterns(
         return
 
 
+def _extract_raw_share_patterns(
+    result: dict[str, dict[str, object]],
+    search_text: str,
+    rule: str,
+    field_name: str,
+    patterns: Iterable[re.Pattern[str]],
+) -> None:
+    if field_name in result["fields"]:
+        return
+    for pattern in patterns:
+        match = pattern.search(search_text)
+        if not match:
+            continue
+        value = _parse_numeric_token(match.group("value"))
+        if value is None:
+            continue
+        unit = str(match.group("unit") or "").strip()
+        _set_prospectus_issue_field(result, field_name, _shares_to_raw(value, unit), rule, search_text, match.start())
+        return
+
+
+def _extract_funds_patterns(
+    result: dict[str, dict[str, object]],
+    search_text: str,
+    rule: str,
+    field_name: str,
+    patterns: Iterable[re.Pattern[str]],
+) -> None:
+    if field_name in result["fields"]:
+        return
+    for pattern in patterns:
+        match = pattern.search(search_text)
+        if not match:
+            continue
+        value = _parse_numeric_token(match.group("value"))
+        if value is None:
+            continue
+        unit = str(match.group("unit") or "").strip()
+        _set_prospectus_issue_field(result, field_name, _funds_to_yi(value, unit), rule, search_text, match.start())
+        return
+
+
 def _extract_apply_date_from_prospectus_text(result: dict[str, dict[str, object]], search_text: str, rule: str) -> None:
     if "APPLY_DATE" in result["fields"]:
         return
@@ -771,6 +875,7 @@ def _extract_prospectus_issue_info_from_text(text: str) -> dict[str, object]:
         _extract_wan_share_patterns(result, search_text, rule, "TOTAL_ISSUE_NUM", PROSPECTUS_TOTAL_ISSUE_PATTERNS)
         _extract_wan_share_patterns(result, search_text, rule, "TOTAL_SHARE_CAPITAL_AFTER_ISSUE", PROSPECTUS_TOTAL_CAPITAL_PATTERNS)
         _extract_wan_share_patterns(result, search_text, rule, "SUBSCRIPTION_LIMIT_WAN_SHARES", PROSPECTUS_SUBSCRIPTION_LIMIT_PATTERNS)
+        _extract_raw_share_patterns(result, search_text, rule, "ONLINE_ISSUE_NUM", PROSPECTUS_ONLINE_ISSUE_PATTERNS)
         _extract_apply_date_from_prospectus_text(result, search_text, rule)
 
     limit_wan_shares = _parse_numeric_token(str(result["fields"].get("SUBSCRIPTION_LIMIT_WAN_SHARES") or ""))
@@ -814,6 +919,107 @@ def _extract_issue_announcement_info_from_text(text: str) -> dict[str, object]:
     return _rewrite_issue_info_sources(result, "issue_announcement")
 
 
+def _extract_subscription_distribution_from_text(text: str) -> list[dict[str, float]]:
+    normalized = _normalize_fullwidth_text(text)
+    lines = [line.strip() for line in normalized.splitlines() if line.strip()]
+    rows: list[dict[str, float]] = []
+    capture_remaining = 0
+    for line in lines:
+        compact_line = _compact_text(line)
+        if "申购数量" in compact_line and ("户数" in compact_line or "账户数" in compact_line):
+            capture_remaining = 60
+            continue
+        if capture_remaining <= 0:
+            continue
+        capture_remaining -= 1
+        if any(marker in compact_line for marker in ("合计", "总计", "发行结果", "配售结果")):
+            break
+        match = SUBSCRIPTION_DISTRIBUTION_ROW_PATTERN.search(line.replace(",", ""))
+        if not match:
+            continue
+        shares = _parse_numeric_token(match.group("shares"))
+        accounts = _parse_numeric_token(match.group("accounts"))
+        if shares is None or accounts is None or shares <= 0 or accounts <= 0:
+            continue
+        if "万股" in line[: max(line.find(str(match.group("shares"))), 0) + 20]:
+            shares *= 10000
+        item = {"apply_shares": float(shares), "accounts": float(accounts)}
+        if item not in rows:
+            rows.append(item)
+    return rows
+
+
+def _extract_issue_result_info_from_text(text: str) -> dict[str, object]:
+    result = _rewrite_issue_info_sources(_extract_prospectus_issue_info_from_text(text), "issue_result")
+    fields = result["fields"]
+    field_sources = result["field_sources"]
+    raw_snippets = result["raw_snippets"]
+    compact_text = _compact_text(_normalize_fullwidth_text(text))
+
+    typed_result: dict[str, dict[str, object]] = {
+        "fields": fields if isinstance(fields, dict) else {},
+        "field_sources": field_sources if isinstance(field_sources, dict) else {},
+        "raw_snippets": raw_snippets if isinstance(raw_snippets, dict) else {},
+    }
+    _extract_numeric_patterns(typed_result, compact_text, "result", "ONLINE_VA_NUM", ISSUE_RESULT_VALID_ACCOUNT_PATTERNS)
+    _extract_numeric_patterns(
+        typed_result,
+        compact_text,
+        "result",
+        "ONLINE_ALLOCATED_ACCOUNTS",
+        ISSUE_RESULT_ALLOCATED_ACCOUNT_PATTERNS,
+    )
+    _extract_raw_share_patterns(typed_result, compact_text, "result", "ONLINE_VA_SHARES", ISSUE_RESULT_VALID_SHARE_PATTERNS)
+    _extract_raw_share_patterns(typed_result, compact_text, "result", "ONLINE_ISSUE_NUM", PROSPECTUS_ONLINE_ISSUE_PATTERNS)
+    _extract_funds_patterns(typed_result, compact_text, "result", "FROZEN_FUNDS_YI", ISSUE_RESULT_FROZEN_FUNDS_PATTERNS)
+    _extract_numeric_patterns(typed_result, compact_text, "result", "ONLINE_ISSUE_LWR", ISSUE_RESULT_LWR_PATTERNS)
+    _extract_numeric_patterns(typed_result, compact_text, "result", "ONLINE_ES_MULTIPLE", ISSUE_RESULT_MULTIPLE_PATTERNS)
+
+    if "FRACTIONAL_THRESHOLD_SHARES" not in typed_result["fields"]:
+        for pattern in ISSUE_RESULT_THRESHOLD_PATTERNS:
+            match = pattern.search(compact_text)
+            if not match:
+                continue
+            value = _parse_numeric_token(match.group("value"))
+            if value is None:
+                continue
+            unit = str(match.group("unit") or "")
+            if unit in {"万元", "元", "亿元"}:
+                issue_price = _parse_numeric_token(str(typed_result["fields"].get("ISSUE_PRICE") or ""))
+                if not issue_price:
+                    continue
+                shares = _money_to_wan(value, unit) * 10000 / issue_price
+            else:
+                shares = _shares_to_raw(value, unit)
+            _set_prospectus_issue_field(
+                typed_result,
+                "FRACTIONAL_THRESHOLD_SHARES",
+                shares,
+                "result_threshold",
+                compact_text,
+                match.start(),
+            )
+            break
+
+    if ISSUE_RESULT_TIME_PRIORITY_PATTERNS[0].search(compact_text) or ISSUE_RESULT_TIME_PRIORITY_PATTERNS[1].search(compact_text):
+        typed_result["fields"].setdefault("FRACTIONAL_TIME_PRIORITY_REQUIRED", True)
+        typed_result["field_sources"].setdefault("FRACTIONAL_TIME_PRIORITY_REQUIRED", "issue_result:time_priority")
+        typed_result["raw_snippets"].setdefault("FRACTIONAL_TIME_PRIORITY_REQUIRED", _make_raw_snippet(compact_text, 0))
+
+    distribution = _extract_subscription_distribution_from_text(text)
+    if distribution:
+        typed_result["fields"]["SUBSCRIPTION_AMOUNT_DISTRIBUTION"] = distribution
+        typed_result["field_sources"]["SUBSCRIPTION_AMOUNT_DISTRIBUTION"] = "issue_result:distribution_table"
+        typed_result["raw_snippets"]["SUBSCRIPTION_AMOUNT_DISTRIBUTION"] = ""
+
+    for field_name, source in list(typed_result["field_sources"].items()):
+        source_text = str(source or "")
+        if source_text.startswith("prospectus:"):
+            typed_result["field_sources"][field_name] = f"issue_result:{source_text.split(':', 1)[1]}"
+
+    return typed_result
+
+
 def extract_prospectus_issue_info(pdf_path: str | Path) -> dict[str, object]:
     cached = _load_parse_cache(pdf_path, "prospectus_issue_info")
     if cached is not _CACHE_MISSING and isinstance(cached, dict):
@@ -839,6 +1045,20 @@ def extract_issue_announcement_info(pdf_path: str | Path) -> dict[str, object]:
         return result
     result = _extract_issue_announcement_info_from_text(text)
     _save_parse_cache(pdf_path, "issue_announcement_info", result)
+    return result
+
+
+def extract_issue_result_info(pdf_path: str | Path) -> dict[str, object]:
+    cached = _load_parse_cache(pdf_path, "issue_result_info")
+    if cached is not _CACHE_MISSING and isinstance(cached, dict):
+        return cached
+
+    text = _read_pdf_text(pdf_path)
+    if not text:
+        result: dict[str, object] = {"fields": {}, "field_sources": {}, "raw_snippets": {}}
+        return result
+    result = _extract_issue_result_info_from_text(text)
+    _save_parse_cache(pdf_path, "issue_result_info", result)
     return result
 
 

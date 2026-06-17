@@ -11,6 +11,7 @@ SUPPLEMENT_FIELD_LABELS = {
     "TOTAL_ISSUE_NUM": "发行总量",
     "TOP_APPLY_MARKETCAP": "顶格打新金额",
     "ONLINE_VA_NUM": "有效申购户数",
+    "ONLINE_ALLOCATED_ACCOUNTS": "网上获配户数",
     "ONLINE_ISSUE_LWR": "中签率",
     "INDUSTRY_PE_NEW": "行业 PE",
     "INDUSTRY": "所属行业",
@@ -19,6 +20,13 @@ SUPPLEMENT_FIELD_LABELS = {
     "MAIN_BUSINESS": "主营业务",
     "TOTAL_SHARE_CAPITAL_AFTER_ISSUE": "发行后总股本",
     "SUBSCRIPTION_LIMIT_WAN_SHARES": "申购上限",
+    "ONLINE_ISSUE_NUM": "网上发行数量",
+    "ONLINE_VA_SHARES": "有效申购股数",
+    "ONLINE_ES_MULTIPLE": "申购倍数",
+    "FROZEN_FUNDS_YI": "冻结资金",
+    "FRACTIONAL_THRESHOLD_SHARES": "碎股门槛",
+    "FRACTIONAL_TIME_PRIORITY_REQUIRED": "碎股时间优先",
+    "SUBSCRIPTION_AMOUNT_DISTRIBUTION": "申购金额梯度",
 }
 
 DISPLAY_ONLY_SUPPLEMENT_FIELDS = frozenset(
@@ -67,7 +75,9 @@ def build_ipo_source_text(all_data: dict[str, Any]) -> str:
     issue_announcement_suffix = (
         f"+ 发行公告（字段补充：{'、'.join(issue_announcement_labels)}）" if issue_announcement_labels else ""
     )
-    document_suffix = f"{prospectus_suffix}{issue_announcement_suffix}"
+    issue_result_labels = get_supplemented_field_labels(ipo_summary.get("issue_result_supplemented_fields"))
+    issue_result_suffix = f"+ 发行结果公告（字段补充：{'、'.join(issue_result_labels)}）" if issue_result_labels else ""
+    document_suffix = f"{prospectus_suffix}{issue_announcement_suffix}{issue_result_suffix}"
     if provider != "tushare":
         return f"东方财富（IPO 信息与近期样本）{document_suffix}"
 

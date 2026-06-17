@@ -42,9 +42,9 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--document",
-        choices=("prospectus", "listing", "all"),
+        choices=("prospectus", "issue", "result", "listing", "all"),
         default="prospectus",
-        help="下载文件类型：招股说明书、上市公告书，或两者都下。",
+        help="下载文件类型：招股说明书、发行公告、发行结果公告、上市公告书，或全部下载。",
     )
     return parser.parse_args()
 
@@ -92,6 +92,22 @@ def main() -> int:
             _handle_resolution("招股说明书", prospectus, client.build_prospectus_filename(prospectus))
         except BSEOfficialError as exc:
             print(f"[招股说明书] 失败：{exc}")
+            has_error = True
+
+    if args.document in {"issue", "all"}:
+        try:
+            issue_announcement = client.resolve_issue_announcement_by_post_listing_code(args.code)
+            _handle_resolution("发行公告", issue_announcement, client.build_issue_announcement_filename(issue_announcement))
+        except BSEOfficialError as exc:
+            print(f"[发行公告] 失败：{exc}")
+            has_error = True
+
+    if args.document in {"result", "all"}:
+        try:
+            issue_result = client.resolve_issue_result_announcement_by_post_listing_code(args.code)
+            _handle_resolution("发行结果公告", issue_result, client.build_issue_result_announcement_filename(issue_result))
+        except BSEOfficialError as exc:
+            print(f"[发行结果公告] 失败：{exc}")
             has_error = True
 
     if args.document in {"listing", "all"}:

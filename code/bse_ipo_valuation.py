@@ -18,6 +18,7 @@ import ipo_data_helper
 import note_builder
 import pdf_parser
 import report_generator
+import subscription_predictor
 import valuation_engine
 from industry_mapping import IndustryMapper
 
@@ -99,12 +100,14 @@ def _find_pdf_candidates(directory: Path, code: str, suffix: str) -> list[Path]:
     aliases = {
         "上市公告书": ["上市公告书", "上市公告"],
         "发行公告": ["上市发行公告", "发行公告"],
+        "发行结果公告": ["发行结果公告", "发行结果"],
         "招股说明书摘要": ["招股说明书摘要", "招股说明书", "招股书摘要", "招股书", "招股意向书摘要", "招股意向书"],
     }
     keywords = aliases.get(suffix, [suffix])
     other_keywords = [item for key, values in aliases.items() if key != suffix for item in values]
     excluded_keywords = {
         "发行公告": ["发行结果", "结果公告", "上市公告书", "招股说明书", "招股意向书"],
+        "发行结果公告": ["上市公告书", "招股说明书", "招股意向书"],
     }.get(suffix, [])
     if not directory.exists():
         return []
@@ -125,7 +128,7 @@ def _find_pdf_candidates(directory: Path, code: str, suffix: str) -> list[Path]:
         elif not any(keyword in stem for keyword in other_keywords):
             fallback.append(file_path)
 
-    if suffix == "发行公告":
+    if suffix in {"发行公告", "发行结果公告"}:
         return prioritized
     return prioritized + fallback
 
@@ -247,6 +250,16 @@ ISSUE_DOCUMENT_SUPPLEMENT_FIELDS = (
     "INDUSTRY_CODE",
     "TOTAL_SHARE_CAPITAL_AFTER_ISSUE",
     "SUBSCRIPTION_LIMIT_WAN_SHARES",
+    "ONLINE_ISSUE_NUM",
+    "ONLINE_VA_NUM",
+    "ONLINE_ALLOCATED_ACCOUNTS",
+    "ONLINE_VA_SHARES",
+    "ONLINE_ES_MULTIPLE",
+    "ONLINE_ISSUE_LWR",
+    "FROZEN_FUNDS_YI",
+    "FRACTIONAL_THRESHOLD_SHARES",
+    "FRACTIONAL_TIME_PRIORITY_REQUIRED",
+    "SUBSCRIPTION_AMOUNT_DISTRIBUTION",
 )
 PROSPECTUS_SUPPLEMENT_FIELDS = ISSUE_DOCUMENT_SUPPLEMENT_FIELDS
 
@@ -357,6 +370,25 @@ def _apply_issue_announcement_info(
         supplemented_fields_key="issue_announcement_supplemented_fields",
         info_file_key="issue_announcement_info_file",
         field_sources_key="issue_announcement_field_sources",
+    )
+
+
+def _apply_issue_result_info(
+    ipo_info: dict[str, Any],
+    summary: dict[str, Any],
+    issue_info: dict[str, Any],
+    issue_result_pdf: Path | None = None,
+) -> list[str]:
+    return _apply_issue_document_info(
+        ipo_info,
+        summary,
+        issue_info,
+        issue_result_pdf,
+        source_prefix="issue_result",
+        supplement_used_key="issue_result_supplement_used",
+        supplemented_fields_key="issue_result_supplemented_fields",
+        info_file_key="issue_result_info_file",
+        field_sources_key="issue_result_field_sources",
     )
 
 
@@ -492,6 +524,32 @@ def _ensure_local_official_documents(
     )
 
 
+def _ensure_local_issue_result_announcement_pdf(
+    directory: Path,
+    code: str,
+    progress_callback: Callable[[str], None] | None = None,
+) -> tuple[Path | None, str]:
+    existing = _find_pdf(directory, code, "发行结果公告")
+    if existing is not None:
+        return existing, ""
+
+    try:
+        client = bse_official_helper.BSEOfficialClient(status_callback=progress_callback)
+        downloader = getattr(client, "download_issue_result_announcement_from_newshare_by_post_listing_code", None)
+        if downloader is None:
+            return None, "当前下载客户端不支持发行结果公告"
+        _, downloaded_path = downloader(code, directory, overwrite=False)
+    except bse_official_helper.BSEOfficialError as exc:
+        return None, str(exc)
+
+    refreshed = _find_pdf(directory, code, "发行结果公告")
+    if refreshed is not None:
+        return refreshed, ""
+    if downloaded_path.exists():
+        return None, f"发行结果公告已下载到本地，但未识别为可用文件：{downloaded_path.name}"
+    return None, "发行结果公告下载后仍未在本地找到可用文件"
+
+
 def build_analysis_data(
     code: str,
     params: dict[str, Any] | None = None,
@@ -512,14 +570,17 @@ def build_analysis_data(
     pdf_dir = ROOT_DIR / "公告文件"
     listing_pdf = _find_pdf(pdf_dir, code, "上市公告书")
     issue_announcement_pdf = _find_pdf(pdf_dir, code, "发行公告")
+    issue_result_announcement_pdf = _find_pdf(pdf_dir, code, "发行结果公告")
     old_shares_fallback_pdf = _pick_prospectus_pdf(pdf_dir, code, "old_shares")
     comparable_pdf = _pick_prospectus_pdf(pdf_dir, code, "comparables")
     business_pdf = _pick_prospectus_pdf(pdf_dir, code, "business")
     prospectus_download_error = ""
     issue_announcement_download_error = ""
+    issue_result_announcement_download_error = ""
     listing_download_error = ""
     prospectus_issue_parse_error = ""
     issue_announcement_parse_error = ""
+    issue_result_parse_error = ""
     prospectus_available = any((old_shares_fallback_pdf, comparable_pdf, business_pdf))
 
     if not prospectus_available or issue_announcement_pdf is None or listing_pdf is None:
@@ -537,6 +598,7 @@ def build_analysis_data(
         )
         old_shares_fallback_pdf = _pick_prospectus_pdf(pdf_dir, code, "old_shares")
         issue_announcement_pdf = _find_pdf(pdf_dir, code, "发行公告") or issue_announcement_pdf
+        issue_result_announcement_pdf = _find_pdf(pdf_dir, code, "发行结果公告") or issue_result_announcement_pdf
         listing_pdf = _find_pdf(pdf_dir, code, "上市公告书") or listing_pdf
         comparable_pdf = _pick_prospectus_pdf(pdf_dir, code, "comparables")
         business_pdf = _pick_prospectus_pdf(pdf_dir, code, "business")
@@ -551,6 +613,13 @@ def build_analysis_data(
             if listing_download_error:
                 message = f"{message} 原因：{listing_download_error}"
             progress_callback(message)
+
+    if issue_result_announcement_pdf is None:
+        issue_result_announcement_pdf, issue_result_announcement_download_error = _ensure_local_issue_result_announcement_pdf(
+            pdf_dir,
+            code,
+            progress_callback=progress_callback,
+        )
 
     prospectus_issue_pdf = old_shares_fallback_pdf or comparable_pdf or business_pdf
     if prospectus_issue_pdf:
@@ -568,6 +637,14 @@ def build_analysis_data(
         except Exception as exc:
             issue_announcement_parse_error = str(exc)
             ipo_data_summary["issue_announcement_parse_error"] = issue_announcement_parse_error
+
+    if issue_result_announcement_pdf:
+        try:
+            issue_result_info = pdf_parser.extract_issue_result_info(issue_result_announcement_pdf)
+            _apply_issue_result_info(ipo_info, ipo_data_summary, issue_result_info, issue_result_announcement_pdf)
+        except Exception as exc:
+            issue_result_parse_error = str(exc)
+            ipo_data_summary["issue_result_parse_error"] = issue_result_parse_error
 
     industry = mapper.resolve_stock_industry(code, ipo_info)
 
@@ -617,6 +694,7 @@ def build_analysis_data(
 
     recent_ipos = mapper.enrich_recent_ipos(ipo_data_bundle.get("recent_ipos") or [])
     recent_ipos = [item for item in recent_ipos if item.get("SECURITY_CODE") != code]
+    subscription_prediction = subscription_predictor.build_subscription_prediction(ipo_info, recent_ipos, params)
 
     issue_price = _safe_float(ipo_info.get("ISSUE_PRICE"))
     issue_pe = _safe_float(ipo_info.get("AFTER_ISSUE_PE"))
@@ -653,6 +731,7 @@ def build_analysis_data(
             "comparable_summary": comparable_summary,
             "wind_summary": comparable_summary,
             "ipo_data_summary": ipo_data_summary,
+            "subscription_prediction": subscription_prediction,
         },
         params,
     )
@@ -673,17 +752,21 @@ def build_analysis_data(
         "company_description": company_description,
         "prospectus_download_error": prospectus_download_error,
         "issue_announcement_download_error": issue_announcement_download_error,
+        "issue_result_announcement_download_error": issue_result_announcement_download_error,
         "listing_download_error": listing_download_error,
         "issue_announcement_pdf_found": issue_announcement_pdf is not None,
+        "issue_result_announcement_pdf_found": issue_result_announcement_pdf is not None,
         "listing_pdf_found": listing_pdf is not None,
         "prospectus_issue_parse_error": prospectus_issue_parse_error,
         "issue_announcement_parse_error": issue_announcement_parse_error,
+        "issue_result_parse_error": issue_result_parse_error,
         "comparable_codes": comparable_codes,
         "comparable_data": comparable_data,
         "comparable_summary": comparable_summary,
         "wind_summary": comparable_summary,
         "ipo_data_summary": ipo_data_summary,
         "recent_ipos": recent_ipos,
+        "subscription_prediction": subscription_prediction,
         "method1": method1,
         "method2": method2,
         "final": final,

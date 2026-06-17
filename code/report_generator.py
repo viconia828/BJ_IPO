@@ -5,6 +5,7 @@ import report_source_helper
 import shutil
 import statistics
 import subprocess
+import subscription_predictor
 import time
 import uuid
 from datetime import date, datetime, timedelta
@@ -81,6 +82,15 @@ def _fmt_number_with_unit(
     if number is None:
         return fallback
     return f"{number:.{digits}f} {unit}"
+
+
+def _fmt_threshold_amount(value: Any, fallback: str = DISPLAY_MISSING_TEXT) -> str:
+    number = _safe_float(value)
+    if number is None:
+        return fallback
+    if number >= 10000:
+        return f"{number / 10000:.2f} 亿元"
+    return f"{number:.2f} 万元"
 
 
 def _fmt_date(value: Any, fallback: str = "-") -> str:
@@ -242,6 +252,20 @@ def _build_overview_interval(final: dict[str, Any]) -> str:
     return f"{low_text} - {high_text}"
 
 
+def _build_subscription_amount_text(prediction: dict[str, Any], key: str, *, overview: bool = False) -> str:
+    if not prediction.get("available"):
+        return "" if overview else DISPLAY_MISSING_TEXT
+    value = prediction.get(key)
+    if key == "guaranteed_threshold_amount_wan" and value in (None, "", "--"):
+        top_apply = prediction.get("top_apply_amount_wan")
+        if _safe_float(top_apply) is not None:
+            prefix = ">" if overview else "高于顶格 "
+            return f"{prefix}{_fmt_number(top_apply, fallback='')}" if overview else f"高于顶格（>{_fmt_threshold_amount(top_apply)}）"
+    if overview:
+        return _fmt_number(value, fallback="")
+    return _fmt_threshold_amount(value)
+
+
 def _format_code_list(codes: list[Any], fallback: str = "无") -> str:
     items = [str(code).strip() for code in codes if str(code).strip()]
     return "、".join(items) if items else fallback
@@ -330,6 +354,26 @@ def _prepare_report_context(all_data: dict[str, Any]) -> dict[str, Any]:
     online_issue_lwr_text = _fmt_pct(ipo.get("ONLINE_ISSUE_LWR"), 4, fallback=DISPLAY_MISSING_TEXT)
     pe_ratio = (issue_pe / industry_pe * 100) if issue_pe and industry_pe else None
     discount = ((1 - issue_pe / industry_pe) * 100) if issue_pe and industry_pe else None
+    subscription_prediction = all_data.get("subscription_prediction") or {}
+    if not subscription_prediction:
+        subscription_prediction = subscription_predictor.build_subscription_prediction(ipo, recent_ipos, params)
+    subscription_prediction_rows = [
+        [str(cell) for cell in row]
+        for row in (subscription_prediction.get("table_rows") or [["模型状态", DISPLAY_MISSING_TEXT, "-"]])
+    ]
+    guaranteed_threshold_text = _build_subscription_amount_text(
+        subscription_prediction,
+        "guaranteed_threshold_amount_wan",
+    )
+    fractional_threshold_text = _build_subscription_amount_text(
+        subscription_prediction,
+        "fractional_threshold_amount_wan",
+    )
+    fractional_time_text = (
+        "是" if subscription_prediction.get("fractional_time_priority_required") else "否"
+        if subscription_prediction.get("available")
+        else DISPLAY_MISSING_TEXT
+    )
 
     if method1.get("available"):
         method1_lines = [
@@ -373,6 +417,9 @@ def _prepare_report_context(all_data: dict[str, Any]) -> dict[str, Any]:
         ["定价方式", price_way_text],
         ["发行总量", f"{_fmt_number(ipo.get('TOTAL_ISSUE_NUM'))} 万股"],
         ["顶格打新金额", top_apply_marketcap_text],
+        ["正股获配门槛", guaranteed_threshold_text],
+        ["碎股获配门槛", fractional_threshold_text],
+        ["碎股是否抢时间", fractional_time_text],
         ["首日流通盘", f"{_fmt_number(all_data.get('float_shares'))} 万股"],
         ["首日流通老股", str(all_data.get("old_shares_desc", "-"))],
         ["有效申购户数", online_va_num_text],
@@ -402,6 +449,9 @@ def _prepare_report_context(all_data: dict[str, Any]) -> dict[str, Any]:
         "市盈率",
         "发行价",
         "最大申购上限（万元）",
+        "正股门槛（万元）",
+        "碎股门槛（万元）",
+        "碎股抢时间",
         "上市日期",
         "估价区间（元）",
     ]
@@ -412,6 +462,11 @@ def _prepare_report_context(all_data: dict[str, Any]) -> dict[str, Any]:
         _fmt_number(issue_pe, fallback=""),
         _fmt_number(issue_price, fallback=""),
         _fmt_number(ipo.get("TOP_APPLY_MARKETCAP"), fallback=""),
+        _build_subscription_amount_text(subscription_prediction, "guaranteed_threshold_amount_wan", overview=True),
+        _build_subscription_amount_text(subscription_prediction, "fractional_threshold_amount_wan", overview=True),
+        ("是" if subscription_prediction.get("fractional_time_priority_required") else "否")
+        if subscription_prediction.get("available")
+        else "",
         overview_listing_date,
         _build_overview_interval(final),
     ]
@@ -426,6 +481,7 @@ def _prepare_report_context(all_data: dict[str, Any]) -> dict[str, Any]:
         "ipo_source_text": ipo_source_text,
         "wind_source_text": wind_source_text,
         "basic_rows": basic_rows,
+        "subscription_prediction_rows": subscription_prediction_rows,
         "company_description": _compress_text(all_data.get("company_description", "")),
         "comparable_rows": comparable_rows,
         "comparable_summary_rows": [
@@ -489,7 +545,11 @@ def build_report_markdown(all_data: dict[str, Any]) -> str:
 
 {_markdown_table(['项目', '内容'], context['basic_rows'])}
 
-## 二、公司概况
+## 二、申购资金配售预测
+
+{_markdown_table(['字段', '数值', '来源/口径'], context['subscription_prediction_rows'])}
+
+## 三、公司概况
 
 {context['company_description']}
 
@@ -498,7 +558,7 @@ def build_report_markdown(all_data: dict[str, Any]) -> str:
 {comparable_table}
 {comparable_summary}
 
-## 三、首日定价分析
+## 四、首日定价分析
 
 ### 方法一：可比公司对比估值
 
@@ -514,7 +574,7 @@ def build_report_markdown(all_data: dict[str, Any]) -> str:
 
 {valuation_table}
 
-## 四、关注提示
+## 五、关注提示
 
 {notes_text}
 
@@ -570,6 +630,10 @@ def _build_report_html(context: dict[str, Any]) -> str:
     recent_table = _html_table(
         ["代码", "简称", "上市日", "发行价", "首日均价", "均价涨幅", "行业"],
         context["recent_rows"],
+    )
+    subscription_prediction_table = _html_table(
+        ["字段", "数值", "来源/口径"],
+        context["subscription_prediction_rows"],
     )
 
     basic_rows_html = "".join(
@@ -662,13 +726,16 @@ def _build_report_html(context: dict[str, Any]) -> str:
     </tbody>
   </table>
 
-  <h2>二、公司概况</h2>
+  <h2>二、申购资金配售预测</h2>
+  {subscription_prediction_table}
+
+  <h2>三、公司概况</h2>
   <p class="desc">{html.escape(context['company_description'])}</p>
 
   <h3>可比上市公司估值对比</h3>
   {comparable_table}
 
-  <h2>三、首日定价分析</h2>
+  <h2>四、首日定价分析</h2>
   <h3>方法一：可比公司对比估值</h3>
   <ul>{method1_html}</ul>
 
@@ -679,7 +746,7 @@ def _build_report_html(context: dict[str, Any]) -> str:
   <ul>{composite_html}</ul>
   {valuation_table}
 
-  <h2>四、关注提示</h2>
+  <h2>五、关注提示</h2>
   <ul>{notes_html}</ul>
 
   <h2>近期北交所新股首日表现一览（近{html.escape(str(context['recent_days']))}天）</h2>

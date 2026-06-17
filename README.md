@@ -55,7 +55,7 @@
 
 - `python code\bse_ipo_valuation.py 920177`
 
-运行后会提示输入 6 位代码，并生成带时间戳的 PDF 报告到 `输出/`。同时会生成同名 `_一览.txt`，方便复制代码、名称、申购日期、市盈率、最大申购上限、上市日期和估价区间。
+运行后会提示输入 6 位代码，并生成带时间戳的 PDF 报告到 `输出/`。同时会生成同名 `_一览.txt`，方便复制代码、名称、申购日期、市盈率、最大申购上限、正股/碎股获配门槛、碎股是否需要抢时间、上市日期和估价区间。
 
 主程序取资料的顺序是：
 
@@ -82,6 +82,14 @@
 3. 输入必要参数
 
 每次手动调参启动时，系统会先扫描 `首日分时走势/` 里的 CSV。如果本地样本文件比 `data/offline_tuning/replay_dataset.json` 更新，会增量同步回放数据集：已有样本优先复用旧数据集条目和 `data/offline_tuning/replay_items/代码.json` 单样本缓存，只为新增样本补齐回放资料；训练集和验证集样本数会随之更新。若外部数据源临时超时或拒绝连接，本次会继续使用旧回放数据集，不会中断调参；网络恢复后再次运行即可自动重试同步。
+
+申购配售模型的历史样本表保存在 `data/offline_tuning/subscription_history_sample.csv`，这是可提交的训练样本产物。它按历史新股逐行记录发行价、网上发行数量、顶格申购金额、有效申购户数、有效申购股数、冻结资金、申购冻结天数、正股门槛、碎股门槛估算和字段来源。常用生成命令：
+
+- `python tools\build_subscription_history.py`
+- `python tools\build_subscription_history.py --download-missing-issue --download-missing-result`
+- `python tools\build_subscription_history.py --download-missing-issue --download-missing-result --download-retries 3 --download-delay-seconds 5`
+
+`model_ready=true` 表示该样本已有发行结果公告字段；`guaranteed_label_ready=true` 表示可用于正股门槛调模；`fractional_label_ready=true` 表示已有真实申购梯度或“顶格仍不足正股、全员拼时间抢碎股”标签，可用于碎股/抢时间调模。若公告没有申购梯度表，生成器会用网上获配户数、网上发行手数、冻结资金和配售规则生成 `allocation_fit_json`，作为后续拟合申购金额梯度的初始约束。若本机 Python 没有 PDF 文本解析库，脚本仍会生成样本骨架，但公告字段会缺失；需要先补齐 `pdfplumber`/`pypdf` 等 PDF 解析依赖，或使用已配置好依赖的运行环境。
 
 底层统一调用：
 
@@ -155,6 +163,8 @@
 
 - `python tools\download_bse_official_pdf.py 920177`
 - `python tools\download_bse_official_pdf.py 920177 --document listing`
+- `python tools\download_bse_official_pdf.py 920177 --document issue`
+- `python tools\download_bse_official_pdf.py 920177 --document result`
 - `python tools\download_bse_official_pdf.py 920177 --document all`
 - `python tools\download_bse_official_pdf.py 920177 --resolve-only`
 
