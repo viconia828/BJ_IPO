@@ -83,6 +83,13 @@ def _clamp(value: float, low: float, high: float) -> float:
     return max(low, min(high, value))
 
 
+def _round_metric(value: float | None, digits: int = 6) -> float | None:
+    if value is None:
+        return None
+    rounded = round(float(value), digits)
+    return 0.0 if rounded == -0.0 else rounded
+
+
 def _weighted_median(values: list[tuple[float, float]]) -> float | None:
     clean = sorted((value, max(weight, 0.0)) for value, weight in values if value > 0 and weight > 0)
     if not clean:
@@ -226,26 +233,130 @@ def _estimate_valid_subscription_shares(
     median_lock_days = statistics.median(sample["lock_days"] for sample in samples if sample["lock_days"] > 0)
     target_issue_amount = online_issue_shares * issue_price / 100000000
 
+    cap_exponent = max(float(params.get("subscription_prediction_cap_factor_exponent", 0.25)), 0.0)
+    cap_direction = str(params.get("subscription_prediction_cap_factor_direction", "target_over_median"))
     cap_factor = 1.0
     if top_apply_wan and median_top_apply:
-        cap_factor = _clamp((top_apply_wan / median_top_apply) ** 0.25, 0.75, 1.30)
+        cap_ratio = median_top_apply / top_apply_wan if cap_direction == "median_over_target" else top_apply_wan / median_top_apply
+        cap_factor = _clamp(
+            cap_ratio**cap_exponent,
+            float(params.get("subscription_prediction_cap_factor_min", 0.75)),
+            float(params.get("subscription_prediction_cap_factor_max", 1.30)),
+        )
 
-    issue_factor = _clamp((target_issue_amount / median_issue_amount) ** 0.20, 0.80, 1.25) if median_issue_amount else 1.0
+    issue_exponent = max(float(params.get("subscription_prediction_issue_factor_exponent", 0.20)), 0.0)
+    issue_direction = str(params.get("subscription_prediction_issue_factor_direction", "target_over_median"))
+    issue_factor = 1.0
+    if median_issue_amount:
+        issue_ratio = (
+            median_issue_amount / target_issue_amount
+            if issue_direction == "median_over_target"
+            else target_issue_amount / median_issue_amount
+        )
+        issue_factor = _clamp(
+            issue_ratio**issue_exponent,
+            float(params.get("subscription_prediction_issue_factor_min", 0.80)),
+            float(params.get("subscription_prediction_issue_factor_max", 1.25)),
+        )
     lock_factor = 1.0
+    lock_exponent = max(float(params.get("subscription_prediction_lock_factor_exponent", 0.35)), 0.0)
     if lock_days and median_lock_days:
-        lock_factor = _clamp((median_lock_days / lock_days) ** 0.35, 0.75, 1.25)
+        lock_factor = _clamp(
+            (median_lock_days / lock_days) ** lock_exponent,
+            float(params.get("subscription_prediction_lock_factor_min", 0.75)),
+            float(params.get("subscription_prediction_lock_factor_max", 1.25)),
+        )
 
-    predicted_multiple = max(median_multiple * cap_factor * issue_factor * lock_factor, 1.01)
+    multiple_scale = max(float(params.get("subscription_prediction_multiple_scale", 1.0)), 0.01)
+    predicted_multiple = max(median_multiple * cap_factor * issue_factor * lock_factor * multiple_scale, 1.01)
     return {
         "valid_subscription_shares": online_issue_shares * predicted_multiple,
         "sample_count": len(samples),
         "median_subscription_multiple": median_multiple,
         "cap_factor": cap_factor,
+        "cap_factor_direction": cap_direction,
         "issue_factor": issue_factor,
+        "issue_factor_direction": issue_direction,
         "lock_factor": lock_factor,
+        "multiple_scale": multiple_scale,
         "predicted_subscription_multiple": predicted_multiple,
         "reason": "",
     }
+
+
+def _allocation_fit_residuals(
+    *,
+    buckets: list[dict[str, Any]],
+    allocated_accounts: int,
+    total_lots: int,
+    valid_subscription_shares: float,
+    allocated_min_shares: float,
+    unallocated_accounts: int,
+    unallocated_avg_shares: float | None,
+    unallocated_cap_shares: float | None,
+) -> dict[str, Any]:
+    bucket_account_total = sum(int(item.get("accounts") or 0) for item in buckets)
+    bucket_lot_total = sum(
+        int(item.get("accounts") or 0) * int(item.get("allocated_lots") or 0)
+        for item in buckets
+    )
+    if unallocated_avg_shares is None:
+        reconstructed_subscription_shares = allocated_min_shares
+    else:
+        reconstructed_subscription_shares = allocated_min_shares + unallocated_avg_shares * unallocated_accounts
+
+    over_cap_shares = None
+    cap_utilization = None
+    if unallocated_avg_shares is not None and unallocated_cap_shares and unallocated_cap_shares > 0:
+        over_cap_shares = max(unallocated_avg_shares - unallocated_cap_shares, 0.0)
+        cap_utilization = unallocated_avg_shares / unallocated_cap_shares
+
+    under_zero_shares = max(-(unallocated_avg_shares or 0.0), 0.0) if unallocated_avg_shares is not None else None
+    return {
+        "allocated_account_residual": bucket_account_total - allocated_accounts,
+        "allocated_lot_residual": bucket_lot_total - total_lots,
+        "valid_subscription_balance_residual_shares": _round_metric(
+            valid_subscription_shares - reconstructed_subscription_shares,
+        ),
+        "unallocated_avg_over_cap_shares": _round_metric(over_cap_shares),
+        "unallocated_avg_under_zero_shares": _round_metric(under_zero_shares),
+        "unallocated_cap_utilization": _round_metric(cap_utilization),
+    }
+
+
+def _allocation_fit_confidence(
+    method: str,
+    fit_quality: str,
+    residuals: dict[str, Any],
+    *,
+    allocated_accounts: int,
+    total_lots: int,
+    valid_subscription_shares: float,
+    unallocated_cap_shares: float | None,
+) -> float:
+    if method == "top_apply_below_guaranteed":
+        base = 0.95 if fit_quality == "time_priority_label" else 0.85
+    elif fit_quality == "rough_lot_account_fit":
+        base = 0.70
+    elif fit_quality == "weak_residual_over_cap":
+        base = 0.40
+    elif fit_quality == "weak_residual_under_zero":
+        base = 0.35
+    else:
+        base = 0.55
+
+    account_penalty = abs(float(residuals.get("allocated_account_residual") or 0.0)) / max(allocated_accounts, 1)
+    lot_penalty = abs(float(residuals.get("allocated_lot_residual") or 0.0)) / max(total_lots, 1)
+    balance_penalty = abs(float(residuals.get("valid_subscription_balance_residual_shares") or 0.0)) / max(
+        valid_subscription_shares,
+        1.0,
+    )
+    cap_penalty = 0.0
+    if unallocated_cap_shares and unallocated_cap_shares > 0:
+        cap_penalty += float(residuals.get("unallocated_avg_over_cap_shares") or 0.0) / unallocated_cap_shares
+        cap_penalty += float(residuals.get("unallocated_avg_under_zero_shares") or 0.0) / unallocated_cap_shares
+    penalty = min(account_penalty * 2 + lot_penalty * 2 + balance_penalty + cap_penalty, 0.8)
+    return round(_clamp(base - penalty, 0.0, 1.0), 4)
 
 
 def _fit_allocation_buckets(
@@ -286,10 +397,43 @@ def _fit_allocation_buckets(
             if unallocated_accounts
             else None
         )
+        buckets = [
+            {
+                "allocated_lots": 1,
+                "accounts": bucket_accounts,
+                "threshold_shares": top_apply_shares_int,
+                "threshold_amount_wan": _shares_to_amount_wan(top_apply_shares_int, issue_price),
+                "basis": "top_apply_time_priority",
+            }
+        ]
+        allocated_min_shares = bucket_accounts * top_apply_shares_int
+        fit_quality = "time_priority_label" if allocated_accounts_int == total_lots else "time_priority_label_with_account_gap"
+        residuals = _allocation_fit_residuals(
+            buckets=buckets,
+            allocated_accounts=allocated_accounts_int,
+            total_lots=total_lots,
+            valid_subscription_shares=valid_subscription_shares,
+            allocated_min_shares=allocated_min_shares,
+            unallocated_accounts=unallocated_accounts,
+            unallocated_avg_shares=unallocated_avg_shares,
+            unallocated_cap_shares=top_apply_shares_int,
+        )
+        fit_confidence = _allocation_fit_confidence(
+            "top_apply_below_guaranteed",
+            fit_quality,
+            residuals,
+            allocated_accounts=allocated_accounts_int,
+            total_lots=total_lots,
+            valid_subscription_shares=valid_subscription_shares,
+            unallocated_cap_shares=top_apply_shares_int,
+        )
         return {
             "available": True,
             "method": "top_apply_below_guaranteed",
-            "fit_quality": "time_priority_label" if allocated_accounts_int == total_lots else "time_priority_label_with_account_gap",
+            "fit_quality": fit_quality,
+            "fit_confidence": fit_confidence,
+            "fit_usable_for_tuning": fit_confidence >= 0.55,
+            "fit_residuals": residuals,
             "allocated_accounts": allocated_accounts_int,
             "allocated_lots_total": total_lots,
             "average_lots_per_allocated_account": total_lots / allocated_accounts_int,
@@ -298,15 +442,7 @@ def _fit_allocation_buckets(
             "unallocated_avg_amount_wan": _shares_to_amount_wan(unallocated_avg_shares, issue_price),
             "unallocated_cap_shares": top_apply_shares_int,
             "top_apply_below_guaranteed": True,
-            "buckets": [
-                {
-                    "allocated_lots": 1,
-                    "accounts": bucket_accounts,
-                    "threshold_shares": top_apply_shares_int,
-                    "threshold_amount_wan": _shares_to_amount_wan(top_apply_shares_int, issue_price),
-                    "basis": "top_apply_time_priority",
-                }
-            ],
+            "buckets": buckets,
         }
 
     if total_lots < allocated_accounts_int:
@@ -375,18 +511,45 @@ def _fit_allocation_buckets(
     remaining_applied_shares = valid_subscription_shares - allocated_min_shares
     unallocated_avg_shares = remaining_applied_shares / unallocated_accounts if unallocated_accounts > 0 else None
     residual_over_cap_shares = None
+    residual_under_zero_shares = None
     if unallocated_avg_shares is not None:
         residual_over_cap_shares = max(unallocated_avg_shares - fractional_cutoff_shares, 0.0)
+        residual_under_zero_shares = max(-unallocated_avg_shares, 0.0)
     fit_quality = "rough"
-    if residual_over_cap_shares and residual_over_cap_shares > 0:
+    if residual_under_zero_shares and residual_under_zero_shares > 0:
+        fit_quality = "weak_residual_under_zero"
+    elif residual_over_cap_shares and residual_over_cap_shares > 0:
         fit_quality = "weak_residual_over_cap"
     elif remaining_extra_lots == 0:
         fit_quality = "rough_lot_account_fit"
+    sorted_buckets = sorted(buckets, key=lambda item: int(item.get("allocated_lots") or 0), reverse=True)
+    residuals = _allocation_fit_residuals(
+        buckets=sorted_buckets,
+        allocated_accounts=allocated_accounts_int,
+        total_lots=total_lots,
+        valid_subscription_shares=valid_subscription_shares,
+        allocated_min_shares=allocated_min_shares,
+        unallocated_accounts=unallocated_accounts,
+        unallocated_avg_shares=unallocated_avg_shares,
+        unallocated_cap_shares=fractional_cutoff_shares,
+    )
+    fit_confidence = _allocation_fit_confidence(
+        "account_lot_equation",
+        fit_quality,
+        residuals,
+        allocated_accounts=allocated_accounts_int,
+        total_lots=total_lots,
+        valid_subscription_shares=valid_subscription_shares,
+        unallocated_cap_shares=fractional_cutoff_shares,
+    )
 
     return {
         "available": True,
         "method": "account_lot_equation",
         "fit_quality": fit_quality,
+        "fit_confidence": fit_confidence,
+        "fit_usable_for_tuning": fit_confidence >= 0.55,
+        "fit_residuals": residuals,
         "allocated_accounts": allocated_accounts_int,
         "allocated_lots_total": total_lots,
         "average_lots_per_allocated_account": total_lots / allocated_accounts_int,
@@ -396,7 +559,7 @@ def _fit_allocation_buckets(
         "unallocated_cap_shares": fractional_cutoff_shares,
         "residual_over_cap_shares": residual_over_cap_shares,
         "top_apply_below_guaranteed": False,
-        "buckets": sorted(buckets, key=lambda item: int(item.get("allocated_lots") or 0), reverse=True),
+        "buckets": sorted_buckets,
     }
 
 

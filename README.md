@@ -88,8 +88,15 @@
 - `python tools\build_subscription_history.py`
 - `python tools\build_subscription_history.py --download-missing-issue --download-missing-result`
 - `python tools\build_subscription_history.py --download-missing-issue --download-missing-result --download-retries 3 --download-delay-seconds 5`
+- `python tools\tune_subscription_prediction.py`
+- `python tools\tune_subscription_prediction.py --mode search --top-n 8`
+- `python tools\tune_subscription_prediction.py --mode robustness --top-n 8`
+- `python tools\tune_subscription_prediction.py --mode account-pool`
+- `python tools\tune_subscription_prediction.py --mode account-pool-prior --top-n 8`
 
-`model_ready=true` 表示该样本已有发行结果公告字段；`guaranteed_label_ready=true` 表示可用于正股门槛调模；`fractional_label_ready=true` 表示已有真实申购梯度或“顶格仍不足正股、全员拼时间抢碎股”标签，可用于碎股/抢时间调模。若公告没有申购梯度表，生成器会用网上获配户数、网上发行手数、冻结资金和配售规则生成 `allocation_fit_json`，作为后续拟合申购金额梯度的初始约束。若本机 Python 没有 PDF 文本解析库，脚本仍会生成样本骨架，但公告字段会缺失；需要先补齐 `pdfplumber`/`pypdf` 等 PDF 解析依赖，或使用已配置好依赖的运行环境。
+`model_ready=true` 表示该样本已有发行结果公告字段；`guaranteed_label_ready=true` 表示可用于正股门槛调模；`fractional_label_ready=true` 表示已有真实申购梯度或“顶格仍不足正股、全员拼时间抢碎股”标签，可用于碎股/抢时间调模。若公告没有申购梯度表，生成器会用网上获配户数、网上发行手数、冻结资金和配售规则生成 `allocation_fit_json`，作为后续拟合申购金额梯度的初始约束，并同步输出 `allocation_fit_confidence`、`allocation_fit_usable_for_tuning` 和 `allocation_fit_residual_json` 供调参筛样本使用。若本机 Python 没有 PDF 文本解析库，脚本仍会生成样本骨架，但公告字段会缺失；需要先补齐 `pdfplumber`/`pypdf` 等 PDF 解析依赖，或使用已配置好依赖的运行环境。
+
+`tools\tune_subscription_prediction.py` 是申购配售调参的评估入口：默认只输出当前 baseline 的正股门槛误差、顶格不足正股分类准确率和拟合残差摘要；`--mode search` 会枚举候选参数并排序展示；`--mode robustness` 会用不同起始样本数和历史窗口复核当前最优候选；`--mode account-pool` 会按最近样本的获配分桶估算不同申购金额阈值以上的大户数量；`--mode account-pool-prior` 会把近期获配分布转换成有效申购资金池下限，离线检查它对当前 best 参数的修正效果。脚本暂不自动写回参数。
 
 底层统一调用：
 

@@ -138,6 +138,11 @@ def _run_top_apply_below_guaranteed_case(failures: list[str]) -> None:
     fit = prediction.get("allocation_fit") or {}
     _assert(fit.get("method") == "top_apply_below_guaranteed", "top apply below guaranteed: fit method mismatch", failures)
     _assert(fit.get("fit_quality") == "time_priority_label", "top apply below guaranteed: fit quality mismatch", failures)
+    _assert_close(fit.get("fit_confidence"), 0.95, "top apply below guaranteed: confidence mismatch", failures)
+    _assert(fit.get("fit_usable_for_tuning") is True, "top apply below guaranteed: tuning usability mismatch", failures)
+    residuals = fit.get("fit_residuals") or {}
+    _assert(residuals.get("allocated_account_residual") == 0, "top apply below guaranteed: account residual mismatch", failures)
+    _assert(residuals.get("allocated_lot_residual") == 0, "top apply below guaranteed: lot residual mismatch", failures)
 
 
 def main() -> int:

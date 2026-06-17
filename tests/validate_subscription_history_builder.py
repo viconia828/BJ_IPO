@@ -151,6 +151,11 @@ def _run_top_apply_time_priority_label_case(failures: list[str]) -> None:
     _assert(row.get("time_priority_scope") == "all_top_apply_accounts", "time race: scope mismatch", failures)
     _assert(row.get("allocation_fit_ready") is True, "time race: allocation fit should be ready", failures)
     _assert(row.get("allocation_fit_quality") == "time_priority_label", "time race: fit quality mismatch", failures)
+    _assert_close(row.get("allocation_fit_confidence"), 0.95, "time race: fit confidence mismatch", failures)
+    _assert(row.get("allocation_fit_usable_for_tuning") is True, "time race: tuning usability mismatch", failures)
+    residuals = row.get("allocation_fit_residual_json") or {}
+    _assert(residuals.get("allocated_account_residual") == 0, "time race: account residual mismatch", failures)
+    _assert(residuals.get("allocated_lot_residual") == 0, "time race: lot residual mismatch", failures)
 
 
 def _run_result_date_text_case(failures: list[str]) -> None:
