@@ -69,6 +69,13 @@ def _base_code(code: str) -> str:
     return normalized_code
 
 
+def _wan_shares_to_raw(value: Any) -> float | None:
+    amount = tushare_helper._safe_float(value)
+    if amount is None or amount <= 0:
+        return None
+    return amount * 10000
+
+
 def _to_ts_code(code: str) -> str:
     normalized_code = _normalize_code(code)
     if "." in normalized_code:
@@ -1057,6 +1064,11 @@ def _build_recent_ipo_record(
     if not new_share_row.get("issue_date") or close_price is None:
         return None
 
+    limit_amount_wan_shares = tushare_helper._safe_float(new_share_row.get("limit_amount"))
+    top_apply_marketcap = None
+    if issue_price and issue_price > 0 and limit_amount_wan_shares and limit_amount_wan_shares > 0:
+        top_apply_marketcap = limit_amount_wan_shares * issue_price
+
     ld_close_change = None
     if issue_price and issue_price > 0 and close_price is not None:
         ld_close_change = (close_price / issue_price - 1) * 100
@@ -1073,6 +1085,10 @@ def _build_recent_ipo_record(
         "ISSUE_PRICE": issue_price,
         "AFTER_ISSUE_PE": tushare_helper._safe_float(new_share_row.get("pe")),
         "TOTAL_ISSUE_NUM": tushare_helper._safe_float(new_share_row.get("amount")),
+        "ONLINE_ISSUE_NUM": _wan_shares_to_raw(new_share_row.get("market_amount")),
+        "ONLINE_ISSUE_LWR": tushare_helper._safe_float(new_share_row.get("ballot")),
+        "SUBSCRIPTION_LIMIT_WAN_SHARES": limit_amount_wan_shares,
+        "TOP_APPLY_MARKETCAP": top_apply_marketcap,
         "OPEN_PRICE": tushare_helper._safe_float((listing_day or {}).get("open")),
         "CLOSE_PRICE": close_price,
         "AVERAGE_PRICE": average_price,
@@ -1104,6 +1120,13 @@ def _merge_target_ipo_info(
     merged["TOTAL_ISSUE_NUM"] = tushare_helper._safe_float((target_row or {}).get("amount")) or tushare_helper._safe_float(
         merged.get("TOTAL_ISSUE_NUM")
     )
+    market_amount = tushare_helper._safe_float((target_row or {}).get("market_amount"))
+    if market_amount and market_amount > 0:
+        merged["ONLINE_ISSUE_NUM"] = market_amount * 10000
+        summary["online_issue_num_source"] = "tushare_new_share"
+        _discard_value(summary["supplemented_fields"], "ONLINE_ISSUE_NUM")
+    elif tushare_helper._safe_float(merged.get("ONLINE_ISSUE_NUM")) is not None:
+        summary["online_issue_num_source"] = "eastmoney"
     merged["ISSUE_PRICE"] = tushare_helper._safe_float((target_row or {}).get("price")) or tushare_helper._safe_float(
         merged.get("ISSUE_PRICE")
     )

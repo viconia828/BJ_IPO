@@ -24,6 +24,24 @@ COMPARABLE_TEXT = """
 公司名称主营业务情况专利技术情况主要荣誉称号市场地位
 """
 
+YIKUN_COMPARABLE_TEXT = """
+第五节业务和技术
+（4）行业内主要企业情况
+目前，公司在行业内主要竞争对手包括平高东芝、金冠电气、神马电力等，具体如下：
+①平高东芝
+平高东芝（廊坊）避雷器有限公司成立于 2002 年 4 月，系河南平高电气股份有限公司（股票代码：600312）
+与日本东芝株式会社的合营公司，主要从事避雷器、避雷器用阀片的研发、设计、生产、销售。
+②金冠电气（688517.SH）
+金冠电气股份有限公司成立于 2005 年 3 月，主要从事输配电及控制设备研发、制造和销售。
+③神马电力（603530.SH）
+江苏神马电力股份有限公司成立于 1996 年 8 月，主要从事电力系统变电站复合外绝缘等产品的研发、生产与销售。
+④中国西电（601179.SH）
+中国西电电气股份有限公司主营业务为输配电及控制设备研发、设计、制造、销售等业务。
+（5）公司与同行业可比公司的比较情况
+公司按照主营业务及产品相似性、客户重叠性、下游应用领域、信息公开化程度等标准选取金冠电气（688517）、
+中国西电（601179）、神马电力（603530）、平高东芝作为同行业可比公司作为参考依据。
+"""
+
 BUSINESS_TEXT = """
 广东金戈新材料股份有限公司招股说明书
 三、发行人主营业务情况
@@ -48,6 +66,14 @@ def main() -> int:
     expected_codes = ["688733.SH", "603010.SH", "920971.BJ", "688300.SH", "875029.NQ"]
     if comparable_codes != expected_codes:
         failures.append(f"920083 comparable text: expected {expected_codes}, got {comparable_codes}")
+
+    yikun_codes = pdf_parser._extract_comparable_companies_from_text(
+        YIKUN_COMPARABLE_TEXT,
+        target_code="920222",
+    )
+    expected_yikun_codes = ["688517.SH", "601179.SH", "603530.SH"]
+    if yikun_codes != expected_yikun_codes:
+        failures.append(f"920222 comparable text: expected {expected_yikun_codes}, got {yikun_codes}")
 
     description = pdf_parser._extract_business_desc_from_text(BUSINESS_TEXT)
     if "功能性材料研发、生产和销售" not in description:

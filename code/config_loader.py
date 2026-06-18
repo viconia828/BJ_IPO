@@ -140,6 +140,37 @@ def _validate_params(params: dict[str, Any]) -> None:
 
     if float(params.get("sample_decay_half_life_days", 20)) <= 0:
         raise ValueError("sample_decay_half_life_days 必须大于 0")
+    if float(
+        params.get(
+            "subscription_prediction_sample_decay_half_life_days",
+            params.get("sample_decay_half_life_days", 20),
+        )
+    ) <= 0:
+        raise ValueError("subscription_prediction_sample_decay_half_life_days 必须大于 0")
+    for direction_key in (
+        "subscription_prediction_cap_factor_direction",
+        "subscription_prediction_issue_factor_direction",
+    ):
+        direction_value = str(params.get(direction_key, "target_over_median")).strip()
+        if direction_value not in {"target_over_median", "median_over_target"}:
+            raise ValueError(f"{direction_key} 仅支持 target_over_median / median_over_target")
+    for non_negative_key in (
+        "subscription_prediction_cap_factor_exponent",
+        "subscription_prediction_issue_factor_exponent",
+        "subscription_prediction_lock_factor_exponent",
+        "subscription_prediction_guaranteed_buffer_min_wan",
+        "subscription_prediction_guaranteed_buffer_max_wan",
+    ):
+        if float(params.get(non_negative_key, 0)) < 0:
+            raise ValueError(f"{non_negative_key} 不能小于 0")
+    if float(params.get("subscription_prediction_multiple_scale", 1.0)) <= 0:
+        raise ValueError("subscription_prediction_multiple_scale 必须大于 0")
+    if float(params.get("subscription_prediction_guaranteed_buffer_max_wan", 100)) < float(
+        params.get("subscription_prediction_guaranteed_buffer_min_wan", 50)
+    ):
+        raise ValueError("subscription_prediction_guaranteed_buffer_max_wan 必须大于等于 min_wan")
+    if int(params.get("subscription_prediction_lot_threshold_max_lots", 20)) <= 0:
+        raise ValueError("subscription_prediction_lot_threshold_max_lots 必须大于 0")
     if int(params.get("recent_days", DEFAULT_RECENT_DAYS)) <= 0:
         raise ValueError("recent_days 必须大于 0")
     if int(params.get("wind_daily_request_quota", 20)) < 0:

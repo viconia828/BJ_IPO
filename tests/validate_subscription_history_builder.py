@@ -3,6 +3,7 @@ from __future__ import annotations
 import csv
 import json
 from pathlib import Path
+import shutil
 import sys
 import tempfile
 from typing import Any
@@ -15,6 +16,14 @@ if str(TOOLS_DIR) not in sys.path:
     sys.path.insert(0, str(TOOLS_DIR))
 
 import build_subscription_history
+
+
+def _reset_temp_dir(name: str) -> Path:
+    temp_dir = ROOT_DIR / ".tmp" / name
+    if temp_dir.exists():
+        shutil.rmtree(temp_dir)
+    temp_dir.mkdir(parents=True, exist_ok=True)
+    return temp_dir
 
 
 def _assert(condition: bool, message: str, failures: list[str]) -> None:
@@ -69,8 +78,9 @@ def _run_ready_row_case(failures: list[str]) -> None:
     _assert_close(row.get("fractional_threshold_amount_wan"), 5.0, "ready row: fractional amount mismatch", failures)
     _assert(row.get("distribution_bucket_count") == 2, "ready row: distribution bucket mismatch", failures)
 
-    with tempfile.TemporaryDirectory() as temp_dir:
-        output_path = Path(temp_dir) / "subscription_history_sample.csv"
+    temp_dir = _reset_temp_dir("validate_subscription_history_builder")
+    try:
+        output_path = temp_dir / "subscription_history_sample.csv"
         build_subscription_history.write_subscription_history_csv(rows, output_path)
         with output_path.open("r", encoding="utf-8-sig", newline="") as file_obj:
             loaded = list(csv.DictReader(file_obj))
@@ -79,6 +89,8 @@ def _run_ready_row_case(failures: list[str]) -> None:
         _assert(csv_row.get("model_ready") == "true", "ready row csv: bool format mismatch", failures)
         distribution = json.loads(csv_row.get("subscription_distribution_json") or "[]")
         _assert(len(distribution) == 2, "ready row csv: distribution json mismatch", failures)
+    finally:
+        shutil.rmtree(temp_dir, ignore_errors=True)
 
 
 def _run_missing_result_case(failures: list[str]) -> None:

@@ -18,11 +18,13 @@ if str(CODE_DIR) not in sys.path:
 import bse_ipo_valuation
 import bse_official_helper
 import pdf_parser
+import subscription_ladder_labels
 import subscription_predictor
 
 
 DEFAULT_DATASET_PATH = ROOT_DIR / "data" / "offline_tuning" / "replay_dataset.json"
 DEFAULT_OUTPUT_PATH = ROOT_DIR / "data" / "offline_tuning" / "subscription_history_sample.csv"
+DEFAULT_LADDER_LABEL_PATH = ROOT_DIR / "data" / "offline_tuning" / "subscription_ladder_labels.csv"
 DEFAULT_PDF_DIR = ROOT_DIR / "\u516c\u544a\u6587\u4ef6"
 
 LISTING_ANNOUNCEMENT = "\u4e0a\u5e02\u516c\u544a\u4e66"
@@ -659,6 +661,59 @@ def write_subscription_history_csv(rows: list[dict[str, Any]], output_path: Path
     return output_path
 
 
+def _load_existing_subscription_history_csv(path: Path) -> list[dict[str, Any]]:
+    if not path.exists():
+        return []
+    with path.open("r", encoding="utf-8-sig", newline="") as file_obj:
+        return [dict(row) for row in csv.DictReader(file_obj)]
+
+
+def _truthy(value: Any) -> bool:
+    return str(value or "").strip().lower() in {"1", "true", "yes", "y", "是"}
+
+
+def _row_quality_score(row: dict[str, Any]) -> int:
+    score = 0
+    score += 100 if _truthy(row.get("model_ready")) else 0
+    score += 40 if _truthy(row.get("guaranteed_label_ready")) else 0
+    score += 40 if _truthy(row.get("fractional_label_ready")) else 0
+    score += 25 if _truthy(row.get("result_pdf_found")) else 0
+    score += 15 if _truthy(row.get("issue_pdf_found")) else 0
+    score += 15 if _truthy(row.get("allocation_fit_usable_for_tuning")) else 0
+    for field_name in (
+        "online_valid_shares",
+        "frozen_funds_yi",
+        "allocation_rate_pct",
+        "subscription_multiple",
+        "guaranteed_threshold_amount_wan",
+        "fractional_threshold_amount_wan",
+        "allocation_fit_json",
+    ):
+        if not _is_missing(row.get(field_name)):
+            score += 5
+    return score
+
+
+def _merge_existing_history_rows(
+    rows: list[dict[str, Any]],
+    existing_rows: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    existing_by_code = {
+        str(row.get("security_code") or "").strip(): row
+        for row in existing_rows
+        if str(row.get("security_code") or "").strip()
+    }
+    merged_rows: list[dict[str, Any]] = []
+    for row in rows:
+        code = str(row.get("security_code") or "").strip()
+        existing = existing_by_code.get(code)
+        if existing and _row_quality_score(existing) > _row_quality_score(row):
+            merged_rows.append({column: existing.get(column, "") for column in CSV_COLUMNS})
+        else:
+            merged_rows.append(row)
+    return merged_rows
+
+
 def build_subscription_history_table(
     *,
     dataset_path: Path = DEFAULT_DATASET_PATH,
@@ -669,6 +724,7 @@ def build_subscription_history_table(
     parse_prospectus: bool = False,
     download_retries: int = 1,
     download_delay_seconds: float = 0.0,
+    ladder_label_path: Path = DEFAULT_LADDER_LABEL_PATH,
 ) -> dict[str, Any]:
     items = _load_replay_dataset_items(dataset_path)
     rows = build_subscription_history_rows(
@@ -680,7 +736,10 @@ def build_subscription_history_table(
         download_retries=download_retries,
         download_delay_seconds=download_delay_seconds,
     )
+    existing_rows = _load_existing_subscription_history_csv(output_path)
+    rows = _merge_existing_history_rows(rows, existing_rows)
     write_subscription_history_csv(rows, output_path)
+    ladder_summary = subscription_ladder_labels.sync_label_rows(rows, ladder_label_path)
     return {
         "output_path": str(output_path),
         "row_count": len(rows),
@@ -688,6 +747,10 @@ def build_subscription_history_table(
         "fractional_label_ready_count": sum(1 for row in rows if row.get("fractional_label_ready")),
         "result_pdf_count": sum(1 for row in rows if row.get("result_pdf_found")),
         "issue_pdf_count": sum(1 for row in rows if row.get("issue_pdf_found")),
+        "ladder_label_path": ladder_summary.get("path"),
+        "ladder_label_rows": ladder_summary.get("row_count"),
+        "ladder_label_filled": ladder_summary.get("filled_count"),
+        "ladder_label_added_codes": ladder_summary.get("added_codes") or [],
     }
 
 
@@ -701,6 +764,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--download-retries", type=int, default=1)
     parser.add_argument("--download-delay-seconds", type=float, default=0.0)
     parser.add_argument("--parse-prospectus", action="store_true")
+    parser.add_argument("--ladder-label-path", type=Path, default=DEFAULT_LADDER_LABEL_PATH)
     return parser.parse_args()
 
 
@@ -715,12 +779,17 @@ def main() -> int:
         parse_prospectus=args.parse_prospectus,
         download_retries=args.download_retries,
         download_delay_seconds=args.download_delay_seconds,
+        ladder_label_path=args.ladder_label_path,
     )
     print(
         "subscription history rows={row_count}, model_ready={model_ready_count}, "
         "fractional_ready={fractional_label_ready_count}, result_pdfs={result_pdf_count}, "
-        "issue_pdfs={issue_pdf_count}, output={output_path}".format(**summary)
+        "issue_pdfs={issue_pdf_count}, ladder_rows={ladder_label_rows}, "
+        "ladder_filled={ladder_label_filled}, output={output_path}".format(**summary)
     )
+    added_codes = summary.get("ladder_label_added_codes") or []
+    if added_codes:
+        print("ladder label rows added: " + ", ".join(str(code) for code in added_codes))
     return 0
 
 

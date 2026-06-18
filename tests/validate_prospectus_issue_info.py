@@ -37,6 +37,7 @@ ISSUE_ANNOUNCEMENT_TEXT = """
 网上投资者有效申购总量大于网上发行数量时，不足 100 股的部分按规则配售。
 本次公开发行股份数量 2,231.7369 万股
 网上申购日 2026 年 6 月 1 日
+战略配售数量(万股) 223.1737 网上发行数量(万股) 2,008.5632
 网上每笔申购数量上限(万股) 118.00
 行业平均静态市盈率为 21.30 倍
 """
@@ -162,6 +163,12 @@ def _run_issue_announcement_fallback_case(failures: list[str]) -> None:
     _assert_close(fields.get("ISSUE_PRICE"), 9.65, "issue announcement parser: ISSUE_PRICE mismatch", failures)
     _assert_close(fields.get("AFTER_ISSUE_PE"), 14.93, "issue announcement parser: AFTER_ISSUE_PE mismatch", failures)
     _assert_close(fields.get("TOTAL_ISSUE_NUM"), 2231.7369, "issue announcement parser: TOTAL_ISSUE_NUM mismatch", failures)
+    _assert_close(
+        fields.get("ONLINE_ISSUE_NUM"),
+        20085632.0,
+        "issue announcement parser: ONLINE_ISSUE_NUM mismatch",
+        failures,
+    )
     _assert_close(fields.get("INDUSTRY_PE_NEW"), 21.30, "issue announcement parser: INDUSTRY_PE_NEW mismatch", failures)
     _assert_close(
         fields.get("TOP_APPLY_MARKETCAP"),

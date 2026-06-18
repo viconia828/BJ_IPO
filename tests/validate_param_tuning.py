@@ -1519,7 +1519,7 @@ def manual_batch_entry_case(failures: list[str]) -> None:
     output_dir = TEMP_ROOT / "manual_batch_reports"
     input_text = "\n".join(
         [
-            "1",
+            "2",
             "1",
             "1",
             "",
@@ -1550,6 +1550,8 @@ def manual_batch_entry_case(failures: list[str]) -> None:
         failures,
     )
     _assert("请选择调参模式" in completed.stdout, "manual batch 入口应显示总模式提示词", failures)
+    _assert("估值自动调参" in completed.stdout, "manual batch 入口应显示估值自动调参选项", failures)
+    _assert("申购资金自动调参" in completed.stdout, "manual batch 入口应显示申购资金自动调参选项", failures)
     _assert("请选择手动调参执行模式" in completed.stdout, "manual batch 入口应显示手动模式提示词", failures)
     _assert("候选值列表，逗号分隔" in completed.stdout, "manual batch 入口应显示规范候选值提示词", failures)
     _assert("执行完成" in completed.stdout, "manual batch 入口应打印执行完成提示", failures)

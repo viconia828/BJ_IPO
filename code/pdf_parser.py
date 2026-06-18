@@ -323,9 +323,18 @@ PROSPECTUS_SUBSCRIPTION_LIMIT_PATTERNS = (
 PROSPECTUS_ONLINE_ISSUE_PATTERNS = (
     re.compile(
         rf"(?:网上发行数量|网上发行股数|网上初始发行数量|网上初始发行股数|本次网上发行数量|本次网上发行股数)"
-        rf"[^0-9]{{0,32}}(?P<value>{NUMERIC_TOKEN_PATTERN})(?P<unit>万股|股)"
+        rf"[(](?P<unit>万股|股)[)][^0-9]{{0,12}}(?P<value>{NUMERIC_TOKEN_PATTERN})"
+    ),
+    re.compile(
+        rf"(?:网上发行数量|网上发行股数|网上初始发行数量|网上初始发行股数|本次网上发行数量|本次网上发行股数)"
+        rf"[^0-9。；;]{{0,16}}(?:为|:|=)[^0-9]{{0,12}}(?P<value>{NUMERIC_TOKEN_PATTERN})(?P<unit>万股|股)"
+    ),
+    re.compile(
+        rf"(?:网上发行数量|网上发行股数|网上初始发行数量|网上初始发行股数|本次网上发行数量|本次网上发行股数)"
+        rf"[^0-9。；;]{{0,24}}(?P<value>{NUMERIC_TOKEN_PATTERN})(?P<unit>万股|股)"
     ),
 )
+ONLINE_ISSUE_REJECT_MARKERS = ("大于", "小于", "不足", "比例", "规则", "时")
 ISSUE_RESULT_VALID_ACCOUNT_PATTERNS = (
     re.compile(rf"(?:有效申购户数|有效申购账户数|网上投资者有效申购户数)[^0-9]{{0,32}}(?P<value>{NUMERIC_TOKEN_PATTERN})户"),
 )
@@ -377,10 +386,10 @@ PROSPECTUS_INDUSTRY_PATTERNS = (
 )
 PARSE_CACHE_SCHEMA = "pdf_parse_cache_v1"
 PARSE_CACHE_KIND_VERSIONS = {
-    "prospectus_issue_info": 7,
-    "issue_announcement_info": 4,
-    "issue_result_info": 2,
-    "comparable_companies": 2,
+    "prospectus_issue_info": 8,
+    "issue_announcement_info": 5,
+    "issue_result_info": 3,
+    "comparable_companies": 4,
     "business_desc": 2,
 }
 PARSE_CACHE_DIR = Path(__file__).resolve().parents[1] / "data" / "pdf_parse_cache"
@@ -803,6 +812,27 @@ def _extract_raw_share_patterns(
         return
 
 
+def _extract_online_issue_patterns(
+    result: dict[str, dict[str, object]],
+    search_text: str,
+    rule: str,
+    field_name: str,
+) -> None:
+    if field_name in result["fields"]:
+        return
+    for pattern in PROSPECTUS_ONLINE_ISSUE_PATTERNS:
+        for match in pattern.finditer(search_text):
+            lead_text = search_text[match.start() : match.start("value")]
+            if any(marker in lead_text for marker in ONLINE_ISSUE_REJECT_MARKERS):
+                continue
+            value = _parse_numeric_token(match.group("value"))
+            if value is None:
+                continue
+            unit = str(match.group("unit") or "").strip()
+            _set_prospectus_issue_field(result, field_name, _shares_to_raw(value, unit), rule, search_text, match.start())
+            return
+
+
 def _extract_funds_patterns(
     result: dict[str, dict[str, object]],
     search_text: str,
@@ -875,7 +905,7 @@ def _extract_prospectus_issue_info_from_text(text: str) -> dict[str, object]:
         _extract_wan_share_patterns(result, search_text, rule, "TOTAL_ISSUE_NUM", PROSPECTUS_TOTAL_ISSUE_PATTERNS)
         _extract_wan_share_patterns(result, search_text, rule, "TOTAL_SHARE_CAPITAL_AFTER_ISSUE", PROSPECTUS_TOTAL_CAPITAL_PATTERNS)
         _extract_wan_share_patterns(result, search_text, rule, "SUBSCRIPTION_LIMIT_WAN_SHARES", PROSPECTUS_SUBSCRIPTION_LIMIT_PATTERNS)
-        _extract_raw_share_patterns(result, search_text, rule, "ONLINE_ISSUE_NUM", PROSPECTUS_ONLINE_ISSUE_PATTERNS)
+        _extract_online_issue_patterns(result, search_text, rule, "ONLINE_ISSUE_NUM")
         _extract_apply_date_from_prospectus_text(result, search_text, rule)
 
     limit_wan_shares = _parse_numeric_token(str(result["fields"].get("SUBSCRIPTION_LIMIT_WAN_SHARES") or ""))
@@ -970,7 +1000,7 @@ def _extract_issue_result_info_from_text(text: str) -> dict[str, object]:
         ISSUE_RESULT_ALLOCATED_ACCOUNT_PATTERNS,
     )
     _extract_raw_share_patterns(typed_result, compact_text, "result", "ONLINE_VA_SHARES", ISSUE_RESULT_VALID_SHARE_PATTERNS)
-    _extract_raw_share_patterns(typed_result, compact_text, "result", "ONLINE_ISSUE_NUM", PROSPECTUS_ONLINE_ISSUE_PATTERNS)
+    _extract_online_issue_patterns(typed_result, compact_text, "result", "ONLINE_ISSUE_NUM")
     _extract_funds_patterns(typed_result, compact_text, "result", "FROZEN_FUNDS_YI", ISSUE_RESULT_FROZEN_FUNDS_PATTERNS)
     _extract_numeric_patterns(typed_result, compact_text, "result", "ONLINE_ISSUE_LWR", ISSUE_RESULT_LWR_PATTERNS)
     _extract_numeric_patterns(typed_result, compact_text, "result", "ONLINE_ES_MULTIPLE", ISSUE_RESULT_MULTIPLE_PATTERNS)
@@ -1117,11 +1147,24 @@ def _normalize_code(code: str) -> str:
 def _search_code_for_name(text: str, name: str) -> str | None:
     escaped = re.escape(name)
     patterns = [
-        re.compile(rf"{escaped}[^\n]{{0,120}}?(?P<code>\d{{6}}\.(?:SH|SZ|BJ|NQ))", re.IGNORECASE),
         re.compile(rf"{escaped}\s*[（(]\s*(?P<code>\d{{6}}\.(?:SH|SZ|BJ|NQ))\s*[）)]", re.IGNORECASE),
         re.compile(rf"{escaped}[^\n]{{0,80}}?(?:股票代码|证券代码)\s*(?P<code>\d{{6}}\.(?:SH|SZ|BJ|NQ))", re.IGNORECASE),
         re.compile(rf"{escaped}[^\n]{{0,180}}?(?:股票代码|证券代码)\s*[：:\s]\s*(?P<code>\d{{6}})", re.IGNORECASE),
         re.compile(rf"{escaped}[^\n]{{0,80}}?[（(]\s*(?P<code>\d{{6}})\s*[）)]", re.IGNORECASE),
+        re.compile(rf"{escaped}[^\n]{{0,120}}?(?P<code>\d{{6}}\.(?:SH|SZ|BJ|NQ))", re.IGNORECASE),
+    ]
+    for pattern in patterns:
+        match = pattern.search(text)
+        if match:
+            return _normalize_code(match.group("code"))
+    return _lookup_comparable_code_by_name(name)
+
+
+def _search_direct_or_known_code_for_name(text: str, name: str) -> str | None:
+    escaped = re.escape(name)
+    patterns = [
+        re.compile(rf"{escaped}\s*[（(]\s*(?P<code>\d{{6}}\.(?:SH|SZ|BJ|NQ))\s*[）)]", re.IGNORECASE),
+        re.compile(rf"{escaped}\s*[（(]\s*(?P<code>\d{{6}})\s*[）)]", re.IGNORECASE),
     ]
     for pattern in patterns:
         match = pattern.search(text)
@@ -1418,6 +1461,7 @@ def _extract_named_comparables(text: str) -> list[str]:
                 name = part.strip()
                 name = re.sub(r"^(?:国内)?上市公司", "", name).strip()
                 name = re.sub(r"(?:等|等公司|股份有限公司)$", "", name).strip()
+                name = re.sub(r"[（(]\s*\d{6}(?:\.(?:SH|SZ|BJ|NQ))?\s*[）)]", "", name, flags=re.IGNORECASE).strip()
                 if "的" in name:
                     candidate = name.rsplit("的", 1)[-1].strip()
                     if 1 < len(candidate) <= 24:
@@ -1447,7 +1491,7 @@ def _extract_comparable_codes_from_section(section_text: str, full_text: str) ->
 
     named_codes: list[str] = []
     for name in _extract_named_comparables(section_text):
-        code = _search_code_for_name(full_text, name)
+        code = _search_direct_or_known_code_for_name(full_text, name)
         if code:
             named_codes.append(code)
 
@@ -1455,12 +1499,12 @@ def _extract_comparable_codes_from_section(section_text: str, full_text: str) ->
         return _dedupe_codes(collected_codes + named_codes)
 
     for name in _extract_row_company_names(section_text):
-        code = _search_code_for_name(full_text, name)
+        code = _search_direct_or_known_code_for_name(full_text, name)
         if code:
             collected_codes.append(code)
 
     for name in _extract_known_comparable_names(section_text):
-        code = _search_code_for_name(full_text, name)
+        code = _search_direct_or_known_code_for_name(full_text, name)
         if code:
             collected_codes.append(code)
 
@@ -1494,6 +1538,7 @@ def _extract_row_company_names(window: str) -> list[str]:
 
 
 def _extract_comparable_companies_legacy(text: str) -> list[str]:
+    lookup_text = _normalize_text(text)
     candidate_windows = _extract_windows(text, SPECIFIC_SECTION_PATTERNS, radius=3500)
     if not candidate_windows:
         candidate_windows = _extract_windows(text, GENERIC_SECTION_PATTERNS, radius=2500)
@@ -1501,7 +1546,7 @@ def _extract_comparable_companies_legacy(text: str) -> list[str]:
         candidate_windows = [text]
 
     collected_codes: list[str] = []
-    name_code_pairs = _collect_name_code_pairs(text)
+    name_code_pairs = _collect_name_code_pairs(lookup_text)
     loose_match_codes: list[str] = []
     for window in candidate_windows:
         window = _trim_comparable_window(window)
@@ -1510,7 +1555,11 @@ def _extract_comparable_companies_legacy(text: str) -> list[str]:
                 collected_codes.append(_normalize_code(match.group("code")))
         collected_codes.extend(CODE_PATTERN.findall(window))
         for name in _extract_row_company_names(window):
-            code = _search_code_for_name(text, name)
+            code = _search_direct_or_known_code_for_name(lookup_text, name)
+            if code:
+                collected_codes.append(code)
+        for name in _extract_named_comparables(window):
+            code = _search_direct_or_known_code_for_name(lookup_text, name)
             if code:
                 collected_codes.append(code)
         for name, code in name_code_pairs:
@@ -1519,7 +1568,7 @@ def _extract_comparable_companies_legacy(text: str) -> list[str]:
 
     if not collected_codes:
         for name in _extract_named_comparables(text):
-            code = _search_code_for_name(text, name)
+            code = _search_direct_or_known_code_for_name(lookup_text, name)
             if code:
                 collected_codes.append(code)
     if not collected_codes:
@@ -1529,7 +1578,7 @@ def _extract_comparable_companies_legacy(text: str) -> list[str]:
 
 
 def _filter_target_code(codes: list[str], target_code: str) -> list[str]:
-    if len(codes) <= 1 or not target_code:
+    if not target_code:
         return codes
     return [code for code in codes if code.split(".", 1)[0] != target_code]
 
@@ -1551,7 +1600,9 @@ def _extract_comparable_companies_from_text(text: str, target_code: str = "") ->
         specific_codes = _extract_comparable_codes_from_section(specific_section_text, normalized_text)
         if specific_codes:
             result_codes = _dedupe_codes(specific_codes + glossary_codes)
-            return _filter_target_code(result_codes, target_code)
+            filtered_codes = _filter_target_code(result_codes, target_code)
+            if filtered_codes:
+                return filtered_codes
 
     generic_section_text, generic_section_anchor = _extract_compact_section(
         normalized_text,
@@ -1568,10 +1619,14 @@ def _extract_comparable_companies_from_text(text: str, target_code: str = "") ->
             or any(marker in generic_section_text for marker in ("选取", "作为同行业可比公司", "可比公司基本情况", "可比公司选取标准"))
         ):
             result_codes = _dedupe_codes(generic_codes + glossary_codes)
-            return _filter_target_code(result_codes, target_code)
+            filtered_codes = _filter_target_code(result_codes, target_code)
+            if filtered_codes:
+                return filtered_codes
 
     if glossary_codes:
-        return _filter_target_code(list(glossary_codes), target_code)
+        filtered_codes = _filter_target_code(list(glossary_codes), target_code)
+        if filtered_codes:
+            return filtered_codes
 
     result_codes = _extract_comparable_companies_legacy(text)
     return _filter_target_code(result_codes, target_code)

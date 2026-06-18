@@ -636,6 +636,40 @@ def _run_progress_callback_case(failures: list[str]) -> None:
     print("OK progress_callback: latest cache job emitted real-time progress events in sequence")
 
 
+def _run_scan_error_summary_case(failures: list[str]) -> None:
+    cache_root = TEMP_ROOT / "scan_error_summary" / "cache_db"
+    output_dir = TEMP_ROOT / "scan_error_summary" / "csv"
+    events: list[tuple[str, dict[str, Any]]] = []
+
+    def _raise_scan_error(*args: Any, **kwargs: Any) -> Any:
+        _ = (args, kwargs)
+        raise cache_listing_day_intraday.data_fetcher.DataFetcherError("东方财富请求失败: fixture SSL EOF")
+
+    cache_listing_day_intraday.data_fetcher.fetch_recent_ipos = _raise_scan_error
+    summary = cache_listing_day_intraday.run_latest_missing_cache_job(
+        months=18,
+        output_dir=output_dir,
+        params=_make_params(cache_root),
+        progress_callback=lambda event, payload: events.append((event, dict(payload))),
+        current_datetime=_today_at(16, 0),
+    )
+
+    _assert(summary["error_count"] == 1, "scan_error_summary: expected one global error", failures)
+    _assert(summary["scan_error_count"] == 1, "scan_error_summary: expected one scan error", failures)
+    _assert(summary["errors"] == [], "scan_error_summary: scan error should not become empty-code item", failures)
+    _assert(
+        summary["scan_errors"][0]["reason"] == "东方财富请求失败: fixture SSL EOF",
+        "scan_error_summary: reason mismatch",
+        failures,
+    )
+    _assert(
+        [event for event, _ in events] == ["start", "scan_error"],
+        f"scan_error_summary: unexpected events {events}",
+        failures,
+    )
+    print("OK scan_error_summary: scan-level Eastmoney failures no longer render as blank stock errors")
+
+
 def _run_eastmoney_ssl_error_wrapped_case(failures: list[str]) -> None:
     def _raise_ssl_error(*args: Any, **kwargs: Any) -> Any:
         _ = (args, kwargs)
@@ -675,6 +709,7 @@ def main() -> int:
         _run_retry_deferred_case(failures)
         _run_error_retry_persistence_case(failures)
         _run_progress_callback_case(failures)
+        _run_scan_error_summary_case(failures)
         _run_eastmoney_ssl_error_wrapped_case(failures)
     finally:
         tushare_helper._call_tushare_api = _ORIGINAL_CALL_TUSHARE_API

@@ -72,27 +72,6 @@ def _display_text(value: Any, fallback: str = DISPLAY_MISSING_TEXT) -> str:
     return text or fallback
 
 
-def _fmt_number_with_unit(
-    value: Any,
-    unit: str,
-    digits: int = 2,
-    fallback: str = DISPLAY_MISSING_TEXT,
-) -> str:
-    number = _safe_float(value)
-    if number is None:
-        return fallback
-    return f"{number:.{digits}f} {unit}"
-
-
-def _fmt_threshold_amount(value: Any, fallback: str = DISPLAY_MISSING_TEXT) -> str:
-    number = _safe_float(value)
-    if number is None:
-        return fallback
-    if number >= 10000:
-        return f"{number / 10000:.2f} 亿元"
-    return f"{number:.2f} 万元"
-
-
 def _fmt_date(value: Any, fallback: str = "-") -> str:
     if value in (None, "", "--"):
         return fallback
@@ -252,18 +231,42 @@ def _build_overview_interval(final: dict[str, Any]) -> str:
     return f"{low_text} - {high_text}"
 
 
-def _build_subscription_amount_text(prediction: dict[str, Any], key: str, *, overview: bool = False) -> str:
+def _build_time_priority_text(prediction: dict[str, Any], key: str, *, overview: bool = False) -> str:
     if not prediction.get("available"):
         return "" if overview else DISPLAY_MISSING_TEXT
     value = prediction.get(key)
-    if key == "guaranteed_threshold_amount_wan" and value in (None, "", "--"):
-        top_apply = prediction.get("top_apply_amount_wan")
-        if _safe_float(top_apply) is not None:
-            prefix = ">" if overview else "高于顶格 "
-            return f"{prefix}{_fmt_number(top_apply, fallback='')}" if overview else f"高于顶格（>{_fmt_threshold_amount(top_apply)}）"
     if overview:
-        return _fmt_number(value, fallback="")
-    return _fmt_threshold_amount(value)
+        if key == "top_apply_time_priority_required":
+            if value:
+                return "必须"
+            return "可能" if prediction.get("protected_guaranteed_threshold_exceeds_top_apply") else "否"
+        if key == "fractional_time_priority_required":
+            if prediction.get("top_apply_below_guaranteed"):
+                return "必须"
+            return "可能" if value else "否"
+        return "可能" if value else "否"
+    if key == "top_apply_time_priority_required":
+        return str(prediction.get("top_apply_time_priority_note") or ("可能需要" if value else "否"))
+    if key == "fractional_time_priority_required":
+        return str(prediction.get("fractional_time_priority_note") or ("可能需要" if value else "否"))
+    return "可能需要" if value else "否"
+
+
+def _build_lot_threshold_overview_items(prediction: dict[str, Any]) -> list[tuple[str, str]]:
+    if not prediction.get("available"):
+        return []
+    items: list[tuple[str, str]] = []
+    for raw_item in prediction.get("lot_thresholds") or []:
+        if not isinstance(raw_item, dict):
+            continue
+        lots = int(_safe_float(raw_item.get("lots")) or 0)
+        if lots <= 0:
+            continue
+        amount_text = _fmt_number(raw_item.get("threshold_amount_wan"), fallback="")
+        if not amount_text:
+            continue
+        items.append((f"{lots}手门槛（万元）", amount_text))
+    return items
 
 
 def _format_code_list(codes: list[Any], fallback: str = "无") -> str:
@@ -343,15 +346,7 @@ def _prepare_report_context(all_data: dict[str, Any]) -> dict[str, Any]:
     issue_price = _safe_float(ipo.get("ISSUE_PRICE"))
     issue_pe = _safe_float(ipo.get("AFTER_ISSUE_PE"))
     industry_pe = _safe_float(ipo.get("INDUSTRY_PE_NEW"))
-    online_va_num = _safe_float(ipo.get("ONLINE_VA_NUM"))
     price_way_text = _display_text(ipo.get("PRICE_WAY"))
-    top_apply_marketcap_text = _fmt_number_with_unit(ipo.get("TOP_APPLY_MARKETCAP"), "万元")
-    online_va_num_text = (
-        f"{_fmt_number(online_va_num / 10000, 2)} 万户"
-        if online_va_num is not None
-        else DISPLAY_MISSING_TEXT
-    )
-    online_issue_lwr_text = _fmt_pct(ipo.get("ONLINE_ISSUE_LWR"), 4, fallback=DISPLAY_MISSING_TEXT)
     pe_ratio = (issue_pe / industry_pe * 100) if issue_pe and industry_pe else None
     discount = ((1 - issue_pe / industry_pe) * 100) if issue_pe and industry_pe else None
     subscription_prediction = all_data.get("subscription_prediction") or {}
@@ -361,19 +356,10 @@ def _prepare_report_context(all_data: dict[str, Any]) -> dict[str, Any]:
         [str(cell) for cell in row]
         for row in (subscription_prediction.get("table_rows") or [["模型状态", DISPLAY_MISSING_TEXT, "-"]])
     ]
-    guaranteed_threshold_text = _build_subscription_amount_text(
-        subscription_prediction,
-        "guaranteed_threshold_amount_wan",
-    )
-    fractional_threshold_text = _build_subscription_amount_text(
-        subscription_prediction,
-        "fractional_threshold_amount_wan",
-    )
-    fractional_time_text = (
-        "是" if subscription_prediction.get("fractional_time_priority_required") else "否"
-        if subscription_prediction.get("available")
-        else DISPLAY_MISSING_TEXT
-    )
+    subscription_prediction_display_rows = [
+        [*(row[:2]), *[""] * max(0, 2 - len(row[:2]))]
+        for row in subscription_prediction_rows
+    ]
 
     if method1.get("available"):
         method1_lines = [
@@ -416,14 +402,8 @@ def _prepare_report_context(all_data: dict[str, Any]) -> dict[str, Any]:
         ["上市日期", _fmt_date(ipo.get("LISTING_DATE"))],
         ["定价方式", price_way_text],
         ["发行总量", f"{_fmt_number(ipo.get('TOTAL_ISSUE_NUM'))} 万股"],
-        ["顶格打新金额", top_apply_marketcap_text],
-        ["正股获配门槛", guaranteed_threshold_text],
-        ["碎股获配门槛", fractional_threshold_text],
-        ["碎股是否抢时间", fractional_time_text],
         ["首日流通盘", f"{_fmt_number(all_data.get('float_shares'))} 万股"],
         ["首日流通老股", str(all_data.get("old_shares_desc", "-"))],
-        ["有效申购户数", online_va_num_text],
-        ["中签率", online_issue_lwr_text],
         ["所属行业", _display_text(industry.get("display_name"), fallback="-")],
     ]
 
@@ -442,6 +422,7 @@ def _prepare_report_context(all_data: dict[str, Any]) -> dict[str, Any]:
     if all_data.get("listing_pdf_found", True):
         overview_listing_date = _fmt_date(ipo.get("LISTING_DATE"), fallback="")
 
+    lot_threshold_overview_items = _build_lot_threshold_overview_items(subscription_prediction)
     overview_headers = [
         "代码",
         "名称",
@@ -449,8 +430,8 @@ def _prepare_report_context(all_data: dict[str, Any]) -> dict[str, Any]:
         "市盈率",
         "发行价",
         "最大申购上限（万元）",
-        "正股门槛（万元）",
-        "碎股门槛（万元）",
+        *(header for header, _ in lot_threshold_overview_items),
+        "正股抢时间",
         "碎股抢时间",
         "上市日期",
         "估价区间（元）",
@@ -462,11 +443,9 @@ def _prepare_report_context(all_data: dict[str, Any]) -> dict[str, Any]:
         _fmt_number(issue_pe, fallback=""),
         _fmt_number(issue_price, fallback=""),
         _fmt_number(ipo.get("TOP_APPLY_MARKETCAP"), fallback=""),
-        _build_subscription_amount_text(subscription_prediction, "guaranteed_threshold_amount_wan", overview=True),
-        _build_subscription_amount_text(subscription_prediction, "fractional_threshold_amount_wan", overview=True),
-        ("是" if subscription_prediction.get("fractional_time_priority_required") else "否")
-        if subscription_prediction.get("available")
-        else "",
+        *(value for _, value in lot_threshold_overview_items),
+        _build_time_priority_text(subscription_prediction, "top_apply_time_priority_required", overview=True),
+        _build_time_priority_text(subscription_prediction, "fractional_time_priority_required", overview=True),
         overview_listing_date,
         _build_overview_interval(final),
     ]
@@ -482,6 +461,7 @@ def _prepare_report_context(all_data: dict[str, Any]) -> dict[str, Any]:
         "wind_source_text": wind_source_text,
         "basic_rows": basic_rows,
         "subscription_prediction_rows": subscription_prediction_rows,
+        "subscription_prediction_display_rows": subscription_prediction_display_rows,
         "company_description": _compress_text(all_data.get("company_description", "")),
         "comparable_rows": comparable_rows,
         "comparable_summary_rows": [
@@ -547,7 +527,7 @@ def build_report_markdown(all_data: dict[str, Any]) -> str:
 
 ## 二、申购资金配售预测
 
-{_markdown_table(['字段', '数值', '来源/口径'], context['subscription_prediction_rows'])}
+{_markdown_table(['字段', '数值'], context['subscription_prediction_display_rows'])}
 
 ## 三、公司概况
 
@@ -632,8 +612,8 @@ def _build_report_html(context: dict[str, Any]) -> str:
         context["recent_rows"],
     )
     subscription_prediction_table = _html_table(
-        ["字段", "数值", "来源/口径"],
-        context["subscription_prediction_rows"],
+        ["字段", "数值"],
+        context["subscription_prediction_display_rows"],
     )
 
     basic_rows_html = "".join(

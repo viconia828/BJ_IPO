@@ -55,7 +55,7 @@
 
 - `python code\bse_ipo_valuation.py 920177`
 
-运行后会提示输入 6 位代码，并生成带时间戳的 PDF 报告到 `输出/`。同时会生成同名 `_一览.txt`，方便复制代码、名称、申购日期、市盈率、最大申购上限、正股/碎股获配门槛、碎股是否需要抢时间、上市日期和估价区间。
+运行后会提示输入 6 位代码，并生成带时间戳的 PDF 报告到 `输出/`。同时会生成同名 `_一览.txt`，方便复制代码、名称、申购日期、市盈率、最大申购上限、1手/2手/...建议申购门槛、正股/碎股是否需要抢时间、上市日期和估价区间。
 
 主程序取资料的顺序是：
 
@@ -70,18 +70,20 @@
 
 - `调参.bat`
 
-它会先提示你选择两种调参模式：
+它会先提示你选择四种调参模式：
 
-- `手动调参`：沿用原来的候选参数复核 / replay 观察模式
-- `自动调参`：系统自动搜索参数组合，每轮结束都会列出当前累计建议修改的参数，并询问接受写入或继续下一轮
+- `1 估值自动调参`：系统自动搜索估值参数组合，每轮结束都会列出当前累计建议修改的参数，并询问接受写入或继续下一轮
+- `2 估值手动调参`：沿用原来的候选参数复核 / replay 观察模式
+- `3 申购资金自动调参`：读取申购历史样本和手工分档标签，搜索申购资金主参数，确认接受后写入 `策略参数.txt`
+- `4 申购资金手动调参`：查看 baseline / search / robustness / account-pool 等申购资金诊断
 
-手动调参会继续按顺序提示你：
+估值手动调参会继续按顺序提示你：
 
 1. 选择模式：`离线复核` 或 `replay 观察`
 2. 选择输入方式：`单参数多候选值` / `手动候选组` / `候选文件`
 3. 输入必要参数
 
-每次手动调参启动时，系统会先扫描 `首日分时走势/` 里的 CSV。如果本地样本文件比 `data/offline_tuning/replay_dataset.json` 更新，会增量同步回放数据集：已有样本优先复用旧数据集条目和 `data/offline_tuning/replay_items/代码.json` 单样本缓存，只为新增样本补齐回放资料；训练集和验证集样本数会随之更新。若外部数据源临时超时或拒绝连接，本次会继续使用旧回放数据集，不会中断调参；网络恢复后再次运行即可自动重试同步。
+每次通过 `调参.bat` 启动调参时，系统会先扫描 `首日分时走势/` 里的 CSV，自动同步估值回放样本集 `data/offline_tuning/replay_dataset.json`，再重建申购资金历史样本集 `data/offline_tuning/subscription_history_sample.csv` 并同步手工分档表。估值回放会优先复用旧数据集条目和 `data/offline_tuning/replay_items/代码.json` 单样本缓存，只为新增样本补齐回放资料；申购资金历史表会保留旧表中信息更完整的发行结果行，避免自动更新把 `model_ready` 样本降级。若外部数据源临时超时或拒绝连接，本次会继续使用旧样本集，不会中断调参；网络恢复后再次运行即可自动重试同步。
 
 申购配售模型的历史样本表保存在 `data/offline_tuning/subscription_history_sample.csv`，这是可提交的训练样本产物。它按历史新股逐行记录发行价、网上发行数量、顶格申购金额、有效申购户数、有效申购股数、冻结资金、申购冻结天数、正股门槛、碎股门槛估算和字段来源。常用生成命令：
 
@@ -93,12 +95,15 @@
 - `python tools\tune_subscription_prediction.py --mode robustness --top-n 8`
 - `python tools\tune_subscription_prediction.py --mode account-pool`
 - `python tools\tune_subscription_prediction.py --mode account-pool-prior --top-n 8`
+- `python tools\tune_subscription_prediction.py --mode auto --top-n 8`
 
 `model_ready=true` 表示该样本已有发行结果公告字段；`guaranteed_label_ready=true` 表示可用于正股门槛调模；`fractional_label_ready=true` 表示已有真实申购梯度或“顶格仍不足正股、全员拼时间抢碎股”标签，可用于碎股/抢时间调模。若公告没有申购梯度表，生成器会用网上获配户数、网上发行手数、冻结资金和配售规则生成 `allocation_fit_json`，作为后续拟合申购金额梯度的初始约束，并同步输出 `allocation_fit_confidence`、`allocation_fit_usable_for_tuning` 和 `allocation_fit_residual_json` 供调参筛样本使用。若本机 Python 没有 PDF 文本解析库，脚本仍会生成样本骨架，但公告字段会缺失；需要先补齐 `pdfplumber`/`pypdf` 等 PDF 解析依赖，或使用已配置好依赖的运行环境。
 
-`tools\tune_subscription_prediction.py` 是申购配售调参的评估入口：默认只输出当前 baseline 的正股门槛误差、顶格不足正股分类准确率和拟合残差摘要；`--mode search` 会枚举候选参数并排序展示；`--mode robustness` 会用不同起始样本数和历史窗口复核当前最优候选；`--mode account-pool` 会按最近样本的获配分桶估算不同申购金额阈值以上的大户数量；`--mode account-pool-prior` 会把近期获配分布转换成有效申购资金池下限，离线检查它对当前 best 参数的修正效果。脚本暂不自动写回参数。
+手工分档标签表保存在 `data/offline_tuning/subscription_ladder_labels.csv`。该表一行一个本地样本，`manual_ladder` 可按 `1+0=251.2;2+1=564;0+1=顶格抢时间` 这样的格式补录真实分档；暂未找到资料的样本留空即可。`tools\build_subscription_history.py` 和 `tools\tune_subscription_prediction.py` 会自动为新增样本补空行，调参时默认读取该表，把手工分档误差和抢时间标签纳入候选参数排序；如需临时排除，可加 `--no-ladder-labels`。
 
-底层统一调用：
+`tools\tune_subscription_prediction.py` 是申购配售调参的评估入口：默认输出当前 baseline 的正股门槛误差、手工分档误差、顶格不足正股分类准确率和拟合残差摘要；`--mode search` 会枚举候选参数并排序展示；`--mode robustness` 会用不同起始样本数和历史窗口复核当前最优候选；`--mode account-pool` 会按最近样本的获配分桶估算不同申购金额阈值以上的大户数量；`--mode account-pool-prior` 会把近期获配分布转换成有效申购资金池下限，离线检查它对当前 best 参数的修正效果；`--mode auto` 会先展示搜索结果，再确认是否把申购资金主参数写入 `策略参数.txt`。
+
+估值调参底层统一调用：
 
 - `tools/tune_params.py`
 

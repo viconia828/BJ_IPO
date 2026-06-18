@@ -1,14 +1,19 @@
 from __future__ import annotations
 
+import os
 from pathlib import Path
 import subprocess
 import sys
+from types import SimpleNamespace
 
 
 CURRENT_DIR = Path(__file__).resolve().parent
 ROOT_DIR = CURRENT_DIR.parent
 TUNE_PARAMS_PATH = ROOT_DIR / "tools" / "tune_params.py"
+TUNE_SUBSCRIPTION_PATH = ROOT_DIR / "tools" / "tune_subscription_prediction.py"
 DEFAULT_DATASET_PATH = ROOT_DIR / "data" / "offline_tuning" / "replay_dataset.json"
+DEFAULT_SUBSCRIPTION_HISTORY_PATH = ROOT_DIR / "data" / "offline_tuning" / "subscription_history_sample.csv"
+DEFAULT_LADDER_LABEL_PATH = ROOT_DIR / "data" / "offline_tuning" / "subscription_ladder_labels.csv"
 DEFAULT_PARAMS_PATH = ROOT_DIR / "策略参数.txt"
 
 
@@ -16,6 +21,8 @@ if str(ROOT_DIR / "code") not in sys.path:
     sys.path.insert(0, str(ROOT_DIR / "code"))
 
 import config_loader
+import build_subscription_history
+import tune_params
 
 
 def _print_header() -> None:
@@ -25,10 +32,11 @@ def _print_header() -> None:
     print("北交所新股估值 - 调参入口")
     print("========================================")
     print("说明：")
-    print("1. 本入口会调用 tools\\tune_params.py。")
+    print("1. 本入口可调用估值调参 tools\\tune_params.py，或申购资金调参 tools\\tune_subscription_prediction.py。")
     print("2. 每次执行前会扫描“首日分时走势”目录，必要时自动同步回放数据集。")
     print("3. 默认使用当前回放数据集：data\\offline_tuning\\replay_dataset.json。")
-    print("4. 训练集切分比例等默认取 策略参数.txt 中“调参专用”分类。")
+    print("4. 申购资金调参默认读取 data\\offline_tuning\\subscription_ladder_labels.csv 的手工分档标签。")
+    print("5. 训练集切分比例等默认取 策略参数.txt 中“调参专用”分类。")
     print(
         "   当前默认：train_ratio={ratio}，min_train_samples={min_samples}，replay_months={months}。".format(
             ratio=tuning_settings["tuning_train_ratio"],
@@ -36,9 +44,9 @@ def _print_header() -> None:
             months=tuning_settings["tuning_replay_months"],
         )
     )
-    print("5. 如无特殊需要，按提示逐步输入即可。")
-    print("6. 若只输入权重组中的一个因子：二因子会自动补足到 1，多因子组会按当前策略参数比例缩放其余权重。")
-    print("7. 自动调参会先输出建议修改项，只有确认接受后才会写入 策略参数.txt。")
+    print("6. 如无特殊需要，按提示逐步输入即可。")
+    print("7. 若只输入权重组中的一个因子：二因子会自动补足到 1，多因子组会按当前策略参数比例缩放其余权重。")
+    print("8. 自动调参会先输出建议修改项，只有确认接受后才会写入 策略参数.txt。")
     print("")
 
 
@@ -69,6 +77,21 @@ def _prompt_required(prompt_text: str) -> str:
         print("该项不能为空，请重新输入。")
 
 
+def _prompt_positive_int(prompt_text: str, default: int) -> int:
+    while True:
+        raw_value = input(prompt_text).strip()
+        if not raw_value:
+            return default
+        try:
+            value = int(raw_value)
+        except ValueError:
+            print("请输入正整数。")
+            continue
+        if value > 0:
+            return value
+        print("请输入正整数。")
+
+
 def _prompt_existing_path(prompt_text: str) -> str:
     while True:
         raw_value = _prompt_required(prompt_text)
@@ -95,7 +118,69 @@ def _collect_group_candidates() -> list[str]:
         groups.append(raw_value)
 
 
-def _build_manual_command() -> tuple[list[str], dict[str, str]]:
+def _default_top_n() -> int:
+    params = config_loader.load_params(DEFAULT_PARAMS_PATH)
+    return int(params.get("tuning_top_n", 10))
+
+
+def _refresh_sample_sets_before_tuning() -> None:
+    if os.environ.get("BSE_TUNING_NO_AUTO_REFRESH") == "1":
+        print("已按 BSE_TUNING_NO_AUTO_REFRESH=1 跳过调参前样本集自动更新。")
+        return
+
+    params = config_loader.load_params(DEFAULT_PARAMS_PATH)
+    tuning_settings = config_loader.get_tuning_runtime_settings(params)
+    refresh_args = SimpleNamespace(
+        rebuild_dataset=False,
+        mode="offline",
+        no_auto_refresh_dataset=False,
+        months=int(tuning_settings["tuning_replay_months"]),
+        page_size=int(tuning_settings["tuning_page_size"]),
+    )
+
+    print("调参前同步估值回放样本集...", flush=True)
+    try:
+        replay_dataset = tune_params._load_or_refresh_dataset(
+            refresh_args,
+            params,
+            DEFAULT_DATASET_PATH,
+            sample_codes=None,
+        )
+        print(
+            "估值回放样本集可用样本数：{count}".format(
+                count=replay_dataset.get("available_count", 0)
+            ),
+            flush=True,
+        )
+    except Exception as exc:
+        print(f"估值回放样本集自动更新失败：{exc}", flush=True)
+        if not DEFAULT_DATASET_PATH.exists():
+            raise
+        print("本次将继续使用旧估值回放样本集。", flush=True)
+
+    print("调参前同步申购资金历史样本集...", flush=True)
+    try:
+        summary = build_subscription_history.build_subscription_history_table(
+            dataset_path=DEFAULT_DATASET_PATH,
+            output_path=DEFAULT_SUBSCRIPTION_HISTORY_PATH,
+            ladder_label_path=DEFAULT_LADDER_LABEL_PATH,
+        )
+        print(
+            "申购资金历史样本集 rows={rows}，model_ready={ready}，手工分档表 rows={ladder_rows}。".format(
+                rows=summary.get("row_count", 0),
+                ready=summary.get("model_ready_count", 0),
+                ladder_rows=summary.get("ladder_label_rows", 0),
+            ),
+            flush=True,
+        )
+    except Exception as exc:
+        print(f"申购资金历史样本集自动更新失败：{exc}", flush=True)
+        if not DEFAULT_SUBSCRIPTION_HISTORY_PATH.exists():
+            raise
+        print("本次将继续使用旧申购资金历史样本集。", flush=True)
+
+
+def _build_valuation_manual_command() -> tuple[list[str], dict[str, str]]:
     mode_choice = _prompt_choice(
         "请选择手动调参执行模式：",
         [
@@ -124,15 +209,18 @@ def _build_manual_command() -> tuple[list[str], dict[str, str]]:
         "offline" if mode_choice == "1" else "observe",
         "--dataset-path",
         str(DEFAULT_DATASET_PATH),
+        "--no-auto-refresh-dataset",
     ]
 
     if manual_name:
         command.extend(["--manual-name", manual_name])
 
     summary = {
-        "mode": "离线复核" if mode_choice == "1" else "replay 观察",
+        "category": "估值",
+        "mode": "估值手动调参 - " + ("离线复核" if mode_choice == "1" else "replay 观察"),
         "input_mode": "",
         "manual_name": manual_name or "自动生成",
+        "dataset_path": str(DEFAULT_DATASET_PATH.relative_to(ROOT_DIR)),
     }
 
     if input_mode_choice == "1":
@@ -164,7 +252,7 @@ def _build_manual_command() -> tuple[list[str], dict[str, str]]:
     return command, summary
 
 
-def _build_auto_command() -> tuple[list[str], dict[str, str]]:
+def _build_valuation_auto_command() -> tuple[list[str], dict[str, str]]:
     command = [
         sys.executable,
         "-u",
@@ -173,12 +261,89 @@ def _build_auto_command() -> tuple[list[str], dict[str, str]]:
         "auto",
         "--dataset-path",
         str(DEFAULT_DATASET_PATH),
+        "--no-auto-refresh-dataset",
     ]
     summary = {
-        "mode": "自动调参",
+        "category": "估值",
+        "mode": "估值自动调参",
         "input_mode": "系统自动搜索",
         "manual_name": "不适用",
         "candidate_summary": "按近期样本区间命中加权评分，自动选择参数组合；确认接受后写入参数文件",
+        "dataset_path": str(DEFAULT_DATASET_PATH.relative_to(ROOT_DIR)),
+        "auto_kind": "valuation",
+    }
+    return command, summary
+
+
+def _build_subscription_auto_command() -> tuple[list[str], dict[str, str]]:
+    top_n = _default_top_n()
+    command = [
+        sys.executable,
+        "-u",
+        str(TUNE_SUBSCRIPTION_PATH),
+        "--mode",
+        "auto",
+        "--no-auto-refresh-history",
+        "--top-n",
+        str(top_n),
+    ]
+    summary = {
+        "category": "申购资金",
+        "mode": "申购资金自动调参",
+        "input_mode": "系统枚举申购主参数网格",
+        "manual_name": "不适用",
+        "candidate_summary": f"按正股门槛、手工分档误差和抢时间漏判排序；Top N={top_n}；确认接受后写入参数文件",
+        "history_path": str(DEFAULT_SUBSCRIPTION_HISTORY_PATH.relative_to(ROOT_DIR)),
+        "ladder_label_path": str(DEFAULT_LADDER_LABEL_PATH.relative_to(ROOT_DIR)),
+        "auto_kind": "subscription",
+    }
+    return command, summary
+
+
+def _build_subscription_manual_command() -> tuple[list[str], dict[str, str]]:
+    mode_choice = _prompt_choice(
+        "请选择申购资金手动调参执行模式：",
+        [
+            ("1", "baseline：查看当前策略参数的申购资金回放指标"),
+            ("2", "search：枚举主参数候选网格并排序展示"),
+            ("3", "robustness：用不同历史窗口复核当前候选稳健性"),
+            ("4", "account-pool：查看不同申购金额阈值以上的大户资金池"),
+            ("5", "account-pool-prior：离线检查大户资金池 prior"),
+        ],
+        default="2",
+    )
+    mode_map = {
+        "1": ("baseline", "baseline 回放"),
+        "2": ("search", "候选搜索"),
+        "3": ("robustness", "稳健性复核"),
+        "4": ("account-pool", "大户资金池参考"),
+        "5": ("account-pool-prior", "资金池 prior 检查"),
+    }
+    mode_value, mode_label = mode_map[mode_choice]
+    command = [
+        sys.executable,
+        "-u",
+        str(TUNE_SUBSCRIPTION_PATH),
+        "--mode",
+        mode_value,
+        "--no-auto-refresh-history",
+    ]
+
+    top_n_text = "不适用"
+    if mode_choice in {"2", "3", "5"}:
+        default_top_n = _default_top_n()
+        top_n = _prompt_positive_int(f"输出 Top N 候选数量 [默认 {default_top_n}]：", default_top_n)
+        command.extend(["--top-n", str(top_n)])
+        top_n_text = str(top_n)
+
+    summary = {
+        "category": "申购资金",
+        "mode": f"申购资金手动调参 - {mode_label}",
+        "input_mode": mode_label,
+        "manual_name": "不适用",
+        "candidate_summary": f"子模式={mode_value}；Top N={top_n_text}",
+        "history_path": str(DEFAULT_SUBSCRIPTION_HISTORY_PATH.relative_to(ROOT_DIR)),
+        "ladder_label_path": str(DEFAULT_LADDER_LABEL_PATH.relative_to(ROOT_DIR)),
     }
     return command, summary
 
@@ -187,26 +352,38 @@ def _build_command() -> tuple[list[str], dict[str, str]]:
     tuning_mode = _prompt_choice(
         "请选择调参模式：",
         [
-            ("1", "手动调参：沿用当前候选参数复核 / replay 观察模式"),
-            ("2", "自动调参：系统搜索参数组合，确认后写入 策略参数.txt"),
+            ("1", "估值自动调参：系统搜索估值参数组合，确认后写入 策略参数.txt"),
+            ("2", "估值手动调参：候选参数复核 / replay 观察"),
+            ("3", "申购资金自动调参：系统搜索申购资金参数组合，确认后写入 策略参数.txt"),
+            ("4", "申购资金手动调参：baseline / search / robustness 等诊断"),
         ],
         default="1",
     )
+    if tuning_mode == "1":
+        return _build_valuation_auto_command()
     if tuning_mode == "2":
-        return _build_auto_command()
-    return _build_manual_command()
+        return _build_valuation_manual_command()
+    if tuning_mode == "3":
+        return _build_subscription_auto_command()
+    return _build_subscription_manual_command()
 
 
 def _print_summary(summary: dict[str, str]) -> None:
     print("")
     print("即将执行：")
+    print(f"- 分类：{summary.get('category', '-')}")
     print(f"- 模式：{summary['mode']}")
     print(f"- 候选输入方式：{summary['input_mode']}")
     print(f"- 任务名：{summary['manual_name']}")
     print(f"- 候选内容：{summary['candidate_summary']}")
     if "codes" in summary:
         print(f"- 观察代码：{summary['codes']}")
-    print(f"- 回放数据集：{DEFAULT_DATASET_PATH.relative_to(ROOT_DIR)}")
+    if "dataset_path" in summary:
+        print(f"- 回放数据集：{summary['dataset_path']}")
+    if "history_path" in summary:
+        print(f"- 申购历史样本：{summary['history_path']}")
+    if "ladder_label_path" in summary:
+        print(f"- 手工分档标签：{summary['ladder_label_path']}")
     print("")
 
 
@@ -214,17 +391,24 @@ def main() -> int:
     _print_header()
     command, summary = _build_command()
     _print_summary(summary)
-    if summary["mode"] == "自动调参":
+    _refresh_sample_sets_before_tuning()
+    print("")
+    if summary.get("auto_kind") == "valuation":
         print("正在启动自动调参子程序。它会先检查回放数据集，再进入粗步长暴力搜索；每轮完成后可选择是否继续细步长搜索。")
         print("未出现“自动调参完成”前表示仍未跑完。")
+        print("")
+    elif summary.get("auto_kind") == "subscription":
+        print("正在启动申购资金自动调参子程序。它会读取申购历史样本和手工分档标签，完成搜索后再询问是否写入。")
         print("")
     sys.stdout.flush()
 
     completed = subprocess.run(command, cwd=ROOT_DIR, check=False)
     print("")
     if completed.returncode == 0:
-        if summary["mode"] == "自动调参":
+        if summary.get("auto_kind") == "valuation":
             print("自动调参流程已结束。若上方没有出现“本次建议修改的参数”，表示本轮未找到优于当前参数的修改方案。")
+        elif summary.get("auto_kind") == "subscription":
+            print("申购资金自动调参流程已结束。若上方没有写入提示，表示本轮未写入参数。")
         else:
             print("执行完成。报告路径请以上方输出的 JSON / Markdown 报告为准。")
     else:

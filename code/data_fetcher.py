@@ -14,6 +14,8 @@ EASTMONEY_QUOTE_URL = "https://push2.eastmoney.com/api/qt/stock/get"
 EASTMONEY_TRENDS_URL = "https://push2his.eastmoney.com/api/qt/stock/trends2/get"
 EASTMONEY_QUOTE_FIELDS = "f57,f58,f43,f108,f116,f117,f162,f163,f164,f167,f277"
 EASTMONEY_UT = "fa5fd1943c7b386f172d6893dbfba10b"
+EASTMONEY_REQUEST_RETRY_COUNT = 3
+EASTMONEY_REQUEST_RETRY_PAUSE_SECONDS = 0.5
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
     "Referer": "https://data.eastmoney.com/",
@@ -99,6 +101,28 @@ def _build_query(params: dict[str, Any]) -> str:
     return f"{BASE_URL}?{encoded}"
 
 
+def _load_json_with_retries(request: urllib.request.Request) -> dict[str, Any]:
+    last_error: tuple[str, Any, BaseException] | None = None
+    for attempt in range(EASTMONEY_REQUEST_RETRY_COUNT):
+        try:
+            with urllib.request.urlopen(request, timeout=20) as response:
+                return json.loads(response.read().decode("utf-8"))
+        except urllib.error.URLError as exc:
+            last_error = ("东方财富请求失败", exc.reason, exc)
+        except TimeoutError as exc:
+            last_error = ("东方财富请求超时", exc, exc)
+        except OSError as exc:
+            last_error = ("东方财富网络请求异常", exc, exc)
+
+        if attempt + 1 < EASTMONEY_REQUEST_RETRY_COUNT:
+            time.sleep(EASTMONEY_REQUEST_RETRY_PAUSE_SECONDS * (attempt + 1))
+
+    if last_error is None:
+        raise DataFetcherError("东方财富请求失败: 未知错误")
+    prefix, detail, exc = last_error
+    raise DataFetcherError(f"{prefix}: {detail}") from exc
+
+
 def _normalize_record(record: dict[str, Any]) -> dict[str, Any]:
     normalized = dict(record)
     for key in NUMERIC_FIELDS:
@@ -115,14 +139,7 @@ def _normalize_record(record: dict[str, Any]) -> dict[str, Any]:
 def _request_data(params: dict[str, Any]) -> list[dict[str, Any]]:
     request = urllib.request.Request(_build_query(params), headers=HEADERS)
     try:
-        with urllib.request.urlopen(request, timeout=20) as response:
-            payload = json.loads(response.read().decode("utf-8"))
-    except urllib.error.URLError as exc:
-        raise DataFetcherError(f"东方财富请求失败: {exc.reason}") from exc
-    except TimeoutError as exc:
-        raise DataFetcherError(f"东方财富请求超时: {exc}") from exc
-    except OSError as exc:
-        raise DataFetcherError(f"东方财富网络请求异常: {exc}") from exc
+        payload = _load_json_with_retries(request)
     except json.JSONDecodeError as exc:
         raise DataFetcherError("东方财富返回内容无法解析为 JSON") from exc
 
@@ -137,14 +154,7 @@ def _request_json(url: str, params: dict[str, Any]) -> dict[str, Any]:
     request_url = f"{url}?{urllib.parse.urlencode(params, quote_via=urllib.parse.quote)}"
     request = urllib.request.Request(request_url, headers=HEADERS)
     try:
-        with urllib.request.urlopen(request, timeout=20) as response:
-            payload = json.loads(response.read().decode("utf-8"))
-    except urllib.error.URLError as exc:
-        raise DataFetcherError(f"东方财富请求失败: {exc.reason}") from exc
-    except TimeoutError as exc:
-        raise DataFetcherError(f"东方财富请求超时: {exc}") from exc
-    except OSError as exc:
-        raise DataFetcherError(f"东方财富网络请求异常: {exc}") from exc
+        payload = _load_json_with_retries(request)
     except json.JSONDecodeError as exc:
         raise DataFetcherError("东方财富返回内容无法解析为 JSON") from exc
 

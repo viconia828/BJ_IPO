@@ -409,13 +409,16 @@ def _assert_missing_online_va_num_placeholder(failures: list[str]) -> None:
     )
     for snippet, label in (
         ("| 定价方式 | 未取到数据 |", "PRICE_WAY"),
-        ("| 顶格打新金额 | 未取到数据 |", "TOP_APPLY_MARKETCAP"),
-        ("| 有效申购户数 | 未取到数据 |", "ONLINE_VA_NUM"),
-        ("| 中签率 | 未取到数据 |", "ONLINE_ISSUE_LWR"),
+        ("## 二、申购资金配售预测", "SUBSCRIPTION_SECTION"),
+        ("| 顶格申购金额 | - |", "TOP_APPLY_MARKETCAP"),
+        ("| 模型状态 | 历史有效申购样本不足 3 个 |", "SUBSCRIPTION_STATUS"),
         ("## 三、公司概况\n\n未取到数据", "MAIN_BUSINESS"),
     ):
         if snippet not in markdown:
             failures.append(f"report placeholder: missing {label} empty-state text")
+    subscription_section = markdown.split("## 二、申购资金配售预测", 1)[1].split("## 三、公司概况", 1)[0]
+    if "来源/口径" in subscription_section:
+        failures.append("report placeholder: subscription prediction section should hide source column")
 
 
 def _assert_recent_table_time_window(failures: list[str]) -> None:
@@ -530,6 +533,7 @@ def _assert_report_overview_text(failures: list[str]) -> None:
                 "recent_days": 90,
                 "ipo_data_source": "eastmoney",
                 "comparable_data_source": "wind",
+                "subscription_prediction_lot_threshold_max_lots": 6,
             },
             "notes": [],
             "recent_ipos": [],
@@ -550,14 +554,146 @@ def _assert_report_overview_text(failures: list[str]) -> None:
         "市盈率 15.00\n"
         "发行价 10.00\n"
         "最大申购上限（万元） 1234.50\n"
-        "正股门槛（万元） 3.00\n"
-        "碎股门槛（万元） 2.90\n"
-        "碎股抢时间 是\n"
+        "1手门槛（万元） 3.00\n"
+        "2手门槛（万元） 6.00\n"
+        "3手门槛（万元） 6.00\n"
+        "4手门槛（万元） 9.00\n"
+        "5手门槛（万元） 12.00\n"
+        "6手门槛（万元） 15.00\n"
+        "正股抢时间 否\n"
+        "碎股抢时间 可能\n"
         "上市日期\n"
         "估价区间（元） 12.30 - 14.50\n"
     )
     if overview != expected:
         failures.append(f"overview text mismatch: {overview!r}")
+
+    protected_overview = report_generator.build_report_overview_text(
+        {
+            "analysis_date": "2026-04-18",
+            "ipo_info": {
+                "SECURITY_CODE": "920001",
+                "SECURITY_NAME_ABBR": "保护样本",
+                "ISSUE_PRICE": 10.0,
+                "AFTER_ISSUE_PE": 15.0,
+                "INDUSTRY_PE_NEW": 20.0,
+                "APPLY_DATE": "2026-04-18",
+                "LISTING_DATE": "2026-04-25",
+                "TOP_APPLY_MARKETCAP": 80.0,
+                "ONLINE_ISSUE_NUM": 1000000.0,
+                "ONLINE_VA_SHARES": 30000000.0,
+            },
+            "industry": {"display_name": "通用设备"},
+            "method1": {"available": False, "reason": "test"},
+            "method2": {"available": False, "reason": "test"},
+            "final": {"available": True, "target_price": 13.4, "range_low": 12.3, "range_high": 14.5},
+            "params": {
+                "price_range_width": 0.10,
+                "recent_days": 90,
+                "ipo_data_source": "eastmoney",
+                "comparable_data_source": "wind",
+                "subscription_prediction_lot_threshold_max_lots": 6,
+            },
+            "notes": [],
+            "recent_ipos": [],
+            "comparable_data": [],
+            "float_shares": 500.0,
+            "old_shares_desc": "无",
+            "company_description": "",
+            "final_change_pct": None,
+            "range_change_low": None,
+            "range_change_high": None,
+            "listing_pdf_found": False,
+        }
+    )
+    _assert_contains(protected_overview, ("1手门槛（万元） 3.00", "6手门槛（万元） 15.00"), failures, "protected overview")
+    _assert_not_contains(protected_overview, ("正股建议申购（万元）",), failures, "protected overview")
+    _assert_contains(protected_overview, ("正股抢时间 可能",), failures, "protected overview")
+
+    estimated_overview = report_generator.build_report_overview_text(
+        {
+            "analysis_date": "2026-06-18",
+            "ipo_info": {
+                "SECURITY_CODE": "920222",
+                "SECURITY_NAME_ABBR": "益坤电气",
+                "ISSUE_PRICE": 10.09,
+                "AFTER_ISSUE_PE": 14.98,
+                "INDUSTRY_PE_NEW": 27.80,
+                "APPLY_DATE": "2026-06-22",
+                "TOP_APPLY_MARKETCAP": 583.3029,
+                "ONLINE_ISSUE_NUM": 1156.2390 * 10000,
+            },
+            "industry": {"display_name": "电气机械和器材制造业"},
+            "method1": {"available": False, "reason": "test"},
+            "method2": {"available": False, "reason": "test"},
+            "final": {"available": True, "target_price": 23.71, "range_low": 21.34, "range_high": 26.08},
+            "params": {
+                "price_range_width": 0.10,
+                "recent_days": 90,
+                "ipo_data_source": "tushare",
+                "comparable_data_source": "wind",
+            },
+            "notes": [],
+            "recent_ipos": [
+                {
+                    "SECURITY_CODE": "920069",
+                    "ISSUE_PRICE": 18.38,
+                    "ONLINE_ISSUE_NUM": 952.0 * 10000,
+                    "ONLINE_ISSUE_LWR": 0.03,
+                    "TOP_APPLY_MARKETCAP": 47.60 * 18.38,
+                    "APPLY_DATE": "2026-04-20",
+                    "ISSUE_RESULT_DATE": "2026-04-23",
+                },
+                {
+                    "SECURITY_CODE": "920126",
+                    "ISSUE_PRICE": 7.79,
+                    "ONLINE_ISSUE_NUM": 4187.0 * 10000,
+                    "ONLINE_ISSUE_LWR": 0.03,
+                    "TOP_APPLY_MARKETCAP": 209.34 * 7.79,
+                    "APPLY_DATE": "2026-06-03",
+                    "ISSUE_RESULT_DATE": "2026-06-06",
+                },
+                {
+                    "SECURITY_CODE": "920083",
+                    "ISSUE_PRICE": 9.65,
+                    "ONLINE_ISSUE_NUM": 2009.0 * 10000,
+                    "ONLINE_ISSUE_LWR": 0.02,
+                    "TOP_APPLY_MARKETCAP": 100.44 * 9.65,
+                    "APPLY_DATE": "2026-06-01",
+                    "ISSUE_RESULT_DATE": "2026-06-04",
+                },
+                {
+                    "SECURITY_CODE": "920206",
+                    "ISSUE_PRICE": 30.28,
+                    "ONLINE_ISSUE_NUM": 718.0 * 10000,
+                    "ONLINE_ISSUE_LWR": 0.02,
+                    "TOP_APPLY_MARKETCAP": 35.88 * 30.28,
+                    "APPLY_DATE": "2026-05-27",
+                    "ISSUE_RESULT_DATE": "2026-05-30",
+                },
+            ],
+            "comparable_data": [],
+            "float_shares": 1284.71,
+            "old_shares_desc": "无",
+            "company_description": "",
+            "final_change_pct": None,
+            "range_change_low": None,
+            "range_change_high": None,
+            "listing_pdf_found": False,
+        }
+    )
+    _assert_not_contains(
+        estimated_overview,
+        ("正股测算门槛（万元）\n", "正股建议申购（万元）\n"),
+        failures,
+        "estimated overview",
+    )
+    _assert_contains(
+        estimated_overview,
+        ("代码 920222", "1手门槛（万元）", "正股抢时间 否", "碎股抢时间 否"),
+        failures,
+        "estimated overview",
+    )
 
 
 def _assert_note_builder_focus_scope(params: dict[str, Any], failures: list[str]) -> None:

@@ -107,9 +107,12 @@ def _print_summary(summary: dict[str, object]) -> None:
     cached = list(summary.get("cached") or [])
     deferred = list(summary.get("deferred") or [])
     errors = list(summary.get("errors") or [])
+    scan_errors = list(summary.get("scan_errors") or [])
     stop_at_existing = summary.get("stop_at_existing")
 
-    if cached:
+    if scan_errors:
+        print("本次扫描未完成，未进入逐只新股缓存。")
+    elif cached:
         print(f"本次已缓存 {len(cached)} 只新股首日走势：")
         for item in cached:
             print(f"- {_format_item(item)}")

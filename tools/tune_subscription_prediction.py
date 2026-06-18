@@ -2,11 +2,15 @@ from __future__ import annotations
 
 import argparse
 import csv
+from datetime import datetime
 import itertools
 import json
+import os
 from pathlib import Path
+import re
 import sys
-from typing import Any
+from types import SimpleNamespace
+from typing import Any, Callable
 
 
 ROOT_DIR = Path(__file__).resolve().parents[1]
@@ -15,24 +19,32 @@ if str(CODE_DIR) not in sys.path:
     sys.path.insert(0, str(CODE_DIR))
 
 import subscription_predictor
+import subscription_ladder_labels
+import config_loader
+import build_subscription_history
+import tune_params
 
 
 DEFAULT_HISTORY_PATH = ROOT_DIR / "data" / "offline_tuning" / "subscription_history_sample.csv"
+DEFAULT_DATASET_PATH = ROOT_DIR / "data" / "offline_tuning" / "replay_dataset.json"
+DEFAULT_LADDER_LABEL_PATH = ROOT_DIR / "data" / "offline_tuning" / "subscription_ladder_labels.csv"
+DEFAULT_PARAMS_PATH = ROOT_DIR / "策略参数.txt"
+DEFAULT_AUTO_RECORD_PATH = ROOT_DIR / "自动调参记录.txt"
 
 DEFAULT_ACCOUNT_POOL_THRESHOLDS_WAN = [300, 500, 800, 1000, 1500, 2000]
 
 DEFAULT_BASELINE_PARAMS = {
-    "sample_decay_half_life_days": 20,
-    "subscription_prediction_cap_factor_direction": "target_over_median",
-    "subscription_prediction_cap_factor_exponent": 0.25,
-    "subscription_prediction_issue_factor_direction": "target_over_median",
-    "subscription_prediction_issue_factor_exponent": 0.20,
-    "subscription_prediction_lock_factor_exponent": 0.35,
+    "subscription_prediction_sample_decay_half_life_days": 5,
+    "subscription_prediction_cap_factor_direction": "median_over_target",
+    "subscription_prediction_cap_factor_exponent": 0.30,
+    "subscription_prediction_issue_factor_direction": "median_over_target",
+    "subscription_prediction_issue_factor_exponent": 0.45,
+    "subscription_prediction_lock_factor_exponent": 0.0,
     "subscription_prediction_multiple_scale": 1.0,
 }
 
 DEFAULT_SEARCH_GRID = {
-    "sample_decay_half_life_days": [5, 10, 20, 40],
+    "subscription_prediction_sample_decay_half_life_days": [5, 10, 20, 40],
     "subscription_prediction_cap_factor_direction": ["target_over_median", "median_over_target"],
     "subscription_prediction_cap_factor_exponent": [0.0, 0.15, 0.25, 0.30, 0.45],
     "subscription_prediction_issue_factor_direction": ["target_over_median", "median_over_target"],
@@ -42,7 +54,7 @@ DEFAULT_SEARCH_GRID = {
 }
 
 DEFAULT_ACCOUNT_POOL_PRIOR_BASE_PARAMS = {
-    "sample_decay_half_life_days": 5,
+    "subscription_prediction_sample_decay_half_life_days": 5,
     "subscription_prediction_cap_factor_direction": "median_over_target",
     "subscription_prediction_cap_factor_exponent": 0.3,
     "subscription_prediction_issue_factor_direction": "median_over_target",
@@ -54,6 +66,8 @@ DEFAULT_ACCOUNT_POOL_PRIOR_BASE_PARAMS = {
 DEFAULT_ACCOUNT_POOL_PRIOR_WEIGHTS = [0.8, 1.0, 1.1, 1.2]
 DEFAULT_ACCOUNT_POOL_PRIOR_RECENT_SAMPLES = [8, 12]
 DEFAULT_ACCOUNT_POOL_PRIOR_HALF_LIVES = [4.0]
+
+MAIN_TUNABLE_PARAM_KEYS = tuple(DEFAULT_SEARCH_GRID.keys())
 
 
 def _safe_float(value: Any) -> float | None:
@@ -83,6 +97,137 @@ def _parse_json_object(value: Any) -> dict[str, Any]:
     return parsed if isinstance(parsed, dict) else {}
 
 
+def _resolve_subscription_base_params(
+    strategy_params: dict[str, Any] | None,
+    defaults: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    merged = dict(defaults or DEFAULT_BASELINE_PARAMS)
+    if strategy_params:
+        merged.update(strategy_params)
+    for key, value in (defaults or DEFAULT_BASELINE_PARAMS).items():
+        merged.setdefault(key, value)
+    return merged
+
+
+def _main_tunable_snapshot(params: dict[str, Any]) -> dict[str, Any]:
+    return {key: params.get(key) for key in MAIN_TUNABLE_PARAM_KEYS if key in params}
+
+
+def _values_differ(old_value: Any, new_value: Any) -> bool:
+    old_number = _safe_float(old_value)
+    new_number = _safe_float(new_value)
+    if old_number is not None and new_number is not None:
+        return abs(old_number - new_number) > 1e-9
+    return str(old_value) != str(new_value)
+
+
+def _render_param_file_value(value: Any) -> str:
+    if isinstance(value, float):
+        return f"{value:.4f}".rstrip("0").rstrip(".")
+    return str(value)
+
+
+def _write_param_updates(params_file: str | Path, updates: dict[str, Any]) -> Path:
+    path = Path(params_file)
+    text = path.read_text(encoding="utf-8-sig")
+    for key, value in updates.items():
+        rendered = _render_param_file_value(value)
+        pattern = re.compile(rf"(?m)^(\s*{re.escape(key)}\s*=\s*)([^#\r\n]*?)(\s*(?:#.*)?$)")
+        if pattern.search(text):
+            text = pattern.sub(lambda match: f"{match.group(1)}{rendered}{match.group(3)}", text, count=1)
+            continue
+
+        subscription_section = re.search(r"(?m)^# === 申购资金预测：正股/碎股门槛模型 ===\s*$", text)
+        insert_line = f"{key} = {rendered}\n"
+        if subscription_section:
+            line_end = text.find("\n", subscription_section.end())
+            insert_at = len(text) if line_end < 0 else line_end + 1
+            text = text[:insert_at] + insert_line + text[insert_at:]
+        else:
+            industry_section = re.search(r"(?m)^\[industry_mapping\]\s*$", text)
+            if industry_section:
+                text = text[: industry_section.start()] + insert_line + text[industry_section.start() :]
+            else:
+                if not text.endswith("\n"):
+                    text += "\n"
+                text += insert_line
+    path.write_text(text, encoding="utf-8")
+    return path
+
+
+def _refresh_subscription_history_before_tuning(
+    args: argparse.Namespace,
+    strategy_params: dict[str, Any],
+) -> dict[str, Any] | None:
+    if os.environ.get("BSE_TUNING_NO_AUTO_REFRESH") == "1" or args.no_auto_refresh_history:
+        return None
+
+    tuning_settings = config_loader.get_tuning_runtime_settings(strategy_params)
+    refresh_args = SimpleNamespace(
+        rebuild_dataset=args.rebuild_dataset,
+        mode="auto" if args.mode == "auto" else "offline",
+        no_auto_refresh_dataset=args.no_auto_refresh_dataset,
+        months=int(args.months or tuning_settings["tuning_replay_months"]),
+        page_size=int(args.page_size or tuning_settings["tuning_page_size"]),
+    )
+
+    print("申购调参前同步估值回放样本集...", flush=True)
+    try:
+        replay_dataset = tune_params._load_or_refresh_dataset(
+            refresh_args,
+            strategy_params,
+            args.dataset_path,
+            sample_codes=None,
+        )
+        print(
+            "估值回放样本集可用样本数：{count}".format(
+                count=replay_dataset.get("available_count", 0)
+            ),
+            flush=True,
+        )
+    except Exception as exc:
+        print(f"申购调参前估值回放样本集自动更新失败：{exc}", flush=True)
+        if not args.dataset_path.exists():
+            raise
+        print("本次将继续使用旧估值回放样本集。", flush=True)
+
+    print("申购调参前同步申购资金历史样本集...", flush=True)
+    try:
+        summary = build_subscription_history.build_subscription_history_table(
+            dataset_path=args.dataset_path,
+            output_path=args.history_path,
+            ladder_label_path=args.ladder_label_path,
+        )
+        print(
+            "申购资金历史样本集 rows={rows}，model_ready={ready}，手工分档表 rows={ladder_rows}。".format(
+                rows=summary.get("row_count", 0),
+                ready=summary.get("model_ready_count", 0),
+                ladder_rows=summary.get("ladder_label_rows", 0),
+            ),
+            flush=True,
+        )
+        return summary
+    except Exception as exc:
+        print(f"申购资金历史样本集自动更新失败：{exc}", flush=True)
+        if not args.history_path.exists():
+            raise
+        print("本次将继续使用旧申购资金历史样本集。", flush=True)
+        return None
+
+
+def _changed_main_tunable_params(base_params: dict[str, Any], candidate_params: dict[str, Any]) -> dict[str, Any]:
+    updates: dict[str, Any] = {}
+    fallback = _resolve_subscription_base_params(base_params)
+    for key in MAIN_TUNABLE_PARAM_KEYS:
+        if key not in candidate_params:
+            continue
+        old_value = fallback.get(key)
+        new_value = candidate_params.get(key)
+        if _values_differ(old_value, new_value):
+            updates[key] = new_value
+    return updates
+
+
 def _load_history_rows(path: Path) -> list[dict[str, Any]]:
     with path.open("r", encoding="utf-8-sig", newline="") as file_obj:
         return [dict(row) for row in csv.DictReader(file_obj)]
@@ -96,7 +241,34 @@ def _row_sort_key(row: dict[str, Any]) -> tuple[str, str]:
 
 
 def _is_eligible_row(row: dict[str, Any]) -> bool:
-    return _parse_bool(row.get("model_ready")) and _parse_bool(row.get("allocation_fit_usable_for_tuning"))
+    return (
+        _parse_bool(row.get("model_ready")) and _parse_bool(row.get("allocation_fit_usable_for_tuning"))
+    ) or _parse_bool(row.get("manual_ladder_label_ready"))
+
+
+def _prepare_rows_with_ladder_labels(
+    rows: list[dict[str, Any]],
+    label_path: Path = DEFAULT_LADDER_LABEL_PATH,
+    *,
+    sync_missing_rows: bool = True,
+) -> tuple[list[dict[str, Any]], dict[str, Any]]:
+    if sync_missing_rows:
+        sync_summary = subscription_ladder_labels.sync_label_rows(rows, label_path)
+    else:
+        label_rows = subscription_ladder_labels.load_label_rows(label_path)
+        sync_summary = {
+            "path": str(label_path),
+            "row_count": len(label_rows),
+            "filled_count": sum(1 for row in label_rows if str(row.get("manual_ladder") or "").strip()),
+            "added_codes": [],
+        }
+    label_rows = subscription_ladder_labels.load_label_rows(label_path)
+    merged_rows = subscription_ladder_labels.apply_labels_to_history_rows(rows, label_rows)
+    sync_summary["merged_row_count"] = len(merged_rows)
+    sync_summary["manual_ladder_ready_count"] = sum(
+        1 for row in merged_rows if _parse_bool(row.get("manual_ladder_label_ready"))
+    )
+    return merged_rows, sync_summary
 
 
 def _recent_ipo_from_row(row: dict[str, Any]) -> dict[str, Any]:
@@ -316,11 +488,34 @@ def _apply_account_pool_prior(
 
     updated = dict(prediction)
     updated["account_pool_prior"] = prior_info
+
+    min_source_samples = int(float(params.get("subscription_prediction_account_pool_prior_min_source_samples") or 1))
+    prior_info["min_source_samples"] = min_source_samples
+    if int(prior_info.get("sample_count") or 0) < min_source_samples:
+        prior_info["rejected_reason"] = "source_sample_count_below_min"
+        return updated
+
+    online_issue_shares = _safe_float(prediction.get("online_issue_shares") or row.get("online_issue_shares"))
+    if online_issue_shares is not None and online_issue_shares > 0:
+        prior_info["base_subscription_multiple"] = (
+            base_valid_shares / online_issue_shares if base_valid_shares is not None else None
+        )
+        prior_info["floor_subscription_multiple"] = prior_floor_shares / online_issue_shares
+
+    min_uplift_ratio = float(params.get("subscription_prediction_account_pool_prior_min_uplift_ratio") or 0.0)
+    prior_info["min_uplift_ratio"] = min_uplift_ratio
+    if base_valid_shares is not None and base_valid_shares > 0:
+        uplift_ratio = prior_floor_shares / base_valid_shares
+        prior_info["uplift_ratio"] = uplift_ratio
+        if min_uplift_ratio > 0 and uplift_ratio < min_uplift_ratio:
+            prior_info["rejected_reason"] = "uplift_ratio_below_min"
+            return updated
+
     if base_valid_shares is None or prior_floor_shares <= base_valid_shares:
+        prior_info["rejected_reason"] = "floor_not_above_base"
         return updated
 
     issue_price = _safe_float(prediction.get("issue_price") or row.get("issue_price"))
-    online_issue_shares = _safe_float(prediction.get("online_issue_shares") or row.get("online_issue_shares"))
     top_apply_shares = _safe_float(prediction.get("top_apply_shares"))
     if top_apply_shares is None:
         top_apply_shares = subscription_predictor._money_to_shares(
@@ -338,6 +533,9 @@ def _apply_account_pool_prior(
     top_apply_gap_shares = (guaranteed_shares - top_apply_shares) if top_apply_below_guaranteed else None
 
     prior_info["applied"] = True
+    prior_info["updated_guaranteed_threshold_amount_wan"] = guaranteed_amount_wan
+    prior_info["updated_guaranteed_threshold_reachable"] = guaranteed_reachable
+    prior_info["updated_top_apply_below_guaranteed"] = top_apply_below_guaranteed
     updated.update(
         {
             "valid_subscription_shares": prior_floor_shares,
@@ -377,6 +575,12 @@ def evaluate_subscription_prediction(
     classification_correct = 0
     top_apply_false_negatives: list[str] = []
     top_apply_false_positives: list[str] = []
+    manual_ladder_row_count = 0
+    manual_ladder_amount_abs_errors: list[float] = []
+    manual_ladder_amount_pct_errors: list[float] = []
+    manual_ladder_time_priority_total = 0
+    manual_ladder_time_priority_correct = 0
+    manual_ladder_time_priority_misses: list[str] = []
 
     for row in sorted_rows:
         if not _is_eligible_row(row):
@@ -395,6 +599,12 @@ def evaluate_subscription_prediction(
             params=settings,
         )
         prediction = _apply_account_pool_prior(prediction, row, recent_history_rows, settings)
+        manual_ladder_items = subscription_ladder_labels.parse_manual_ladder(
+            row.get("manual_ladder"),
+            row.get("top_apply_amount_wan"),
+        )
+        if manual_ladder_items:
+            manual_ladder_row_count += 1
         actual_amount = _safe_float(row.get("guaranteed_threshold_amount_wan"))
         predicted_amount = _safe_float(prediction.get("guaranteed_threshold_amount_wan"))
         amount_abs_error = None
@@ -417,26 +627,86 @@ def evaluate_subscription_prediction(
             elif not actual_top_apply and predicted_top_apply is True:
                 top_apply_false_positives.append(str(row.get("security_code") or ""))
 
+        predicted_ladder_by_lot = {
+            int(item.get("lots") or 0): item
+            for item in (prediction.get("lot_thresholds") or [])
+            if isinstance(item, dict)
+        }
+        manual_ladder_errors: list[dict[str, Any]] = []
+        for label_item in manual_ladder_items:
+            label_lots = int(label_item.get("total_lots") or 0)
+            actual_ladder_amount = _safe_float(label_item.get("threshold_amount_wan"))
+            predicted_ladder_item = predicted_ladder_by_lot.get(label_lots) or {}
+            predicted_ladder_amount = _safe_float(predicted_ladder_item.get("threshold_amount_wan"))
+            ladder_abs_error = None
+            ladder_pct_error = None
+            if actual_ladder_amount and predicted_ladder_amount:
+                ladder_abs_error = abs(predicted_ladder_amount - actual_ladder_amount)
+                ladder_pct_error = ladder_abs_error / actual_ladder_amount
+                manual_ladder_amount_abs_errors.append(ladder_abs_error)
+                manual_ladder_amount_pct_errors.append(ladder_pct_error)
+            label_time_required = bool(label_item.get("time_priority_required"))
+            predicted_time_required = bool(predicted_ladder_item.get("time_priority_required"))
+            time_priority_match = None
+            if label_time_required:
+                manual_ladder_time_priority_total += 1
+                time_priority_match = predicted_time_required is True
+                if time_priority_match:
+                    manual_ladder_time_priority_correct += 1
+                else:
+                    manual_ladder_time_priority_misses.append(
+                        f"{row.get('security_code')}:{label_lots}手"
+                    )
+            manual_ladder_errors.append(
+                {
+                    "regular_lots": label_item.get("regular_lots"),
+                    "fractional_lots": label_item.get("fractional_lots"),
+                    "total_lots": label_lots,
+                    "actual_threshold_amount_wan": actual_ladder_amount,
+                    "predicted_threshold_amount_wan": predicted_ladder_amount,
+                    "threshold_kind": label_item.get("threshold_kind"),
+                    "abs_error_wan": ladder_abs_error,
+                    "pct_error": ladder_pct_error,
+                    "label_time_priority_required": label_time_required,
+                    "predicted_time_priority_required": predicted_time_required,
+                    "time_priority_match": time_priority_match,
+                }
+            )
+
+        account_pool_prior = prediction.get("account_pool_prior") or {}
         details.append(
             {
                 "security_code": row.get("security_code"),
                 "available": bool(prediction.get("available")),
                 "actual_guaranteed_amount_wan": actual_amount,
                 "predicted_guaranteed_amount_wan": predicted_amount,
+                "predicted_subscription_multiple": _safe_float(prediction.get("subscription_multiple")),
                 "guaranteed_amount_abs_error_wan": amount_abs_error,
                 "guaranteed_amount_pct_error": amount_pct_error,
                 "actual_top_apply_below_guaranteed": actual_top_apply,
                 "predicted_top_apply_below_guaranteed": predicted_top_apply,
                 "top_apply_classification_match": classification_match,
-                "account_pool_prior_applied": bool(
-                    (prediction.get("account_pool_prior") or {}).get("applied")
+                "manual_ladder_label_count": len(manual_ladder_items),
+                "manual_ladder_errors": manual_ladder_errors,
+                "account_pool_prior_applied": bool(account_pool_prior.get("applied")),
+                "account_pool_prior_weight": account_pool_prior.get("floor_weight"),
+                "account_pool_prior_base_subscription_multiple": account_pool_prior.get("base_subscription_multiple"),
+                "account_pool_prior_floor_subscription_multiple": account_pool_prior.get("floor_subscription_multiple"),
+                "account_pool_prior_uplift_ratio": account_pool_prior.get("uplift_ratio"),
+                "account_pool_prior_rejected_reason": account_pool_prior.get("rejected_reason"),
+                "account_pool_prior_valid_subscription_shares": account_pool_prior.get("valid_subscription_shares"),
+                "account_pool_prior_floor_valid_subscription_shares": account_pool_prior.get(
+                    "floor_valid_subscription_shares"
                 ),
-                "account_pool_prior_valid_subscription_shares": (
-                    (prediction.get("account_pool_prior") or {}).get("valid_subscription_shares")
+                "account_pool_prior_updated_guaranteed_amount_wan": account_pool_prior.get(
+                    "updated_guaranteed_threshold_amount_wan"
                 ),
-                "account_pool_prior_source_codes": (
-                    (prediction.get("account_pool_prior") or {}).get("source_codes") or []
+                "account_pool_prior_updated_guaranteed_reachable": account_pool_prior.get(
+                    "updated_guaranteed_threshold_reachable"
                 ),
+                "account_pool_prior_source_codes": account_pool_prior.get("source_codes") or [],
+                "account_pool_prior_sample_count": account_pool_prior.get("sample_count"),
+                "account_pool_prior_lower_bound_sample_count": account_pool_prior.get("lower_bound_sample_count"),
             }
         )
         history.append(_recent_ipo_from_row(row))
@@ -444,6 +714,16 @@ def evaluate_subscription_prediction(
 
     mae = sum(amount_abs_errors) / len(amount_abs_errors) if amount_abs_errors else None
     mape = sum(amount_pct_errors) / len(amount_pct_errors) if amount_pct_errors else None
+    ladder_mae = (
+        sum(manual_ladder_amount_abs_errors) / len(manual_ladder_amount_abs_errors)
+        if manual_ladder_amount_abs_errors
+        else None
+    )
+    ladder_mape = (
+        sum(manual_ladder_amount_pct_errors) / len(manual_ladder_amount_pct_errors)
+        if manual_ladder_amount_pct_errors
+        else None
+    )
     return {
         "history_path": "",
         "total_rows": len(sorted_rows),
@@ -465,28 +745,64 @@ def evaluate_subscription_prediction(
         "actual_top_apply_below_guaranteed_rows": sum(
             1 for row in eligible_rows if _parse_bool(row.get("top_apply_below_guaranteed"))
         ),
+        "manual_ladder_label_rows": manual_ladder_row_count,
+        "manual_ladder_amount_metric_rows": len(manual_ladder_amount_abs_errors),
+        "manual_ladder_amount_mae_wan": ladder_mae,
+        "manual_ladder_amount_mape": ladder_mape,
+        "manual_ladder_time_priority_total": manual_ladder_time_priority_total,
+        "manual_ladder_time_priority_correct": manual_ladder_time_priority_correct,
+        "manual_ladder_time_priority_accuracy": (
+            manual_ladder_time_priority_correct / manual_ladder_time_priority_total
+            if manual_ladder_time_priority_total
+            else None
+        ),
+        "manual_ladder_time_priority_misses": manual_ladder_time_priority_misses,
         "fit_residuals_weighted": _weighted_fit_residuals(eligible_rows),
         "details": details,
     }
 
 
-def _candidate_params_from_grid(grid: dict[str, list[Any]]) -> list[dict[str, Any]]:
+def _candidate_params_from_grid(
+    grid: dict[str, list[Any]],
+    base_params: dict[str, Any] | None = None,
+) -> list[dict[str, Any]]:
     keys = list(grid.keys())
     candidates: list[dict[str, Any]] = []
     for values in itertools.product(*(grid[key] for key in keys)):
-        candidates.append(dict(zip(keys, values)))
+        params = dict(base_params or {})
+        params.update(dict(zip(keys, values)))
+        candidates.append(params)
     return candidates
 
 
-def _candidate_rank_key(summary: dict[str, Any]) -> tuple[float, float, float, float, float]:
+def _candidate_rank_key(summary: dict[str, Any]) -> tuple[float, float, float, float, float, float]:
     false_negative_count = len(summary.get("top_apply_false_negative_codes") or [])
     false_positive_count = len(summary.get("top_apply_false_positive_codes") or [])
+    ladder_mape = _safe_float(summary.get("manual_ladder_amount_mape"))
     mape = _safe_float(summary.get("guaranteed_amount_mape"))
     mae = _safe_float(summary.get("guaranteed_amount_mae_wan"))
     metric_rows = _safe_float(summary.get("guaranteed_amount_metric_rows")) or 0.0
     return (
         float(false_negative_count),
         float(false_positive_count),
+        ladder_mape if ladder_mape is not None else 999.0,
+        mape if mape is not None else 999.0,
+        mae if mae is not None else 999999.0,
+        -metric_rows,
+    )
+
+
+def _account_pool_prior_minimal_trigger_rank_key(summary: dict[str, Any]) -> tuple[float, float, float, float, float, float]:
+    false_negative_count = len(summary.get("top_apply_false_negative_codes") or [])
+    false_positive_count = len(summary.get("top_apply_false_positive_codes") or [])
+    applied_count = _safe_float(summary.get("account_pool_prior_applied_count")) or 0.0
+    mape = _safe_float(summary.get("guaranteed_amount_mape"))
+    mae = _safe_float(summary.get("guaranteed_amount_mae_wan"))
+    metric_rows = _safe_float(summary.get("guaranteed_amount_metric_rows")) or 0.0
+    return (
+        float(false_negative_count),
+        float(false_positive_count),
+        applied_count,
         mape if mape is not None else 999.0,
         mae if mae is not None else 999999.0,
         -metric_rows,
@@ -497,6 +813,61 @@ def _compact_summary(summary: dict[str, Any]) -> dict[str, Any]:
     return {key: value for key, value in summary.items() if key != "details"}
 
 
+def _prior_trigger_explanations(summary: dict[str, Any]) -> list[dict[str, Any]]:
+    explanations: list[dict[str, Any]] = []
+    for detail in summary.get("details") or []:
+        if not detail.get("account_pool_prior_applied"):
+            continue
+        explanations.append(
+            {
+                "security_code": detail.get("security_code"),
+                "base_subscription_multiple": detail.get("account_pool_prior_base_subscription_multiple"),
+                "prior_subscription_multiple": detail.get("account_pool_prior_floor_subscription_multiple"),
+                "uplift_ratio": detail.get("account_pool_prior_uplift_ratio"),
+                "updated_guaranteed_amount_wan": detail.get("account_pool_prior_updated_guaranteed_amount_wan"),
+                "updated_guaranteed_reachable": detail.get("account_pool_prior_updated_guaranteed_reachable"),
+                "actual_guaranteed_amount_wan": detail.get("actual_guaranteed_amount_wan"),
+                "source_codes": detail.get("account_pool_prior_source_codes") or [],
+                "source_sample_count": detail.get("account_pool_prior_sample_count"),
+                "lower_bound_sample_count": detail.get("account_pool_prior_lower_bound_sample_count"),
+            }
+        )
+    return explanations
+
+
+def _attach_account_pool_prior_rollup(summary: dict[str, Any]) -> dict[str, Any]:
+    explanations = _prior_trigger_explanations(summary)
+    applied_codes = [str(item.get("security_code") or "") for item in explanations]
+    summary["account_pool_prior_applied_codes"] = [code for code in applied_codes if code]
+    summary["account_pool_prior_applied_count"] = len(summary["account_pool_prior_applied_codes"])
+    summary["account_pool_prior_trigger_explanations"] = explanations
+    return summary
+
+
+def _account_pool_prior_params(
+    base_params: dict[str, Any],
+    *,
+    weight: float,
+    recent_samples: int,
+    half_life_samples: float,
+    min_uplift_ratio: float | None = None,
+    min_source_samples: int | None = None,
+) -> dict[str, Any]:
+    params = dict(base_params)
+    params.update(
+        {
+            "subscription_prediction_account_pool_prior_weight": weight,
+            "subscription_prediction_account_pool_recent_samples": recent_samples,
+            "subscription_prediction_account_pool_half_life_samples": half_life_samples,
+        }
+    )
+    if min_uplift_ratio is not None:
+        params["subscription_prediction_account_pool_prior_min_uplift_ratio"] = min_uplift_ratio
+    if min_source_samples is not None:
+        params["subscription_prediction_account_pool_prior_min_source_samples"] = min_source_samples
+    return params
+
+
 def evaluate_candidate_grid(
     rows: list[dict[str, Any]],
     *,
@@ -504,30 +875,44 @@ def evaluate_candidate_grid(
     max_history_samples: int | None = None,
     top_n: int = 5,
     max_candidates: int | None = None,
+    base_params: dict[str, Any] | None = None,
+    progress_callback: Callable[[int, int, dict[str, Any] | None], None] | None = None,
 ) -> dict[str, Any]:
+    resolved_base_params = _resolve_subscription_base_params(base_params)
     baseline = evaluate_subscription_prediction(
         rows,
         min_history_samples=min_history_samples,
         max_history_samples=max_history_samples,
-        params=DEFAULT_BASELINE_PARAMS,
+        params=resolved_base_params,
     )
-    baseline["params"] = DEFAULT_BASELINE_PARAMS
+    baseline["params"] = _main_tunable_snapshot(resolved_base_params)
+    baseline["rank_key"] = _candidate_rank_key(baseline)
 
-    candidates = _candidate_params_from_grid(DEFAULT_SEARCH_GRID)
+    candidates = _candidate_params_from_grid(DEFAULT_SEARCH_GRID, resolved_base_params)
     if max_candidates is not None:
         candidates = candidates[: max(max_candidates, 0)]
 
     ranked: list[dict[str, Any]] = []
-    for params in candidates:
+    best_so_far: dict[str, Any] | None = None
+    total_candidates = len(candidates)
+    progress_interval = max(1, min(200, max(total_candidates // 20, 1)))
+    if progress_callback:
+        progress_callback(0, total_candidates, None)
+    for index, params in enumerate(candidates, start=1):
         summary = evaluate_subscription_prediction(
             rows,
             min_history_samples=min_history_samples,
             max_history_samples=max_history_samples,
             params=params,
         )
-        summary["params"] = params
+        summary["params"] = _main_tunable_snapshot(params)
         summary["rank_key"] = _candidate_rank_key(summary)
-        ranked.append(_compact_summary(summary))
+        compact_summary = _compact_summary(summary)
+        ranked.append(compact_summary)
+        if best_so_far is None or tuple(compact_summary.get("rank_key") or ()) < tuple(best_so_far.get("rank_key") or ()):
+            best_so_far = compact_summary
+        if progress_callback and (index == total_candidates or index % progress_interval == 0):
+            progress_callback(index, total_candidates, best_so_far)
 
     ranked.sort(key=lambda item: tuple(item.get("rank_key") or ()))
     return {
@@ -579,13 +964,7 @@ def _window_label(value: int | None) -> str:
 
 
 def _candidate_cluster(top_candidates: list[dict[str, Any]]) -> dict[str, dict[str, int]]:
-    fields = (
-        "subscription_prediction_cap_factor_direction",
-        "subscription_prediction_cap_factor_exponent",
-        "subscription_prediction_issue_factor_direction",
-        "subscription_prediction_issue_factor_exponent",
-        "subscription_prediction_lock_factor_exponent",
-    )
+    fields = MAIN_TUNABLE_PARAM_KEYS
     cluster: dict[str, dict[str, int]] = {field: {} for field in fields}
     for item in top_candidates:
         params = item.get("params") or {}
@@ -601,22 +980,42 @@ def evaluate_robustness(
     min_history_values: list[int] | None = None,
     history_windows: list[int | None] | None = None,
     top_n: int = 8,
+    base_params: dict[str, Any] | None = None,
+    account_pool_prior_weights: list[float] | None = None,
+    account_pool_prior_recent_samples: int = 8,
+    account_pool_prior_half_life_samples: float = 4.0,
+    account_pool_prior_min_uplift_ratio: float = 0.0,
+    account_pool_prior_min_source_samples: int = 1,
 ) -> dict[str, Any]:
     min_values = min_history_values or [3, 5, 8]
     windows = history_windows or [None, 8, 12, 16]
-    search = evaluate_candidate_grid(rows, min_history_samples=3, top_n=max(top_n, 1))
-    best_params = dict((search.get("best") or {}).get("params") or {})
+    prior_weights = account_pool_prior_weights or [1.0, 1.1, 1.2]
+    prior_recent_samples = max(account_pool_prior_recent_samples, 1)
+    prior_half_life = max(account_pool_prior_half_life_samples, 1.0)
+    prior_min_uplift_ratio = max(account_pool_prior_min_uplift_ratio, 0.0)
+    prior_min_source_samples = max(account_pool_prior_min_source_samples, 1)
+    resolved_base_params = _resolve_subscription_base_params(base_params)
+    search = evaluate_candidate_grid(
+        rows,
+        min_history_samples=3,
+        top_n=max(top_n, 1),
+        base_params=resolved_base_params,
+    )
+    best_params = dict(resolved_base_params)
+    best_params.update(dict((search.get("best") or {}).get("params") or {}))
 
     cases: list[dict[str, Any]] = []
     best_wins = 0
     comparable_cases = 0
+    prior_win_counts = {str(weight): 0 for weight in prior_weights}
+    prior_improves_best_counts = {str(weight): 0 for weight in prior_weights}
     for min_history in min_values:
         for window in windows:
             baseline = evaluate_subscription_prediction(
                 rows,
                 min_history_samples=min_history,
                 max_history_samples=window,
-                params=DEFAULT_BASELINE_PARAMS,
+                params=resolved_base_params,
             )
             best = evaluate_subscription_prediction(
                 rows,
@@ -626,6 +1025,36 @@ def evaluate_robustness(
             )
             baseline_rank = _candidate_rank_key(baseline)
             best_rank = _candidate_rank_key(best)
+            prior_results: list[dict[str, Any]] = []
+            for weight in prior_weights:
+                prior_params = _account_pool_prior_params(
+                    best_params,
+                    weight=weight,
+                    recent_samples=prior_recent_samples,
+                    half_life_samples=prior_half_life,
+                    min_uplift_ratio=prior_min_uplift_ratio,
+                    min_source_samples=prior_min_source_samples,
+                )
+                prior = evaluate_subscription_prediction(
+                    rows,
+                    min_history_samples=min_history,
+                    max_history_samples=window,
+                    params=prior_params,
+                )
+                _attach_account_pool_prior_rollup(prior)
+                prior["params"] = prior_params
+                prior["rank_key"] = _candidate_rank_key(prior)
+                prior_rank = _candidate_rank_key(prior)
+                weight_key = str(weight)
+                if baseline.get("evaluated_rows") and prior.get("evaluated_rows") and prior_rank < baseline_rank:
+                    prior_win_counts[weight_key] += 1
+                if best.get("evaluated_rows") and prior.get("evaluated_rows") and prior_rank < best_rank:
+                    prior_improves_best_counts[weight_key] += 1
+                prior_compact = _compact_summary(prior)
+                prior_compact["beats_baseline"] = bool(prior_rank < baseline_rank)
+                prior_compact["beats_best"] = bool(prior_rank < best_rank)
+                prior_results.append(prior_compact)
+
             if baseline.get("evaluated_rows") and best.get("evaluated_rows"):
                 comparable_cases += 1
                 if best_rank < baseline_rank:
@@ -637,16 +1066,24 @@ def evaluate_robustness(
                     "baseline": _compact_summary(baseline),
                     "best": _compact_summary(best),
                     "best_beats_baseline": bool(best_rank < baseline_rank),
+                    "account_pool_prior": prior_results,
                 }
             )
 
     return {
-        "selected_best_params": best_params,
+        "selected_best_params": _main_tunable_snapshot(best_params),
         "search_best": search.get("best") or {},
         "top_candidate_cluster": _candidate_cluster(search.get("top_candidates") or []),
+        "account_pool_prior_weights": prior_weights,
+        "account_pool_prior_recent_samples": prior_recent_samples,
+        "account_pool_prior_half_life_samples": prior_half_life,
+        "account_pool_prior_min_uplift_ratio": prior_min_uplift_ratio,
+        "account_pool_prior_min_source_samples": prior_min_source_samples,
         "case_count": len(cases),
         "comparable_cases": comparable_cases,
         "best_win_count": best_wins,
+        "prior_win_counts": prior_win_counts,
+        "prior_improves_best_counts": prior_improves_best_counts,
         "cases": cases,
     }
 
@@ -656,12 +1093,15 @@ def evaluate_account_pool_prior(
     *,
     min_history_samples: int = 3,
     max_history_samples: int | None = None,
+    base_params: dict[str, Any] | None = None,
     weights: list[float] | None = None,
     recent_sample_values: list[int] | None = None,
     half_life_values: list[float] | None = None,
+    min_uplift_ratio_values: list[float] | None = None,
+    min_source_sample_values: list[int] | None = None,
     top_n: int = 5,
 ) -> dict[str, Any]:
-    base_params = dict(DEFAULT_ACCOUNT_POOL_PRIOR_BASE_PARAMS)
+    base_params = _resolve_subscription_base_params(base_params, DEFAULT_ACCOUNT_POOL_PRIOR_BASE_PARAMS)
     baseline = evaluate_subscription_prediction(
         rows,
         min_history_samples=min_history_samples,
@@ -673,15 +1113,23 @@ def evaluate_account_pool_prior(
     weight_values = weights or DEFAULT_ACCOUNT_POOL_PRIOR_WEIGHTS
     recent_values = recent_sample_values or DEFAULT_ACCOUNT_POOL_PRIOR_RECENT_SAMPLES
     half_values = half_life_values or DEFAULT_ACCOUNT_POOL_PRIOR_HALF_LIVES
+    min_uplift_values = min_uplift_ratio_values or [0.0]
+    min_source_values = min_source_sample_values or [1]
     ranked: list[dict[str, Any]] = []
-    for weight, recent_samples, half_life in itertools.product(weight_values, recent_values, half_values):
-        params = dict(base_params)
-        params.update(
-            {
-                "subscription_prediction_account_pool_prior_weight": weight,
-                "subscription_prediction_account_pool_recent_samples": recent_samples,
-                "subscription_prediction_account_pool_half_life_samples": half_life,
-            }
+    for weight, recent_samples, half_life, min_uplift, min_source in itertools.product(
+        weight_values,
+        recent_values,
+        half_values,
+        min_uplift_values,
+        min_source_values,
+    ):
+        params = _account_pool_prior_params(
+            base_params,
+            weight=weight,
+            recent_samples=recent_samples,
+            half_life_samples=half_life,
+            min_uplift_ratio=min_uplift,
+            min_source_samples=min_source,
         )
         summary = evaluate_subscription_prediction(
             rows,
@@ -689,26 +1137,24 @@ def evaluate_account_pool_prior(
             max_history_samples=max_history_samples,
             params=params,
         )
-        applied_codes = [
-            str(item.get("security_code") or "")
-            for item in summary.get("details") or []
-            if item.get("account_pool_prior_applied")
-        ]
+        _attach_account_pool_prior_rollup(summary)
         summary["params"] = params
-        summary["account_pool_prior_applied_codes"] = [code for code in applied_codes if code]
-        summary["account_pool_prior_applied_count"] = len(summary["account_pool_prior_applied_codes"])
         summary["rank_key"] = _candidate_rank_key(summary)
         ranked.append(_compact_summary(summary))
 
     ranked.sort(key=lambda item: tuple(item.get("rank_key") or ()))
+    minimal_trigger_ranked = sorted(ranked, key=_account_pool_prior_minimal_trigger_rank_key)
     return {
         "candidate_count": len(ranked),
         "top_n": max(top_n, 1),
         "min_history_samples": min_history_samples,
         "max_history_samples": max_history_samples,
-        "base_params": base_params,
+        "min_uplift_ratio_values": min_uplift_values,
+        "min_source_sample_values": min_source_values,
+        "base_params": _main_tunable_snapshot(base_params),
         "baseline": _compact_summary(baseline),
         "best": ranked[0] if ranked else {},
+        "minimal_trigger_best": minimal_trigger_ranked[0] if minimal_trigger_ranked else {},
         "top_candidates": ranked[: max(top_n, 1)],
     }
 
@@ -821,10 +1267,29 @@ def _format_float(value: Any, digits: int = 4) -> str:
     return f"{number:.{digits}f}"
 
 
+def _format_code_list(codes: list[Any]) -> str:
+    return ", ".join(str(code) for code in codes if code) or "-"
+
+
+def _format_prior_trigger_explanation(item: dict[str, Any]) -> str:
+    reachable = item.get("updated_guaranteed_reachable")
+    reachable_text = "-" if reachable is None else ("是" if reachable else "否")
+    return (
+        f"{item.get('security_code') or '-'}: "
+        f"base倍数={_format_float(item.get('base_subscription_multiple'), 2)} 倍, "
+        f"prior倍数={_format_float(item.get('prior_subscription_multiple'), 2)} 倍, "
+        f"上调比例={_format_float(item.get('uplift_ratio'), 3)}, "
+        f"上调后正股门槛={_format_float(item.get('updated_guaranteed_amount_wan'), 4)} 万元(可达={reachable_text}), "
+        f"实际正股门槛={_format_float(item.get('actual_guaranteed_amount_wan'), 4)} 万元, "
+        f"来源样本={_format_code_list(item.get('source_codes') or [])}"
+    )
+
+
 def format_summary(summary: dict[str, Any]) -> str:
     residuals = summary.get("fit_residuals_weighted") or {}
     residual_avgs = residuals.get("averages") or {}
     accuracy = summary.get("top_apply_classification_accuracy")
+    ladder_accuracy = summary.get("manual_ladder_time_priority_accuracy")
     lines = [
         "申购配售预测 baseline 回放",
         f"- 样本总数: {summary.get('total_rows', 0)}",
@@ -833,6 +1298,13 @@ def format_summary(summary: dict[str, Any]) -> str:
         f"- 实际评估样本: {summary.get('evaluated_rows', 0)}",
         f"- 正股门槛 MAE: {_format_float(summary.get('guaranteed_amount_mae_wan'), 4)} 万元",
         f"- 正股门槛 MAPE: {_format_float((summary.get('guaranteed_amount_mape') or 0) * 100 if summary.get('guaranteed_amount_mape') is not None else None, 2)}%",
+        f"- 手工分档样本: {summary.get('manual_ladder_label_rows', 0)} 只，分档误差样本 {summary.get('manual_ladder_amount_metric_rows', 0)} 档",
+        f"- 手工分档 MAE: {_format_float(summary.get('manual_ladder_amount_mae_wan'), 4)} 万元",
+        f"- 手工分档 MAPE: {_format_float((summary.get('manual_ladder_amount_mape') or 0) * 100 if summary.get('manual_ladder_amount_mape') is not None else None, 2)}%",
+        "- 手工分档抢时间命中: "
+        f"{summary.get('manual_ladder_time_priority_correct', 0)}/{summary.get('manual_ladder_time_priority_total', 0)}"
+        f" ({_format_float((ladder_accuracy or 0) * 100 if ladder_accuracy is not None else None, 2)}%)",
+        f"- 手工分档抢时间漏判: {', '.join(summary.get('manual_ladder_time_priority_misses') or []) or '-'}",
         "- 顶格不足正股分类准确率: "
         f"{summary.get('top_apply_classification_correct', 0)}/{summary.get('top_apply_classification_total', 0)}"
         f" ({_format_float((accuracy or 0) * 100 if accuracy is not None else None, 2)}%)",
@@ -858,6 +1330,7 @@ def _format_candidate_line(index: int, item: dict[str, Any]) -> str:
     return (
         f"{index}. MAE={_format_float(item.get('guaranteed_amount_mae_wan'), 4)} 万元, "
         f"MAPE={_format_float((item.get('guaranteed_amount_mape') or 0) * 100 if item.get('guaranteed_amount_mape') is not None else None, 2)}%, "
+        f"分档MAPE={_format_float((item.get('manual_ladder_amount_mape') or 0) * 100 if item.get('manual_ladder_amount_mape') is not None else None, 2)}%, "
         f"漏判={len(false_negative_codes)} [{', '.join(false_negative_codes) or '-'}], "
         f"误判={len(false_positive_codes)} [{', '.join(false_positive_codes) or '-'}], "
         f"params: {_format_params(item.get('params') or {})}"
@@ -869,6 +1342,8 @@ def _format_prior_params(params: dict[str, Any]) -> str:
         "subscription_prediction_account_pool_prior_weight",
         "subscription_prediction_account_pool_recent_samples",
         "subscription_prediction_account_pool_half_life_samples",
+        "subscription_prediction_account_pool_prior_min_uplift_ratio",
+        "subscription_prediction_account_pool_prior_min_source_samples",
     )
     return ", ".join(f"{field}={params.get(field)}" for field in fields)
 
@@ -882,7 +1357,7 @@ def _format_account_pool_prior_line(index: int, item: dict[str, Any]) -> str:
         f"MAPE={_format_float((item.get('guaranteed_amount_mape') or 0) * 100 if item.get('guaranteed_amount_mape') is not None else None, 2)}%, "
         f"漏判={len(false_negative_codes)} [{', '.join(false_negative_codes) or '-'}], "
         f"误判={len(false_positive_codes)} [{', '.join(false_positive_codes) or '-'}], "
-        f"prior_applied={len(applied_codes)} [{', '.join(applied_codes) or '-'}], "
+        f"prior_applied={len(applied_codes)} [{_format_code_list(applied_codes)}], "
         f"params: {_format_prior_params(item.get('params') or {})}"
     )
 
@@ -896,11 +1371,13 @@ def format_search_summary(result: dict[str, Any]) -> str:
         "- baseline: "
         f"MAE={_format_float(baseline.get('guaranteed_amount_mae_wan'), 4)} 万元, "
         f"MAPE={_format_float((baseline.get('guaranteed_amount_mape') or 0) * 100 if baseline.get('guaranteed_amount_mape') is not None else None, 2)}%, "
+        f"分档MAPE={_format_float((baseline.get('manual_ladder_amount_mape') or 0) * 100 if baseline.get('manual_ladder_amount_mape') is not None else None, 2)}%, "
         f"漏判={len(baseline.get('top_apply_false_negative_codes') or [])}, "
         f"误判={len(baseline.get('top_apply_false_positive_codes') or [])}",
         "- best: "
         f"MAE={_format_float(best.get('guaranteed_amount_mae_wan'), 4)} 万元, "
         f"MAPE={_format_float((best.get('guaranteed_amount_mape') or 0) * 100 if best.get('guaranteed_amount_mape') is not None else None, 2)}%, "
+        f"分档MAPE={_format_float((best.get('manual_ladder_amount_mape') or 0) * 100 if best.get('manual_ladder_amount_mape') is not None else None, 2)}%, "
         f"漏判={len(best.get('top_apply_false_negative_codes') or [])}, "
         f"误判={len(best.get('top_apply_false_positive_codes') or [])}",
         "",
@@ -911,9 +1388,30 @@ def format_search_summary(result: dict[str, Any]) -> str:
     return "\n".join(lines)
 
 
+def _candidate_progress_printer(title: str) -> Callable[[int, int, dict[str, Any] | None], None]:
+    def _print_progress(current: int, total: int, best_so_far: dict[str, Any] | None) -> None:
+        if total <= 0:
+            print(f"{title}：没有可评估的候选参数。", flush=True)
+            return
+        if current <= 0:
+            print(f"{title}：开始评估候选参数，共 {total} 组。", flush=True)
+            return
+        percent = current / total * 100
+        if best_so_far:
+            print(
+                f"{title}进度：{current}/{total} ({percent:.1f}%)，当前最好 {_format_metric_brief(best_so_far)}",
+                flush=True,
+            )
+        else:
+            print(f"{title}进度：{current}/{total} ({percent:.1f}%)", flush=True)
+
+    return _print_progress
+
+
 def format_account_pool_prior_summary(result: dict[str, Any]) -> str:
     baseline = result.get("baseline") or {}
     best = result.get("best") or {}
+    minimal_trigger_best = result.get("minimal_trigger_best") or {}
     lines = [
         "大户资金池 prior 检查",
         f"- 候选组数: {result.get('candidate_count', 0)}",
@@ -928,11 +1426,23 @@ def format_account_pool_prior_summary(result: dict[str, Any]) -> str:
         f"漏判={len(best.get('top_apply_false_negative_codes') or [])}, "
         f"误判={len(best.get('top_apply_false_positive_codes') or [])}, "
         f"prior_applied={best.get('account_pool_prior_applied_count', 0)}",
+        "- minimal-trigger with prior: "
+        f"MAE={_format_float(minimal_trigger_best.get('guaranteed_amount_mae_wan'), 4)} 万元, "
+        f"MAPE={_format_float((minimal_trigger_best.get('guaranteed_amount_mape') or 0) * 100 if minimal_trigger_best.get('guaranteed_amount_mape') is not None else None, 2)}%, "
+        f"漏判={len(minimal_trigger_best.get('top_apply_false_negative_codes') or [])}, "
+        f"误判={len(minimal_trigger_best.get('top_apply_false_positive_codes') or [])}, "
+        f"prior_applied={minimal_trigger_best.get('account_pool_prior_applied_count', 0)}, "
+        f"params: {_format_prior_params(minimal_trigger_best.get('params') or {})}",
         "",
         "Top candidates:",
     ]
     for index, item in enumerate(result.get("top_candidates") or [], start=1):
         lines.append(_format_account_pool_prior_line(index, item))
+    if best.get("account_pool_prior_trigger_explanations"):
+        lines.append("")
+        lines.append("Best prior 触发解释:")
+        for item in best.get("account_pool_prior_trigger_explanations") or []:
+            lines.append(f"- {_format_prior_trigger_explanation(item)}")
     return "\n".join(lines)
 
 
@@ -940,6 +1450,7 @@ def _format_metric_brief(summary: dict[str, Any]) -> str:
     return (
         f"MAE={_format_float(summary.get('guaranteed_amount_mae_wan'), 4)} 万元, "
         f"MAPE={_format_float((summary.get('guaranteed_amount_mape') or 0) * 100 if summary.get('guaranteed_amount_mape') is not None else None, 2)}%, "
+        f"分档MAPE={_format_float((summary.get('manual_ladder_amount_mape') or 0) * 100 if summary.get('manual_ladder_amount_mape') is not None else None, 2)}%, "
         f"漏判={len(summary.get('top_apply_false_negative_codes') or [])}, "
         f"误判={len(summary.get('top_apply_false_positive_codes') or [])}, "
         f"评估={summary.get('evaluated_rows', 0)}"
@@ -961,6 +1472,13 @@ def format_robustness_summary(result: dict[str, Any]) -> str:
         f"- 可比较 case 数: {result.get('comparable_cases', 0)}",
         f"- best 优于 baseline: {result.get('best_win_count', 0)}/{result.get('comparable_cases', 0)}",
         f"- selected best params: {_format_params(result.get('selected_best_params') or {})}",
+        f"- account-pool prior weights: {_format_code_list(result.get('account_pool_prior_weights') or [])}",
+        "- account-pool prior window: "
+        f"recent_samples={result.get('account_pool_prior_recent_samples')}, "
+        f"half_life={result.get('account_pool_prior_half_life_samples')}",
+        "- account-pool prior guards: "
+        f"min_uplift_ratio={result.get('account_pool_prior_min_uplift_ratio')}, "
+        f"min_source_samples={result.get('account_pool_prior_min_source_samples')}",
         "",
         "Top candidate 参数集中度:",
     ]
@@ -976,6 +1494,33 @@ def format_robustness_summary(result: dict[str, Any]) -> str:
             f"best[{_format_metric_brief(item.get('best') or {})}], "
             f"best_win={item.get('best_beats_baseline')}"
         )
+        for prior in item.get("account_pool_prior") or []:
+            params = prior.get("params") or {}
+            weight = params.get("subscription_prediction_account_pool_prior_weight")
+            applied_codes = prior.get("account_pool_prior_applied_codes") or []
+            lines.append(
+                f"  prior weight={weight}: "
+                f"[{_format_metric_brief(prior)}], "
+                f"prior_applied={len(applied_codes)} [{_format_code_list(applied_codes)}], "
+                f"beats_baseline={prior.get('beats_baseline')}, "
+                f"beats_best={prior.get('beats_best')}"
+            )
+    trigger_lines: list[str] = []
+    for case in result.get("cases") or []:
+        min_history = case.get("min_history_samples")
+        window = _window_label(case.get("max_history_samples"))
+        for prior in case.get("account_pool_prior") or []:
+            params = prior.get("params") or {}
+            weight = params.get("subscription_prediction_account_pool_prior_weight")
+            for explanation in prior.get("account_pool_prior_trigger_explanations") or []:
+                trigger_lines.append(
+                    f"- min_history={min_history}, history_window={window}, weight={weight}: "
+                    f"{_format_prior_trigger_explanation(explanation)}"
+                )
+    if trigger_lines:
+        lines.append("")
+        lines.append("Prior 触发解释:")
+        lines.extend(trigger_lines)
     return "\n".join(lines)
 
 
@@ -1006,33 +1551,178 @@ def format_large_account_pool_summary(result: dict[str, Any]) -> str:
     return "\n".join(lines)
 
 
+def _format_subscription_change_lines(base_params: dict[str, Any], updates: dict[str, Any]) -> list[str]:
+    resolved_base = _resolve_subscription_base_params(base_params)
+    lines: list[str] = []
+    for key, new_value in updates.items():
+        old_text = _render_param_file_value(resolved_base.get(key))
+        new_text = _render_param_file_value(new_value)
+        lines.append(f"{key}: {old_text} -> {new_text}")
+    return lines
+
+
+def _prompt_accept_subscription_auto(can_accept: bool) -> bool:
+    print("")
+    print("请选择下一步：")
+    if can_accept:
+        print("1. 接受本次申购资金最优参数，并写入 策略参数.txt")
+    else:
+        print("1. 当前未产生可写入的参数修改")
+    print("2. 暂不写入并退出")
+    try:
+        raw_value = input("请输入选项 [默认 2]：").strip()
+    except EOFError:
+        return False
+    choice = raw_value or "2"
+    return can_accept and choice.lower() in {"1", "y", "yes", "是", "接受"}
+
+
+def _prepend_subscription_auto_record(
+    record_path: str | Path,
+    result: dict[str, Any],
+    base_params: dict[str, Any],
+    updates: dict[str, Any],
+    params_path: str | Path,
+) -> Path:
+    output_path = Path(record_path)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    baseline = result.get("baseline") or {}
+    best = result.get("best") or {}
+    change_lines = _format_subscription_change_lines(base_params, updates) or ["无参数变化"]
+    record_lines = [
+        f"## {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} 申购资金自动调参（已接受）",
+        "",
+        f"- 参数文件：{Path(params_path)}",
+        f"- 历史样本：{result.get('history_path') or DEFAULT_HISTORY_PATH}",
+        f"- 候选组数：{result.get('candidate_count', 0)}",
+        f"- baseline：{_format_metric_brief(baseline)}",
+        f"- 新参数：{_format_metric_brief(best)}",
+        "",
+        "修改参数：",
+        *[f"- {line}" for line in change_lines],
+        "",
+    ]
+    old_text = output_path.read_text(encoding="utf-8") if output_path.exists() else ""
+    output_path.write_text("\n".join(record_lines) + ("\n" + old_text if old_text else ""), encoding="utf-8")
+    return output_path
+
+
+def _print_subscription_auto_summary(result: dict[str, Any], *, best_beats_baseline: bool) -> None:
+    baseline = result.get("baseline") or {}
+    best = result.get("best") or {}
+    print("")
+    print("申购资金自动调参结果：")
+    print(f"- 候选组数：{result.get('candidate_count', 0)}")
+    print(f"- 当前参数：{_format_metric_brief(baseline)}")
+    print(f"- 最优候选：{_format_metric_brief(best)}")
+    if not best_beats_baseline:
+        print("- 结论：最优候选未优于当前参数。")
+
+
+def _run_auto_mode(
+    args: argparse.Namespace,
+    rows: list[dict[str, Any]],
+    strategy_params: dict[str, Any],
+) -> int:
+    print("开始申购资金自动调参：按正股门槛、手工分档误差和抢时间漏判排序候选参数。", flush=True)
+    result = evaluate_candidate_grid(
+        rows,
+        min_history_samples=max(args.min_history_samples, 1),
+        max_history_samples=args.max_history_samples,
+        top_n=max(args.top_n, 1),
+        max_candidates=args.max_candidates,
+        base_params=strategy_params,
+        progress_callback=_candidate_progress_printer("申购资金自动调参"),
+    )
+    result["history_path"] = str(args.history_path)
+
+    baseline = result.get("baseline") or {}
+    best = result.get("best") or {}
+    baseline_rank = tuple(baseline.get("rank_key") or ())
+    best_rank = tuple(best.get("rank_key") or ())
+    best_params = dict(best.get("params") or {})
+    best_beats_baseline = bool(best_rank and baseline_rank and best_rank < baseline_rank)
+    updates = _changed_main_tunable_params(strategy_params, best_params) if best_beats_baseline else {}
+    _print_subscription_auto_summary(result, best_beats_baseline=best_beats_baseline)
+
+    if updates:
+        print("")
+        print("本次建议修改的申购资金参数：")
+        for line in _format_subscription_change_lines(strategy_params, updates):
+            print(f"- {line}")
+    else:
+        print("")
+        print("本轮未找到需要写回的申购资金参数。")
+
+    if not _prompt_accept_subscription_auto(bool(updates)):
+        print("已退出申购资金自动调参，未写入参数。")
+        return 0
+
+    params_path = _write_param_updates(args.params_file, updates)
+    config_loader.load_params(params_path)
+    record_path = _prepend_subscription_auto_record(
+        args.auto_record_path,
+        result,
+        strategy_params,
+        updates,
+        params_path,
+    )
+    print(f"已写入参数文件：{params_path}")
+    print(f"已更新自动调参记录：{record_path}")
+    return 0
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Evaluate baseline subscription allocation prediction metrics.")
+    parser.add_argument("--dataset-path", type=Path, default=DEFAULT_DATASET_PATH)
     parser.add_argument("--history-path", type=Path, default=DEFAULT_HISTORY_PATH)
+    parser.add_argument("--ladder-label-path", type=Path, default=DEFAULT_LADDER_LABEL_PATH)
+    parser.add_argument("--params-file", type=Path, default=DEFAULT_PARAMS_PATH)
+    parser.add_argument("--auto-record-path", type=Path, default=DEFAULT_AUTO_RECORD_PATH)
+    parser.add_argument("--rebuild-dataset", action="store_true")
+    parser.add_argument("--no-auto-refresh-dataset", action="store_true")
+    parser.add_argument("--no-auto-refresh-history", action="store_true")
+    parser.add_argument("--months", type=int, default=None)
+    parser.add_argument("--page-size", type=int, default=None)
+    parser.add_argument("--no-ladder-labels", action="store_true")
     parser.add_argument("--min-history-samples", type=int, default=3)
     parser.add_argument("--max-history-samples", type=int, default=None)
     parser.add_argument(
         "--mode",
-        choices=("baseline", "search", "robustness", "account-pool", "account-pool-prior"),
+        choices=("baseline", "search", "robustness", "account-pool", "account-pool-prior", "auto"),
         default="baseline",
     )
     parser.add_argument("--top-n", type=int, default=5)
     parser.add_argument("--max-candidates", type=int, default=None)
     parser.add_argument("--robust-min-history-samples", default="3,5,8")
     parser.add_argument("--robust-history-windows", default="all,8,12,16")
+    parser.add_argument("--robust-account-pool-prior-weights", default="1.0,1.1,1.2")
+    parser.add_argument("--robust-account-pool-prior-recent-samples", type=int, default=8)
+    parser.add_argument("--robust-account-pool-prior-half-life", type=float, default=4.0)
+    parser.add_argument("--robust-account-pool-prior-min-uplift-ratio", type=float, default=0.0)
+    parser.add_argument("--robust-account-pool-prior-min-source-samples", type=int, default=1)
     parser.add_argument("--account-pool-thresholds", default="300,500,800,1000,1500,2000")
     parser.add_argument("--account-pool-recent-samples", type=int, default=12)
     parser.add_argument("--account-pool-half-life", type=float, default=4.0)
     parser.add_argument("--account-pool-prior-weights", default="0.8,1.0,1.1,1.2")
     parser.add_argument("--account-pool-prior-recent-samples", default="8,12")
     parser.add_argument("--account-pool-prior-half-lives", default="4")
+    parser.add_argument("--account-pool-prior-min-uplift-ratios", default="0")
+    parser.add_argument("--account-pool-prior-min-source-samples", default="1")
     parser.add_argument("--json", action="store_true", help="Print machine-readable JSON instead of text summary.")
     return parser.parse_args()
 
 
 def main() -> int:
     args = parse_args()
+    strategy_params = config_loader.load_params(args.params_file)
+    _refresh_subscription_history_before_tuning(args, strategy_params)
     rows = _load_history_rows(args.history_path)
+    ladder_summary: dict[str, Any] = {}
+    if not args.no_ladder_labels:
+        rows, ladder_summary = _prepare_rows_with_ladder_labels(rows, args.ladder_label_path)
+    if args.mode == "auto":
+        return _run_auto_mode(args, rows, strategy_params)
     if args.mode == "search":
         summary = evaluate_candidate_grid(
             rows,
@@ -1040,6 +1730,8 @@ def main() -> int:
             max_history_samples=args.max_history_samples,
             top_n=max(args.top_n, 1),
             max_candidates=args.max_candidates,
+            base_params=strategy_params,
+            progress_callback=_candidate_progress_printer("申购资金候选搜索"),
         )
         summary["history_path"] = str(args.history_path)
     elif args.mode == "robustness":
@@ -1048,6 +1740,12 @@ def main() -> int:
             min_history_values=_parse_int_values(args.robust_min_history_samples),
             history_windows=_parse_history_windows(args.robust_history_windows),
             top_n=max(args.top_n, 1),
+            base_params=strategy_params,
+            account_pool_prior_weights=_parse_float_values(args.robust_account_pool_prior_weights),
+            account_pool_prior_recent_samples=args.robust_account_pool_prior_recent_samples,
+            account_pool_prior_half_life_samples=args.robust_account_pool_prior_half_life,
+            account_pool_prior_min_uplift_ratio=args.robust_account_pool_prior_min_uplift_ratio,
+            account_pool_prior_min_source_samples=args.robust_account_pool_prior_min_source_samples,
         )
         summary["history_path"] = str(args.history_path)
     elif args.mode == "account-pool":
@@ -1063,9 +1761,12 @@ def main() -> int:
             rows,
             min_history_samples=max(args.min_history_samples, 1),
             max_history_samples=args.max_history_samples,
+            base_params=strategy_params,
             weights=_parse_float_values(args.account_pool_prior_weights),
             recent_sample_values=_parse_int_values(args.account_pool_prior_recent_samples),
             half_life_values=_parse_float_values(args.account_pool_prior_half_lives),
+            min_uplift_ratio_values=_parse_float_values(args.account_pool_prior_min_uplift_ratios),
+            min_source_sample_values=_parse_int_values(args.account_pool_prior_min_source_samples),
             top_n=max(args.top_n, 1),
         )
         summary["history_path"] = str(args.history_path)
@@ -1074,8 +1775,12 @@ def main() -> int:
             rows,
             min_history_samples=max(args.min_history_samples, 1),
             max_history_samples=args.max_history_samples,
+            params=_resolve_subscription_base_params(strategy_params),
         )
+        summary["params"] = _main_tunable_snapshot(_resolve_subscription_base_params(strategy_params))
         summary["history_path"] = str(args.history_path)
+    if ladder_summary:
+        summary["ladder_label_summary"] = ladder_summary
     if args.json:
         print(json.dumps(summary, ensure_ascii=False, indent=2))
     elif args.mode == "search":

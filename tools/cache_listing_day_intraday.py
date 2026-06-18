@@ -95,6 +95,7 @@ def _build_empty_summary(scan_source: str, output_dir: Path) -> dict[str, Any]:
         "deferred": [],
         "skipped_existing": [],
         "errors": [],
+        "scan_errors": [],
         "stop_at_existing": None,
         "pending_deferred_before": [],
         "pending_deferred_after": [],
@@ -103,6 +104,7 @@ def _build_empty_summary(scan_source: str, output_dir: Path) -> dict[str, Any]:
         "cached_count": 0,
         "deferred_count": 0,
         "skipped_existing_count": 0,
+        "scan_error_count": 0,
         "error_count": 0,
     }
 
@@ -113,8 +115,18 @@ def _finalize_summary(summary: dict[str, Any]) -> dict[str, Any]:
     summary["cached_count"] = len(summary.get("cached") or [])
     summary["deferred_count"] = len(summary.get("deferred") or [])
     summary["skipped_existing_count"] = len(summary.get("skipped_existing") or [])
-    summary["error_count"] = len(summary.get("errors") or [])
+    summary["scan_error_count"] = len(summary.get("scan_errors") or [])
+    summary["error_count"] = len(summary.get("errors") or []) + len(summary.get("scan_errors") or [])
     return summary
+
+
+def _append_scan_error(summary: dict[str, Any], reason: str, source_api: str = "eastmoney_scan") -> None:
+    summary.setdefault("scan_errors", []).append(
+        {
+            "reason": str(reason or "扫描失败"),
+            "source_api": source_api,
+        }
+    )
 
 
 def _emit_progress(progress_callback: ProgressCallback | None, event: str, payload: dict[str, Any]) -> None:
@@ -816,7 +828,7 @@ def run_cache_job(
         try:
             candidates = _scan_candidates_by_date(normalized_trade_date, months=months)
         except data_fetcher.DataFetcherError as exc:
-            summary["errors"].append({"code": "", "name": "", "reason": str(exc), "source_api": "eastmoney_scan"})
+            _append_scan_error(summary, str(exc))
             return _finalize_summary(summary)
 
     summary["matched_codes"] = [str(item.get("SECURITY_CODE") or "").strip() for item in candidates]
@@ -867,7 +879,7 @@ def run_latest_missing_cache_job(
     try:
         candidates = _scan_latest_candidates(months=months)
     except data_fetcher.DataFetcherError as exc:
-        summary["errors"].append({"code": "", "name": "", "reason": str(exc), "source_api": "eastmoney_scan"})
+        _append_scan_error(summary, str(exc))
         _emit_progress(progress_callback, "scan_error", {"reason": str(exc)})
         return _finalize_summary(summary)
 

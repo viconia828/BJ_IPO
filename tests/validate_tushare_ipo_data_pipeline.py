@@ -338,6 +338,7 @@ def _run_merge_case(failures: list[str]) -> None:
     _assert(ipo_info["AFTER_ISSUE_PE"] == 14.99, "merge_case: issue pe should be overridden by tushare", failures)
     _assert(ipo_info["TOTAL_ISSUE_NUM"] == 1308.0, "merge_case: issue amount should be overridden by tushare", failures)
     _assert_close(ipo_info["TOP_APPLY_MARKETCAP"], 1283.148, "merge_case: expected tushare derived top apply marketcap", failures)
+    _assert_close(ipo_info["ONLINE_ISSUE_NUM"], 1177.0 * 10000, "merge_case: expected tushare online issue shares", failures)
     _assert(ipo_info["INDUSTRY_PE_NEW"] == 63.31, "merge_case: expected tushare sw_daily industry pe", failures)
     _assert(ipo_info["INDUSTRY"] == "专用机械", "merge_case: expected tushare industry", failures)
     _assert(summary["industry_pe_source"] == "tushare_sw_daily", "merge_case: expected tushare industry pe source", failures)
@@ -359,6 +360,24 @@ def _run_merge_case(failures: list[str]) -> None:
     _assert(recent_ipos[0]["LD_CLOSE_CHANGE"] is not None, "merge_case: expected ld close change", failures)
     recent_by_code = {item["SECURITY_CODE"]: item for item in recent_ipos}
     _assert_close(recent_by_code["920177"]["AVERAGE_PRICE"], 36.58, "merge_case: expected Tushare daily average price", failures)
+    _assert_close(
+        recent_by_code["920177"]["ONLINE_ISSUE_NUM"],
+        1177.0 * 10000,
+        "merge_case: expected Tushare online issue shares in recent sample",
+        failures,
+    )
+    _assert_close(
+        recent_by_code["920177"]["ONLINE_ISSUE_LWR"],
+        0.03,
+        "merge_case: expected Tushare ballot in recent sample",
+        failures,
+    )
+    _assert_close(
+        recent_by_code["920177"]["TOP_APPLY_MARKETCAP"],
+        58.86 * 21.8,
+        "merge_case: expected Tushare top apply amount in recent sample",
+        failures,
+    )
     _assert(
         recent_by_code["920177"]["LD_AVERAGE_CHANGE"] is not None,
         "merge_case: expected average-price first-day change",
