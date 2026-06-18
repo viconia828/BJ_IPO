@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from math import isclose
 from pathlib import Path
+import re
 import sys
 
 CURRENT_DIR = Path(__file__).resolve().parent
@@ -15,6 +16,33 @@ import pdf_parser
 
 REL_TOL = 1e-6
 ABS_TOL = 1e-6
+
+PDF_NAME_PATTERN = re.compile(
+    r"(?P<code>\d{6})(?P<name>.+?)(?P<doc_type>上市公告书|招股说明书|招股意向书)\.pdf$"
+)
+
+
+def resolve_pdf_path(relative_path: str) -> Path:
+    file_path = ROOT_DIR / relative_path
+    if file_path.exists():
+        return file_path
+
+    match = PDF_NAME_PATTERN.match(file_path.name)
+    if not match:
+        return file_path
+
+    doc_types = [match.group("doc_type")]
+    if match.group("doc_type") == "招股意向书":
+        doc_types.append("招股说明书")
+    elif match.group("doc_type") == "招股说明书":
+        doc_types.append("招股意向书")
+
+    for doc_type in doc_types:
+        candidates = sorted(file_path.parent.glob(f"{match.group('code')}_*_{doc_type}.pdf"))
+        if candidates:
+            return candidates[0]
+    return file_path
+
 
 GOLDEN_CASES = (
     {
@@ -106,7 +134,7 @@ def main() -> int:
     failures: list[str] = []
 
     for case in GOLDEN_CASES:
-        file_path = ROOT_DIR / case["path"]
+        file_path = resolve_pdf_path(case["path"])
         result = pdf_parser.extract_old_shares_result(file_path)
         if result is None:
             failures.append(f"{case['label']}: result is None")

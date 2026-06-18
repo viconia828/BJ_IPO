@@ -389,8 +389,8 @@ PARSE_CACHE_KIND_VERSIONS = {
     "prospectus_issue_info": 8,
     "issue_announcement_info": 5,
     "issue_result_info": 3,
-    "comparable_companies": 4,
-    "business_desc": 2,
+    "comparable_companies": 9,
+    "business_desc": 3,
 }
 PARSE_CACHE_DIR = Path(__file__).resolve().parents[1] / "data" / "pdf_parse_cache"
 _CACHE_MISSING = object()
@@ -1165,6 +1165,16 @@ def _search_direct_or_known_code_for_name(text: str, name: str) -> str | None:
     patterns = [
         re.compile(rf"{escaped}\s*[（(]\s*(?P<code>\d{{6}}\.(?:SH|SZ|BJ|NQ))\s*[）)]", re.IGNORECASE),
         re.compile(rf"{escaped}\s*[（(]\s*(?P<code>\d{{6}})\s*[）)]", re.IGNORECASE),
+        re.compile(rf"{escaped}\s*指\s*(?P<code>\d{{6}}\.(?:SH|SZ|BJ|NQ))", re.IGNORECASE),
+        re.compile(rf"{escaped}\s*指\s*(?P<code>\d{{6}})", re.IGNORECASE),
+        re.compile(
+            rf"{escaped}[\u4e00-\u9fffA-Za-z]{{0,24}}\s*[（(]\s*(?P<code>\d{{6}}\.(?:SH|SZ|BJ|NQ))\s*[）)]",
+            re.IGNORECASE,
+        ),
+        re.compile(
+            rf"{escaped}[\u4e00-\u9fffA-Za-z]{{0,24}}\s*[（(]\s*(?P<code>\d{{6}})\s*[）)]",
+            re.IGNORECASE,
+        ),
     ]
     for pattern in patterns:
         match = pattern.search(text)
@@ -1182,9 +1192,16 @@ def _extract_glossary_labeled_comparable_codes(raw_text: str, lookup_text: str) 
         compact_segment = _compact_text(segment)
         if "同行业可比公司" not in compact_segment and "可比公司" not in compact_segment:
             continue
+        normalized_segment = _normalize_text(segment)
         code = _search_code_for_name(lookup_text, match.group("name").strip())
         if code:
             codes.append(code)
+        for code_match in re.finditer(
+            r"同行业可比公司[\u4e00-\u9fffA-Za-z]{2,60}?[（(]\s*(?P<code>\d{6}\.(?:SH|SZ|BJ|NQ))\s*[）)]",
+            normalized_segment,
+            re.IGNORECASE,
+        ):
+            codes.append(_normalize_code(code_match.group("code")))
     return _dedupe_codes(codes)
 
 
@@ -1589,6 +1606,7 @@ def _extract_comparable_companies_from_text(text: str, target_code: str = "") ->
 
     normalized_text = _normalize_text(text)
     glossary_codes = _extract_glossary_labeled_comparable_codes(text, normalized_text)
+    rejected_broad_generic_section = False
     specific_section_text, _ = _extract_compact_section(
         normalized_text,
         SPECIFIC_SECTION_PATTERNS,
@@ -1613,20 +1631,28 @@ def _extract_comparable_companies_from_text(text: str, target_code: str = "") ->
     )
     if generic_section_text:
         generic_codes = _extract_comparable_codes_from_section(generic_section_text, normalized_text)
+        generic_has_selection_marker = any(
+            marker in generic_section_text
+            for marker in ("选取", "作为同行业可比公司", "可比公司基本情况", "可比公司选取标准")
+        )
         if generic_codes and (
             generic_section_anchor not in GENERIC_SECTION_PATTERNS
-            or len(generic_codes) <= 5
-            or any(marker in generic_section_text for marker in ("选取", "作为同行业可比公司", "可比公司基本情况", "可比公司选取标准"))
+            or generic_has_selection_marker
         ):
             result_codes = _dedupe_codes(generic_codes + glossary_codes)
             filtered_codes = _filter_target_code(result_codes, target_code)
             if filtered_codes:
                 return filtered_codes
+        elif generic_codes:
+            rejected_broad_generic_section = True
 
     if glossary_codes:
         filtered_codes = _filter_target_code(list(glossary_codes), target_code)
         if filtered_codes:
             return filtered_codes
+
+    if rejected_broad_generic_section:
+        return []
 
     result_codes = _extract_comparable_companies_legacy(text)
     return _filter_target_code(result_codes, target_code)
@@ -1699,6 +1725,10 @@ def _score_business_desc(text: str) -> tuple[int, int]:
         score += 2
     if "领先" in current or "提供商" in current:
         score += 2
+    if "解决方案" in current:
+        score += 2
+    if "研发、生产和销售" in current or "研发、制造和销售" in current:
+        score += 1
     if 30 <= len(current) <= 180:
         score += 1
     if re.search(r"20\d{2}\s*年", current):

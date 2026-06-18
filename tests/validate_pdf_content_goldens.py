@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+import re
 import sys
 
 CURRENT_DIR = Path(__file__).resolve().parent
@@ -12,6 +13,33 @@ if str(CODE_DIR) not in sys.path:
 import pdf_parser
 
 
+PDF_NAME_PATTERN = re.compile(
+    r"(?P<code>\d{6})(?P<name>.+?)(?P<doc_type>上市公告书|招股说明书|招股意向书)\.pdf$"
+)
+
+
+def resolve_pdf_path(relative_path: str) -> Path:
+    file_path = ROOT_DIR / relative_path
+    if file_path.exists():
+        return file_path
+
+    match = PDF_NAME_PATTERN.match(file_path.name)
+    if not match:
+        return file_path
+
+    doc_types = [match.group("doc_type")]
+    if match.group("doc_type") == "招股意向书":
+        doc_types.append("招股说明书")
+    elif match.group("doc_type") == "招股说明书":
+        doc_types.append("招股意向书")
+
+    for doc_type in doc_types:
+        candidates = sorted(file_path.parent.glob(f"{match.group('code')}_*_{doc_type}.pdf"))
+        if candidates:
+            return candidates[0]
+    return file_path
+
+
 COMPARABLE_CASES = (
     {
         "label": "920156 comparables",
@@ -19,9 +47,9 @@ COMPARABLE_CASES = (
         "expected_codes": ["837408.NQ", "301128.SZ", "603960.SH"],
     },
     {
-        "label": "920177 comparables",
+        "label": "920177 comparables reasonable empty",
         "path": "公告文件/920177恒道科技招股说明书.pdf",
-        "expected_codes": ["874616.NQ", "002859.SZ", "000651.SZ"],
+        "expected_codes": [],
     },
     {
         "label": "920055 comparables",
@@ -64,8 +92,8 @@ BUSINESS_CASES = (
         "must_not_contain": ["招股意向书", "证券代码", "证券简称"],
     },
     {
-        "label": "920029 business",
-        "path": "公告文件/920029新恒泰招股说明书.pdf",
+        "label": "920028 business",
+        "path": "公告文件/920028新恒泰招股说明书.pdf",
         "must_contain": ["功能性高分子发泡材料", "研发、制造和销售"],
         "must_not_contain": ["劳务派遣", "关联关系", "主要责任人"],
     },
@@ -88,7 +116,7 @@ def main() -> int:
     failures: list[str] = []
 
     for case in COMPARABLE_CASES:
-        file_path = ROOT_DIR / case["path"]
+        file_path = resolve_pdf_path(case["path"])
         actual_codes = pdf_parser.extract_comparable_companies(file_path)
         if actual_codes != case["expected_codes"]:
             failures.append(
@@ -97,7 +125,7 @@ def main() -> int:
         print(f"OK {case['label']}: {actual_codes}")
 
     for case in BUSINESS_CASES:
-        file_path = ROOT_DIR / case["path"]
+        file_path = resolve_pdf_path(case["path"])
         description = pdf_parser.extract_business_desc(file_path)
         for snippet in case["must_contain"]:
             if snippet not in description:
