@@ -21,6 +21,7 @@ TEMP_ROOT = ROOT_DIR / "tests" / "_tmp" / "tushare_ipo_bse_target_fallback"
 TOKEN_ENV = "TUSHARE_TEST_TOKEN_FOR_BSE_FALLBACK"
 
 _ORIGINAL_FETCH_IPO_INFO = data_fetcher.fetch_ipo_info
+_ORIGINAL_FETCH_RECENT_IPOS_BY_DAYS = data_fetcher.fetch_recent_ipos_by_days
 _ORIGINAL_BSE_CLIENT = bse_official_helper.BSEOfficialClient
 _ORIGINAL_GET_RECENT_NEW_SHARE_ROWS = tushare_ipo_helper._get_recent_new_share_rows
 _ORIGINAL_GET_STOCK_PROFILE = tushare_ipo_helper._get_stock_profile
@@ -58,6 +59,16 @@ def _fake_fetch_ipo_info(code: str) -> dict[str, Any]:
         "APPLY_DATE": None,
         "MAIN_BUSINESS": "电机总成等热管理系统电驱动零部件产品的研发、生产与销售",
     }
+
+
+def _fake_fetch_ipo_info_ssl_error(code: str) -> dict[str, Any]:
+    _ = code
+    raise data_fetcher.DataFetcherError("东方财富请求失败: fixture SSL EOF")
+
+
+def _fake_fetch_recent_ipos_ssl_error(days: int) -> list[dict[str, Any]]:
+    _ = days
+    raise data_fetcher.DataFetcherError("东方财富请求失败: fixture SSL EOF")
 
 
 def _fake_get_recent_new_share_rows(*args, **kwargs) -> list[dict[str, Any]]:
@@ -121,6 +132,15 @@ class FakeBSEOfficialClient:
         }
 
 
+class FailingBSEOfficialClient:
+    def __init__(self, timeout: float = 20.0, status_callback=None) -> None:
+        _ = (timeout, status_callback)
+
+    def build_newshare_ipo_info_by_post_listing_code(self, code: str) -> dict[str, Any]:
+        _ = code
+        raise bse_official_helper.BSEOfficialError("fixture newshare unavailable")
+
+
 def _run_tushare_target_bse_fallback_case(failures: list[str]) -> None:
     if TEMP_ROOT.exists():
         shutil.rmtree(TEMP_ROOT)
@@ -137,6 +157,7 @@ def _run_tushare_target_bse_fallback_case(failures: list[str]) -> None:
         result = tushare_ipo_helper.prepare_ipo_data("920220", 3, params=_make_params())
     finally:
         data_fetcher.fetch_ipo_info = _ORIGINAL_FETCH_IPO_INFO
+        data_fetcher.fetch_recent_ipos_by_days = _ORIGINAL_FETCH_RECENT_IPOS_BY_DAYS
         bse_official_helper.BSEOfficialClient = _ORIGINAL_BSE_CLIENT
         tushare_ipo_helper._get_recent_new_share_rows = _ORIGINAL_GET_RECENT_NEW_SHARE_ROWS
         tushare_ipo_helper._get_stock_profile = _ORIGINAL_GET_STOCK_PROFILE
@@ -158,9 +179,50 @@ def _run_tushare_target_bse_fallback_case(failures: list[str]) -> None:
     print("OK tushare bse fallback: empty Eastmoney target fields are filled from BSE new-share data")
 
 
+def _run_tushare_eastmoney_bse_fail_pdf_pending_case(failures: list[str]) -> None:
+    if TEMP_ROOT.exists():
+        shutil.rmtree(TEMP_ROOT)
+    os.environ[TOKEN_ENV] = "fake-token"
+    data_fetcher.fetch_ipo_info = _fake_fetch_ipo_info_ssl_error
+    data_fetcher.fetch_recent_ipos_by_days = _fake_fetch_recent_ipos_ssl_error
+    bse_official_helper.BSEOfficialClient = FailingBSEOfficialClient
+    tushare_ipo_helper._get_recent_new_share_rows = lambda *args, **kwargs: []
+    tushare_ipo_helper._get_stock_profile = _fake_get_stock_profile
+    tushare_ipo_helper._get_new_share_row = _fake_get_new_share_row
+    tushare_ipo_helper._get_listing_day_snapshot = _fake_get_listing_day_snapshot
+    tushare_ipo_helper._get_industry_pe_snapshot = _fake_get_industry_pe_snapshot
+
+    try:
+        result = tushare_ipo_helper.prepare_ipo_data("920136", 3, params=_make_params())
+    finally:
+        data_fetcher.fetch_ipo_info = _ORIGINAL_FETCH_IPO_INFO
+        data_fetcher.fetch_recent_ipos_by_days = _ORIGINAL_FETCH_RECENT_IPOS_BY_DAYS
+        bse_official_helper.BSEOfficialClient = _ORIGINAL_BSE_CLIENT
+        tushare_ipo_helper._get_recent_new_share_rows = _ORIGINAL_GET_RECENT_NEW_SHARE_ROWS
+        tushare_ipo_helper._get_stock_profile = _ORIGINAL_GET_STOCK_PROFILE
+        tushare_ipo_helper._get_new_share_row = _ORIGINAL_GET_NEW_SHARE_ROW
+        tushare_ipo_helper._get_listing_day_snapshot = _ORIGINAL_GET_LISTING_DAY_SNAPSHOT
+        tushare_ipo_helper._get_industry_pe_snapshot = _ORIGINAL_GET_INDUSTRY_PE_SNAPSHOT
+        os.environ.pop(TOKEN_ENV, None)
+
+    ipo_info = result.get("ipo_info") or {}
+    summary = result.get("summary") or {}
+    fallback_errors = "\n".join(str(item) for item in summary.get("fallback_errors") or [])
+    _assert(ipo_info.get("SECURITY_CODE") == "920136", "pdf pending: target code mismatch", failures)
+    _assert(ipo_info.get("source") == "bse_pdf_pending", "pdf pending: source mismatch", failures)
+    _assert(summary.get("target_source") == "bse_pdf_pending", "pdf pending: target source mismatch", failures)
+    _assert(summary.get("target_fallback_used") is True, "pdf pending: fallback flag missing", failures)
+    _assert(summary.get("pdf_target_fallback_pending") is True, "pdf pending: pending flag missing", failures)
+    _assert("东方财富请求失败" in fallback_errors, "pdf pending: missing eastmoney fallback error", failures)
+    _assert("fixture newshare unavailable" in fallback_errors, "pdf pending: missing BSE fallback error", failures)
+    _assert(len(result.get("recent_ipos") or []) == 0, "pdf pending: recent samples should be empty", failures)
+    print("OK tushare pdf pending: Eastmoney/BSE failures no longer block PDF-based target supplement")
+
+
 def main() -> int:
     failures: list[str] = []
     _run_tushare_target_bse_fallback_case(failures)
+    _run_tushare_eastmoney_bse_fail_pdf_pending_case(failures)
 
     if failures:
         print("\nTushare IPO BSE target fallback validation failed:")
@@ -168,7 +230,7 @@ def main() -> int:
             print(f"- {item}")
         return 1
 
-    print("\nTushare IPO BSE target fallback validation passed: 1 case")
+    print("\nTushare IPO BSE target fallback validation passed: 2 cases")
     return 0
 
 

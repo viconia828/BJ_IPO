@@ -195,6 +195,9 @@ def _build_summary(
         "eastmoney_supplement_used": False,
         "eastmoney_recent_fallback_used": False,
         "target_fallback_used": False,
+        "bse_newshare_fallback_used": False,
+        "pdf_target_fallback_pending": False,
+        "fallback_errors": [],
         "supplemented_fields": [],
         "industry_pe_source": "",
         "industry_pe_index_code": "",
@@ -1208,8 +1211,62 @@ def _fetch_bse_newshare_supplement(code: str, summary: dict[str, Any]) -> dict[s
         client = bse_official_helper.BSEOfficialClient()
         return client.build_newshare_ipo_info_by_post_listing_code(_base_code(code))
     except bse_official_helper.BSEOfficialError as exc:
+        _record_fallback_error(summary, "bse_newshare", exc)
         summary["reason"] = summary["reason"] or f"北交所公开发行一览兜底失败：{exc}"
         return None
+
+
+def _record_fallback_error(summary: dict[str, Any], source: str, reason: Any) -> None:
+    text = str(reason or "").strip()
+    if not text:
+        return
+    errors = list(summary.get("fallback_errors") or [])
+    entry = f"{source}: {text}"
+    if entry not in errors:
+        errors.append(entry)
+    summary["fallback_errors"] = errors
+
+
+def _build_pdf_pending_ipo_info(code: str) -> dict[str, Any]:
+    base_code = _base_code(code)
+    return {
+        "SECURITY_CODE": base_code,
+        "SECURITY_NAME_ABBR": base_code,
+        "source": "bse_pdf_pending",
+    }
+
+
+def _build_bse_or_pdf_pending_bundle(
+    code: str,
+    summary: dict[str, Any],
+    *,
+    recent_ipos: list[dict[str, Any]] | None = None,
+    bse_info: dict[str, Any] | None = None,
+    bse_already_attempted: bool = False,
+    fallback_reason: Any = "",
+) -> dict[str, Any]:
+    _record_fallback_error(summary, "eastmoney", fallback_reason)
+    if bse_info is None and not bse_already_attempted:
+        bse_info = _fetch_bse_newshare_supplement(code, summary)
+
+    summary["target_fallback_used"] = True
+    recent = list(recent_ipos or [])
+    if bse_info:
+        ipo_info = dict(bse_info)
+        summary["target_source"] = "bse_newshare"
+        summary["bse_newshare_fallback_used"] = True
+    else:
+        ipo_info = _build_pdf_pending_ipo_info(code)
+        summary["target_source"] = "bse_pdf_pending"
+        summary["pdf_target_fallback_pending"] = True
+        summary["reason"] = summary["reason"] or "Tushare 与东方财富均未取到目标 IPO 数据，已转入北交所公告/PDF补字段流程。"
+
+    summary["recent_returned_codes"] = [str(item.get("SECURITY_CODE", "")).strip() for item in recent]
+    summary["recent_sample_count"] = len(recent)
+    if not recent and summary.get("target_source") in {"bse_newshare", "bse_pdf_pending"}:
+        summary["provider"] = summary["target_source"]
+        summary["recent_source"] = "unavailable"
+    return {"ipo_info": ipo_info, "recent_ipos": recent, "summary": summary}
 
 
 def _build_eastmoney_bundle(
@@ -1230,6 +1287,34 @@ def _build_eastmoney_bundle(
     return {"ipo_info": ipo_info, "recent_ipos": recent_ipos, "summary": summary}
 
 
+def _build_eastmoney_bundle_with_bse_fallback(
+    code: str,
+    months: int,
+    summary: dict[str, Any],
+) -> dict[str, Any]:
+    recent_days = int(summary.get("recent_days") or _resolve_recent_days(months))
+    summary["target_fallback_used"] = True
+    try:
+        ipo_info = data_fetcher.fetch_ipo_info(_base_code(code))
+    except data_fetcher.DataFetcherError as exc:
+        return _build_bse_or_pdf_pending_bundle(code, summary, fallback_reason=exc)
+
+    summary["provider"] = "eastmoney"
+    summary["target_source"] = "eastmoney"
+    summary["recent_source"] = "eastmoney"
+    summary["eastmoney_recent_fallback_used"] = True
+    try:
+        recent_ipos = data_fetcher.fetch_recent_ipos_by_days(recent_days)
+    except data_fetcher.DataFetcherError as exc:
+        _record_fallback_error(summary, "eastmoney_recent", exc)
+        summary["eastmoney_recent_fallback_used"] = False
+        recent_ipos = []
+
+    summary["recent_returned_codes"] = [str(item.get("SECURITY_CODE", "")).strip() for item in recent_ipos]
+    summary["recent_sample_count"] = len(recent_ipos)
+    return {"ipo_info": ipo_info, "recent_ipos": recent_ipos, "summary": summary}
+
+
 def prepare_ipo_data(
     code: str,
     months: int,
@@ -1242,7 +1327,7 @@ def prepare_ipo_data(
 
     if not settings["token"]:
         summary["reason"] = f"Tushare token 未配置，请先设置环境变量 {settings['token_env']}。"
-        return _build_eastmoney_bundle(code, months, summary)
+        return _build_eastmoney_bundle_with_bse_fallback(code, months, summary)
     target_ts_code = _to_ts_code(code)
     today_ymd = date.today().strftime("%Y%m%d")
     today_date = date.today()
@@ -1264,19 +1349,31 @@ def prepare_ipo_data(
     try:
         supplement = data_fetcher.fetch_ipo_info(_base_code(code))
     except data_fetcher.DataFetcherError as exc:
+        _record_fallback_error(summary, "eastmoney", exc)
         summary["reason"] = summary["reason"] or str(exc)
 
+    bse_supplement: dict[str, Any] | None = None
+    bse_supplement_attempted = False
     if not target_new_share and _missing_target_core_fields(supplement):
         had_eastmoney_supplement = supplement is not None
+        bse_supplement_attempted = True
         bse_supplement = _fetch_bse_newshare_supplement(code, summary)
         if bse_supplement:
             supplement = _merge_missing_values(supplement, bse_supplement)
             summary["target_source"] = "eastmoney+bse_newshare" if had_eastmoney_supplement else "bse_newshare"
             summary["target_fallback_used"] = True
+            summary["bse_newshare_fallback_used"] = True
 
     if not target_new_share and supplement is None:
-        summary["reason"] = summary["reason"] or "Tushare 未取到目标 IPO 核心字段，且东方财富补充也不可用。"
-        return _build_eastmoney_bundle(code, months, summary)
+        reason = "Tushare 未取到目标 IPO 核心字段，且东方财富补充也不可用。"
+        summary["reason"] = summary["reason"] or reason
+        _record_fallback_error(summary, "tushare_target", reason)
+        return _build_bse_or_pdf_pending_bundle(
+            code,
+            summary,
+            bse_info=bse_supplement,
+            bse_already_attempted=bse_supplement_attempted,
+        )
     if not target_new_share and supplement is not None:
         if summary["target_source"] == "tushare":
             summary["target_source"] = "eastmoney"

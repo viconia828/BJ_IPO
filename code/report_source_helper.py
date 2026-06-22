@@ -69,6 +69,7 @@ def supplemented_fields_are_display_only(fields: Any) -> bool:
 def build_ipo_source_text(all_data: dict[str, Any]) -> str:
     ipo_summary = all_data.get("ipo_data_summary") or {}
     provider = str(ipo_summary.get("provider") or all_data.get("params", {}).get("ipo_data_source", "eastmoney")).strip().lower() or "eastmoney"
+    target_source = str(ipo_summary.get("target_source") or "").strip().lower()
     prospectus_labels = get_supplemented_field_labels(ipo_summary.get("prospectus_supplemented_fields"))
     prospectus_suffix = f"+ 招股说明书（字段补充：{'、'.join(prospectus_labels)}）" if prospectus_labels else ""
     issue_announcement_labels = get_supplemented_field_labels(ipo_summary.get("issue_announcement_supplemented_fields"))
@@ -79,6 +80,10 @@ def build_ipo_source_text(all_data: dict[str, Any]) -> str:
     issue_result_suffix = f"+ 发行结果公告（字段补充：{'、'.join(issue_result_labels)}）" if issue_result_labels else ""
     document_suffix = f"{prospectus_suffix}{issue_announcement_suffix}{issue_result_suffix}"
     if provider != "tushare":
+        if target_source == "bse_newshare":
+            return f"北交所公开发行一览（IPO 信息）{document_suffix}"
+        if target_source == "bse_pdf_pending":
+            return f"北交所公告/PDF（IPO 字段补充）{document_suffix}"
         return f"东方财富（IPO 信息与近期样本）{document_suffix}"
 
     tushare_label = "Tushare（IPO 关键字段与近期样本）"
@@ -86,19 +91,30 @@ def build_ipo_source_text(all_data: dict[str, Any]) -> str:
         tushare_label = "Tushare（IPO 关键字段、行业 PE 与近期样本）"
 
     supplemented_labels = get_supplemented_field_labels(ipo_summary.get("supplemented_fields"))
-    extra_parts: list[str] = []
+    eastmoney_parts: list[str] = []
+    bse_parts: list[str] = []
     if ipo_summary.get("target_fallback_used"):
-        extra_parts.append("目标股回退")
+        if "bse_newshare" in target_source:
+            bse_parts.append("目标股回退")
+        elif target_source == "bse_pdf_pending":
+            bse_parts.append("目标股待 PDF 补字段")
+        else:
+            eastmoney_parts.append("目标股回退")
     if ipo_summary.get("eastmoney_recent_fallback_used"):
-        extra_parts.append("部分近期样本回退")
+        eastmoney_parts.append("部分近期样本回退")
     if ipo_summary.get("eastmoney_supplement_used"):
         if supplemented_labels:
             qualifier = "仅展示补充" if supplemented_fields_are_display_only(ipo_summary.get("supplemented_fields")) else "字段补充"
-            extra_parts.append(f"{qualifier}：{'、'.join(supplemented_labels)}")
+            eastmoney_parts.append(f"{qualifier}：{'、'.join(supplemented_labels)}")
         else:
-            extra_parts.append("报告字段补充")
-    if extra_parts:
-        return f"{tushare_label}+ 东方财富（{'；'.join(extra_parts)}）{document_suffix}"
+            eastmoney_parts.append("报告字段补充")
+    extra_sources: list[str] = []
+    if eastmoney_parts:
+        extra_sources.append(f"东方财富（{'；'.join(eastmoney_parts)}）")
+    if bse_parts:
+        extra_sources.append(f"北交所公开发行一览/PDF（{'；'.join(bse_parts)}）")
+    if extra_sources:
+        return f"{tushare_label}+ {' + '.join(extra_sources)}{document_suffix}"
     return f"{tushare_label}{document_suffix}"
 
 
