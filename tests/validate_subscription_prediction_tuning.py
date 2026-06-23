@@ -360,6 +360,56 @@ def _run_manual_ladder_label_case(failures: list[str]) -> None:
     _assert(len(detail.get("manual_ladder_errors") or []) == 2, "manual ladder: detail errors missing", failures)
 
 
+def _run_ladder_label_gb18030_fill_case(failures: list[str]) -> None:
+    rows = [
+        _sample_row("920001", "2026-06-01"),
+        _sample_row("920002", "2026-06-02"),
+        _sample_row("920003", "2026-06-03"),
+        _sample_row("920004", "2026-06-04"),
+    ]
+    temp_dir = ROOT_DIR / ".tmp" / "validate_subscription_prediction_ladder_gb18030"
+    if temp_dir.exists():
+        shutil.rmtree(temp_dir)
+    temp_dir.mkdir(parents=True, exist_ok=True)
+    try:
+        label_path = temp_dir / "subscription_ladder_labels.csv"
+        label_path.write_bytes(
+            ",".join(subscription_ladder_labels.LADDER_LABEL_COLUMNS).encode("ascii")
+            + b"\n"
+            + b"920004,,,,,,1+0=3;2+1=6,"
+            + b"\xb2\xe2\xca\xd4"
+            + b"\n"
+        )
+        prepared_rows, sync_summary = tune_subscription_prediction._prepare_rows_with_ladder_labels(
+            rows,
+            label_path,
+        )
+        loaded_rows = subscription_ladder_labels.load_label_rows(label_path)
+    finally:
+        shutil.rmtree(temp_dir, ignore_errors=True)
+
+    loaded_by_code = {row.get("security_code"): row for row in loaded_rows}
+    manual_row = loaded_by_code.get("920004") or {}
+    prepared_by_code = {row.get("security_code"): row for row in prepared_rows}
+    _assert(sync_summary.get("source_encoding") == "gb18030", "ladder encoding: source mismatch", failures)
+    _assert(sync_summary.get("encoding_normalized"), "ladder encoding: should normalize to utf-8", failures)
+    _assert(manual_row.get("manual_ladder") == "1+0=3;2+1=6", "ladder fill: manual ladder overwritten", failures)
+    _assert(
+        str(manual_row.get("manual_note") or "").encode("gb18030") == b"\xb2\xe2\xca\xd4",
+        "ladder fill: manual note not preserved",
+        failures,
+    )
+    _assert(manual_row.get("apply_date") == "2026-06-04", "ladder fill: apply date not filled", failures)
+    _assert(manual_row.get("issue_price") == "10", "ladder fill: issue price not filled", failures)
+    _assert(manual_row.get("online_issue_shares") == "1000000", "ladder fill: online issue not filled", failures)
+    _assert(manual_row.get("top_apply_amount_wan") == "10", "ladder fill: top apply not filled", failures)
+    _assert(
+        prepared_by_code.get("920004", {}).get("manual_ladder_label_ready") == "true",
+        "ladder fill: prepared row should use manual label",
+        failures,
+    )
+
+
 def _run_auto_refresh_history_case(failures: list[str]) -> None:
     temp_dir = ROOT_DIR / ".tmp" / "validate_subscription_prediction_refresh"
     if temp_dir.exists():
@@ -447,6 +497,7 @@ def main() -> int:
     _run_large_account_pool_case(failures)
     _run_account_pool_prior_case(failures)
     _run_manual_ladder_label_case(failures)
+    _run_ladder_label_gb18030_fill_case(failures)
     _run_auto_refresh_history_case(failures)
     if failures:
         for failure in failures:

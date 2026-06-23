@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import csv
+import io
 import re
 from pathlib import Path
 from statistics import median
@@ -20,6 +21,9 @@ LADDER_LABEL_COLUMNS = (
     "manual_ladder",
     "manual_note",
 )
+
+LABEL_CSV_READ_ENCODINGS = ("utf-8-sig", "utf-8", "gb18030", "cp936")
+UTF8_LABEL_ENCODINGS = {"utf-8-sig", "utf-8"}
 
 LADDER_ITEM_PATTERN = re.compile(
     r"(?P<regular>[0-9]+)\s*\+\s*(?P<fractional>[0-9]+)\s*=\s*(?P<threshold>[^;；\n\r]+)"
@@ -87,16 +91,39 @@ def label_row_from_sample(sample: dict[str, Any]) -> dict[str, str]:
     }
 
 
-def load_label_rows(path: str | Path = DEFAULT_LABEL_PATH) -> list[dict[str, str]]:
+def _read_label_csv_text(path: Path) -> tuple[str, str]:
+    errors: list[str] = []
+    for encoding in LABEL_CSV_READ_ENCODINGS:
+        try:
+            return path.read_text(encoding=encoding), encoding
+        except UnicodeDecodeError as exc:
+            errors.append(f"{encoding}: {exc.reason}")
+    raise ValueError(
+        "Cannot decode subscription ladder label CSV "
+        f"{path}; tried {', '.join(LABEL_CSV_READ_ENCODINGS)}. "
+        f"Last errors: {'; '.join(errors)}"
+    )
+
+
+def _load_label_rows_with_encoding(path: str | Path = DEFAULT_LABEL_PATH) -> tuple[list[dict[str, str]], str]:
     label_path = Path(path)
     if not label_path.exists():
-        return []
-    with label_path.open("r", encoding="utf-8-sig", newline="") as file_obj:
-        return [
+        return [], "missing"
+    text, encoding = _read_label_csv_text(label_path)
+    file_obj = io.StringIO(text, newline="")
+    return (
+        [
             {column: str(row.get(column) or "") for column in LADDER_LABEL_COLUMNS}
             for row in csv.DictReader(file_obj)
             if _normalize_code(row.get("security_code"))
-        ]
+        ],
+        encoding,
+    )
+
+
+def load_label_rows(path: str | Path = DEFAULT_LABEL_PATH) -> list[dict[str, str]]:
+    rows, _ = _load_label_rows_with_encoding(path)
+    return rows
 
 
 def write_label_rows(rows: list[dict[str, Any]], path: str | Path = DEFAULT_LABEL_PATH) -> Path:
@@ -115,7 +142,7 @@ def sync_label_rows(
     samples: list[dict[str, Any]],
     path: str | Path = DEFAULT_LABEL_PATH,
 ) -> dict[str, Any]:
-    existing_rows = load_label_rows(path)
+    existing_rows, source_encoding = _load_label_rows_with_encoding(path)
     existing_by_code = {_normalize_code(row.get("security_code")): dict(row) for row in existing_rows}
     added_codes: list[str] = []
     updated_rows: list[dict[str, Any]] = []
@@ -138,18 +165,25 @@ def sync_label_rows(
         current["manual_note"] = manual_note
 
     updated_rows = list(existing_by_code.values())
-    if added_codes or len(updated_rows) != len(existing_rows):
+    encoding_normalized = source_encoding not in {*UTF8_LABEL_ENCODINGS, "missing"}
+    wrote_label_file = False
+    if added_codes or len(updated_rows) != len(existing_rows) or encoding_normalized:
         write_label_rows(updated_rows, path)
+        wrote_label_file = True
     else:
         for old_row, new_row in zip(sorted(existing_rows, key=lambda r: r["security_code"]), sorted(updated_rows, key=lambda r: r["security_code"])):
             if any(str(old_row.get(column) or "") != str(new_row.get(column) or "") for column in LADDER_LABEL_COLUMNS):
                 write_label_rows(updated_rows, path)
+                wrote_label_file = True
                 break
     return {
         "path": str(Path(path)),
         "row_count": len(updated_rows),
         "filled_count": sum(1 for row in updated_rows if str(row.get("manual_ladder") or "").strip()),
         "added_codes": added_codes,
+        "source_encoding": source_encoding,
+        "encoding_normalized": bool(encoding_normalized and wrote_label_file),
+        "label_file_written": wrote_label_file,
     }
 
 
