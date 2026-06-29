@@ -1,0 +1,177 @@
+{
+  "schema": "offline_tuning_replay_item_v1",
+  "cache_version": 3,
+  "generated_at": "2026-06-11 20:59:50",
+  "code": "920083",
+  "listing_date": "2026-06-11 00:00:00",
+  "record_signature": {
+    "SECURITY_CODE": "920083",
+    "SECURITY_NAME_ABBR": "金戈新材",
+    "APPLY_DATE": "2026-06-01 00:00:00",
+    "LISTING_DATE": "2026-06-11 00:00:00",
+    "ISSUE_PRICE": 9.65,
+    "AFTER_ISSUE_PE": 14.93,
+    "INDUSTRY_PE_NEW": 41.01,
+    "TOTAL_ISSUE_NUM": 2231.7369,
+    "ISSUE_NUM": 2231.7369,
+    "CLOSE_PRICE": 51.51,
+    "LD_CLOSE_CHANGE": 433.7824,
+    "TURNOVERRATE": 96.1645,
+    "SW_INDUSTRY": null,
+    "INDUSTRY": null
+  },
+  "pdf_signature": {
+    "listing": {
+      "name": "920083_金戈新材_上市公告书.pdf",
+      "size": 837787,
+      "mtime_ns": 1781013369561745100
+    },
+    "old_shares": {
+      "name": "920083_金戈新材_招股说明书.pdf",
+      "size": 5247761,
+      "mtime_ns": 1779973373519881200
+    },
+    "comparables": {
+      "name": "920083_金戈新材_招股说明书.pdf",
+      "size": 5247761,
+      "mtime_ns": 1779973373519881200
+    }
+  },
+  "item": {
+    "SECURITY_CODE": "920083",
+    "SECURITY_NAME_ABBR": "金戈新材",
+    "APPLY_DATE": "2026-06-01 00:00:00",
+    "LISTING_DATE": "2026-06-11 00:00:00",
+    "ISSUE_PRICE": 9.65,
+    "AFTER_ISSUE_PE": 14.93,
+    "INDUSTRY_PE_NEW": 41.01,
+    "TOTAL_ISSUE_NUM": 2231.7369,
+    "CLOSE_PRICE": 51.51,
+    "AVERAGE_PRICE": 52.85242069561253,
+    "LD_CLOSE_CHANGE": 433.7824,
+    "LD_AVERAGE_CHANGE": 447.6934787110107,
+    "TURNOVERRATE": 96.1645,
+    "SW_INDUSTRY": "",
+    "INDUSTRY": "",
+    "industry_primary": "未分类",
+    "industry_secondary": "未分类",
+    "industry_source": "unclassified",
+    "old_shares": 0.0,
+    "old_shares_desc": "0.00 万股（PDF 提取：上市公告书）",
+    "old_shares_meta": {
+      "value_wan_shares": 0.0,
+      "source_file_type": "上市公告书",
+      "source_rule": "listing_table",
+      "source_anchor": "本次发行前后的股本结构变动情况 -> 无限售流通股小计",
+      "raw_snippet": "象小计66,952,105100.00%69,180,08277.50%--二、无限售流通股小计00.00%20,089,39222.50%--合计66,952,105100.00%89,269,474100.00%--注1：本次发行不安排超额配售选择权；注2：以上数据尾数若存在差异，均为四舍五入所致；60注3：发行人不存在表决权差异安排的情况。61六、",
+      "confidence": 0.98,
+      "unit": "股",
+      "pre_unrestricted_wan_shares": 0.0,
+      "listing_pdf_found": true,
+      "prospectus_pdf_found": true,
+      "selected_source_label": "上市公告书",
+      "fallback_used": false
+    },
+    "float_shares": 2231.7369,
+    "has_intraday_file": true,
+    "comparable_codes": [
+      "688733.SH",
+      "603010.SH",
+      "920971.BJ",
+      "688300.SH",
+      "875029.NQ"
+    ],
+    "comparable_data": [
+      {
+        "code": "688733.SH",
+        "name": "688733.SH",
+        "close": 38.86,
+        "pe_ttm": null,
+        "pb_lf": 3.7099,
+        "mkt_cap": 77.63263883,
+        "trade_date": "20260610",
+        "source": "tushare_historical",
+        "close_source": "tushare_historical",
+        "pe_source": "tushare_historical",
+        "pb_source": "tushare_historical",
+        "mkt_cap_source": "tushare_historical"
+      },
+      {
+        "code": "603010.SH",
+        "name": "603010.SH",
+        "close": 13.44,
+        "pe_ttm": null,
+        "pb_lf": 3.1019,
+        "mkt_cap": 78.62807138000001,
+        "trade_date": "20260610",
+        "source": "tushare_historical",
+        "close_source": "tushare_historical",
+        "pe_source": "tushare_historical",
+        "pb_source": "tushare_historical",
+        "mkt_cap_source": "tushare_historical"
+      },
+      {
+        "code": "920971.BJ",
+        "name": "920971.BJ",
+        "close": 42.88,
+        "pe_ttm": 106.0948,
+        "pb_lf": 9.9828,
+        "mkt_cap": 45.06173526,
+        "trade_date": "20260610",
+        "source": "tushare_historical",
+        "close_source": "tushare_historical",
+        "pe_source": "tushare_historical",
+        "pb_source": "tushare_historical",
+        "mkt_cap_source": "tushare_historical"
+      },
+      {
+        "code": "688300.SH",
+        "name": "688300.SH",
+        "close": 180.19,
+        "pe_ttm": 144.4357,
+        "pb_lf": 26.2733,
+        "mkt_cap": 435.10333346,
+        "trade_date": "20260610",
+        "source": "tushare_historical",
+        "close_source": "tushare_historical",
+        "pe_source": "tushare_historical",
+        "pb_source": "tushare_historical",
+        "mkt_cap_source": "tushare_historical"
+      }
+    ],
+    "comparable_summary": {
+      "provider": "tushare_historical",
+      "requested_codes": [
+        "688733.SH",
+        "603010.SH",
+        "920971.BJ",
+        "688300.SH",
+        "875029.NQ"
+      ],
+      "returned_codes": [
+        "688733.SH",
+        "603010.SH",
+        "920971.BJ",
+        "688300.SH"
+      ],
+      "cache_hits": [],
+      "api_fetched": [
+        "688733.SH",
+        "603010.SH",
+        "920971.BJ",
+        "688300.SH"
+      ],
+      "skipped_unsupported": [
+        "875029.NQ"
+      ],
+      "reference_trade_date": "20260610",
+      "reason": ""
+    },
+    "method1_replay_available": true,
+    "average_price_source": "intraday_csv",
+    "average_price_reason": "",
+    "average_price_calc_version": 3,
+    "average_price_unit_mode": "volume_shares_amount_yuan",
+    "average_price_reference": 55.06
+  }
+}

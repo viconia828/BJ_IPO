@@ -1,3 +1,39 @@
+## 2026-06-29 21:26:56 自动调参（已接受）
+
+- 参数文件：D:\BJ_IPO\策略参数.txt
+- 评估范围：composite
+- 最终搜索轮次：第 3 轮
+- 方法二样本池截取窗口：60 天（recent_days）
+- 近期权重基准日：2026-06-29，评分权重衰减窗口：90 天
+- 最近 30 天样本最低总权重：0.5000
+- baseline 排序分：0.0109
+- 新参数排序分：0.0838
+- baseline 近期加权命中率：0.2197
+- 新参数近期加权命中率：0.2905
+- 新参数最近样本权重占比：0.6067
+- 新参数加权 MAE(涨幅)：103.3894
+- 当前手动区间宽度诊断扣分：0.0500
+
+修改参数：
+- industry_trend_weight: 0.35 -> 0.85
+- market_sentiment_weight: 0.65 -> 0.15
+- pe_low_threshold: 0.35 -> 0.3
+- pe_premium_drag: -0.2 -> -0.175
+- weight_comparable: 0.8 -> 0.55
+- weight_industry_momentum: 0.2 -> 0.45
+
+## 2026-06-24 00:37:39 申购资金自动调参（已接受）
+
+- 参数文件：D:\BJ_IPO\策略参数.txt
+- 历史样本：D:\BJ_IPO\data\offline_tuning\subscription_history_sample.csv
+- 候选组数：3600
+- baseline：MAE=68.2086 万元, MAPE=11.67%, 分档MAPE=15.14%, 漏判=0, 误判=1, 评估=34
+- 新参数：MAE=58.1898 万元, MAPE=9.65%, 分档MAPE=12.05%, 漏判=0, 误判=0, 评估=34
+
+修改参数：
+- subscription_prediction_cap_factor_exponent: 0.3 -> 0.25
+- subscription_prediction_lock_factor_exponent: 0 -> 0.2
+
 ## 2026-06-16 09:15:49 自动调参（已接受）
 
 - 参数文件：C:\Users\ai\Desktop\北交所新股估值\策略参数.txt
@@ -46,9 +82,81 @@
 - pe_low_threshold: 0.1 -> 0.35
 - pe_premium_drag: -0.175 -> -0.2
 
+## 2026-06-11 21:00:26 自动调参（已接受）
+
+- 参数文件：D:\BJ_IPO\策略参数.txt
+- 评估范围：composite
+- 最终搜索轮次：第 5 轮
+- 方法二样本池截取窗口：60 天（recent_days）
+- 近期权重基准日：2026-06-11，评分权重衰减窗口：90 天
+- 最近 30 天样本最低总权重：0.5000
+- baseline 排序分：0.0611
+- 新参数排序分：0.1213
+- baseline 近期加权命中率：0.3255
+- 新参数近期加权命中率：0.3642
+- 新参数最近样本权重占比：0.7609
+- 新参数加权 MAE(涨幅)：121.4364
+- 当前手动区间宽度诊断扣分：0.0500
+
+修改参数：
+- bse_discount_factor: 0.55 -> 0.725
+- industry_trend_weight: 0.3 -> 0.425
+- market_sentiment_weight: 0.7 -> 0.575
+- pe_discount_boost: 0.1 -> 0.2
+- pe_low_threshold: 0.1 -> 0.35
+- trend_weak_threshold: 55 -> 40
+- weight_comparable: 0.25 -> 0.2
+- weight_industry_momentum: 0.75 -> 0.8
+
+## 2026-06-09 21:57:08 自动调参（已接受）
+
+- 参数文件：D:\BJ_IPO\策略参数.txt
+- 评估范围：composite
+- 最终搜索轮次：第 2 轮
+- 方法二样本池截取窗口：60 天（recent_days）
+- 近期权重基准日：2026-06-08，评分权重衰减窗口：90 天
+- 最近 30 天样本最低总权重：0.5000
+- baseline 排序分：0.0732
+- 新参数排序分：0.0916
+- baseline 近期加权命中率：0.3736
+- 新参数近期加权命中率：0.3736
+- 新参数最近样本权重占比：0.7089
+- 新参数加权 MAE(涨幅)：141.0018
+- 当前手动区间宽度诊断扣分：0.0500
+
+修改参数：
+- industry_trend_weight: 0.775 -> 0.3
+- market_sentiment_weight: 0.225 -> 0.7
+- pe_high_threshold: 0.475 -> 0.45
+- pe_premium_drag: -0.175 -> -0.2
+
 ## 2026-06-01 09:29:56 自动调参（已接受）
 
 - 参数文件：C:\Users\ai\Desktop\北交所新股估值\策略参数.txt
+- 评估范围：composite
+- 最终搜索轮次：第 3 轮
+- 方法二样本池截取窗口：60 天（recent_days）
+- 近期权重基准日：2026-05-29，评分权重衰减窗口：90 天
+- 最近 30 天样本最低总权重：0.5000
+- baseline 排序分：0.2172
+- 新参数排序分：0.3103
+- baseline 近期加权命中率：0.4109
+- 新参数近期加权命中率：0.4863
+- 新参数最近样本权重占比：0.6849
+- 新参数加权 MAE(涨幅)：87.9885
+- 当前手动区间宽度诊断扣分：0.0500
+
+修改参数：
+- industry_trend_weight: 0.3 -> 0.775
+- market_sentiment_weight: 0.7 -> 0.225
+- pe_low_threshold: 0.35 -> 0.1
+- trend_weak_threshold: 40 -> 55
+- weight_comparable: 0.35 -> 0.25
+- weight_industry_momentum: 0.65 -> 0.75
+
+## 2026-05-29 19:35:31 自动调参（已接受）
+
+- 参数文件：D:\BJ_IPO\策略参数.txt
 - 评估范围：composite
 - 最终搜索轮次：第 3 轮
 - 方法二样本池截取窗口：60 天（recent_days）
