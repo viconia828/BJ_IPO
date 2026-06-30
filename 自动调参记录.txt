@@ -1,3 +1,44 @@
+## 2026-06-30 参数集合并（人工择优）
+
+- 合并来源：本地 A 机未提交参数集 + 远端 B 机 `origin/main` 参数集。
+- 选择原则：估值侧以本地 A 机 2026-06-29 19:50 composite 调参结果为主；申购资金侧以远端 B 机 2026-06-24 申购资金调参结果为主。
+- 采纳的估值参数：
+  - weight_comparable = 0.2
+  - weight_industry_momentum = 0.8
+  - small_cap_premium = 0.1
+  - pe_low_threshold = 0.1
+  - pe_premium_drag = -0.2
+  - industry_trend_weight = 0.85
+  - market_sentiment_weight = 0.15
+- 采纳的申购资金参数：
+  - subscription_prediction_cap_factor_exponent = 0.25
+  - subscription_prediction_lock_factor_exponent = 0.2
+- 保留远端 2026-06-29 21:26 composite 调参记录作为对照，不采用其中 `weight_comparable=0.55`、`weight_industry_momentum=0.45`、`pe_low_threshold=0.3`、`pe_premium_drag=-0.175`。
+
+## 2026-06-29 19:50:04 自动调参（已接受）
+
+- 参数文件：C:\Users\ai\Desktop\北交所新股估值\策略参数.txt
+- 评估范围：composite
+- 最终搜索轮次：第 2 轮
+- 方法二样本池截取窗口：60 天（recent_days）
+- 近期权重基准日：2026-06-29，评分权重衰减窗口：90 天
+- 最近 30 天样本最低总权重：0.5000
+- baseline 排序分：0.0901
+- 新参数排序分：0.2260
+- baseline 近期加权命中率：0.3313
+- 新参数近期加权命中率：0.4704
+- 新参数最近样本权重占比：0.6067
+- 新参数加权 MAE(涨幅)：122.2195
+- 当前手动区间宽度诊断扣分：0.0500
+
+修改参数：
+- industry_trend_weight: 0.35 -> 0.85
+- market_sentiment_weight: 0.65 -> 0.15
+- pe_low_threshold: 0.35 -> 0.1
+- small_cap_premium: 0.25 -> 0.1
+- weight_comparable: 0.8 -> 0.2
+- weight_industry_momentum: 0.2 -> 0.8
+
 ## 2026-06-29 21:26:56 自动调参（已接受）
 
 - 参数文件：D:\BJ_IPO\策略参数.txt

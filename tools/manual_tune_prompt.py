@@ -21,8 +21,7 @@ if str(ROOT_DIR / "code") not in sys.path:
     sys.path.insert(0, str(ROOT_DIR / "code"))
 
 import config_loader
-import build_subscription_history
-import tune_params
+import sync_offline_tuning_dataset as offline_tuning_sync
 
 
 def _print_header() -> None:
@@ -134,51 +133,32 @@ def _refresh_sample_sets_before_tuning() -> None:
         rebuild_dataset=False,
         mode="offline",
         no_auto_refresh_dataset=False,
+        dataset_path=DEFAULT_DATASET_PATH,
+        history_path=DEFAULT_SUBSCRIPTION_HISTORY_PATH,
+        ladder_label_path=DEFAULT_LADDER_LABEL_PATH,
+        no_download_missing_announcements=False,
+        download_retries=1,
+        download_delay_seconds=0.0,
+        parse_prospectus=False,
         months=int(tuning_settings["tuning_replay_months"]),
         page_size=int(tuning_settings["tuning_page_size"]),
     )
 
-    print("调参前同步估值回放样本集...", flush=True)
+    print("调参前调用统一样本同步入口...", flush=True)
     try:
-        replay_dataset = tune_params._load_or_refresh_dataset(
+        offline_tuning_sync.sync_offline_tuning_dataset(
             refresh_args,
             params,
-            DEFAULT_DATASET_PATH,
-            sample_codes=None,
+            progress_callback=None,
+            verbose=True,
         )
-        print(
-            "估值回放样本集可用样本数：{count}".format(
-                count=replay_dataset.get("available_count", 0)
-            ),
-            flush=True,
-        )
+        return
     except Exception as exc:
-        print(f"估值回放样本集自动更新失败：{exc}", flush=True)
-        if not DEFAULT_DATASET_PATH.exists():
+        print(f"统一样本同步失败：{exc}", flush=True)
+        if not DEFAULT_DATASET_PATH.exists() or not DEFAULT_SUBSCRIPTION_HISTORY_PATH.exists():
             raise
-        print("本次将继续使用旧估值回放样本集。", flush=True)
-
-    print("调参前同步申购资金历史样本集...", flush=True)
-    try:
-        summary = build_subscription_history.build_subscription_history_table(
-            dataset_path=DEFAULT_DATASET_PATH,
-            output_path=DEFAULT_SUBSCRIPTION_HISTORY_PATH,
-            ladder_label_path=DEFAULT_LADDER_LABEL_PATH,
-        )
-        print(
-            "申购资金历史样本集 rows={rows}，model_ready={ready}，手工分档表 rows={ladder_rows}。".format(
-                rows=summary.get("row_count", 0),
-                ready=summary.get("model_ready_count", 0),
-                ladder_rows=summary.get("ladder_label_rows", 0),
-            ),
-            flush=True,
-        )
-    except Exception as exc:
-        print(f"申购资金历史样本集自动更新失败：{exc}", flush=True)
-        if not DEFAULT_SUBSCRIPTION_HISTORY_PATH.exists():
-            raise
-        print("本次将继续使用旧申购资金历史样本集。", flush=True)
-
+        print("本次将继续使用旧样本集。", flush=True)
+        return
 
 def _build_valuation_manual_command() -> tuple[list[str], dict[str, str]]:
     mode_choice = _prompt_choice(

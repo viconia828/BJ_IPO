@@ -13,10 +13,13 @@ ROOT_DIR = CURRENT_DIR.parent
 CODE_DIR = ROOT_DIR / "code"
 if str(CODE_DIR) not in sys.path:
     sys.path.insert(0, str(CODE_DIR))
+if str(CURRENT_DIR) not in sys.path:
+    sys.path.insert(0, str(CURRENT_DIR))
 
 import config_loader
 import data_fetcher
 import param_tuning
+import sync_offline_tuning_dataset as offline_tuning_sync
 
 
 def _parse_csv_codes(raw_value: str | None) -> list[str] | None:
@@ -174,8 +177,9 @@ def _build_and_save_dataset(
     use_item_cache: bool = True,
     existing_dataset: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
-    dataset = param_tuning.build_replay_dataset(
+    return offline_tuning_sync.build_and_save_replay_dataset(
         params,
+        dataset_path,
         months=months,
         sample_codes=sample_codes,
         page_size=page_size,
@@ -183,8 +187,6 @@ def _build_and_save_dataset(
         existing_dataset=existing_dataset,
         progress_callback=_dataset_progress,
     )
-    param_tuning.save_replay_dataset(dataset, dataset_path)
-    return dataset
 
 
 def _load_or_refresh_dataset(
@@ -193,71 +195,13 @@ def _load_or_refresh_dataset(
     dataset_path: Path,
     sample_codes: list[str] | None,
 ) -> dict[str, Any]:
-    if args.rebuild_dataset:
-        print("开始构建历史回放数据集...", flush=True)
-        return _build_and_save_dataset(
-            params,
-            dataset_path,
-            months=args.months,
-            sample_codes=sample_codes,
-            page_size=args.page_size,
-            use_item_cache=False,
-        )
-
-    if not dataset_path.exists():
-        print("开始构建历史回放数据集...", flush=True)
-        print("提示：将优先读取 data\\offline_tuning\\replay_items 下的单样本缓存。", flush=True)
-        return _build_and_save_dataset(
-            params,
-            dataset_path,
-            months=args.months,
-            sample_codes=sample_codes,
-            page_size=args.page_size,
-            use_item_cache=True,
-        )
-
-    dataset = param_tuning.load_replay_dataset(dataset_path)
-    if not _should_auto_refresh_dataset(args, dataset_path, sample_codes):
-        return dataset
-
-    local_codes = sample_codes if sample_codes is not None else param_tuning.discover_local_sample_codes()
-    sync_status = param_tuning.inspect_replay_dataset_sync(
-        dataset,
-        local_sample_codes=local_codes,
-        months=args.months,
+    return offline_tuning_sync.load_or_refresh_replay_dataset(
+        args,
+        params,
+        dataset_path,
+        sample_codes=sample_codes,
+        progress_callback=_dataset_progress,
     )
-    if not sync_status["needs_refresh"]:
-        print(
-            "回放数据集已同步本地首日分时走势：CSV {csv_count} 个，可用样本 {sample_count} 个。".format(
-                csv_count=len(sync_status.get("local_codes") or []),
-                sample_count=dataset.get("available_count", 0),
-            ),
-            flush=True,
-        )
-        return dataset
-
-    print("检测到本地首日分时走势与回放数据集不一致，开始自动更新数据集...", flush=True)
-    if args.mode == "auto":
-        print("提示：这是自动调参前的数据集同步步骤；如外部数据源不可用，会自动回退到旧回放数据集继续调参。", flush=True)
-    for reason in sync_status.get("reasons") or []:
-        print(f"- {reason}", flush=True)
-    try:
-        return _build_and_save_dataset(
-            params,
-            dataset_path,
-            months=args.months,
-            sample_codes=local_codes,
-            page_size=args.page_size,
-            use_item_cache=True,
-            existing_dataset=dataset,
-        )
-    except Exception as exc:
-        print(f"自动更新回放数据集失败：{exc}", flush=True)
-        print("本次将继续使用旧回放数据集；训练集/验证集暂不包含上述新增 CSV。", flush=True)
-        print("网络恢复后重新运行调参入口即可再次自动同步；如需强制刷新，可加 --rebuild-dataset。", flush=True)
-        if args.mode == "auto":
-            print("继续进入自动调参搜索...", flush=True)
-        return dataset
 
 
 def _resolve_params_file(argv: list[str] | None) -> str:

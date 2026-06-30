@@ -9,7 +9,6 @@ import os
 from pathlib import Path
 import re
 import sys
-from types import SimpleNamespace
 from typing import Any, Callable
 
 
@@ -21,8 +20,7 @@ if str(CODE_DIR) not in sys.path:
 import subscription_predictor
 import subscription_ladder_labels
 import config_loader
-import build_subscription_history
-import tune_params
+import sync_offline_tuning_dataset as offline_tuning_sync
 
 
 DEFAULT_HISTORY_PATH = ROOT_DIR / "data" / "offline_tuning" / "subscription_history_sample.csv"
@@ -162,58 +160,21 @@ def _refresh_subscription_history_before_tuning(
     if os.environ.get("BSE_TUNING_NO_AUTO_REFRESH") == "1" or args.no_auto_refresh_history:
         return None
 
-    tuning_settings = config_loader.get_tuning_runtime_settings(strategy_params)
-    refresh_args = SimpleNamespace(
-        rebuild_dataset=args.rebuild_dataset,
-        mode="auto" if args.mode == "auto" else "offline",
-        no_auto_refresh_dataset=args.no_auto_refresh_dataset,
-        months=int(args.months or tuning_settings["tuning_replay_months"]),
-        page_size=int(args.page_size or tuning_settings["tuning_page_size"]),
-    )
-
-    print("申购调参前同步估值回放样本集...", flush=True)
+    print("申购调参前调用统一样本同步入口...", flush=True)
     try:
-        replay_dataset = tune_params._load_or_refresh_dataset(
-            refresh_args,
+        result = offline_tuning_sync.sync_offline_tuning_dataset(
+            args,
             strategy_params,
-            args.dataset_path,
-            sample_codes=None,
+            progress_callback=None,
+            verbose=True,
         )
-        print(
-            "估值回放样本集可用样本数：{count}".format(
-                count=replay_dataset.get("available_count", 0)
-            ),
-            flush=True,
-        )
+        return dict(result.get("history_summary") or {})
     except Exception as exc:
-        print(f"申购调参前估值回放样本集自动更新失败：{exc}", flush=True)
-        if not args.dataset_path.exists():
-            raise
-        print("本次将继续使用旧估值回放样本集。", flush=True)
-
-    print("申购调参前同步申购资金历史样本集...", flush=True)
-    try:
-        summary = build_subscription_history.build_subscription_history_table(
-            dataset_path=args.dataset_path,
-            output_path=args.history_path,
-            ladder_label_path=args.ladder_label_path,
-        )
-        print(
-            "申购资金历史样本集 rows={rows}，model_ready={ready}，手工分档表 rows={ladder_rows}。".format(
-                rows=summary.get("row_count", 0),
-                ready=summary.get("model_ready_count", 0),
-                ladder_rows=summary.get("ladder_label_rows", 0),
-            ),
-            flush=True,
-        )
-        return summary
-    except Exception as exc:
-        print(f"申购资金历史样本集自动更新失败：{exc}", flush=True)
+        print(f"申购调参前统一样本同步失败：{exc}", flush=True)
         if not args.history_path.exists():
             raise
         print("本次将继续使用旧申购资金历史样本集。", flush=True)
         return None
-
 
 def _changed_main_tunable_params(base_params: dict[str, Any], candidate_params: dict[str, Any]) -> dict[str, Any]:
     updates: dict[str, Any] = {}
@@ -1682,6 +1643,10 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--rebuild-dataset", action="store_true")
     parser.add_argument("--no-auto-refresh-dataset", action="store_true")
     parser.add_argument("--no-auto-refresh-history", action="store_true")
+    parser.add_argument("--no-download-missing-announcements", action="store_true")
+    parser.add_argument("--download-retries", type=int, default=1)
+    parser.add_argument("--download-delay-seconds", type=float, default=0.0)
+    parser.add_argument("--parse-prospectus", action="store_true")
     parser.add_argument("--months", type=int, default=None)
     parser.add_argument("--page-size", type=int, default=None)
     parser.add_argument("--no-ladder-labels", action="store_true")
