@@ -7,7 +7,7 @@ from pathlib import Path
 import re
 import sys
 import time
-from typing import Any
+from typing import Any, Callable
 
 
 ROOT_DIR = Path(__file__).resolve().parents[1]
@@ -30,6 +30,8 @@ DEFAULT_PDF_DIR = ROOT_DIR / "\u516c\u544a\u6587\u4ef6"
 LISTING_ANNOUNCEMENT = "\u4e0a\u5e02\u516c\u544a\u4e66"
 ISSUE_ANNOUNCEMENT = "\u53d1\u884c\u516c\u544a"
 ISSUE_RESULT_ANNOUNCEMENT = "\u53d1\u884c\u7ed3\u679c\u516c\u544a"
+
+HistoryProgressCallback = Callable[[dict[str, Any]], None]
 
 TRACKED_FIELDS = (
     "APPLY_DATE",
@@ -176,6 +178,24 @@ def _format_value(value: Any) -> str:
     if isinstance(value, (list, dict)):
         return json.dumps(value, ensure_ascii=False, separators=(",", ":"))
     return str(value)
+
+
+def _emit_history_progress(progress_callback: HistoryProgressCallback | None, **event: Any) -> None:
+    if progress_callback is None:
+        return
+    progress_callback(event)
+
+
+def _document_label(document: str) -> str:
+    return {
+        "prospectus": "\u62db\u80a1\u8bf4\u660e\u4e66",
+        "issue": ISSUE_ANNOUNCEMENT,
+        "result": ISSUE_RESULT_ANNOUNCEMENT,
+    }.get(document, document)
+
+
+def _item_code(item: dict[str, Any]) -> str:
+    return str(item.get("SECURITY_CODE") or item.get("code") or "").strip()
 
 
 def _load_replay_dataset_items(dataset_path: Path) -> list[dict[str, Any]]:
@@ -330,38 +350,107 @@ def _fallback_name_from_pdf(code: str, pdfs: dict[str, Path | None]) -> str:
     return ""
 
 
+def _build_document_parse_plan(
+    pdfs: dict[str, Path | None],
+    values: dict[str, Any],
+    *,
+    parse_prospectus: bool = False,
+) -> list[tuple[str, Path | None, Any, bool]]:
+    parse_plan: list[tuple[str, Path | None, Any, bool]] = []
+    if parse_prospectus or any(_is_missing(values.get(field)) for field in ("ISSUE_PRICE", "TOTAL_ISSUE_NUM", "APPLY_DATE")):
+        parse_plan.append(("prospectus", pdfs.get("prospectus"), pdf_parser.extract_prospectus_issue_info, False))
+    parse_plan.extend(
+        (
+            ("issue", pdfs.get("issue"), pdf_parser.extract_issue_announcement_info, False),
+            ("result", pdfs.get("result"), pdf_parser.extract_issue_result_info, True),
+        )
+    )
+    return parse_plan
+
+
 def _parse_document_fields(
     pdfs: dict[str, Path | None],
     values: dict[str, Any],
     sources: dict[str, str],
     *,
     parse_prospectus: bool = False,
+    progress_callback: HistoryProgressCallback | None = None,
+    progress_state: dict[str, int] | None = None,
+    code: str = "",
+    name: str = "",
+    item_index: int = 0,
+    item_total: int = 0,
 ) -> list[str]:
     errors: list[str] = []
-    parse_plan: list[tuple[str, Path | None, Any, bool]] = []
-    if parse_prospectus or any(_is_missing(values.get(field)) for field in ("ISSUE_PRICE", "TOTAL_ISSUE_NUM", "APPLY_DATE")):
-        parse_plan.append(("prospectus", pdfs.get("prospectus"), pdf_parser.extract_prospectus_issue_info, False))
-    parse_plan.extend(
-        (
-        ("issue", pdfs.get("issue"), pdf_parser.extract_issue_announcement_info, False),
-        ("result", pdfs.get("result"), pdf_parser.extract_issue_result_info, True),
-        )
-    )
+    parse_plan = _build_document_parse_plan(pdfs, values, parse_prospectus=parse_prospectus)
     for label, file_path, parser, override in parse_plan:
         if file_path is None:
             continue
+        _emit_history_progress(
+            progress_callback,
+            event="parse_start",
+            code=code,
+            name=name,
+            document=label,
+            document_label=_document_label(label),
+            file=str(file_path),
+            index=item_index,
+            total=item_total,
+            **(progress_state or {}),
+        )
+        parse_error = ""
         try:
             info = parser(file_path)
         except Exception as exc:  # pragma: no cover - defensive for malformed local PDFs
+            parse_error = str(exc)
             errors.append(f"{label}:{exc}")
-            continue
-        _merge_document_fields(values, sources, info, default_source=label, override=override)
-        if label == "result" and _is_missing(values.get("ISSUE_RESULT_DATE")):
-            result_date = _extract_issue_result_date_from_text(pdf_parser._read_pdf_text(file_path))
-            if result_date:
-                values["ISSUE_RESULT_DATE"] = result_date
-                sources["ISSUE_RESULT_DATE"] = "issue_result:document_date"
+        else:
+            _merge_document_fields(values, sources, info, default_source=label, override=override)
+            if label == "result" and _is_missing(values.get("ISSUE_RESULT_DATE")):
+                result_date = _extract_issue_result_date_from_text(pdf_parser._read_pdf_text(file_path))
+                if result_date:
+                    values["ISSUE_RESULT_DATE"] = result_date
+                    sources["ISSUE_RESULT_DATE"] = "issue_result:document_date"
+        if progress_state is not None:
+            progress_state["parse_completed"] = int(progress_state.get("parse_completed", 0)) + 1
+        _emit_history_progress(
+            progress_callback,
+            event="parse_done" if not parse_error else "parse_error",
+            code=code,
+            name=name,
+            document=label,
+            document_label=_document_label(label),
+            file=str(file_path),
+            error=parse_error,
+            index=item_index,
+            total=item_total,
+            **(progress_state or {}),
+        )
     return errors
+
+
+def _expected_parse_labels(
+    pdfs: dict[str, Path | None],
+    values: dict[str, Any],
+    *,
+    download_missing_issue: bool,
+    download_missing_result: bool,
+    parse_prospectus: bool,
+) -> list[str]:
+    expected_pdfs = dict(pdfs)
+    if download_missing_issue and expected_pdfs.get("issue") is None:
+        expected_pdfs["issue"] = Path("__expected_issue_announcement__.pdf")
+    if download_missing_result and expected_pdfs.get("result") is None:
+        expected_pdfs["result"] = Path("__expected_issue_result_announcement__.pdf")
+    return [
+        label
+        for label, file_path, _, _ in _build_document_parse_plan(
+            expected_pdfs,
+            values,
+            parse_prospectus=parse_prospectus,
+        )
+        if file_path is not None
+    ]
 
 
 def _resolve_distribution(values: dict[str, Any]) -> list[dict[str, Any]]:
@@ -484,20 +573,83 @@ def build_subscription_history_rows(
     pdf_dir: Path = DEFAULT_PDF_DIR,
     download_missing_issue: bool = False,
     download_missing_result: bool = False,
+    download_skip_codes: set[str] | list[str] | tuple[str, ...] | None = None,
     parse_prospectus: bool = False,
     download_retries: int = 1,
     download_delay_seconds: float = 0.0,
+    progress_callback: HistoryProgressCallback | None = None,
 ) -> list[dict[str, Any]]:
     rows: list[dict[str, Any]] = []
-    for item in sorted(items, key=_row_sort_key):
-        code = str(item.get("SECURITY_CODE") or item.get("code") or "").strip()
-        if not code:
-            continue
+    skipped_download_codes = {str(code or "").strip() for code in (download_skip_codes or []) if str(code or "").strip()}
+    sorted_items = [item for item in sorted(items, key=_row_sort_key) if _item_code(item)]
+    preflight: list[dict[str, Any]] = []
+    for item in sorted_items:
+        code = _item_code(item)
+        allow_download = code not in skipped_download_codes
+        values, _ = _seed_base_values(item)
+        pdfs = _find_local_pdfs(pdf_dir, code)
+        download_documents: list[str] = []
+        if allow_download and download_missing_issue and pdfs.get("issue") is None:
+            download_documents.append("issue")
+        if allow_download and download_missing_result and pdfs.get("result") is None:
+            download_documents.append("result")
+        expected_parse_labels = _expected_parse_labels(
+            pdfs,
+            values,
+            download_missing_issue=allow_download and download_missing_issue,
+            download_missing_result=allow_download and download_missing_result,
+            parse_prospectus=parse_prospectus,
+        )
+        preflight.append(
+            {
+                "download_documents": download_documents,
+                "expected_parse_labels": expected_parse_labels,
+            }
+        )
+
+    progress_state = {
+        "download_total": sum(len(spec["download_documents"]) for spec in preflight),
+        "download_completed": 0,
+        "parse_total": sum(len(spec["expected_parse_labels"]) for spec in preflight),
+        "parse_completed": 0,
+    }
+    _emit_history_progress(
+        progress_callback,
+        event="history_start",
+        index=0,
+        total=len(sorted_items),
+        **progress_state,
+    )
+
+    for item_index, (item, preflight_spec) in enumerate(zip(sorted_items, preflight), start=1):
+        code = _item_code(item)
+        allow_download = code not in skipped_download_codes
 
         values, sources = _seed_base_values(item)
         pdfs = _find_local_pdfs(pdf_dir, code)
+        progress_name = str(item.get("SECURITY_NAME_ABBR") or "").strip() or _fallback_name_from_pdf(code, pdfs)
+        _emit_history_progress(
+            progress_callback,
+            event="row_start",
+            code=code,
+            name=progress_name,
+            index=item_index,
+            total=len(sorted_items),
+            **progress_state,
+        )
         download_errors: list[str] = []
-        if download_missing_issue and pdfs.get("issue") is None:
+        if allow_download and download_missing_issue and pdfs.get("issue") is None:
+            _emit_history_progress(
+                progress_callback,
+                event="download_start",
+                code=code,
+                name=progress_name,
+                document="issue",
+                document_label=_document_label("issue"),
+                index=item_index,
+                total=len(sorted_items),
+                **progress_state,
+            )
             _, error = _download_missing_document(
                 code,
                 pdf_dir,
@@ -505,10 +657,34 @@ def build_subscription_history_rows(
                 retries=download_retries,
                 delay_seconds=download_delay_seconds,
             )
+            progress_state["download_completed"] += 1
             if error:
                 download_errors.append(f"issue:{error}")
             pdfs = _find_local_pdfs(pdf_dir, code)
-        if download_missing_result and pdfs.get("result") is None:
+            _emit_history_progress(
+                progress_callback,
+                event="download_error" if error else "download_done",
+                code=code,
+                name=progress_name,
+                document="issue",
+                document_label=_document_label("issue"),
+                error=error,
+                index=item_index,
+                total=len(sorted_items),
+                **progress_state,
+            )
+        if allow_download and download_missing_result and pdfs.get("result") is None:
+            _emit_history_progress(
+                progress_callback,
+                event="download_start",
+                code=code,
+                name=progress_name,
+                document="result",
+                document_label=_document_label("result"),
+                index=item_index,
+                total=len(sorted_items),
+                **progress_state,
+            )
             _, error = _download_missing_document(
                 code,
                 pdf_dir,
@@ -516,11 +692,52 @@ def build_subscription_history_rows(
                 retries=download_retries,
                 delay_seconds=download_delay_seconds,
             )
+            progress_state["download_completed"] += 1
             if error:
                 download_errors.append(f"result:{error}")
             pdfs = _find_local_pdfs(pdf_dir, code)
+            _emit_history_progress(
+                progress_callback,
+                event="download_error" if error else "download_done",
+                code=code,
+                name=progress_name,
+                document="result",
+                document_label=_document_label("result"),
+                error=error,
+                index=item_index,
+                total=len(sorted_items),
+                **progress_state,
+            )
 
-        parse_errors = _parse_document_fields(pdfs, values, sources, parse_prospectus=parse_prospectus)
+        for expected_label in preflight_spec["expected_parse_labels"]:
+            if pdfs.get(expected_label) is not None:
+                continue
+            progress_state["parse_completed"] += 1
+            _emit_history_progress(
+                progress_callback,
+                event="parse_skipped",
+                code=code,
+                name=progress_name,
+                document=expected_label,
+                document_label=_document_label(expected_label),
+                reason="pdf_missing",
+                index=item_index,
+                total=len(sorted_items),
+                **progress_state,
+            )
+
+        parse_errors = _parse_document_fields(
+            pdfs,
+            values,
+            sources,
+            parse_prospectus=parse_prospectus,
+            progress_callback=progress_callback,
+            progress_state=progress_state,
+            code=code,
+            name=progress_name,
+            item_index=item_index,
+            item_total=len(sorted_items),
+        )
         parse_errors.extend(_sanitize_implausible_fields(values, sources))
         _maybe_derive_top_apply(values, sources)
 
@@ -648,6 +865,13 @@ def build_subscription_history_rows(
             "download_errors": "|".join(download_errors),
         }
         rows.append(row)
+    _emit_history_progress(
+        progress_callback,
+        event="history_done",
+        index=len(sorted_items),
+        total=len(sorted_items),
+        **progress_state,
+    )
     return rows
 
 
@@ -721,10 +945,12 @@ def build_subscription_history_table(
     pdf_dir: Path = DEFAULT_PDF_DIR,
     download_missing_issue: bool = False,
     download_missing_result: bool = False,
+    download_skip_codes: set[str] | list[str] | tuple[str, ...] | None = None,
     parse_prospectus: bool = False,
     download_retries: int = 1,
     download_delay_seconds: float = 0.0,
     ladder_label_path: Path = DEFAULT_LADDER_LABEL_PATH,
+    progress_callback: HistoryProgressCallback | None = None,
 ) -> dict[str, Any]:
     items = _load_replay_dataset_items(dataset_path)
     rows = build_subscription_history_rows(
@@ -732,9 +958,11 @@ def build_subscription_history_table(
         pdf_dir=pdf_dir,
         download_missing_issue=download_missing_issue,
         download_missing_result=download_missing_result,
+        download_skip_codes=download_skip_codes,
         parse_prospectus=parse_prospectus,
         download_retries=download_retries,
         download_delay_seconds=download_delay_seconds,
+        progress_callback=progress_callback,
     )
     existing_rows = _load_existing_subscription_history_csv(output_path)
     rows = _merge_existing_history_rows(rows, existing_rows)

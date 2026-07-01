@@ -116,6 +116,42 @@ def _run_missing_result_case(failures: list[str]) -> None:
     _assert("ONLINE_VA_SHARES/FROZEN_FUNDS_YI" in str(row.get("missing_fields")), "missing result: missing field absent", failures)
 
 
+def _run_download_skip_codes_case(failures: list[str]) -> None:
+    calls: list[tuple[str, str]] = []
+    original_download = build_subscription_history._download_missing_document
+
+    def fake_download(code: str, pdf_dir: Path, document: str, **kwargs: Any) -> tuple[Path | None, str]:
+        calls.append((code, document))
+        return None, "forced download call"
+
+    build_subscription_history._download_missing_document = fake_download
+    try:
+        rows = build_subscription_history.build_subscription_history_rows(
+            [
+                {
+                    "SECURITY_CODE": "920005",
+                    "SECURITY_NAME_ABBR": "Skip Download",
+                    "APPLY_DATE": "2026-06-01",
+                    "LISTING_DATE": "2026-06-10",
+                    "ISSUE_PRICE": 10.0,
+                    "TOTAL_ISSUE_NUM": 100.0,
+                }
+            ],
+            pdf_dir=Path(tempfile.gettempdir()) / "missing_subscription_history_pdf_dir",
+            download_missing_issue=True,
+            download_missing_result=True,
+            download_skip_codes={"920005"},
+        )
+    finally:
+        build_subscription_history._download_missing_document = original_download
+
+    _assert(calls == [], f"download skip: should not call downloader, got {calls}", failures)
+    row = rows[0]
+    _assert(row.get("issue_pdf_found") is False, "download skip: issue should remain missing", failures)
+    _assert(row.get("result_pdf_found") is False, "download skip: result should remain missing", failures)
+    _assert(row.get("download_errors") == "", "download skip: should not record download error", failures)
+
+
 def _run_implausible_online_issue_case(failures: list[str]) -> None:
     rows = build_subscription_history.build_subscription_history_rows(
         [
@@ -183,6 +219,7 @@ def main() -> int:
     failures: list[str] = []
     _run_ready_row_case(failures)
     _run_missing_result_case(failures)
+    _run_download_skip_codes_case(failures)
     _run_implausible_online_issue_case(failures)
     _run_top_apply_time_priority_label_case(failures)
     _run_result_date_text_case(failures)

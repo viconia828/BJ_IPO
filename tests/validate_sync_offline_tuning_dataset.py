@@ -38,6 +38,58 @@ def _write_history_csv(path: Path, rows: list[dict[str, object]]) -> None:
             writer.writerow({column: row.get(column, "") for column in build_subscription_history.CSV_COLUMNS})
 
 
+def retry_marker_same_day_download_cooldown_case(failures: list[str]) -> None:
+    temp_dir = _reset_temp_dir()
+    marker_path = temp_dir / "deferred_listing_data_codes.json"
+    marker_path.write_text(
+        json.dumps(
+            {
+                "schema": "offline_tuning_listing_data_retry_v1",
+                "updated_at": "2026-07-01 10:00:00",
+                "pending_codes": ["920001", "920002", "920003"],
+                "reasons_by_code": {
+                    "920001": ["download_errors", "missing_result_announcement"],
+                    "920002": ["parse_errors"],
+                    "920003": ["download_errors"],
+                },
+                "last_download_attempt_date_by_code": {
+                    "920003": "2026-06-30",
+                },
+            },
+            ensure_ascii=False,
+        ),
+        encoding="utf-8",
+    )
+
+    marker = sync_offline_tuning_dataset._load_retry_marker(marker_path)
+    cooldown_codes = sync_offline_tuning_dataset._same_day_download_cooldown_codes(
+        marker,
+        current_date="2026-07-01",
+    )
+    if cooldown_codes != ["920001"]:
+        failures.append(f"retry marker cooldown should only include same-day download failure, got {cooldown_codes}")
+
+    sync_offline_tuning_dataset._save_retry_codes(
+        marker_path,
+        ["920001", "920003"],
+        {
+            "920001": ["download_errors"],
+            "920003": ["download_errors"],
+        },
+        previous_marker=marker,
+        download_attempted_codes={"920003"},
+    )
+    saved = json.loads(marker_path.read_text(encoding="utf-8"))
+    saved_dates = saved.get("last_download_attempt_date_by_code") or {}
+    today = sync_offline_tuning_dataset._today_text()
+    if saved_dates.get("920001") != "2026-07-01":
+        failures.append("retry marker save should preserve previous same-day attempt date")
+    if saved_dates.get("920003") != today:
+        failures.append("retry marker save should stamp attempted retry code with today")
+    if "920002" in saved_dates:
+        failures.append("retry marker save should drop cleared retry codes from attempt dates")
+
+
 def manifest_includes_label_only_samples_case(failures: list[str]) -> None:
     temp_dir = _reset_temp_dir()
     dataset_path = temp_dir / "replay_dataset.json"
@@ -170,6 +222,7 @@ def manifest_includes_label_only_samples_case(failures: list[str]) -> None:
 
 def main() -> int:
     failures: list[str] = []
+    retry_marker_same_day_download_cooldown_case(failures)
     manifest_includes_label_only_samples_case(failures)
     if failures:
         for failure in failures:

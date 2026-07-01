@@ -29,25 +29,30 @@ trend_score_stocks = 5                # 走势评分最多纳入多少只历史�
 
 # === 自动调参可写回：综合估值权重与方法一折价 ===
 bse_discount_factor = 0.55            # 北交所相对可比公司估值折价系数
-weight_comparable = 0.2               # 方法一在综合估值中的权重
-weight_industry_momentum = 0.8        # 方法二在综合估值中的权重
+weight_comparable = 0.225               # 方法一在综合估值中的权重
+weight_industry_momentum = 0.775        # 方法二在综合估值中的权重
 
 # === 自动调参可写回：方法二样本修正 ===
 float_size_threshold = 2800           # 首日流通盘阈值（万股）；低于该值视为小盘
-small_cap_premium = 0.1             # 小盘样本给予的额外溢价系数
+small_cap_premium = 0.25             # 小盘样本给予的额外溢价系数
 pe_low_threshold = 0.1               # 发行 PE / 行业 PE 低估阈值
 pe_discount_boost = 0.2              # 低估阈值命中后的上调幅度
 pe_high_threshold = 0.45              # 发行 PE / 行业 PE 高估阈值
-pe_premium_drag = -0.2                # 高估阈值命中后的下调幅度
+pe_premium_drag = -0.175                # 高估阈值命中后的下调幅度
 sample_weight_mode = time_decay       # 历史样本加权方式：static / time_decay
 sample_decay_half_life_days = 10      # 时间衰减半衰期（天）
 
 # === 申购资金预测：正股/碎股门槛模型 ===
+subscription_prediction_account_pool_prior_min_source_samples = 1
+subscription_prediction_account_pool_prior_min_uplift_ratio = 0
+subscription_prediction_account_pool_half_life_samples = 4
+subscription_prediction_account_pool_recent_samples = 8
+subscription_prediction_account_pool_prior_weight = 1.2
 subscription_prediction_sample_decay_half_life_days = 5      # 申购资金历史样本时间衰减半衰期（天）
 subscription_prediction_cap_factor_direction = median_over_target
-subscription_prediction_cap_factor_exponent = 0.25
+subscription_prediction_cap_factor_exponent = 0.45
 subscription_prediction_issue_factor_direction = median_over_target
-subscription_prediction_issue_factor_exponent = 0.45
+subscription_prediction_issue_factor_exponent = 0.3
 subscription_prediction_lock_factor_exponent = 0.2
 subscription_prediction_multiple_scale = 1.0
 subscription_prediction_guaranteed_buffer_min_wan = 50       # 正股建议申购保护阈值下限（万元）
@@ -60,7 +65,7 @@ market_sentiment_weight = 0.15       # 全市场情绪因子权重
 trend_strong_boost = 0.12             # 走势评分强势时的额外加成
 trend_weak_discount = -0.12           # 走势评分偏弱时的额外折减
 trend_strong_threshold = 70           # 走势评分达到该值后视为强势
-trend_weak_threshold = 40             # 走势评分低于该值后视为偏弱
+trend_weak_threshold = 25             # 走势评分低于该值后视为偏弱
 
 # === 自动调参可写回：WSI 评分权重 ===
 wsi_weight_close_vwap = 0.30          # 收盘相对 VWAP 的强弱权重

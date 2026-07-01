@@ -311,6 +311,46 @@ def _run_account_pool_prior_case(failures: list[str]) -> None:
     )
 
 
+def _run_account_pool_manual_ladder_override_case(failures: list[str]) -> None:
+    row = _sample_pool_row("920010", "2026-06-01")
+    row["manual_ladder"] = "1+0=4;2+1=6"
+    sample = tune_subscription_prediction._account_pool_demand_wan_from_row(row, 10.0) or {}
+    _assert_close(sample.get("estimated_demand_wan"), 180.0, "manual pool: demand mismatch", failures)
+    _assert(sample.get("manual_ladder_override_count") == 2, "manual pool: override count mismatch", failures)
+
+
+def _run_auto_prior_branch_case(failures: list[str]) -> None:
+    rows = [
+        _sample_prior_row("920001", "2026-06-01"),
+        _sample_prior_row("920002", "2026-06-02"),
+        _sample_prior_row("920003", "2026-06-03"),
+        _sample_prior_row("920004", "2026-06-04"),
+    ]
+    rows[-1]["top_apply_below_guaranteed"] = "true"
+    result = tune_subscription_prediction.evaluate_auto_with_prior_branch(
+        rows,
+        min_history_samples=3,
+        max_candidates=1,
+        top_n=1,
+        prior_weights=[1.0],
+        prior_recent_sample_values=[3],
+        prior_half_life_values=[2.0],
+        prior_min_uplift_ratio_values=[1.1],
+        prior_min_source_sample_values=[3],
+    )
+    _assert(result.get("prior_candidate_count") == 1, "auto prior: candidate count mismatch", failures)
+    _assert(result.get("selected_branch") == "account_pool_prior", "auto prior: selected branch mismatch", failures)
+    selected = result.get("selected") or {}
+    _assert(selected.get("top_apply_false_negative_codes") == [], "auto prior: false negative not fixed", failures)
+    selected_params = selected.get("params") or {}
+    _assert_close(
+        selected_params.get("subscription_prediction_account_pool_prior_weight"),
+        1.0,
+        "auto prior: selected weight mismatch",
+        failures,
+    )
+
+
 def _run_manual_ladder_label_case(failures: list[str]) -> None:
     rows = [
         _sample_row("920001", "2026-06-01"),
@@ -500,6 +540,8 @@ def main() -> int:
     _run_window_and_robustness_case(failures)
     _run_large_account_pool_case(failures)
     _run_account_pool_prior_case(failures)
+    _run_account_pool_manual_ladder_override_case(failures)
+    _run_auto_prior_branch_case(failures)
     _run_manual_ladder_label_case(failures)
     _run_ladder_label_gb18030_fill_case(failures)
     _run_auto_refresh_history_case(failures)

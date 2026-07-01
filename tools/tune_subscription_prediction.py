@@ -66,6 +66,13 @@ DEFAULT_ACCOUNT_POOL_PRIOR_RECENT_SAMPLES = [8, 12]
 DEFAULT_ACCOUNT_POOL_PRIOR_HALF_LIVES = [4.0]
 
 MAIN_TUNABLE_PARAM_KEYS = tuple(DEFAULT_SEARCH_GRID.keys())
+PRIOR_TUNABLE_PARAM_KEYS = (
+    "subscription_prediction_account_pool_prior_weight",
+    "subscription_prediction_account_pool_recent_samples",
+    "subscription_prediction_account_pool_half_life_samples",
+    "subscription_prediction_account_pool_prior_min_uplift_ratio",
+    "subscription_prediction_account_pool_prior_min_source_samples",
+)
 
 
 def _safe_float(value: Any) -> float | None:
@@ -109,6 +116,10 @@ def _resolve_subscription_base_params(
 
 def _main_tunable_snapshot(params: dict[str, Any]) -> dict[str, Any]:
     return {key: params.get(key) for key in MAIN_TUNABLE_PARAM_KEYS if key in params}
+
+
+def _prior_tunable_snapshot(params: dict[str, Any]) -> dict[str, Any]:
+    return {key: params.get(key) for key in PRIOR_TUNABLE_PARAM_KEYS if key in params}
 
 
 def _values_differ(old_value: Any, new_value: Any) -> bool:
@@ -186,6 +197,28 @@ def _changed_main_tunable_params(base_params: dict[str, Any], candidate_params: 
         new_value = candidate_params.get(key)
         if _values_differ(old_value, new_value):
             updates[key] = new_value
+    return updates
+
+
+def _changed_prior_tunable_params(base_params: dict[str, Any], candidate_params: dict[str, Any]) -> dict[str, Any]:
+    updates: dict[str, Any] = {}
+    for key in PRIOR_TUNABLE_PARAM_KEYS:
+        if key not in candidate_params:
+            continue
+        if key not in base_params or _values_differ(base_params.get(key), candidate_params.get(key)):
+            updates[key] = candidate_params.get(key)
+    return updates
+
+
+def _changed_subscription_auto_params(
+    base_params: dict[str, Any],
+    candidate_params: dict[str, Any],
+    *,
+    include_prior: bool = False,
+) -> dict[str, Any]:
+    updates = _changed_main_tunable_params(base_params, candidate_params)
+    if include_prior:
+        updates.update(_changed_prior_tunable_params(base_params, candidate_params))
     return updates
 
 
@@ -312,19 +345,37 @@ def _fit_unallocated_avg_amount_wan(row: dict[str, Any], fit: dict[str, Any]) ->
     return avg_shares * issue_price / 10000
 
 
+def _manual_ladder_thresholds_by_lot(row: dict[str, Any]) -> dict[int, float]:
+    top_apply = _safe_float(row.get("top_apply_amount_wan"))
+    thresholds: dict[int, float] = {}
+    for item in subscription_ladder_labels.parse_manual_ladder(row.get("manual_ladder"), top_apply):
+        lot_level = int(item.get("total_lots") or 0)
+        amount = _safe_float(item.get("threshold_amount_wan"))
+        if lot_level > 0 and amount is not None and amount > 0:
+            thresholds[lot_level] = amount
+    return thresholds
+
+
 def _account_pool_demand_wan_from_row(row: dict[str, Any], target_cap_wan: float) -> dict[str, Any] | None:
     fit = _parse_json_object(row.get("allocation_fit_json"))
     buckets = fit.get("buckets")
     if not isinstance(buckets, list) or target_cap_wan <= 0:
         return None
 
+    manual_thresholds = _manual_ladder_thresholds_by_lot(row)
     bucket_demand_wan = 0.0
     bucket_accounts = 0.0
+    manual_override_count = 0
     for item in buckets:
         if not isinstance(item, dict):
             continue
         accounts = _safe_float(item.get("accounts"))
         amount = _safe_float(item.get("threshold_amount_wan"))
+        allocated_lots = int(_safe_float(item.get("allocated_lots")) or 0)
+        manual_amount = manual_thresholds.get(allocated_lots)
+        if manual_amount is not None:
+            amount = manual_amount
+            manual_override_count += 1
         if accounts is None or amount is None or accounts <= 0 or amount <= 0:
             continue
         bucket_accounts += accounts
@@ -354,6 +405,7 @@ def _account_pool_demand_wan_from_row(row: dict[str, Any], target_cap_wan: float
         "unallocated_demand_wan": unallocated_demand_wan,
         "bucket_accounts": bucket_accounts,
         "unallocated_accounts": unallocated_accounts,
+        "manual_ladder_override_count": manual_override_count,
         "confidence": confidence,
         "is_lower_bound": bool(fit.get("top_apply_below_guaranteed")),
         "fit_quality": fit.get("fit_quality") or fit.get("method") or "",
@@ -753,6 +805,13 @@ def _candidate_rank_key(summary: dict[str, Any]) -> tuple[float, float, float, f
     )
 
 
+def _summary_rank_key(summary: dict[str, Any]) -> tuple[float, float, float, float, float, float]:
+    rank_key = summary.get("rank_key")
+    if isinstance(rank_key, (list, tuple)) and rank_key:
+        return tuple(float(value) for value in rank_key)
+    return _candidate_rank_key(summary)
+
+
 def _account_pool_prior_minimal_trigger_rank_key(summary: dict[str, Any]) -> tuple[float, float, float, float, float, float]:
     false_negative_count = len(summary.get("top_apply_false_negative_codes") or [])
     false_positive_count = len(summary.get("top_apply_false_positive_codes") or [])
@@ -1120,6 +1179,87 @@ def evaluate_account_pool_prior(
     }
 
 
+def evaluate_auto_with_prior_branch(
+    rows: list[dict[str, Any]],
+    *,
+    min_history_samples: int = 3,
+    max_history_samples: int | None = None,
+    top_n: int = 5,
+    max_candidates: int | None = None,
+    base_params: dict[str, Any] | None = None,
+    prior_weights: list[float] | None = None,
+    prior_recent_sample_values: list[int] | None = None,
+    prior_half_life_values: list[float] | None = None,
+    prior_min_uplift_ratio_values: list[float] | None = None,
+    prior_min_source_sample_values: list[int] | None = None,
+    progress_callback: Callable[[int, int, dict[str, Any] | None], None] | None = None,
+) -> dict[str, Any]:
+    result = evaluate_candidate_grid(
+        rows,
+        min_history_samples=min_history_samples,
+        max_history_samples=max_history_samples,
+        top_n=top_n,
+        max_candidates=max_candidates,
+        base_params=base_params,
+        progress_callback=progress_callback,
+    )
+    baseline = result.get("baseline") or {}
+    main_best = result.get("best") or {}
+    baseline_rank = _summary_rank_key(baseline)
+    main_best_rank = _summary_rank_key(main_best) if main_best else baseline_rank
+
+    prior_base_params = _resolve_subscription_base_params(base_params)
+    if main_best.get("params"):
+        prior_base_params.update(dict(main_best.get("params") or {}))
+    prior_result = evaluate_account_pool_prior(
+        rows,
+        min_history_samples=min_history_samples,
+        max_history_samples=max_history_samples,
+        base_params=prior_base_params,
+        weights=prior_weights,
+        recent_sample_values=prior_recent_sample_values,
+        half_life_values=prior_half_life_values,
+        min_uplift_ratio_values=prior_min_uplift_ratio_values,
+        min_source_sample_values=prior_min_source_sample_values,
+        top_n=top_n,
+    )
+
+    prior_best = prior_result.get("best") or {}
+    prior_best_rank = _summary_rank_key(prior_best) if prior_best else baseline_rank
+    prior_minimal = prior_result.get("minimal_trigger_best") or {}
+    if prior_best:
+        prior_best["beats_baseline"] = bool(prior_best_rank < baseline_rank)
+        prior_best["beats_main_best"] = bool(prior_best_rank < main_best_rank)
+    if prior_minimal:
+        prior_minimal_rank = _summary_rank_key(prior_minimal)
+        prior_minimal["beats_baseline"] = bool(prior_minimal_rank < baseline_rank)
+        prior_minimal["beats_main_best"] = bool(prior_minimal_rank < main_best_rank)
+
+    main_beats_baseline = bool(main_best and main_best_rank < baseline_rank)
+    selected_branch = "main_grid" if main_beats_baseline else "none"
+    selected = main_best if main_beats_baseline else {}
+    selected_rank = main_best_rank if main_beats_baseline else baseline_rank
+    if prior_best and prior_best_rank < baseline_rank and prior_best_rank < selected_rank:
+        selected_branch = "account_pool_prior"
+        selected = prior_best
+        selected_rank = prior_best_rank
+
+    prior_result["base_branch"] = "main_grid_best"
+    prior_result["base_params"] = _main_tunable_snapshot(prior_base_params)
+    result["account_pool_prior_branch"] = prior_result
+    result["prior_candidate_count"] = prior_result.get("candidate_count", 0)
+    result["total_candidate_count"] = int(result.get("candidate_count") or 0) + int(
+        result.get("prior_candidate_count") or 0
+    )
+    result["main_best_beats_baseline"] = main_beats_baseline
+    result["prior_best_beats_baseline"] = bool(prior_best and prior_best_rank < baseline_rank)
+    result["prior_best_beats_main_best"] = bool(prior_best and prior_best_rank < main_best_rank)
+    result["selected_branch"] = selected_branch
+    result["selected"] = selected
+    result["selected_rank_key"] = list(selected_rank)
+    return result
+
+
 def _large_account_count_from_row(row: dict[str, Any], threshold_wan: float) -> dict[str, Any] | None:
     fit = _parse_json_object(row.get("allocation_fit_json"))
     buckets = fit.get("buckets")
@@ -1127,12 +1267,19 @@ def _large_account_count_from_row(row: dict[str, Any], threshold_wan: float) -> 
         return None
 
     top_apply_amount = _safe_float(row.get("top_apply_amount_wan"))
+    manual_thresholds = _manual_ladder_thresholds_by_lot(row)
     confidence = _safe_float(row.get("allocation_fit_confidence")) or _safe_float(fit.get("fit_confidence")) or 0.0
     account_count = 0.0
+    manual_override_count = 0
     for item in buckets:
         if not isinstance(item, dict):
             continue
         amount = _safe_float(item.get("threshold_amount_wan"))
+        allocated_lots = int(_safe_float(item.get("allocated_lots")) or 0)
+        manual_amount = manual_thresholds.get(allocated_lots)
+        if manual_amount is not None:
+            amount = manual_amount
+            manual_override_count += 1
         accounts = _safe_float(item.get("accounts"))
         if amount is not None and accounts is not None and amount >= threshold_wan:
             account_count += accounts
@@ -1153,6 +1300,7 @@ def _large_account_count_from_row(row: dict[str, Any], threshold_wan: float) -> 
         "confidence": confidence,
         "basis": basis,
         "is_lower_bound": bool(fit.get("top_apply_below_guaranteed") and account_count > 0),
+        "manual_ladder_override_count": manual_override_count,
     }
 
 
@@ -1549,15 +1697,22 @@ def _prepend_subscription_auto_record(
     output_path.parent.mkdir(parents=True, exist_ok=True)
     baseline = result.get("baseline") or {}
     best = result.get("best") or {}
+    selected = result.get("selected") or best
+    prior_branch = result.get("account_pool_prior_branch") or {}
+    prior_best = prior_branch.get("best") or {}
     change_lines = _format_subscription_change_lines(base_params, updates) or ["无参数变化"]
     record_lines = [
         f"## {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} 申购资金自动调参（已接受）",
         "",
         f"- 参数文件：{Path(params_path)}",
         f"- 历史样本：{result.get('history_path') or DEFAULT_HISTORY_PATH}",
-        f"- 候选组数：{result.get('candidate_count', 0)}",
+        f"- 主网格候选组数：{result.get('candidate_count', 0)}",
+        f"- prior 分支候选组数：{result.get('prior_candidate_count', 0)}",
+        f"- 选中分支：{result.get('selected_branch') or 'main_grid'}",
         f"- baseline：{_format_metric_brief(baseline)}",
-        f"- 新参数：{_format_metric_brief(best)}",
+        f"- 主网格最优：{_format_metric_brief(best)}",
+        f"- prior 分支最优：{_format_metric_brief(prior_best)}",
+        f"- 新参数：{_format_metric_brief(selected)}",
         "",
         "修改参数：",
         *[f"- {line}" for line in change_lines],
@@ -1571,11 +1726,31 @@ def _prepend_subscription_auto_record(
 def _print_subscription_auto_summary(result: dict[str, Any], *, best_beats_baseline: bool) -> None:
     baseline = result.get("baseline") or {}
     best = result.get("best") or {}
+    prior_branch = result.get("account_pool_prior_branch") or {}
+    prior_best = prior_branch.get("best") or {}
+    prior_minimal = prior_branch.get("minimal_trigger_best") or {}
+    selected = result.get("selected") or {}
     print("")
     print("申购资金自动调参结果：")
-    print(f"- 候选组数：{result.get('candidate_count', 0)}")
+    print(
+        f"- 候选组数：主网格 {result.get('candidate_count', 0)}，"
+        f"prior 分支 {result.get('prior_candidate_count', 0)}"
+    )
     print(f"- 当前参数：{_format_metric_brief(baseline)}")
-    print(f"- 最优候选：{_format_metric_brief(best)}")
+    print(f"- 主网格最优：{_format_metric_brief(best)}")
+    if prior_best:
+        print(
+            f"- prior 分支最优：{_format_metric_brief(prior_best)}，"
+            f"prior_applied={prior_best.get('account_pool_prior_applied_count', 0)}，"
+            f"beats_main={prior_best.get('beats_main_best')}"
+        )
+        print(f"  prior 参数：{_format_prior_params(prior_best.get('params') or {})}")
+    if prior_minimal:
+        print(
+            f"- prior 最小触发：{_format_metric_brief(prior_minimal)}，"
+            f"prior_applied={prior_minimal.get('account_pool_prior_applied_count', 0)}"
+        )
+    print(f"- 选中分支：{result.get('selected_branch') or 'none'}；{_format_metric_brief(selected)}")
     if not best_beats_baseline:
         print("- 结论：最优候选未优于当前参数。")
 
@@ -1586,24 +1761,37 @@ def _run_auto_mode(
     strategy_params: dict[str, Any],
 ) -> int:
     print("开始申购资金自动调参：按正股门槛、手工分档误差和抢时间漏判排序候选参数。", flush=True)
-    result = evaluate_candidate_grid(
+    result = evaluate_auto_with_prior_branch(
         rows,
         min_history_samples=max(args.min_history_samples, 1),
         max_history_samples=args.max_history_samples,
         top_n=max(args.top_n, 1),
         max_candidates=args.max_candidates,
         base_params=strategy_params,
+        prior_weights=_parse_float_values(args.account_pool_prior_weights),
+        prior_recent_sample_values=_parse_int_values(args.account_pool_prior_recent_samples),
+        prior_half_life_values=_parse_float_values(args.account_pool_prior_half_lives),
+        prior_min_uplift_ratio_values=_parse_float_values(args.account_pool_prior_min_uplift_ratios),
+        prior_min_source_sample_values=_parse_int_values(args.account_pool_prior_min_source_samples),
         progress_callback=_candidate_progress_printer("申购资金自动调参"),
     )
     result["history_path"] = str(args.history_path)
 
     baseline = result.get("baseline") or {}
-    best = result.get("best") or {}
-    baseline_rank = tuple(baseline.get("rank_key") or ())
-    best_rank = tuple(best.get("rank_key") or ())
-    best_params = dict(best.get("params") or {})
-    best_beats_baseline = bool(best_rank and baseline_rank and best_rank < baseline_rank)
-    updates = _changed_main_tunable_params(strategy_params, best_params) if best_beats_baseline else {}
+    selected = result.get("selected") or {}
+    baseline_rank = _summary_rank_key(baseline)
+    selected_rank = _summary_rank_key(selected) if selected else baseline_rank
+    selected_params = dict(selected.get("params") or {})
+    best_beats_baseline = bool(selected and selected_rank < baseline_rank)
+    updates = (
+        _changed_subscription_auto_params(
+            strategy_params,
+            selected_params,
+            include_prior=result.get("selected_branch") == "account_pool_prior",
+        )
+        if best_beats_baseline
+        else {}
+    )
     _print_subscription_auto_summary(result, best_beats_baseline=best_beats_baseline)
 
     if updates:

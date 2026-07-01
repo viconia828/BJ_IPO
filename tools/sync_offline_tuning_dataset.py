@@ -7,6 +7,7 @@ import json
 import os
 from pathlib import Path
 import sys
+import threading
 from types import SimpleNamespace
 from typing import Any, Callable
 
@@ -40,6 +41,17 @@ def _now_text() -> str:
     return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 
+def _today_text() -> str:
+    return datetime.now().strftime("%Y-%m-%d")
+
+
+def _date_prefix(value: Any) -> str:
+    text = str(value or "").strip()
+    if len(text) >= 10 and text[4:5] == "-" and text[7:8] == "-":
+        return text[:10]
+    return ""
+
+
 def _parse_csv_codes(raw_value: str | None) -> list[str] | None:
     if raw_value is None:
         return None
@@ -68,6 +80,98 @@ def _safe_float(value: Any) -> float | None:
 
 
 ProgressCallback = Callable[[int, int, dict[str, object]], None]
+
+
+class _SubscriptionHistoryHeartbeat:
+    def __init__(self, interval_seconds: float = 15.0) -> None:
+        self._interval_seconds = max(float(interval_seconds), 1.0)
+        self._lock = threading.Lock()
+        self._stop_event = threading.Event()
+        self._thread: threading.Thread | None = None
+        self._state: dict[str, Any] = {
+            "event": "history_start",
+            "index": 0,
+            "total": 0,
+            "download_total": 0,
+            "download_completed": 0,
+            "parse_total": 0,
+            "parse_completed": 0,
+        }
+
+    def start(self) -> None:
+        if self._thread is not None:
+            return
+        self._thread = threading.Thread(
+            target=self._run,
+            name="subscription-history-heartbeat",
+            daemon=True,
+        )
+        self._thread.start()
+
+    def stop(self) -> None:
+        self._stop_event.set()
+        if self._thread is not None:
+            self._thread.join(timeout=2.0)
+
+    def update(self, event: dict[str, Any]) -> None:
+        with self._lock:
+            for key, value in event.items():
+                self._state[key] = value
+
+    def _run(self) -> None:
+        while not self._stop_event.wait(self._interval_seconds):
+            message = self._format_snapshot()
+            if message:
+                print(message, flush=True)
+
+    def _format_snapshot(self) -> str:
+        with self._lock:
+            state = dict(self._state)
+
+        def as_int(key: str) -> int:
+            try:
+                return int(state.get(key) or 0)
+            except (TypeError, ValueError):
+                return 0
+
+        event = str(state.get("event") or "")
+        action = {
+            "history_start": "准备",
+            "row_start": "检查",
+            "download_start": "下载",
+            "download_done": "完成下载",
+            "download_error": "下载失败",
+            "parse_start": "解析",
+            "parse_done": "完成解析",
+            "parse_error": "解析失败",
+            "parse_skipped": "跳过解析",
+            "history_done": "收尾",
+        }.get(event, "处理")
+        code = str(state.get("code") or "").strip()
+        name = str(state.get("name") or "").strip()
+        document_label = str(state.get("document_label") or "").strip()
+        target_parts = [part for part in (code, name, document_label) if part]
+        target = " ".join(target_parts) if target_parts else "申购 history"
+
+        index = as_int("index")
+        total = as_int("total")
+        download_total = as_int("download_total")
+        download_completed = as_int("download_completed")
+        parse_total = as_int("parse_total")
+        parse_completed = as_int("parse_completed")
+        download_remaining = max(download_total - download_completed, 0)
+        parse_remaining = max(parse_total - parse_completed, 0)
+
+        sample_text = f"样本 {index}/{total}" if total else "样本准备中"
+        if download_total:
+            download_text = f"公告下载 {download_completed}/{download_total} 完成，待下载 {download_remaining}"
+        else:
+            download_text = "公告下载无需处理"
+        if parse_total:
+            parse_text = f"公告解析 {parse_completed}/{parse_total} 完成，待解析 {parse_remaining}"
+        else:
+            parse_text = "公告解析暂无待处理"
+        return f"[申购 history 心跳] 正在{action} {target}；{sample_text}；{download_text}；{parse_text}。"
 
 
 def _as_path(value: Any, default: Path) -> Path:
@@ -227,27 +331,115 @@ def load_or_refresh_replay_dataset(
         return dataset
 
 
-def _load_retry_codes(path: Path) -> list[str]:
+def _empty_retry_marker() -> dict[str, Any]:
+    return {
+        "pending_codes": [],
+        "reasons_by_code": {},
+        "last_download_attempt_date_by_code": {},
+        "updated_at": "",
+    }
+
+
+def _load_retry_marker(path: Path) -> dict[str, Any]:
+    marker = _empty_retry_marker()
     if not path.exists():
-        return []
+        return marker
     try:
         payload = json.loads(path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError):
-        return []
+        return marker
     if isinstance(payload, list):
-        return _dedupe_codes(payload)
+        marker["pending_codes"] = _dedupe_codes(payload)
+        return marker
     if not isinstance(payload, dict):
-        return []
-    return _dedupe_codes(payload.get("pending_codes") or payload.get("codes") or [])
+        return marker
+    pending_codes = _dedupe_codes(payload.get("pending_codes") or payload.get("codes") or [])
+    reasons_payload = payload.get("reasons_by_code") if isinstance(payload.get("reasons_by_code"), dict) else {}
+    attempts_payload = (
+        payload.get("last_download_attempt_date_by_code")
+        if isinstance(payload.get("last_download_attempt_date_by_code"), dict)
+        else {}
+    )
+    legacy_attempts_payload = (
+        payload.get("last_retry_attempt_date_by_code")
+        if isinstance(payload.get("last_retry_attempt_date_by_code"), dict)
+        else {}
+    )
+    reasons_by_code = {
+        code: _dedupe_codes(reasons_payload.get(code) if isinstance(reasons_payload, dict) else [])
+        for code in pending_codes
+    }
+    attempt_dates = {
+        code: _date_prefix(attempts_payload.get(code) or legacy_attempts_payload.get(code))
+        for code in pending_codes
+    }
+    updated_date = _date_prefix(payload.get("updated_at"))
+    for code in pending_codes:
+        if not attempt_dates.get(code) and "download_errors" in reasons_by_code.get(code, []) and updated_date:
+            attempt_dates[code] = updated_date
+    marker.update(
+        {
+            "pending_codes": pending_codes,
+            "reasons_by_code": reasons_by_code,
+            "last_download_attempt_date_by_code": {code: date for code, date in attempt_dates.items() if date},
+            "updated_at": str(payload.get("updated_at") or ""),
+        }
+    )
+    return marker
 
 
-def _save_retry_codes(path: Path, codes: list[str], reasons_by_code: dict[str, list[str]]) -> None:
+def _load_retry_codes(path: Path) -> list[str]:
+    return list(_load_retry_marker(path).get("pending_codes") or [])
+
+
+def _same_day_download_cooldown_codes(
+    marker: dict[str, Any],
+    *,
+    current_date: str | None = None,
+) -> list[str]:
+    today = current_date or _today_text()
+    reasons_by_code = marker.get("reasons_by_code") if isinstance(marker.get("reasons_by_code"), dict) else {}
+    attempt_dates = (
+        marker.get("last_download_attempt_date_by_code")
+        if isinstance(marker.get("last_download_attempt_date_by_code"), dict)
+        else {}
+    )
+    cooldown_codes: list[str] = []
+    for code in _dedupe_codes(marker.get("pending_codes") or []):
+        reasons = _dedupe_codes(reasons_by_code.get(code) or [])
+        if "download_errors" not in reasons:
+            continue
+        if _date_prefix(attempt_dates.get(code)) == today:
+            cooldown_codes.append(code)
+    return cooldown_codes
+
+
+def _save_retry_codes(
+    path: Path,
+    codes: list[str],
+    reasons_by_code: dict[str, list[str]],
+    *,
+    previous_marker: dict[str, Any] | None = None,
+    download_attempted_codes: set[str] | list[str] | tuple[str, ...] | None = None,
+) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
+    retry_codes = _dedupe_codes(codes)
+    previous_attempt_dates = {}
+    if isinstance(previous_marker, dict) and isinstance(previous_marker.get("last_download_attempt_date_by_code"), dict):
+        previous_attempt_dates = dict(previous_marker.get("last_download_attempt_date_by_code") or {})
+    attempted_codes = set(_dedupe_codes(download_attempted_codes or []))
+    today = _today_text()
+    attempt_dates: dict[str, str] = {}
+    for code in retry_codes:
+        date = today if code in attempted_codes else _date_prefix(previous_attempt_dates.get(code))
+        if date:
+            attempt_dates[code] = date
     payload = {
         "schema": "offline_tuning_listing_data_retry_v1",
         "updated_at": _now_text(),
-        "pending_codes": _dedupe_codes(codes),
-        "reasons_by_code": {code: reasons_by_code.get(code, []) for code in _dedupe_codes(codes)},
+        "pending_codes": retry_codes,
+        "reasons_by_code": {code: reasons_by_code.get(code, []) for code in retry_codes},
+        "last_download_attempt_date_by_code": attempt_dates,
     }
     path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
@@ -582,17 +774,29 @@ def sync_offline_tuning_dataset(
         dataset_path.parent / "deferred_listing_data_codes.json",
     )
 
-    pending_before = _load_retry_codes(retry_marker_path)
+    retry_marker_before = _load_retry_marker(retry_marker_path)
+    pending_before = list(retry_marker_before.get("pending_codes") or [])
+    same_day_download_cooldown = set(_same_day_download_cooldown_codes(retry_marker_before))
+    download_missing = not bool(getattr(args, "no_download_missing_announcements", False))
     if verbose:
         print(
             "选项 2 刷新范围：估值 replay 数据集、申购 history、手工阶梯标签上下文、样本 manifest。",
             flush=True,
         )
         if pending_before:
-            print(
-                f"检测到 {len(pending_before)} 只公告/字段待重试样本，本次会重新尝试下载缺失公告并解析。",
-                flush=True,
-            )
+            if download_missing:
+                retry_now_count = len([code for code in pending_before if code not in same_day_download_cooldown])
+                print(
+                    f"检测到 {len(pending_before)} 只公告/字段待重试样本；"
+                    f"{retry_now_count} 只本次会重新尝试下载缺失公告并解析，"
+                    f"{len(same_day_download_cooldown)} 只今天已下载失败，本次跳过下载仅解析本地已有公告。",
+                    flush=True,
+                )
+            else:
+                print(
+                    f"检测到 {len(pending_before)} 只公告/字段待重试样本；本次关闭缺失公告下载，仅解析本地已有公告。",
+                    flush=True,
+                )
 
     if verbose:
         print("开始同步估值 replay 数据集...", flush=True)
@@ -614,7 +818,6 @@ def sync_offline_tuning_dataset(
             flush=True,
         )
 
-    download_missing = not bool(getattr(args, "no_download_missing_announcements", False))
     download_retries = max(int(getattr(args, "download_retries", 1) or 1), 1)
     download_delay_seconds = max(float(getattr(args, "download_delay_seconds", 0.0) or 0.0), 0.0)
     parse_prospectus = bool(getattr(args, "parse_prospectus", False))
@@ -624,16 +827,35 @@ def sync_offline_tuning_dataset(
             print("开始同步申购 history：缺发行公告/发行结果公告时默认下载并解析。", flush=True)
         else:
             print("开始同步申购 history：本次仅解析本地已有公告。", flush=True)
-    history_summary = build_subscription_history.build_subscription_history_table(
-        dataset_path=dataset_path,
-        output_path=history_path,
-        ladder_label_path=ladder_label_path,
-        download_missing_issue=download_missing,
-        download_missing_result=download_missing,
-        parse_prospectus=parse_prospectus,
-        download_retries=download_retries,
-        download_delay_seconds=download_delay_seconds,
-    )
+    history_heartbeat = _SubscriptionHistoryHeartbeat(interval_seconds=15.0) if verbose else None
+    history_download_attempted_codes: set[str] = set()
+
+    def _history_progress(event: dict[str, Any]) -> None:
+        if event.get("event") == "download_start":
+            code = str(event.get("code") or "").strip()
+            if code:
+                history_download_attempted_codes.add(code)
+        if history_heartbeat is not None:
+            history_heartbeat.update(event)
+
+    if history_heartbeat is not None:
+        history_heartbeat.start()
+    try:
+        history_summary = build_subscription_history.build_subscription_history_table(
+            dataset_path=dataset_path,
+            output_path=history_path,
+            ladder_label_path=ladder_label_path,
+            download_missing_issue=download_missing,
+            download_missing_result=download_missing,
+            download_skip_codes=same_day_download_cooldown if download_missing else set(),
+            parse_prospectus=parse_prospectus,
+            download_retries=download_retries,
+            download_delay_seconds=download_delay_seconds,
+            progress_callback=_history_progress,
+        )
+    finally:
+        if history_heartbeat is not None:
+            history_heartbeat.stop()
     if verbose:
         print(
             "申购 history 行数：{row_count}；model_ready={model_ready_count}；手工标签行数 {ladder_label_rows}。".format(
@@ -648,7 +870,13 @@ def sync_offline_tuning_dataset(
         pending_before=pending_before,
     )
     retry_codes = sorted(retry_reasons_by_code)
-    _save_retry_codes(retry_marker_path, retry_codes, retry_reasons_by_code)
+    _save_retry_codes(
+        retry_marker_path,
+        retry_codes,
+        retry_reasons_by_code,
+        previous_marker=retry_marker_before,
+        download_attempted_codes=history_download_attempted_codes,
+    )
     if verbose:
         if retry_codes:
             print(
@@ -671,6 +899,10 @@ def sync_offline_tuning_dataset(
             "pending_after": retry_codes,
             "pending_after_count": len(retry_codes),
             "download_missing_announcements": download_missing,
+            "same_day_download_cooldown_codes": sorted(same_day_download_cooldown),
+            "same_day_download_cooldown_count": len(same_day_download_cooldown),
+            "download_attempted_codes": sorted(history_download_attempted_codes),
+            "download_attempted_count": len(history_download_attempted_codes),
             "download_retries": download_retries,
             "download_delay_seconds": download_delay_seconds,
             "parse_prospectus": parse_prospectus,

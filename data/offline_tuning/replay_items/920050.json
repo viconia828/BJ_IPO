@@ -1,12 +1,12 @@
 {
   "schema": "offline_tuning_replay_item_v1",
   "cache_version": 3,
-  "generated_at": "2026-05-29 19:35:07",
+  "generated_at": "2026-07-01 22:15:46",
   "code": "920050",
   "listing_date": "2026-01-21 00:00:00",
   "record_signature": {
     "SECURITY_CODE": "920050",
-    "SECURITY_NAME_ABBR": "爱舍伦",
+    "SECURITY_NAME_ABBR": "爱伦医疗",
     "APPLY_DATE": "2026-01-12 00:00:00",
     "LISTING_DATE": "2026-01-21 00:00:00",
     "ISSUE_PRICE": 15.98,
@@ -39,7 +39,7 @@
   },
   "item": {
     "SECURITY_CODE": "920050",
-    "SECURITY_NAME_ABBR": "爱舍伦",
+    "SECURITY_NAME_ABBR": "爱伦医疗",
     "APPLY_DATE": "2026-01-12 00:00:00",
     "LISTING_DATE": "2026-01-21 00:00:00",
     "ISSUE_PRICE": 15.98,
@@ -75,24 +75,9 @@
     "float_shares": 1979.4634,
     "has_intraday_file": true,
     "comparable_codes": [
-      "603301.SH",
       "002950.SZ"
     ],
     "comparable_data": [
-      {
-        "code": "603301.SH",
-        "name": "603301.SH",
-        "close": 69.21,
-        "pe_ttm": 65.4991,
-        "pb_lf": 3.2349,
-        "mkt_cap": 183.98477377,
-        "trade_date": "20260120",
-        "source": "tushare_historical",
-        "close_source": "tushare_historical",
-        "pe_source": "tushare_historical",
-        "pb_source": "tushare_historical",
-        "mkt_cap_source": "tushare_historical"
-      },
       {
         "code": "002950.SZ",
         "name": "002950.SZ",
@@ -111,16 +96,13 @@
     "comparable_summary": {
       "provider": "tushare_historical",
       "requested_codes": [
-        "603301.SH",
         "002950.SZ"
       ],
       "returned_codes": [
-        "603301.SH",
         "002950.SZ"
       ],
       "cache_hits": [],
       "api_fetched": [
-        "603301.SH",
         "002950.SZ"
       ],
       "skipped_unsupported": [],
