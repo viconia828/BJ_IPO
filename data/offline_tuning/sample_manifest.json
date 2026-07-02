@@ -1,6 +1,6 @@
 {
   "schema": "offline_tuning_sample_manifest_v1",
-  "generated_at": "2026-07-01 23:13:23",
+  "generated_at": "2026-07-02 22:57:25",
   "paths": {
     "dataset": "D:\\BJ_IPO\\data\\offline_tuning\\replay_dataset.json",
     "replay_items": "D:\\BJ_IPO\\data\\offline_tuning\\replay_items",
@@ -9,66 +9,60 @@
     "intraday": "D:\\BJ_IPO\\首日分时走势"
   },
   "summary": {
-    "intraday_csv_count": 36,
-    "replay_item_count": 36,
-    "replay_dataset_count": 36,
-    "replay_requested_count": 36,
-    "subscription_history_count": 36,
-    "ladder_label_count": 39,
+    "intraday_csv_count": 37,
+    "replay_item_count": 37,
+    "replay_dataset_count": 37,
+    "replay_requested_count": 37,
+    "subscription_history_count": 37,
+    "ladder_label_count": 40,
     "label_only_count": 3,
     "intraday_only_count": 0,
     "dataset_only_count": 0,
     "method1_ready_count": 32,
-    "model_ready_count": 36,
-    "manual_ladder_ready_count": 39,
-    "listing_data_retry_count": 1
+    "model_ready_count": 37,
+    "manual_ladder_ready_count": 40,
+    "listing_data_retry_count": 0
   },
   "differences": {
     "label_only_codes": [
+      "920081",
       "920136",
-      "920189",
-      "920193"
+      "920189"
     ],
     "intraday_only_codes": [],
     "dataset_only_codes": [],
-    "listing_data_retry_codes": [
-      "920125"
-    ]
+    "listing_data_retry_codes": []
   },
   "sync_summary": {
     "replay": {
-      "available_count": 36,
+      "available_count": 37,
       "method1_ready_count": 32,
       "item_cache": {
         "enabled": true,
         "dir": "D:\\BJ_IPO\\data\\offline_tuning\\replay_items",
-        "hits": 34,
-        "misses": 2,
-        "writes": 2,
+        "hits": 36,
+        "misses": 1,
+        "writes": 1,
         "existing_dataset_reused": 0
       }
     },
     "subscription_history": {
       "output_path": "D:\\BJ_IPO\\data\\offline_tuning\\subscription_history_sample.csv",
-      "row_count": 36,
-      "model_ready_count": 36,
-      "fractional_label_ready_count": 12,
-      "result_pdf_count": 36,
-      "issue_pdf_count": 36,
+      "row_count": 37,
+      "model_ready_count": 37,
+      "fractional_label_ready_count": 5,
+      "result_pdf_count": 37,
+      "issue_pdf_count": 37,
       "ladder_label_path": "D:\\BJ_IPO\\data\\offline_tuning\\subscription_ladder_labels.csv",
-      "ladder_label_rows": 39,
-      "ladder_label_filled": 39,
+      "ladder_label_rows": 40,
+      "ladder_label_filled": 40,
       "ladder_label_added_codes": []
     },
     "listing_data_retry": {
       "marker_path": "D:\\BJ_IPO\\data\\offline_tuning\\deferred_listing_data_codes.json",
-      "pending_before": [
-        "920125"
-      ],
-      "pending_after": [
-        "920125"
-      ],
-      "pending_after_count": 1,
+      "pending_before": [],
+      "pending_after": [],
+      "pending_after_count": 0,
       "download_missing_announcements": true,
       "same_day_download_cooldown_codes": [],
       "same_day_download_cooldown_count": 0,
@@ -491,6 +485,43 @@
       }
     },
     {
+      "security_code": "920081",
+      "security_name_abbr": "欧伦电气",
+      "apply_date": "",
+      "listing_date": "",
+      "in_intraday_csv": false,
+      "in_replay_dataset": false,
+      "has_replay_item": false,
+      "in_subscription_history": false,
+      "in_ladder_labels": true,
+      "method1_replay_available": false,
+      "has_intraday_file_in_replay": false,
+      "old_shares_source": "",
+      "old_shares_confidence": null,
+      "old_shares_pending_reason": "",
+      "comparable_code_count": 0,
+      "comparable_returned_count": 0,
+      "comparable_reason": "",
+      "history_quality_score": 0,
+      "model_ready": false,
+      "allocation_fit_ready": false,
+      "allocation_fit_usable_for_tuning": false,
+      "manual_ladder_label_ready": true,
+      "manual_ladder_item_count": 5,
+      "needs_listing_data_retry": false,
+      "pending_listing_data_retry_before": false,
+      "listing_data_retry_reasons": [],
+      "top_apply_amount_wan": null,
+      "online_issue_shares": null,
+      "replay_item_generated_at": "",
+      "replay_item_cache_version": null,
+      "replay_pdf_signature": {
+        "keys": [],
+        "present_count": 0,
+        "missing_count": 0
+      }
+    },
+    {
       "security_code": "920083",
       "security_name_abbr": "金戈新材",
       "apply_date": "2026-06-01 00:00:00",
@@ -678,13 +709,11 @@
       "allocation_fit_usable_for_tuning": true,
       "manual_ladder_label_ready": true,
       "manual_ladder_item_count": 2,
-      "needs_listing_data_retry": true,
-      "pending_listing_data_retry_before": true,
-      "listing_data_retry_reasons": [
-        "parse_errors"
-      ],
+      "needs_listing_data_retry": false,
+      "pending_listing_data_retry_before": false,
+      "listing_data_retry_reasons": [],
       "top_apply_amount_wan": 1006.6275,
-      "online_issue_shares": 13500000.0,
+      "online_issue_shares": 12150000.0,
       "replay_item_generated_at": "2026-05-29 19:35:07",
       "replay_item_cache_version": 3,
       "replay_pdf_signature": {
@@ -1389,37 +1418,41 @@
     {
       "security_code": "920193",
       "security_name_abbr": "吉和昌",
-      "apply_date": "",
-      "listing_date": "",
-      "in_intraday_csv": false,
-      "in_replay_dataset": false,
-      "has_replay_item": false,
-      "in_subscription_history": false,
+      "apply_date": "2026-06-17 00:00:00",
+      "listing_date": "2026-07-02 00:00:00",
+      "in_intraday_csv": true,
+      "in_replay_dataset": true,
+      "has_replay_item": true,
+      "in_subscription_history": true,
       "in_ladder_labels": true,
       "method1_replay_available": false,
-      "has_intraday_file_in_replay": false,
-      "old_shares_source": "",
-      "old_shares_confidence": null,
+      "has_intraday_file_in_replay": true,
+      "old_shares_source": "上市公告书",
+      "old_shares_confidence": 0.98,
       "old_shares_pending_reason": "",
-      "comparable_code_count": 0,
-      "comparable_returned_count": 0,
+      "comparable_code_count": 1,
+      "comparable_returned_count": 1,
       "comparable_reason": "",
-      "history_quality_score": 0,
-      "model_ready": false,
-      "allocation_fit_ready": false,
-      "allocation_fit_usable_for_tuning": false,
+      "history_quality_score": 230,
+      "model_ready": true,
+      "allocation_fit_ready": true,
+      "allocation_fit_usable_for_tuning": true,
       "manual_ladder_label_ready": true,
       "manual_ladder_item_count": 3,
       "needs_listing_data_retry": false,
       "pending_listing_data_retry_before": false,
       "listing_data_retry_reasons": [],
-      "top_apply_amount_wan": null,
-      "online_issue_shares": null,
-      "replay_item_generated_at": "",
-      "replay_item_cache_version": null,
+      "top_apply_amount_wan": 1073.52,
+      "online_issue_shares": 25200000.0,
+      "replay_item_generated_at": "2026-07-02 20:38:06",
+      "replay_item_cache_version": 3,
       "replay_pdf_signature": {
-        "keys": [],
-        "present_count": 0,
+        "keys": [
+          "comparables",
+          "listing",
+          "old_shares"
+        ],
+        "present_count": 3,
         "missing_count": 0
       }
     },

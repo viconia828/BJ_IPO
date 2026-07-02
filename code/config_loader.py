@@ -160,11 +160,21 @@ def _validate_params(params: dict[str, Any]) -> None:
         "subscription_prediction_lock_factor_exponent",
         "subscription_prediction_guaranteed_buffer_min_wan",
         "subscription_prediction_guaranteed_buffer_max_wan",
+        "subscription_prediction_similar_top_apply_frozen_weight",
+        "subscription_prediction_similar_top_apply_frozen_max_relative_distance",
     ):
         if float(params.get(non_negative_key, 0)) < 0:
             raise ValueError(f"{non_negative_key} 不能小于 0")
     if float(params.get("subscription_prediction_multiple_scale", 1.0)) <= 0:
         raise ValueError("subscription_prediction_multiple_scale 必须大于 0")
+    for positive_key in (
+        "subscription_prediction_similar_top_apply_frozen_recent_samples",
+        "subscription_prediction_similar_top_apply_frozen_min_samples",
+        "subscription_prediction_similar_top_apply_frozen_half_life_samples",
+        "subscription_prediction_similar_top_apply_frozen_bandwidth",
+    ):
+        if float(params.get(positive_key, 1)) <= 0:
+            raise ValueError(f"{positive_key} 必须大于 0")
     if float(params.get("subscription_prediction_guaranteed_buffer_max_wan", 100)) < float(
         params.get("subscription_prediction_guaranteed_buffer_min_wan", 50)
     ):

@@ -1,11 +1,14 @@
 from __future__ import annotations
 
+import csv
 from datetime import date
 import math
+from pathlib import Path
 import statistics
 from typing import Any
 
 
+ROOT_DIR = Path(__file__).resolve().parents[1]
 LOT_SIZE = 100
 DEFAULT_GUARANTEED_BUFFER_MIN_WAN = 50.0
 DEFAULT_GUARANTEED_BUFFER_MAX_WAN = 100.0
@@ -13,6 +16,21 @@ DEFAULT_FROZEN_FUNDS_FLOOR_RECENT_SAMPLES = 20
 DEFAULT_FROZEN_FUNDS_FLOOR_QUANTILE = 0.0
 DEFAULT_FROZEN_FUNDS_FLOOR_WEIGHT = 0.95
 DEFAULT_LOT_THRESHOLD_MAX_LOTS = 20
+DEFAULT_SIMILAR_TOP_APPLY_FROZEN_WEIGHT = 0.65
+DEFAULT_SIMILAR_TOP_APPLY_FROZEN_RECENT_SAMPLES = 24
+DEFAULT_SIMILAR_TOP_APPLY_FROZEN_MIN_SAMPLES = 1
+DEFAULT_SIMILAR_TOP_APPLY_FROZEN_HALF_LIFE_SAMPLES = 8.0
+DEFAULT_SIMILAR_TOP_APPLY_FROZEN_MAX_REL_DISTANCE = 0.35
+DEFAULT_SIMILAR_TOP_APPLY_FROZEN_BANDWIDTH = 0.18
+DEFAULT_ACCOUNT_POOL_RECENT_SAMPLES = 8
+DEFAULT_ACCOUNT_POOL_HALF_LIFE_SAMPLES = 4.0
+DEFAULT_ACCOUNT_POOL_THRESHOLDS_PATH = ROOT_DIR / "data" / "offline_tuning" / "account_pool_history_thresholds.csv"
+ACCOUNT_POOL_UNINFORMATIVE_BASES = {
+    "",
+    "no_observed_points",
+    "above_top_observed_threshold",
+    "above_top_apply_zero",
+}
 
 
 def _safe_float(value: Any) -> float | None:
@@ -89,6 +107,20 @@ def _resolve_lot_threshold_max_lots(settings: dict[str, Any]) -> int:
     if raw_value is None:
         raw_value = DEFAULT_LOT_THRESHOLD_MAX_LOTS
     return max(int(raw_value), 1)
+
+
+def _resolve_account_pool_recent_samples(settings: dict[str, Any]) -> int:
+    raw_value = _safe_float(settings.get("subscription_prediction_account_pool_recent_samples"))
+    if raw_value is None:
+        raw_value = DEFAULT_ACCOUNT_POOL_RECENT_SAMPLES
+    return max(int(raw_value), 1)
+
+
+def _resolve_account_pool_half_life(settings: dict[str, Any]) -> float:
+    raw_value = _safe_float(settings.get("subscription_prediction_account_pool_half_life_samples"))
+    if raw_value is None:
+        raw_value = DEFAULT_ACCOUNT_POOL_HALF_LIFE_SAMPLES
+    return max(float(raw_value), 1.0)
 
 
 def _fmt_shares(value: Any) -> str:
@@ -180,6 +212,331 @@ def _shares_to_amount_wan(shares: float | None, issue_price: float | None) -> fl
     if shares is None or issue_price is None or issue_price <= 0:
         return None
     return shares * issue_price / 10000
+
+
+def _amount_wan_to_ceiling_lot_shares(amount_wan: float | None, issue_price: float | None) -> int | None:
+    if amount_wan is None or amount_wan <= 0 or issue_price is None or issue_price <= 0:
+        return None
+    return _ceil_to_lot(amount_wan * 10000 / issue_price)
+
+
+def _account_pool_column_prefix(threshold_wan: float) -> str:
+    return f"accounts_ge_{int(round(threshold_wan))}w"
+
+
+def _parse_account_pool_threshold_key(key: str) -> float | None:
+    prefix = "accounts_ge_"
+    suffix = "w_estimate"
+    if not key.startswith(prefix) or not key.endswith(suffix):
+        return None
+    text = key[len(prefix) : -len(suffix)]
+    try:
+        return float(text)
+    except ValueError:
+        return None
+
+
+def _load_account_pool_rows(settings: dict[str, Any]) -> tuple[list[dict[str, Any]], str]:
+    raw_rows = settings.get("subscription_prediction_account_pool_rows")
+    if isinstance(raw_rows, list):
+        return [dict(row) for row in raw_rows if isinstance(row, dict)], "params"
+
+    if not _is_enabled(settings.get("subscription_prediction_account_pool_enabled"), default=True):
+        return [], "disabled"
+
+    raw_path = settings.get("subscription_prediction_account_pool_thresholds_path")
+    path = Path(str(raw_path)) if raw_path not in (None, "") else DEFAULT_ACCOUNT_POOL_THRESHOLDS_PATH
+    if not path.is_absolute():
+        path = ROOT_DIR / path
+    if not path.exists():
+        return [], str(path)
+
+    try:
+        with path.open("r", encoding="utf-8-sig", newline="") as file_obj:
+            return list(csv.DictReader(file_obj)), str(path)
+    except OSError:
+        return [], str(path)
+
+
+def _account_pool_thresholds(rows: list[dict[str, Any]]) -> list[float]:
+    thresholds: set[float] = set()
+    for row in rows:
+        for key in row:
+            threshold = _parse_account_pool_threshold_key(str(key))
+            if threshold is not None and threshold > 0:
+                thresholds.add(threshold)
+    return sorted(thresholds)
+
+
+def _account_pool_basis_is_usable(value: Any) -> bool:
+    return str(value or "").strip() not in ACCOUNT_POOL_UNINFORMATIVE_BASES
+
+
+def _row_estimate_accounts_ge(
+    row: dict[str, Any],
+    amount_wan: float,
+    thresholds: list[float],
+) -> float | None:
+    points: list[tuple[float, float]] = []
+    for threshold in thresholds:
+        prefix = _account_pool_column_prefix(threshold)
+        estimate = _safe_float(row.get(f"{prefix}_estimate"))
+        if estimate is None:
+            continue
+        if not _account_pool_basis_is_usable(row.get(f"{prefix}_basis")):
+            continue
+        points.append((threshold, max(float(estimate), 0.0)))
+    if not points:
+        return None
+
+    points.sort(key=lambda item: item[0])
+    for threshold, estimate in points:
+        if abs(threshold - amount_wan) < 1e-6:
+            return estimate
+
+    lower = [point for point in points if point[0] < amount_wan]
+    upper = [point for point in points if point[0] > amount_wan]
+    nearest_lower = lower[-1] if lower else None
+    nearest_upper = upper[0] if upper else None
+    if nearest_lower and nearest_upper:
+        low_amount, low_accounts = nearest_lower
+        high_amount, high_accounts = nearest_upper
+        if high_amount <= low_amount:
+            return max(high_accounts, 0.0)
+        ratio = (amount_wan - low_amount) / (high_amount - low_amount)
+        estimate = low_accounts + ratio * (high_accounts - low_accounts)
+        return max(float(estimate), 0.0)
+    if nearest_upper:
+        return max(nearest_upper[1], 0.0)
+    return None
+
+
+def _estimate_account_pool_accounts_ge(
+    *,
+    amount_wan: float,
+    rows: list[dict[str, Any]],
+    thresholds: list[float],
+    top_apply_amount_wan: float | None,
+    settings: dict[str, Any],
+) -> dict[str, Any]:
+    if top_apply_amount_wan is not None and amount_wan > top_apply_amount_wan + 1e-6:
+        return {
+            "estimate": 0.0,
+            "sample_count": 0,
+            "source_codes": [],
+            "basis": "above_top_apply_zero",
+        }
+
+    recent_limit = _resolve_account_pool_recent_samples(settings)
+    half_life = _resolve_account_pool_half_life(settings)
+    sorted_rows = sorted(
+        rows,
+        key=lambda row: (str(row.get("apply_date") or ""), str(row.get("security_code") or "")),
+    )
+
+    samples: list[tuple[float, float, str]] = []
+    for row in reversed(sorted_rows):
+        estimate = _row_estimate_accounts_ge(row, amount_wan, thresholds)
+        if estimate is None:
+            continue
+        weight = 0.5 ** (len(samples) / half_life)
+        samples.append((estimate, weight, str(row.get("security_code") or "")))
+        if len(samples) >= recent_limit:
+            break
+
+    if not samples:
+        return {
+            "estimate": None,
+            "sample_count": 0,
+            "source_codes": [],
+            "basis": "no_account_pool_samples",
+        }
+
+    estimate = _weighted_median([(value, weight) for value, weight, _ in samples])
+    return {
+        "estimate": estimate,
+        "sample_count": len(samples),
+        "source_codes": [code for _, _, code in samples if code],
+        "basis": "recent_account_pool_thresholds",
+    }
+
+
+def _estimate_account_pool_cutoff_amount(
+    *,
+    leftover_lots: float,
+    rows: list[dict[str, Any]],
+    thresholds: list[float],
+    top_apply_amount_wan: float | None,
+    settings: dict[str, Any],
+) -> dict[str, Any] | None:
+    if leftover_lots <= 0 or not thresholds:
+        return None
+
+    upper_amount = top_apply_amount_wan if top_apply_amount_wan and top_apply_amount_wan > 0 else max(thresholds)
+    grid = [threshold for threshold in thresholds if threshold <= upper_amount + 1e-6]
+    if not grid:
+        return None
+
+    candidate_amounts = sorted(set([min(grid), upper_amount, *grid]))
+    evaluations: list[tuple[float, float, dict[str, Any]]] = []
+    for amount in candidate_amounts:
+        account_estimate = _estimate_account_pool_accounts_ge(
+            amount_wan=amount,
+            rows=rows,
+            thresholds=thresholds,
+            top_apply_amount_wan=top_apply_amount_wan,
+            settings=settings,
+        )
+        accounts = _safe_float(account_estimate.get("estimate"))
+        if accounts is None:
+            continue
+        evaluations.append((amount, accounts, account_estimate))
+
+    if not evaluations:
+        return None
+
+    first_amount, first_accounts, first_info = evaluations[0]
+    if first_accounts <= leftover_lots:
+        return {
+            "cutoff_amount_wan": first_amount,
+            "accounts_ge_cutoff": first_accounts,
+            "sample_count": first_info.get("sample_count"),
+            "source_codes": first_info.get("source_codes") or [],
+            "basis": "below_first_account_pool_threshold",
+        }
+
+    previous_amount, previous_accounts, _ = evaluations[0]
+    for current_amount, current_accounts, current_info in evaluations[1:]:
+        if current_accounts > leftover_lots:
+            previous_amount, previous_accounts = current_amount, current_accounts
+            continue
+        if abs(previous_accounts - current_accounts) < 1e-9:
+            cutoff_amount = current_amount
+        else:
+            ratio = (leftover_lots - previous_accounts) / (current_accounts - previous_accounts)
+            cutoff_amount = previous_amount + ratio * (current_amount - previous_amount)
+        cutoff_info = _estimate_account_pool_accounts_ge(
+            amount_wan=cutoff_amount,
+            rows=rows,
+            thresholds=thresholds,
+            top_apply_amount_wan=top_apply_amount_wan,
+            settings=settings,
+        )
+        return {
+            "cutoff_amount_wan": cutoff_amount,
+            "accounts_ge_cutoff": cutoff_info.get("estimate"),
+            "sample_count": cutoff_info.get("sample_count") or current_info.get("sample_count"),
+            "source_codes": cutoff_info.get("source_codes") or current_info.get("source_codes") or [],
+            "basis": "interpolated_account_pool_cutoff",
+        }
+
+    last_amount, last_accounts, last_info = evaluations[-1]
+    return {
+        "cutoff_amount_wan": last_amount,
+        "accounts_ge_cutoff": last_accounts,
+        "sample_count": last_info.get("sample_count"),
+        "source_codes": last_info.get("source_codes") or [],
+        "basis": "top_apply_account_pool_cutoff",
+    }
+
+
+def _estimate_account_pool_fractional_cutoff(
+    *,
+    allocation_ratio: float,
+    issue_price: float,
+    online_issue_shares: float,
+    top_apply_shares: int | None,
+    top_apply_amount_wan: float | None,
+    settings: dict[str, Any],
+) -> dict[str, Any] | None:
+    if allocation_ratio <= 0 or issue_price <= 0 or online_issue_shares <= 0:
+        return None
+    if top_apply_shares is None or top_apply_shares <= 0 or not top_apply_amount_wan:
+        return None
+
+    rows, source = _load_account_pool_rows(settings)
+    thresholds = _account_pool_thresholds(rows)
+    if not rows or not thresholds:
+        return None
+
+    max_full_lots = int(math.floor((top_apply_shares * allocation_ratio) / LOT_SIZE))
+    if max_full_lots <= 0:
+        return None
+
+    guaranteed_counts: list[dict[str, Any]] = []
+    full_allocated_lots = 0.0
+    for lots in range(1, max_full_lots + 1):
+        threshold_shares = _ceil_to_lot(lots * LOT_SIZE / allocation_ratio)
+        if threshold_shares > top_apply_shares:
+            break
+        threshold_amount = _shares_to_amount_wan(threshold_shares, issue_price)
+        if threshold_amount is None:
+            return None
+        account_estimate = _estimate_account_pool_accounts_ge(
+            amount_wan=threshold_amount,
+            rows=rows,
+            thresholds=thresholds,
+            top_apply_amount_wan=top_apply_amount_wan,
+            settings=settings,
+        )
+        accounts = _safe_float(account_estimate.get("estimate"))
+        if accounts is None:
+            return None
+        full_allocated_lots += accounts
+        guaranteed_counts.append(
+            {
+                "lots": lots,
+                "threshold_amount_wan": threshold_amount,
+                "accounts_ge_threshold": accounts,
+                "sample_count": account_estimate.get("sample_count"),
+                "source_codes": account_estimate.get("source_codes") or [],
+            }
+        )
+
+    online_lots_total = online_issue_shares / LOT_SIZE
+    leftover_lots = online_lots_total - full_allocated_lots
+    if leftover_lots <= 0:
+        return None
+
+    cutoff = _estimate_account_pool_cutoff_amount(
+        leftover_lots=leftover_lots,
+        rows=rows,
+        thresholds=thresholds,
+        top_apply_amount_wan=top_apply_amount_wan,
+        settings=settings,
+    )
+    if not cutoff:
+        return None
+
+    cutoff_amount = _safe_float(cutoff.get("cutoff_amount_wan"))
+    cutoff_shares = _amount_wan_to_ceiling_lot_shares(cutoff_amount, issue_price)
+    if cutoff_shares is None:
+        return None
+    cutoff_shares = min(cutoff_shares, top_apply_shares)
+    accounts_ge_cutoff = _safe_float(cutoff.get("accounts_ge_cutoff"))
+    cutoff_fill_rate = leftover_lots / accounts_ge_cutoff if accounts_ge_cutoff and accounts_ge_cutoff > 0 else None
+
+    time_priority_required = bool(cutoff_fill_rate is not None and cutoff_fill_rate < 1.0 - 1e-9)
+
+    return {
+        "available": True,
+        "basis": "account_pool_fractional_estimate",
+        "source": source,
+        "fractional_threshold_shares": cutoff_shares,
+        "fractional_threshold_amount_wan": _shares_to_amount_wan(cutoff_shares, issue_price),
+        "raw_cutoff_amount_wan": cutoff_amount,
+        "time_priority_required": time_priority_required,
+        "fractional_min_lots": max_full_lots + 1,
+        "online_lots_total": online_lots_total,
+        "full_allocated_lots_estimate": full_allocated_lots,
+        "leftover_lots": leftover_lots,
+        "accounts_ge_cutoff": accounts_ge_cutoff,
+        "cutoff_fill_rate": min(cutoff_fill_rate, 1.0) if cutoff_fill_rate is not None else None,
+        "cutoff_basis": cutoff.get("basis"),
+        "sample_count": cutoff.get("sample_count"),
+        "source_codes": cutoff.get("source_codes") or [],
+        "guaranteed_counts": guaranteed_counts,
+    }
 
 
 def _resolve_online_issue_shares(record: dict[str, Any]) -> tuple[float | None, str]:
@@ -321,6 +678,126 @@ def _frozen_funds_floor_from_samples(
     }
 
 
+def _similar_top_apply_frozen_funds_from_samples(
+    samples: list[dict[str, float]],
+    target_top_apply_wan: float | None,
+    params: dict[str, Any],
+) -> dict[str, Any] | None:
+    if not _is_enabled(params.get("subscription_prediction_similar_top_apply_frozen_enabled"), default=True):
+        return None
+    if not target_top_apply_wan or target_top_apply_wan <= 0:
+        return None
+
+    recent_sample_count = int(
+        float(
+            params.get(
+                "subscription_prediction_similar_top_apply_frozen_recent_samples",
+                DEFAULT_SIMILAR_TOP_APPLY_FROZEN_RECENT_SAMPLES,
+            )
+        )
+    )
+    candidate_samples = samples[:recent_sample_count] if recent_sample_count > 0 else list(samples)
+    max_rel_distance = max(
+        float(
+            params.get(
+                "subscription_prediction_similar_top_apply_frozen_max_relative_distance",
+                DEFAULT_SIMILAR_TOP_APPLY_FROZEN_MAX_REL_DISTANCE,
+            )
+        ),
+        0.0,
+    )
+    bandwidth = max(
+        float(
+            params.get(
+                "subscription_prediction_similar_top_apply_frozen_bandwidth",
+                DEFAULT_SIMILAR_TOP_APPLY_FROZEN_BANDWIDTH,
+            )
+        ),
+        0.01,
+    )
+    half_life = max(
+        float(
+            params.get(
+                "subscription_prediction_similar_top_apply_frozen_half_life_samples",
+                DEFAULT_SIMILAR_TOP_APPLY_FROZEN_HALF_LIFE_SAMPLES,
+            )
+        ),
+        1.0,
+    )
+    min_samples = max(
+        int(
+            float(
+                params.get(
+                    "subscription_prediction_similar_top_apply_frozen_min_samples",
+                    DEFAULT_SIMILAR_TOP_APPLY_FROZEN_MIN_SAMPLES,
+                )
+            )
+        ),
+        1,
+    )
+
+    weighted_values: list[tuple[float, float]] = []
+    source_samples: list[dict[str, Any]] = []
+    for index, sample in enumerate(candidate_samples):
+        sample_top_apply = float(sample.get("top_apply_wan") or 0.0)
+        frozen_funds = float(sample.get("frozen_funds_yi") or 0.0)
+        if sample_top_apply <= 0 or frozen_funds <= 0:
+            continue
+        relative_distance = abs(sample_top_apply / target_top_apply_wan - 1.0)
+        if max_rel_distance > 0 and relative_distance > max_rel_distance:
+            continue
+        log_distance = abs(math.log(sample_top_apply / target_top_apply_wan))
+        similarity_weight = math.exp(-0.5 * (log_distance / bandwidth) ** 2)
+        recency_weight = 0.5 ** (index / half_life)
+        weight = similarity_weight * recency_weight
+        if weight <= 0:
+            continue
+        weighted_values.append((frozen_funds, weight))
+        source_samples.append(
+            {
+                "security_code": sample.get("security_code"),
+                "top_apply_wan": sample_top_apply,
+                "frozen_funds_yi": frozen_funds,
+                "relative_distance": relative_distance,
+                "weight": weight,
+            }
+        )
+
+    if len(weighted_values) < min_samples:
+        return None
+
+    anchor_frozen_funds_yi = _weighted_median(weighted_values)
+    if anchor_frozen_funds_yi is None or anchor_frozen_funds_yi <= 0:
+        return None
+
+    blend_weight = _clamp(
+        float(
+            params.get(
+                "subscription_prediction_similar_top_apply_frozen_weight",
+                DEFAULT_SIMILAR_TOP_APPLY_FROZEN_WEIGHT,
+            )
+        ),
+        0.0,
+        1.0,
+    )
+    source_samples.sort(key=lambda item: (float(item.get("relative_distance") or 0.0), -float(item.get("weight") or 0.0)))
+    return {
+        "available": True,
+        "basis": "similar_top_apply_frozen_funds",
+        "target_top_apply_wan": target_top_apply_wan,
+        "anchor_frozen_funds_yi": anchor_frozen_funds_yi,
+        "blend_weight": blend_weight,
+        "sample_count": len(weighted_values),
+        "recent_samples_requested": recent_sample_count,
+        "min_samples": min_samples,
+        "max_relative_distance": max_rel_distance,
+        "bandwidth": bandwidth,
+        "half_life_samples": half_life,
+        "source_codes": [str(item.get("security_code") or "") for item in source_samples if item.get("security_code")],
+        "samples": source_samples[:8],
+    }
+
+
 def _estimate_valid_subscription_shares(
     target: dict[str, Any],
     recent_ipos: list[dict[str, Any]],
@@ -396,8 +873,32 @@ def _estimate_valid_subscription_shares(
 
     multiple_scale = max(float(params.get("subscription_prediction_multiple_scale", 1.0)), 0.01)
     predicted_multiple = max(median_multiple * cap_factor * issue_factor * lock_factor * multiple_scale, 1.01)
-    base_valid_shares = online_issue_shares * predicted_multiple
-    base_frozen_funds_yi = base_valid_shares * issue_price / 100000000
+    raw_base_valid_shares = online_issue_shares * predicted_multiple
+    raw_base_frozen_funds_yi = raw_base_valid_shares * issue_price / 100000000
+    similar_top_apply_frozen = _similar_top_apply_frozen_funds_from_samples(samples, top_apply_wan, params)
+    base_valid_shares = raw_base_valid_shares
+    base_frozen_funds_yi = raw_base_frozen_funds_yi
+    if similar_top_apply_frozen:
+        anchor_frozen_funds_yi = float(similar_top_apply_frozen.get("anchor_frozen_funds_yi") or 0.0)
+        blend_weight = float(similar_top_apply_frozen.get("blend_weight") or 0.0)
+        blended_frozen_funds_yi = raw_base_frozen_funds_yi * (1.0 - blend_weight) + anchor_frozen_funds_yi * blend_weight
+        if blended_frozen_funds_yi > 0:
+            base_frozen_funds_yi = blended_frozen_funds_yi
+            base_valid_shares = blended_frozen_funds_yi * 100000000 / issue_price
+            predicted_multiple = base_valid_shares / online_issue_shares
+            similar_top_apply_frozen.update(
+                {
+                    "applied": True,
+                    "base_frozen_funds_yi": raw_base_frozen_funds_yi,
+                    "base_valid_subscription_shares": raw_base_valid_shares,
+                    "base_subscription_multiple": raw_base_valid_shares / online_issue_shares,
+                    "blended_frozen_funds_yi": blended_frozen_funds_yi,
+                    "blended_valid_subscription_shares": base_valid_shares,
+                    "blended_subscription_multiple": predicted_multiple,
+                }
+            )
+        else:
+            similar_top_apply_frozen["applied"] = False
     frozen_floor = _frozen_funds_floor_from_samples(samples, issue_price, online_issue_shares, params)
     frozen_floor_applied = False
     valid_subscription_shares = base_valid_shares
@@ -428,6 +929,9 @@ def _estimate_valid_subscription_shares(
         "predicted_subscription_multiple": predicted_multiple,
         "base_predicted_subscription_multiple": base_valid_shares / online_issue_shares,
         "base_predicted_frozen_funds_yi": base_frozen_funds_yi,
+        "raw_base_predicted_subscription_multiple": raw_base_valid_shares / online_issue_shares,
+        "raw_base_predicted_frozen_funds_yi": raw_base_frozen_funds_yi,
+        "similar_top_apply_frozen_funds": similar_top_apply_frozen,
         "frozen_funds_floor": frozen_floor,
         "reason": "",
     }
@@ -773,6 +1277,7 @@ def _build_lot_thresholds(
     fractional_shares: int | None,
     fractional_basis: str,
     fractional_time_required: bool,
+    fractional_min_lots: int = 1,
     max_lots_limit: int = 20,
 ) -> list[dict[str, Any]]:
     if allocation_ratio <= 0 or issue_price <= 0:
@@ -780,40 +1285,85 @@ def _build_lot_thresholds(
 
     rows: list[dict[str, Any]] = []
     limit = max(int(max_lots_limit), 1)
-    for lots in range(1, limit + 1):
-        guaranteed_shares = _ceil_to_lot(lots * LOT_SIZE / allocation_ratio)
-        candidates = [
-            {
-                "threshold_shares": guaranteed_shares,
-                "basis": "guaranteed_lot",
-                "time_priority_required": False,
-            }
-        ]
-        if fractional_shares and fractional_shares > 0:
-            previous_guaranteed_shares = _ceil_to_lot((lots - 1) * LOT_SIZE / allocation_ratio) if lots > 1 else 0
-            fractional_candidate_shares = _ceil_to_lot(max(previous_guaranteed_shares, fractional_shares))
-            candidates.append(
+    if fractional_shares and fractional_shares > 0:
+        first_guaranteed_shares = _ceil_to_lot(LOT_SIZE / allocation_ratio)
+        if fractional_shares < first_guaranteed_shares and (
+            top_apply_shares is None or fractional_shares <= top_apply_shares
+        ):
+            rows.append(
                 {
-                    "threshold_shares": fractional_candidate_shares,
+                    "lots": 1,
+                    "regular_lots": 0,
+                    "fractional_lots": 1,
+                    "ladder_label": "0+1",
+                    "threshold_shares": int(fractional_shares),
+                    "threshold_amount_wan": _shares_to_amount_wan(fractional_shares, issue_price),
                     "basis": fractional_basis,
+                    "threshold_kind": "fractional",
                     "time_priority_required": bool(fractional_time_required),
                 }
             )
 
-        selected = min(candidates, key=lambda item: float(item["threshold_shares"]))
-        threshold_shares = int(selected["threshold_shares"])
-        if top_apply_shares is not None and threshold_shares > top_apply_shares:
+    for regular_lots in range(1, limit + 1):
+        guaranteed_shares = _ceil_to_lot(regular_lots * LOT_SIZE / allocation_ratio)
+        if top_apply_shares is not None and guaranteed_shares > top_apply_shares:
             break
         rows.append(
             {
-                "lots": lots,
-                "threshold_shares": threshold_shares,
-                "threshold_amount_wan": _shares_to_amount_wan(threshold_shares, issue_price),
-                "basis": selected["basis"],
-                "time_priority_required": bool(selected["time_priority_required"]),
+                "lots": regular_lots,
+                "regular_lots": regular_lots,
+                "fractional_lots": 0,
+                "ladder_label": f"{regular_lots}+0",
+                "threshold_shares": guaranteed_shares,
+                "threshold_amount_wan": _shares_to_amount_wan(guaranteed_shares, issue_price),
+                "basis": "guaranteed_lot",
+                "threshold_kind": "guaranteed",
+                "time_priority_required": False,
+            }
+        )
+        if not fractional_shares or fractional_shares <= 0:
+            continue
+        if regular_lots + 1 > limit:
+            continue
+        fractional_candidate_shares = _ceil_to_lot(max(guaranteed_shares, fractional_shares))
+        if top_apply_shares is not None and fractional_candidate_shares > top_apply_shares:
+            continue
+        rows.append(
+            {
+                "lots": regular_lots + 1,
+                "regular_lots": regular_lots,
+                "fractional_lots": 1,
+                "ladder_label": f"{regular_lots}+1",
+                "threshold_shares": fractional_candidate_shares,
+                "threshold_amount_wan": _shares_to_amount_wan(fractional_candidate_shares, issue_price),
+                "basis": fractional_basis,
+                "threshold_kind": "fractional",
+                "time_priority_required": bool(fractional_time_required and fractional_shares > guaranteed_shares),
             }
         )
     return rows
+
+
+def _fractional_time_priority_limit_label(lot_thresholds: list[dict[str, Any]]) -> str:
+    candidates: list[tuple[int, int, str]] = []
+    for item in lot_thresholds:
+        if not isinstance(item, dict):
+            continue
+        if int(item.get("fractional_lots") or 0) <= 0:
+            continue
+        if not item.get("time_priority_required"):
+            continue
+        label = str(item.get("ladder_label") or "").strip()
+        if not label:
+            regular_lots = int(item.get("regular_lots") or 0)
+            label = f"{regular_lots}+1" if regular_lots >= 0 else ""
+        if not label:
+            continue
+        candidates.append((int(item.get("regular_lots") or 0), int(item.get("lots") or 0), label))
+    if not candidates:
+        return ""
+    candidates.sort(key=lambda item: (item[0], item[1]))
+    return candidates[-1][2]
 
 
 def build_subscription_prediction(
@@ -899,6 +1449,8 @@ def build_subscription_prediction(
     )
     direct_fractional_shares = _safe_float(ipo_info.get("FRACTIONAL_THRESHOLD_SHARES"))
     direct_time_required = ipo_info.get("FRACTIONAL_TIME_PRIORITY_REQUIRED")
+    account_pool_fractional_estimate = None
+    fractional_min_lots = 1
     if direct_fractional_shares:
         fractional_shares = _ceil_to_lot(direct_fractional_shares)
         fractional_basis = "issue_result_threshold"
@@ -914,25 +1466,41 @@ def build_subscription_prediction(
         leftover_lots = distribution_result.get("leftover_lots")
     else:
         if guaranteed_reachable:
-            extra_lot_shares = _ceil_to_lot((2 * LOT_SIZE) / allocation_ratio)
-            if top_apply_shares is not None and extra_lot_shares <= top_apply_shares:
-                fractional_shares = extra_lot_shares
-                time_required = True
-                fractional_basis = "extra_lot_estimate_without_distribution"
+            account_pool_fractional_estimate = _estimate_account_pool_fractional_cutoff(
+                allocation_ratio=allocation_ratio,
+                issue_price=issue_price,
+                online_issue_shares=online_issue_shares,
+                top_apply_shares=top_apply_shares,
+                top_apply_amount_wan=top_apply_wan,
+                settings=settings,
+            )
+            if account_pool_fractional_estimate:
+                fractional_shares = int(account_pool_fractional_estimate["fractional_threshold_shares"])
+                time_required = bool(account_pool_fractional_estimate.get("time_priority_required"))
+                fractional_basis = str(account_pool_fractional_estimate.get("basis") or "account_pool_fractional_estimate")
+                fractional_min_lots = int(account_pool_fractional_estimate.get("fractional_min_lots") or 1)
             else:
-                fractional_shares = None
-                time_required = False
-                fractional_basis = "extra_lot_unreachable_without_distribution"
+                extra_lot_shares = _ceil_to_lot((2 * LOT_SIZE) / allocation_ratio)
+                if top_apply_shares is not None and extra_lot_shares <= top_apply_shares:
+                    fractional_shares = extra_lot_shares
+                    time_required = True
+                    fractional_basis = "extra_lot_estimate_without_distribution"
+                else:
+                    fractional_shares = None
+                    time_required = False
+                    fractional_basis = "extra_lot_unreachable_without_distribution"
+            if account_pool_fractional_estimate:
+                cutoff_fill_rate = account_pool_fractional_estimate.get("cutoff_fill_rate")
+                leftover_lots = account_pool_fractional_estimate.get("leftover_lots")
         else:
+            account_pool_fractional_estimate = None
             fractional_shares = top_apply_shares
             time_required = True
             fractional_basis = "top_apply_below_guaranteed_all_time_priority"
-        cutoff_fill_rate = None
-        leftover_lots = None
+        if not account_pool_fractional_estimate:
+            cutoff_fill_rate = None
+            leftover_lots = None
 
-    time_priority_scope = "none"
-    if time_required:
-        time_priority_scope = "all_top_apply_accounts" if top_apply_below_guaranteed else "fractional_cutoff"
     top_apply_time_priority_required = top_apply_below_guaranteed
     if top_apply_time_priority_required:
         top_apply_time_priority_note = "必须抢时间（顶格仍不足正股）"
@@ -940,13 +1508,6 @@ def build_subscription_prediction(
         top_apply_time_priority_note = "可能需要抢时间（保护后建议金额超过顶格）"
     else:
         top_apply_time_priority_note = "否"
-
-    if top_apply_below_guaranteed:
-        fractional_time_priority_note = "必须抢时间（顶格账户正股/碎股均按时间优先）"
-    elif time_required:
-        fractional_time_priority_note = "可能需要抢时间多获配一手碎股"
-    else:
-        fractional_time_priority_note = "否"
 
     allocation_fit = _fit_allocation_buckets(
         issue_price=issue_price,
@@ -968,8 +1529,33 @@ def build_subscription_prediction(
         fractional_shares=fractional_shares,
         fractional_basis=fractional_basis,
         fractional_time_required=time_required,
+        fractional_min_lots=fractional_min_lots,
         max_lots_limit=_resolve_lot_threshold_max_lots(settings),
     )
+    time_required = any(
+        bool(item.get("time_priority_required"))
+        for item in lot_thresholds
+        if int(item.get("fractional_lots") or 0) > 0
+    )
+    fractional_time_priority_limit_label = _fractional_time_priority_limit_label(lot_thresholds)
+    fractional_time_priority_overview_text = (
+        f"{fractional_time_priority_limit_label}以下可能"
+        if time_required and fractional_time_priority_limit_label
+        else ""
+    )
+    time_priority_scope = "none"
+    if time_required:
+        time_priority_scope = "all_top_apply_accounts" if top_apply_below_guaranteed else "fractional_cutoff"
+    if top_apply_below_guaranteed:
+        fractional_time_priority_note = "必须抢时间（顶格账户正股/碎股均按时间优先）" if time_required else "否"
+    elif time_required:
+        fractional_time_priority_note = (
+            f"{fractional_time_priority_limit_label}以下碎股可能需要抢时间"
+            if fractional_time_priority_limit_label
+            else "可能需要抢时间多获配一手碎股"
+        )
+    else:
+        fractional_time_priority_note = "否"
     protected_amount_text = (
         f"测算 {_fmt_amount_wan(guaranteed_amount_wan)} + 保护 {_fmt_buffer_wan(buffer_min_wan, buffer_max_wan)} = "
         f"{_fmt_protected_amount_range(protected_amount_min_wan, protected_amount_max_wan)}"
@@ -1002,7 +1588,7 @@ def build_subscription_prediction(
         ],
     ]
     for item in lot_thresholds:
-        lot_label = f"{int(item.get('lots') or 0)}手建议申购门槛"
+        lot_label = f"{item.get('ladder_label') or str(int(item.get('lots') or 0)) + '手'}建议申购门槛"
         source = str(item.get("basis") or "-")
         if item.get("time_priority_required"):
             source = f"{source}:time_priority"
@@ -1067,10 +1653,13 @@ def build_subscription_prediction(
         "fractional_threshold_amount_wan": fractional_amount_wan,
         "fractional_time_priority_required": time_required,
         "fractional_time_priority_note": fractional_time_priority_note,
+        "fractional_time_priority_limit_label": fractional_time_priority_limit_label,
+        "fractional_time_priority_overview_text": fractional_time_priority_overview_text,
         "time_priority_scope": time_priority_scope,
         "fractional_cutoff_fill_rate": cutoff_fill_rate,
         "leftover_lots": leftover_lots,
         "lot_thresholds": lot_thresholds,
+        "account_pool_fractional_estimate": account_pool_fractional_estimate,
         "allocation_fit": allocation_fit,
         "table_rows": table_rows,
         "estimate": estimate,

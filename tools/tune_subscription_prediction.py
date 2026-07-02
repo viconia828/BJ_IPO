@@ -51,6 +51,90 @@ DEFAULT_SEARCH_GRID = {
     "subscription_prediction_multiple_scale": [0.85, 1.0, 1.15],
 }
 
+
+DEFAULT_CORE_COARSE_BLOCK_GRIDS = (
+    ("core_decay_coarse", {"subscription_prediction_sample_decay_half_life_days": [5, 10, 20, 40]}),
+    (
+        "core_cap_shape_coarse",
+        {
+            "subscription_prediction_cap_factor_direction": ["target_over_median", "median_over_target"],
+            "subscription_prediction_cap_factor_exponent": [0.0, 0.25, 0.45],
+        },
+    ),
+    (
+        "core_issue_shape_coarse",
+        {
+            "subscription_prediction_issue_factor_direction": ["target_over_median", "median_over_target"],
+            "subscription_prediction_issue_factor_exponent": [0.0, 0.25, 0.45],
+        },
+    ),
+    (
+        "core_lock_scale_coarse",
+        {
+            "subscription_prediction_lock_factor_exponent": [0.0, 0.20, 0.35],
+            "subscription_prediction_multiple_scale": [0.85, 1.0, 1.15],
+        },
+    ),
+)
+
+SIMILAR_TOP_APPLY_FROZEN_PARAM_KEYS = (
+    "subscription_prediction_similar_top_apply_frozen_enabled",
+    "subscription_prediction_similar_top_apply_frozen_weight",
+    "subscription_prediction_similar_top_apply_frozen_recent_samples",
+    "subscription_prediction_similar_top_apply_frozen_min_samples",
+    "subscription_prediction_similar_top_apply_frozen_half_life_samples",
+    "subscription_prediction_similar_top_apply_frozen_max_relative_distance",
+    "subscription_prediction_similar_top_apply_frozen_bandwidth",
+)
+
+DEFAULT_SIMILAR_TOP_APPLY_FROZEN_PARAMS = {
+    "subscription_prediction_similar_top_apply_frozen_enabled": True,
+    "subscription_prediction_similar_top_apply_frozen_weight": 0.65,
+    "subscription_prediction_similar_top_apply_frozen_recent_samples": 24,
+    "subscription_prediction_similar_top_apply_frozen_min_samples": 1,
+    "subscription_prediction_similar_top_apply_frozen_half_life_samples": 8.0,
+    "subscription_prediction_similar_top_apply_frozen_max_relative_distance": 0.35,
+    "subscription_prediction_similar_top_apply_frozen_bandwidth": 0.18,
+}
+
+DEFAULT_SIMILAR_TOP_APPLY_FROZEN_COARSE_GRID = {
+    "subscription_prediction_similar_top_apply_frozen_enabled": [False, True],
+    "subscription_prediction_similar_top_apply_frozen_weight": [0.0, 0.5, 0.65, 0.85, 1.0],
+    "subscription_prediction_similar_top_apply_frozen_recent_samples": [12, 24, 36],
+    "subscription_prediction_similar_top_apply_frozen_min_samples": [1, 3],
+    "subscription_prediction_similar_top_apply_frozen_half_life_samples": [4.0, 8.0, 12.0],
+    "subscription_prediction_similar_top_apply_frozen_max_relative_distance": [0.20, 0.35, 0.50],
+    "subscription_prediction_similar_top_apply_frozen_bandwidth": [0.10, 0.18, 0.28],
+}
+
+
+DEFAULT_SIMILAR_TOP_APPLY_FROZEN_COARSE_BLOCK_GRIDS = (
+    (
+        "similar_top_apply_frozen_enabled_weight_coarse",
+        {
+            "subscription_prediction_similar_top_apply_frozen_enabled": [False, True],
+            "subscription_prediction_similar_top_apply_frozen_weight": [0.0, 0.5, 0.65, 0.85, 1.0],
+        },
+    ),
+    (
+        "similar_top_apply_frozen_window_coarse",
+        {
+            "subscription_prediction_similar_top_apply_frozen_enabled": [True],
+            "subscription_prediction_similar_top_apply_frozen_recent_samples": [12, 24, 36],
+            "subscription_prediction_similar_top_apply_frozen_min_samples": [1, 3],
+            "subscription_prediction_similar_top_apply_frozen_half_life_samples": [4.0, 8.0, 12.0],
+        },
+    ),
+    (
+        "similar_top_apply_frozen_distance_coarse",
+        {
+            "subscription_prediction_similar_top_apply_frozen_enabled": [True],
+            "subscription_prediction_similar_top_apply_frozen_max_relative_distance": [0.20, 0.35, 0.50],
+            "subscription_prediction_similar_top_apply_frozen_bandwidth": [0.10, 0.18, 0.28],
+        },
+    ),
+)
+
 DEFAULT_ACCOUNT_POOL_PRIOR_BASE_PARAMS = {
     "subscription_prediction_sample_decay_half_life_days": 5,
     "subscription_prediction_cap_factor_direction": "median_over_target",
@@ -65,7 +149,7 @@ DEFAULT_ACCOUNT_POOL_PRIOR_WEIGHTS = [0.8, 1.0, 1.1, 1.2]
 DEFAULT_ACCOUNT_POOL_PRIOR_RECENT_SAMPLES = [8, 12]
 DEFAULT_ACCOUNT_POOL_PRIOR_HALF_LIVES = [4.0]
 
-MAIN_TUNABLE_PARAM_KEYS = tuple(DEFAULT_SEARCH_GRID.keys())
+MAIN_TUNABLE_PARAM_KEYS = tuple(DEFAULT_SEARCH_GRID.keys()) + SIMILAR_TOP_APPLY_FROZEN_PARAM_KEYS
 PRIOR_TUNABLE_PARAM_KEYS = (
     "subscription_prediction_account_pool_prior_weight",
     "subscription_prediction_account_pool_recent_samples",
@@ -106,10 +190,15 @@ def _resolve_subscription_base_params(
     strategy_params: dict[str, Any] | None,
     defaults: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
-    merged = dict(defaults or DEFAULT_BASELINE_PARAMS)
+    base_defaults = dict(defaults or DEFAULT_BASELINE_PARAMS)
+    merged = dict(base_defaults)
+    for key, value in DEFAULT_SIMILAR_TOP_APPLY_FROZEN_PARAMS.items():
+        merged.setdefault(key, value)
     if strategy_params:
         merged.update(strategy_params)
-    for key, value in (defaults or DEFAULT_BASELINE_PARAMS).items():
+    for key, value in base_defaults.items():
+        merged.setdefault(key, value)
+    for key, value in DEFAULT_SIMILAR_TOP_APPLY_FROZEN_PARAMS.items():
         merged.setdefault(key, value)
     return merged
 
@@ -643,13 +732,22 @@ def evaluate_subscription_prediction(
         predicted_ladder_by_lot = {
             int(item.get("lots") or 0): item
             for item in (prediction.get("lot_thresholds") or [])
+            if isinstance(item, dict) and int(item.get("fractional_lots") or 0) == 0
+        }
+        predicted_ladder_by_key = {
+            (int(item.get("regular_lots") or 0), int(item.get("fractional_lots") or 0)): item
+            for item in (prediction.get("lot_thresholds") or [])
             if isinstance(item, dict)
         }
         manual_ladder_errors: list[dict[str, Any]] = []
         for label_item in manual_ladder_items:
             label_lots = int(label_item.get("total_lots") or 0)
             actual_ladder_amount = _safe_float(label_item.get("threshold_amount_wan"))
-            predicted_ladder_item = predicted_ladder_by_lot.get(label_lots) or {}
+            label_key = (
+                int(label_item.get("regular_lots") or 0),
+                int(label_item.get("fractional_lots") or 0),
+            )
+            predicted_ladder_item = predicted_ladder_by_key.get(label_key) or predicted_ladder_by_lot.get(label_lots) or {}
             predicted_ladder_amount = _safe_float(predicted_ladder_item.get("threshold_amount_wan"))
             ladder_abs_error = None
             ladder_pct_error = None
@@ -788,6 +886,234 @@ def _candidate_params_from_grid(
     return candidates
 
 
+def _normalize_param_value(value: Any) -> Any:
+    if isinstance(value, bool):
+        return value
+    number = _safe_float(value)
+    if number is not None:
+        return round(number, 10)
+    return str(value or "").strip().lower()
+
+
+def _candidate_signature(params: dict[str, Any]) -> tuple[tuple[str, Any], ...]:
+    similar_enabled = _parse_bool(params.get('subscription_prediction_similar_top_apply_frozen_enabled'))
+    signature: list[tuple[str, Any]] = []
+    for key in MAIN_TUNABLE_PARAM_KEYS:
+        if (
+            key in SIMILAR_TOP_APPLY_FROZEN_PARAM_KEYS
+            and key != 'subscription_prediction_similar_top_apply_frozen_enabled'
+            and not similar_enabled
+        ):
+            signature.append((key, None))
+        else:
+            signature.append((key, _normalize_param_value(params.get(key))))
+    return tuple(signature)
+
+
+def _unique_sorted_numeric_values(values: list[float], *, low: float | None = None, high: float | None = None, digits: int = 4) -> list[float]:
+    clean: set[float] = set()
+    for value in values:
+        current = float(value)
+        if low is not None:
+            current = max(current, low)
+        if high is not None:
+            current = min(current, high)
+        clean.add(round(current, digits))
+    return sorted(clean)
+
+
+def _unique_sorted_int_values(values: list[float], *, low: int = 1) -> list[int]:
+    return sorted({max(int(round(value)), low) for value in values})
+
+
+def _similar_top_apply_frozen_fine_grid(base_params: dict[str, Any]) -> dict[str, list[Any]]:
+    defaults = DEFAULT_SIMILAR_TOP_APPLY_FROZEN_PARAMS
+    enabled = _parse_bool(base_params.get("subscription_prediction_similar_top_apply_frozen_enabled"))
+    weight = _safe_float(base_params.get("subscription_prediction_similar_top_apply_frozen_weight"))
+    recent_samples = _safe_float(base_params.get("subscription_prediction_similar_top_apply_frozen_recent_samples"))
+    min_samples = _safe_float(base_params.get("subscription_prediction_similar_top_apply_frozen_min_samples"))
+    half_life = _safe_float(base_params.get("subscription_prediction_similar_top_apply_frozen_half_life_samples"))
+    max_distance = _safe_float(base_params.get("subscription_prediction_similar_top_apply_frozen_max_relative_distance"))
+    bandwidth = _safe_float(base_params.get("subscription_prediction_similar_top_apply_frozen_bandwidth"))
+
+    weight = float(defaults["subscription_prediction_similar_top_apply_frozen_weight"] if weight is None else weight)
+    recent_samples = float(defaults["subscription_prediction_similar_top_apply_frozen_recent_samples"] if recent_samples is None else recent_samples)
+    min_samples = float(defaults["subscription_prediction_similar_top_apply_frozen_min_samples"] if min_samples is None else min_samples)
+    half_life = float(defaults["subscription_prediction_similar_top_apply_frozen_half_life_samples"] if half_life is None else half_life)
+    max_distance = float(defaults["subscription_prediction_similar_top_apply_frozen_max_relative_distance"] if max_distance is None else max_distance)
+    bandwidth = float(defaults["subscription_prediction_similar_top_apply_frozen_bandwidth"] if bandwidth is None else bandwidth)
+
+    return {
+        "subscription_prediction_similar_top_apply_frozen_enabled": [enabled],
+        "subscription_prediction_similar_top_apply_frozen_weight": _unique_sorted_numeric_values(
+            [weight - 0.15, weight - 0.05, weight, weight + 0.05, weight + 0.15],
+            low=0.0,
+            high=1.0,
+        ),
+        "subscription_prediction_similar_top_apply_frozen_recent_samples": _unique_sorted_int_values(
+            [recent_samples - 4, recent_samples, recent_samples + 4]
+        ),
+        "subscription_prediction_similar_top_apply_frozen_min_samples": _unique_sorted_int_values(
+            [min_samples - 1, min_samples, min_samples + 1]
+        ),
+        "subscription_prediction_similar_top_apply_frozen_half_life_samples": _unique_sorted_numeric_values(
+            [half_life - 2.0, half_life, half_life + 2.0],
+            low=1.0,
+        ),
+        "subscription_prediction_similar_top_apply_frozen_max_relative_distance": _unique_sorted_numeric_values(
+            [max_distance - 0.05, max_distance, max_distance + 0.05],
+            low=0.0,
+            high=1.0,
+        ),
+        "subscription_prediction_similar_top_apply_frozen_bandwidth": _unique_sorted_numeric_values(
+            [bandwidth - 0.03, bandwidth, bandwidth + 0.03],
+            low=0.01,
+        ),
+    }
+
+
+
+def _current_numeric_param(base_params: dict[str, Any], key: str, default: float) -> float:
+    value = _safe_float(base_params.get(key))
+    return float(default if value is None else value)
+
+
+def _current_choice_param(base_params: dict[str, Any], key: str, default: str, choices: tuple[str, ...]) -> str:
+    value = str(base_params.get(key) or default)
+    return value if value in choices else default
+
+
+def _core_fine_block_grids(base_params: dict[str, Any]) -> tuple[tuple[str, dict[str, list[Any]]], ...]:
+    decay = _current_numeric_param(base_params, "subscription_prediction_sample_decay_half_life_days", 5.0)
+    cap_direction = _current_choice_param(
+        base_params,
+        "subscription_prediction_cap_factor_direction",
+        "median_over_target",
+        ("target_over_median", "median_over_target"),
+    )
+    cap_exponent = _current_numeric_param(base_params, "subscription_prediction_cap_factor_exponent", 0.30)
+    issue_direction = _current_choice_param(
+        base_params,
+        "subscription_prediction_issue_factor_direction",
+        "median_over_target",
+        ("target_over_median", "median_over_target"),
+    )
+    issue_exponent = _current_numeric_param(base_params, "subscription_prediction_issue_factor_exponent", 0.45)
+    lock_exponent = _current_numeric_param(base_params, "subscription_prediction_lock_factor_exponent", 0.0)
+    multiple_scale = _current_numeric_param(base_params, "subscription_prediction_multiple_scale", 1.0)
+    return (
+        (
+            "core_decay_fine",
+            {
+                "subscription_prediction_sample_decay_half_life_days": _unique_sorted_numeric_values(
+                    [decay * 0.75, decay, decay * 1.25],
+                    low=1.0,
+                    digits=2,
+                ),
+            },
+        ),
+        (
+            "core_cap_shape_fine",
+            {
+                "subscription_prediction_cap_factor_direction": [cap_direction],
+                "subscription_prediction_cap_factor_exponent": _unique_sorted_numeric_values(
+                    [cap_exponent - 0.10, cap_exponent - 0.05, cap_exponent, cap_exponent + 0.05, cap_exponent + 0.10],
+                    low=0.0,
+                    high=0.70,
+                ),
+            },
+        ),
+        (
+            "core_issue_shape_fine",
+            {
+                "subscription_prediction_issue_factor_direction": [issue_direction],
+                "subscription_prediction_issue_factor_exponent": _unique_sorted_numeric_values(
+                    [issue_exponent - 0.10, issue_exponent - 0.05, issue_exponent, issue_exponent + 0.05, issue_exponent + 0.10],
+                    low=0.0,
+                    high=0.70,
+                ),
+            },
+        ),
+        (
+            "core_lock_scale_fine",
+            {
+                "subscription_prediction_lock_factor_exponent": _unique_sorted_numeric_values(
+                    [lock_exponent - 0.10, lock_exponent, lock_exponent + 0.10],
+                    low=0.0,
+                    high=0.70,
+                ),
+                "subscription_prediction_multiple_scale": _unique_sorted_numeric_values(
+                    [multiple_scale - 0.05, multiple_scale, multiple_scale + 0.05],
+                    low=0.70,
+                    high=1.30,
+                ),
+            },
+        ),
+    )
+
+
+def _similar_top_apply_frozen_fine_block_grids(base_params: dict[str, Any]) -> tuple[tuple[str, dict[str, list[Any]]], ...]:
+    defaults = DEFAULT_SIMILAR_TOP_APPLY_FROZEN_PARAMS
+    enabled = _parse_bool(base_params.get("subscription_prediction_similar_top_apply_frozen_enabled"))
+    weight = _current_numeric_param(base_params, "subscription_prediction_similar_top_apply_frozen_weight", float(defaults["subscription_prediction_similar_top_apply_frozen_weight"]))
+    recent_samples = _current_numeric_param(base_params, "subscription_prediction_similar_top_apply_frozen_recent_samples", float(defaults["subscription_prediction_similar_top_apply_frozen_recent_samples"]))
+    min_samples = _current_numeric_param(base_params, "subscription_prediction_similar_top_apply_frozen_min_samples", float(defaults["subscription_prediction_similar_top_apply_frozen_min_samples"]))
+    half_life = _current_numeric_param(base_params, "subscription_prediction_similar_top_apply_frozen_half_life_samples", float(defaults["subscription_prediction_similar_top_apply_frozen_half_life_samples"]))
+    max_distance = _current_numeric_param(base_params, "subscription_prediction_similar_top_apply_frozen_max_relative_distance", float(defaults["subscription_prediction_similar_top_apply_frozen_max_relative_distance"]))
+    bandwidth = _current_numeric_param(base_params, "subscription_prediction_similar_top_apply_frozen_bandwidth", float(defaults["subscription_prediction_similar_top_apply_frozen_bandwidth"]))
+    return (
+        (
+            "similar_top_apply_frozen_weight_fine",
+            {
+                "subscription_prediction_similar_top_apply_frozen_enabled": [enabled],
+                "subscription_prediction_similar_top_apply_frozen_weight": _unique_sorted_numeric_values(
+                    [weight - 0.15, weight - 0.05, weight, weight + 0.05, weight + 0.15],
+                    low=0.0,
+                    high=1.0,
+                ),
+            },
+        ),
+        (
+            "similar_top_apply_frozen_window_fine",
+            {
+                "subscription_prediction_similar_top_apply_frozen_enabled": [enabled],
+                "subscription_prediction_similar_top_apply_frozen_recent_samples": _unique_sorted_int_values(
+                    [recent_samples - 4, recent_samples, recent_samples + 4]
+                ),
+                "subscription_prediction_similar_top_apply_frozen_min_samples": _unique_sorted_int_values(
+                    [min_samples - 1, min_samples, min_samples + 1]
+                ),
+                "subscription_prediction_similar_top_apply_frozen_half_life_samples": _unique_sorted_numeric_values(
+                    [half_life - 2.0, half_life, half_life + 2.0],
+                    low=1.0,
+                ),
+            },
+        ),
+        (
+            "similar_top_apply_frozen_distance_fine",
+            {
+                "subscription_prediction_similar_top_apply_frozen_enabled": [enabled],
+                "subscription_prediction_similar_top_apply_frozen_max_relative_distance": _unique_sorted_numeric_values(
+                    [max_distance - 0.05, max_distance, max_distance + 0.05],
+                    low=0.0,
+                    high=1.0,
+                ),
+                "subscription_prediction_similar_top_apply_frozen_bandwidth": _unique_sorted_numeric_values(
+                    [bandwidth - 0.03, bandwidth, bandwidth + 0.03],
+                    low=0.01,
+                ),
+            },
+        ),
+    )
+
+
+def _params_from_summary(base_params: dict[str, Any], summary: dict[str, Any] | None) -> dict[str, Any]:
+    params = dict(base_params)
+    if summary and summary.get('params'):
+        params.update(dict(summary.get('params') or {}))
+    return params
+
+
 def _candidate_rank_key(summary: dict[str, Any]) -> tuple[float, float, float, float, float, float]:
     false_negative_count = len(summary.get("top_apply_false_negative_codes") or [])
     false_positive_count = len(summary.get("top_apply_false_positive_codes") or [])
@@ -896,6 +1222,8 @@ def evaluate_candidate_grid(
     top_n: int = 5,
     max_candidates: int | None = None,
     base_params: dict[str, Any] | None = None,
+    search_profile: str = "coarse_fine",
+    fine_rounds: int = 2,
     progress_callback: Callable[[int, int, dict[str, Any] | None], None] | None = None,
 ) -> dict[str, Any]:
     resolved_base_params = _resolve_subscription_base_params(base_params)
@@ -908,35 +1236,150 @@ def evaluate_candidate_grid(
     baseline["params"] = _main_tunable_snapshot(resolved_base_params)
     baseline["rank_key"] = _candidate_rank_key(baseline)
 
-    candidates = _candidate_params_from_grid(DEFAULT_SEARCH_GRID, resolved_base_params)
-    if max_candidates is not None:
-        candidates = candidates[: max(max_candidates, 0)]
+    normalized_profile = str(search_profile or "coarse_fine").replace("-", "_").lower()
+    use_coarse_fine = normalized_profile in {"coarse_fine", "coarsefine", "multi_round", "multiround"}
+    fine_round_count = max(int(fine_rounds), 0) if use_coarse_fine else 0
 
     ranked: list[dict[str, Any]] = []
+    round_summaries: list[dict[str, Any]] = []
+    seen: set[tuple[tuple[str, Any], ...]] = set()
     best_so_far: dict[str, Any] | None = None
-    total_candidates = len(candidates)
-    progress_interval = max(1, min(200, max(total_candidates // 20, 1)))
+    evaluated_total = 0
+
+    def _planned_block_count(blocks: tuple[tuple[str, dict[str, list[Any]]], ...], base: dict[str, Any]) -> int:
+        return sum(len(_candidate_params_from_grid(grid, base)) for _, grid in blocks)
+
+    if use_coarse_fine:
+        planning_base = resolved_base_params
+        planned_total = _planned_block_count(DEFAULT_CORE_COARSE_BLOCK_GRIDS, planning_base)
+        for _ in range(fine_round_count):
+            planned_total += _planned_block_count(_core_fine_block_grids(planning_base), planning_base)
+        planned_total += _planned_block_count(DEFAULT_SIMILAR_TOP_APPLY_FROZEN_COARSE_BLOCK_GRIDS, planning_base)
+        for _ in range(fine_round_count):
+            planned_total += _planned_block_count(_similar_top_apply_frozen_fine_block_grids(planning_base), planning_base)
+    else:
+        planned_total = len(_candidate_params_from_grid(DEFAULT_SEARCH_GRID, resolved_base_params))
+    if max_candidates is not None:
+        planned_total = min(planned_total, max(max_candidates, 0))
+
+    def _remaining_budget() -> int | None:
+        if max_candidates is None:
+            return None
+        return max(max(max_candidates, 0) - evaluated_total, 0)
+
+    def _run_round(name: str, candidates: list[dict[str, Any]]) -> bool:
+        nonlocal best_so_far, evaluated_total
+        before_key = tuple(best_so_far.get("rank_key") or ()) if best_so_far else None
+        remaining = _remaining_budget()
+        if remaining is not None:
+            candidates = candidates[:remaining]
+        if not candidates:
+            return False
+        round_count = 0
+        round_best: dict[str, Any] | None = None
+        for params in candidates:
+            if max_candidates is not None and evaluated_total >= max(max_candidates, 0):
+                break
+            signature = _candidate_signature(params)
+            if signature in seen:
+                continue
+            seen.add(signature)
+            summary = evaluate_subscription_prediction(
+                rows,
+                min_history_samples=min_history_samples,
+                max_history_samples=max_history_samples,
+                params=params,
+            )
+            summary["params"] = _main_tunable_snapshot(params)
+            summary["rank_key"] = _candidate_rank_key(summary)
+            compact_summary = _compact_summary(summary)
+            compact_summary["search_round"] = name
+            ranked.append(compact_summary)
+            round_count += 1
+            evaluated_total += 1
+            if best_so_far is None or tuple(compact_summary.get("rank_key") or ()) < tuple(best_so_far.get("rank_key") or ()):
+                best_so_far = compact_summary
+            if round_best is None or tuple(compact_summary.get("rank_key") or ()) < tuple(round_best.get("rank_key") or ()):
+                round_best = compact_summary
+            if progress_callback:
+                total_for_progress = planned_total if planned_total > 0 else evaluated_total
+                progress_interval = max(1, min(200, max(total_for_progress // 20, 1)))
+                if evaluated_total == total_for_progress or evaluated_total % progress_interval == 0:
+                    progress_callback(evaluated_total, total_for_progress, best_so_far)
+        if round_count:
+            round_summaries.append(
+                {
+                    "name": name,
+                    "candidate_count": round_count,
+                    "best": round_best,
+                }
+            )
+        after_key = tuple(best_so_far.get("rank_key") or ()) if best_so_far else None
+        return bool(after_key is not None and (before_key is None or after_key < before_key))
+
+    def _budget_available() -> bool:
+        return max_candidates is None or evaluated_total < max(max_candidates, 0)
+
     if progress_callback:
-        progress_callback(0, total_candidates, None)
-    for index, params in enumerate(candidates, start=1):
-        summary = evaluate_subscription_prediction(
-            rows,
-            min_history_samples=min_history_samples,
-            max_history_samples=max_history_samples,
-            params=params,
-        )
-        summary["params"] = _main_tunable_snapshot(params)
-        summary["rank_key"] = _candidate_rank_key(summary)
-        compact_summary = _compact_summary(summary)
-        ranked.append(compact_summary)
-        if best_so_far is None or tuple(compact_summary.get("rank_key") or ()) < tuple(best_so_far.get("rank_key") or ()):
-            best_so_far = compact_summary
-        if progress_callback and (index == total_candidates or index % progress_interval == 0):
-            progress_callback(index, total_candidates, best_so_far)
+        progress_callback(0, planned_total, None)
+
+    if use_coarse_fine:
+        for name, grid in DEFAULT_CORE_COARSE_BLOCK_GRIDS:
+            if not _budget_available():
+                break
+            round_base = _params_from_summary(resolved_base_params, best_so_far)
+            _run_round(name, _candidate_params_from_grid(grid, round_base))
+
+        for round_index in range(1, fine_round_count + 1):
+            if not _budget_available():
+                break
+            pass_improved = False
+            for group_index in range(len(_core_fine_block_grids(_params_from_summary(resolved_base_params, best_so_far)))):
+                if not _budget_available():
+                    break
+                round_base = _params_from_summary(resolved_base_params, best_so_far)
+                suffix, grid = _core_fine_block_grids(round_base)[group_index]
+                pass_improved = _run_round(
+                    f"core_fine_{round_index}_{suffix}",
+                    _candidate_params_from_grid(grid, round_base),
+                ) or pass_improved
+            if not pass_improved:
+                break
+
+        for name, grid in DEFAULT_SIMILAR_TOP_APPLY_FROZEN_COARSE_BLOCK_GRIDS:
+            if not _budget_available():
+                break
+            round_base = _params_from_summary(resolved_base_params, best_so_far)
+            _run_round(name, _candidate_params_from_grid(grid, round_base))
+
+        for round_index in range(1, fine_round_count + 1):
+            if not _budget_available():
+                break
+            pass_improved = False
+            for group_index in range(len(_similar_top_apply_frozen_fine_block_grids(_params_from_summary(resolved_base_params, best_so_far)))):
+                if not _budget_available():
+                    break
+                round_base = _params_from_summary(resolved_base_params, best_so_far)
+                suffix, grid = _similar_top_apply_frozen_fine_block_grids(round_base)[group_index]
+                pass_improved = _run_round(
+                    f"similar_top_apply_frozen_fine_{round_index}_{suffix}",
+                    _candidate_params_from_grid(grid, round_base),
+                ) or pass_improved
+            if not pass_improved:
+                break
+    else:
+        _run_round("core_exhaustive", _candidate_params_from_grid(DEFAULT_SEARCH_GRID, resolved_base_params))
+
+    if progress_callback and evaluated_total > 0 and evaluated_total != planned_total:
+        progress_callback(evaluated_total, evaluated_total, best_so_far)
 
     ranked.sort(key=lambda item: tuple(item.get("rank_key") or ()))
     return {
-        "candidate_count": len(candidates),
+        "candidate_count": evaluated_total,
+        "planned_candidate_count": planned_total,
+        "search_profile": normalized_profile,
+        "fine_rounds": fine_round_count,
+        "rounds": round_summaries,
         "top_n": max(top_n, 1),
         "min_history_samples": min_history_samples,
         "max_history_samples": max_history_samples,
@@ -944,7 +1387,6 @@ def evaluate_candidate_grid(
         "best": ranked[0] if ranked else {},
         "top_candidates": ranked[: max(top_n, 1)],
     }
-
 
 def _parse_int_values(text: str) -> list[int]:
     values: list[int] = []
@@ -1020,6 +1462,7 @@ def evaluate_robustness(
         min_history_samples=3,
         top_n=max(top_n, 1),
         base_params=resolved_base_params,
+        search_profile='base',
     )
     best_params = dict(resolved_base_params)
     best_params.update(dict((search.get("best") or {}).get("params") or {}))
@@ -1192,6 +1635,8 @@ def evaluate_auto_with_prior_branch(
     prior_half_life_values: list[float] | None = None,
     prior_min_uplift_ratio_values: list[float] | None = None,
     prior_min_source_sample_values: list[int] | None = None,
+    search_profile: str = 'coarse_fine',
+    fine_rounds: int = 2,
     progress_callback: Callable[[int, int, dict[str, Any] | None], None] | None = None,
 ) -> dict[str, Any]:
     result = evaluate_candidate_grid(
@@ -1201,6 +1646,8 @@ def evaluate_auto_with_prior_branch(
         top_n=top_n,
         max_candidates=max_candidates,
         base_params=base_params,
+        search_profile=search_profile,
+        fine_rounds=fine_rounds,
         progress_callback=progress_callback,
     )
     baseline = result.get("baseline") or {}
@@ -1474,9 +1921,15 @@ def _format_account_pool_prior_line(index: int, item: dict[str, Any]) -> str:
 def format_search_summary(result: dict[str, Any]) -> str:
     baseline = result.get("baseline") or {}
     best = result.get("best") or {}
+    rounds = result.get("rounds") or []
+    round_text = "；".join(
+        f"{item.get('name')}={item.get('candidate_count', 0)}" for item in rounds
+    ) or "-"
     lines = [
         "申购配售预测候选搜索",
-        f"- 候选组数: {result.get('candidate_count', 0)}",
+        f"- 搜索模式: {result.get('search_profile') or 'base'}；细搜轮数 {result.get('fine_rounds', 0)}",
+        f"- 候选组数: {result.get('candidate_count', 0)} / 计划 {result.get('planned_candidate_count', result.get('candidate_count', 0))}",
+        f"- 搜索轮次: {round_text}",
         "- baseline: "
         f"MAE={_format_float(baseline.get('guaranteed_amount_mae_wan'), 4)} 万元, "
         f"MAPE={_format_float((baseline.get('guaranteed_amount_mape') or 0) * 100 if baseline.get('guaranteed_amount_mape') is not None else None, 2)}%, "
@@ -1503,7 +1956,7 @@ def _candidate_progress_printer(title: str) -> Callable[[int, int, dict[str, Any
             print(f"{title}：没有可评估的候选参数。", flush=True)
             return
         if current <= 0:
-            print(f"{title}：开始评估候选参数，共 {total} 组。", flush=True)
+            print(f"{title}：开始评估候选参数，最多 {total} 组。", flush=True)
             return
         percent = current / total * 100
         if best_so_far:
@@ -1706,7 +2159,9 @@ def _prepend_subscription_auto_record(
         "",
         f"- 参数文件：{Path(params_path)}",
         f"- 历史样本：{result.get('history_path') or DEFAULT_HISTORY_PATH}",
-        f"- 主网格候选组数：{result.get('candidate_count', 0)}",
+        f"- 主网格候选组数：{result.get('candidate_count', 0)} / 计划 "
+        f"{result.get('planned_candidate_count', result.get('candidate_count', 0))}",
+        f"- 主网格搜索模式：{result.get('search_profile') or 'base'}；细搜轮数 {result.get('fine_rounds', 0)}",
         f"- prior 分支候选组数：{result.get('prior_candidate_count', 0)}",
         f"- 选中分支：{result.get('selected_branch') or 'main_grid'}",
         f"- baseline：{_format_metric_brief(baseline)}",
@@ -1733,9 +2188,11 @@ def _print_subscription_auto_summary(result: dict[str, Any], *, best_beats_basel
     print("")
     print("申购资金自动调参结果：")
     print(
-        f"- 候选组数：主网格 {result.get('candidate_count', 0)}，"
+        f"- 候选组数：主网格 {result.get('candidate_count', 0)} / 计划 "
+        f"{result.get('planned_candidate_count', result.get('candidate_count', 0))}，"
         f"prior 分支 {result.get('prior_candidate_count', 0)}"
     )
+    print(f"- 搜索模式：{result.get('search_profile') or 'base'}；细搜轮数 {result.get('fine_rounds', 0)}")
     print(f"- 当前参数：{_format_metric_brief(baseline)}")
     print(f"- 主网格最优：{_format_metric_brief(best)}")
     if prior_best:
@@ -1773,6 +2230,8 @@ def _run_auto_mode(
         prior_half_life_values=_parse_float_values(args.account_pool_prior_half_lives),
         prior_min_uplift_ratio_values=_parse_float_values(args.account_pool_prior_min_uplift_ratios),
         prior_min_source_sample_values=_parse_int_values(args.account_pool_prior_min_source_samples),
+        search_profile=args.search_profile,
+        fine_rounds=max(args.fine_rounds, 0),
         progress_callback=_candidate_progress_printer("申购资金自动调参"),
     )
     result["history_path"] = str(args.history_path)
@@ -1847,6 +2306,8 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--top-n", type=int, default=5)
     parser.add_argument("--max-candidates", type=int, default=None)
+    parser.add_argument("--search-profile", choices=("base", "coarse-fine"), default="coarse-fine")
+    parser.add_argument("--fine-rounds", type=int, default=2)
     parser.add_argument("--robust-min-history-samples", default="3,5,8")
     parser.add_argument("--robust-history-windows", default="all,8,12,16")
     parser.add_argument("--robust-account-pool-prior-weights", default="1.0,1.1,1.2")
@@ -1884,6 +2345,8 @@ def main() -> int:
             top_n=max(args.top_n, 1),
             max_candidates=args.max_candidates,
             base_params=strategy_params,
+            search_profile=args.search_profile,
+            fine_rounds=max(args.fine_rounds, 0),
             progress_callback=_candidate_progress_printer("申购资金候选搜索"),
         )
         summary["history_path"] = str(args.history_path)

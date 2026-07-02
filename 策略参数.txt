@@ -43,21 +43,28 @@ sample_weight_mode = time_decay       # 历史样本加权方式：static / time
 sample_decay_half_life_days = 10      # 时间衰减半衰期（天）
 
 # === 申购资金预测：正股/碎股门槛模型 ===
-subscription_prediction_account_pool_prior_min_source_samples = 1
-subscription_prediction_account_pool_prior_min_uplift_ratio = 0
-subscription_prediction_account_pool_half_life_samples = 4
-subscription_prediction_account_pool_recent_samples = 8
-subscription_prediction_account_pool_prior_weight = 1.2
-subscription_prediction_sample_decay_half_life_days = 5      # 申购资金历史样本时间衰减半衰期（天）
-subscription_prediction_cap_factor_direction = median_over_target
-subscription_prediction_cap_factor_exponent = 0.45
-subscription_prediction_issue_factor_direction = median_over_target
-subscription_prediction_issue_factor_exponent = 0.3
-subscription_prediction_lock_factor_exponent = 0.2
-subscription_prediction_multiple_scale = 1.0
+subscription_prediction_account_pool_prior_min_source_samples = 1      # 账户规模 prior 最少需要多少个可用历史样本；不足则不启用该 prior
+subscription_prediction_account_pool_prior_min_uplift_ratio = 0        # 账户规模 prior 相对基础模型的最小抬升比例；0 表示只要 prior 高于基础模型即可
+subscription_prediction_account_pool_half_life_samples = 4             # 账户规模/大户分布样本按样本序号衰减的半衰期，越小越偏重最近样本
+subscription_prediction_account_pool_recent_samples = 8                # 账户规模/大户分布估算最多使用最近多少只历史新股
+subscription_prediction_account_pool_prior_weight = 1.2                # 账户规模 prior 的放大系数；用于补偿大户平铺导致的正股门槛低估
+subscription_prediction_sample_decay_half_life_days = 15               # 申购资金历史样本时间衰减半衰期（天）；越小越偏重最近样本
+subscription_prediction_cap_factor_direction = target_over_median       # 顶格金额修正方向；median_over_target 表示目标顶格越高，申购倍数倾向下修
+subscription_prediction_cap_factor_exponent = 0                     # 顶格金额修正强度；越大，顶格金额差异对申购倍数影响越大
+subscription_prediction_issue_factor_direction = median_over_target     # 网上发行规模修正方向；median_over_target 表示目标发行规模越大，申购倍数倾向下修
+subscription_prediction_issue_factor_exponent = 0.4                   # 网上发行规模修正强度；越大，发行规模差异对申购倍数影响越大
+subscription_prediction_lock_factor_exponent = 0.1                     # 冻结天数修正强度；冻结天数越长，资金占用更久，申购倍数倾向下修
+subscription_prediction_multiple_scale = 0.95                           # 申购倍数整体缩放系数；用于整体上调/下调资金预测
 subscription_prediction_guaranteed_buffer_min_wan = 50       # 正股建议申购保护阈值下限（万元）
 subscription_prediction_guaranteed_buffer_max_wan = 100      # 正股建议申购保护阈值上限（万元）
 subscription_prediction_lot_threshold_max_lots = 20          # 一览/PDF 最多展示几手建议申购门槛
+subscription_prediction_similar_top_apply_frozen_enabled = True         # 是否启用顶格金额相近样本冻资锚点；用于抑制发行规模外推造成的冻资高估/低估
+subscription_prediction_similar_top_apply_frozen_weight = 0.65         # 相似顶格冻资锚点混合权重；0 只用基础模型，1 完全采用相似顶格冻资锚点
+subscription_prediction_similar_top_apply_frozen_recent_samples = 12    # 相似顶格冻资锚点最多回看最近多少只历史新股
+subscription_prediction_similar_top_apply_frozen_min_samples = 1        # 相似顶格冻资锚点最少需要多少个匹配样本；不足则回退基础模型
+subscription_prediction_similar_top_apply_frozen_half_life_samples = 10  # 相似顶格样本按样本序号衰减的半衰期，越小越偏重最近样本
+subscription_prediction_similar_top_apply_frozen_max_relative_distance = 0.35  # 相似顶格匹配允许的最大相对差距；0.35 表示顶格金额差距超过 35% 的样本剔除
+subscription_prediction_similar_top_apply_frozen_bandwidth = 0.18       # 相似度权重带宽；越小越只相信顶格金额非常接近的样本
 
 # === 自动调参可写回：行业走势与市场情绪 ===
 industry_trend_weight = 0.85         # 行业走势因子权重

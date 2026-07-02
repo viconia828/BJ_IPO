@@ -44,6 +44,7 @@ ISSUE_ANNOUNCEMENT_TEXT = """
 
 ISSUE_RESULT_TEXT = """
 发行结果公告
+公告日期：2026 年 6 月 4 日
 本次网上发行数量为 1,000,000 股。
 网上投资者有效申购户数为 12,345 户，有效申购数量为 30,000,000 股，冻结资金总额为 30,000.00 万元。
 网上发行最终中签率为 3.3333%，有效申购倍数为 30.00 倍。
@@ -214,6 +215,7 @@ def _run_issue_result_parser_case(failures: list[str]) -> None:
     result = pdf_parser._extract_issue_result_info_from_text(ISSUE_RESULT_TEXT)
     fields = result.get("fields") or {}
     sources = result.get("field_sources") or {}
+    _assert(fields.get("ISSUE_RESULT_DATE") == "2026-06-04", "issue result parser: result date mismatch", failures)
     _assert_close(fields.get("ONLINE_ISSUE_NUM"), 1000000.0, "issue result parser: online issue shares mismatch", failures)
     _assert_close(fields.get("ONLINE_VA_NUM"), 12345.0, "issue result parser: valid accounts mismatch", failures)
     _assert_close(fields.get("ONLINE_ALLOCATED_ACCOUNTS"), 1000.0, "issue result parser: allocated accounts mismatch", failures)

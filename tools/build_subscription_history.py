@@ -4,7 +4,6 @@ import argparse
 import csv
 import json
 from pathlib import Path
-import re
 import sys
 import time
 from typing import Any, Callable
@@ -115,16 +114,6 @@ CSV_COLUMNS = (
     "download_errors",
 )
 
-ISSUE_RESULT_DATE_PATTERN = re.compile(
-    r"(?:\u65e5\u671f|\u516c\u544a\u65e5\u671f|\u62ab\u9732\u65e5\u671f)\s*[:\uff1a]?\s*"
-    r"(?P<year>20[0-9]{2})\s*\u5e74\s*(?P<month>[0-9]{1,2})\s*\u6708\s*(?P<day>[0-9]{1,2})\s*\u65e5"
-)
-ISSUE_RESULT_ISO_DATE_PATTERN = re.compile(
-    r"(?:\u65e5\u671f|\u516c\u544a\u65e5\u671f|\u62ab\u9732\u65e5\u671f)\s*[:\uff1a]?\s*"
-    r"(?P<year>20[0-9]{2})[-/](?P<month>[0-9]{1,2})[-/](?P<day>[0-9]{1,2})"
-)
-
-
 def _safe_float(value: Any) -> float | None:
     if value in (None, "", "--"):
         return None
@@ -145,24 +134,6 @@ def _clean_date(value: Any) -> str:
     if not text:
         return ""
     return text.split(" ", 1)[0].replace("/", "-")
-
-
-def _date_match_to_iso(match: re.Match[str]) -> str:
-    return "{year}-{month:02d}-{day:02d}".format(
-        year=match.group("year"),
-        month=int(match.group("month")),
-        day=int(match.group("day")),
-    )
-
-
-def _extract_issue_result_date_from_text(text: str) -> str:
-    matches = list(ISSUE_RESULT_DATE_PATTERN.finditer(text or ""))
-    if matches:
-        return _date_match_to_iso(matches[-1])
-    iso_matches = list(ISSUE_RESULT_ISO_DATE_PATTERN.finditer(text or ""))
-    if iso_matches:
-        return _date_match_to_iso(iso_matches[-1])
-    return ""
 
 
 def _format_value(value: Any) -> str:
@@ -406,11 +377,6 @@ def _parse_document_fields(
             errors.append(f"{label}:{exc}")
         else:
             _merge_document_fields(values, sources, info, default_source=label, override=override)
-            if label == "result" and _is_missing(values.get("ISSUE_RESULT_DATE")):
-                result_date = _extract_issue_result_date_from_text(pdf_parser._read_pdf_text(file_path))
-                if result_date:
-                    values["ISSUE_RESULT_DATE"] = result_date
-                    sources["ISSUE_RESULT_DATE"] = "issue_result:document_date"
         if progress_state is not None:
             progress_state["parse_completed"] = int(progress_state.get("parse_completed", 0)) + 1
         _emit_history_progress(

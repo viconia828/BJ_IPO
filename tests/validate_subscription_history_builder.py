@@ -16,6 +16,7 @@ if str(TOOLS_DIR) not in sys.path:
     sys.path.insert(0, str(TOOLS_DIR))
 
 import build_subscription_history
+import pdf_parser
 
 
 def _reset_temp_dir(name: str) -> Path:
@@ -209,7 +210,7 @@ def _run_top_apply_time_priority_label_case(failures: list[str]) -> None:
 def _run_result_date_text_case(failures: list[str]) -> None:
     text = "发行人：示例股份有限公司\n日期：2026年1月9日"
     _assert(
-        build_subscription_history._extract_issue_result_date_from_text(text) == "2026-01-09",
+        pdf_parser._extract_issue_result_date_from_text(text) == "2026-01-09",
         "result date: chinese date mismatch",
         failures,
     )

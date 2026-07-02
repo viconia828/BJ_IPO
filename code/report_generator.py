@@ -243,7 +243,9 @@ def _build_time_priority_text(prediction: dict[str, Any], key: str, *, overview:
         if key == "fractional_time_priority_required":
             if prediction.get("top_apply_below_guaranteed"):
                 return "必须"
-            return "可能" if value else "否"
+            if value:
+                return str(prediction.get("fractional_time_priority_overview_text") or "可能")
+            return "否"
         return "可能" if value else "否"
     if key == "top_apply_time_priority_required":
         return str(prediction.get("top_apply_time_priority_note") or ("可能需要" if value else "否"))
@@ -259,13 +261,20 @@ def _build_lot_threshold_overview_items(prediction: dict[str, Any]) -> list[tupl
     for raw_item in prediction.get("lot_thresholds") or []:
         if not isinstance(raw_item, dict):
             continue
-        lots = int(_safe_float(raw_item.get("lots")) or 0)
-        if lots <= 0:
+        label = str(raw_item.get("ladder_label") or "").strip()
+        if not label:
+            lots = int(_safe_float(raw_item.get("lots")) or 0)
+            if lots <= 0:
+                continue
+            label = f"{lots}手"
+        elif "+" not in label:
+            continue
+        if not label:
             continue
         amount_text = _fmt_number(raw_item.get("threshold_amount_wan"), fallback="")
         if not amount_text:
             continue
-        items.append((f"{lots}手门槛（万元）", amount_text))
+        items.append((f"{label}门槛（万元）", amount_text))
     return items
 
 

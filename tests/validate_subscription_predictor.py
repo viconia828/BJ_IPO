@@ -92,8 +92,13 @@ def _run_actual_distribution_case(failures: list[str]) -> None:
     )
     _assert(prediction.get("fractional_time_priority_required") is True, "actual distribution: time priority mismatch", failures)
     _assert(
-        prediction.get("fractional_time_priority_note") == "可能需要抢时间多获配一手碎股",
+        prediction.get("fractional_time_priority_note") == "0+1以下碎股可能需要抢时间",
         "actual distribution: fractional time note mismatch",
+        failures,
+    )
+    _assert(
+        prediction.get("fractional_time_priority_overview_text") == "0+1以下可能",
+        "actual distribution: fractional overview mismatch",
         failures,
     )
 
@@ -198,6 +203,60 @@ def _run_frozen_funds_floor_case(failures: list[str]) -> None:
     )
 
 
+def _run_similar_top_apply_frozen_anchor_case(failures: list[str]) -> None:
+    recent_ipos = [
+        {
+            "SECURITY_CODE": "920151",
+            "ISSUE_PRICE": 10.0,
+            "ONLINE_ISSUE_NUM": 10000000.0,
+            "FROZEN_FUNDS_YI": 9000.0,
+            "TOP_APPLY_MARKETCAP": 1800.0,
+            "APPLY_DATE": "2026-05-10",
+            "ISSUE_RESULT_DATE": "2026-05-13",
+        },
+        {
+            "SECURITY_CODE": "920152",
+            "ISSUE_PRICE": 10.0,
+            "ONLINE_ISSUE_NUM": 10000000.0,
+            "FROZEN_FUNDS_YI": 9600.0,
+            "TOP_APPLY_MARKETCAP": 1822.0,
+            "APPLY_DATE": "2026-05-20",
+            "ISSUE_RESULT_DATE": "2026-05-23",
+        },
+        {
+            "SECURITY_CODE": "920153",
+            "ISSUE_PRICE": 10.0,
+            "ONLINE_ISSUE_NUM": 10000000.0,
+            "FROZEN_FUNDS_YI": 20000.0,
+            "TOP_APPLY_MARKETCAP": 500.0,
+            "APPLY_DATE": "2026-05-25",
+            "ISSUE_RESULT_DATE": "2026-05-28",
+        },
+    ]
+    prediction = subscription_predictor.build_subscription_prediction(
+        {
+            "ISSUE_PRICE": 10.0,
+            "ONLINE_ISSUE_NUM": 20000000.0,
+            "TOP_APPLY_MARKETCAP": 1802.0,
+            "APPLY_DATE": "2026-06-01",
+            "ISSUE_RESULT_DATE": "2026-06-04",
+        },
+        recent_ipos=recent_ipos,
+        params={
+            "subscription_prediction_min_samples": 3,
+            "subscription_prediction_similar_top_apply_frozen_weight": 1.0,
+            "subscription_prediction_similar_top_apply_frozen_max_relative_distance": 0.05,
+            "subscription_prediction_frozen_funds_floor_enabled": False,
+        },
+    )
+    similar_anchor = (prediction.get("estimate") or {}).get("similar_top_apply_frozen_funds") or {}
+    _assert(prediction.get("available") is True, "similar frozen anchor: prediction unavailable", failures)
+    _assert(similar_anchor.get("applied") is True, "similar frozen anchor: anchor not applied", failures)
+    _assert_close(similar_anchor.get("anchor_frozen_funds_yi"), 9000.0, "similar frozen anchor: anchor mismatch", failures)
+    _assert_close(prediction.get("frozen_funds_yi"), 9000.0, "similar frozen anchor: frozen funds mismatch", failures)
+    _assert(float(similar_anchor.get("base_frozen_funds_yi") or 0.0) > 15000.0, "similar frozen anchor: base should be higher", failures)
+
+
 def _run_920126_lot_threshold_case(failures: list[str]) -> None:
     issue_price = 7.79
     online_issue_shares = 41868000.0
@@ -227,20 +286,115 @@ def _run_920126_lot_threshold_case(failures: list[str]) -> None:
         params={},
     )
     lot_thresholds = prediction.get("lot_thresholds") or []
-    _assert(len(lot_thresholds) == 6, "920126 lot thresholds: expected 6 rows", failures)
-    by_lot = {int(item["lots"]): item for item in lot_thresholds}
-    for lots, actual_amount in actual_amounts.items():
-        item = by_lot.get(lots) or {}
+    _assert(len(lot_thresholds) == 10, "920126 lot thresholds: expected 10 rows", failures)
+    by_label = {str(item.get("ladder_label") or ""): item for item in lot_thresholds}
+    expected_by_label = {
+        "1+0": actual_amounts[1],
+        "1+1": actual_amounts[3],
+        "2+0": actual_amounts[2],
+        "2+1": actual_amounts[3],
+        "3+0": actual_amounts[4],
+        "3+1": actual_amounts[4],
+        "4+0": actual_amounts[5],
+        "4+1": actual_amounts[5],
+        "5+0": actual_amounts[6],
+        "5+1": actual_amounts[6],
+    }
+    for label, actual_amount in expected_by_label.items():
+        item = by_label.get(label) or {}
         _assert_close(
             item.get("threshold_amount_wan"),
             actual_amount,
-            f"920126 lot thresholds: {lots} lots mismatch",
+            f"920126 lot thresholds: {label} mismatch",
             failures,
             tolerance=0.2,
         )
-    _assert(by_lot[3].get("basis") == "issue_result_threshold", "920126: 3 lots should use fractional threshold", failures)
-    _assert(by_lot[6].get("basis") == "issue_result_threshold", "920126: 6 lots should use fractional threshold", failures)
+    _assert(by_label["2+1"].get("basis") == "issue_result_threshold", "920126: 2+1 should use fractional threshold", failures)
+    _assert(by_label["5+1"].get("basis") == "issue_result_threshold", "920126: 5+1 should use fractional threshold", failures)
+    _assert(by_label["2+1"].get("time_priority_required") is True, "920126: 2+1 should require time priority", failures)
+    _assert(by_label["3+1"].get("time_priority_required") is False, "920126: 3+1 should not require time priority", failures)
     _assert(prediction.get("fractional_time_priority_required") is True, "920126: fractional time priority missing", failures)
+
+
+def _run_account_pool_fractional_threshold_case(failures: list[str]) -> None:
+    account_pool_row: dict[str, Any] = {
+        "security_code": "920900",
+        "apply_date": "2026-06-30",
+    }
+    for threshold, accounts in {1: 45, 2: 25, 3: 15, 4: 5}.items():
+        account_pool_row[f"accounts_ge_{threshold}w_estimate"] = accounts
+        account_pool_row[f"accounts_ge_{threshold}w_basis"] = "exact_observed_threshold"
+
+    prediction = subscription_predictor.build_subscription_prediction(
+        {
+            "SECURITY_CODE": "920901",
+            "SECURITY_NAME_ABBR": "PoolCase",
+            "ISSUE_PRICE": 10.0,
+            "ONLINE_ISSUE_NUM": 8000.0,
+            "ONLINE_VA_SHARES": 80000.0,
+            "TOP_APPLY_MARKETCAP": 2.5,
+        },
+        recent_ipos=[],
+        params={
+            "subscription_prediction_account_pool_rows": [account_pool_row],
+            "subscription_prediction_account_pool_recent_samples": 1,
+            "subscription_prediction_lot_threshold_max_lots": 5,
+        },
+    )
+    lot_thresholds = prediction.get("lot_thresholds") or []
+    by_label = {str(item.get("ladder_label") or ""): item for item in lot_thresholds}
+    _assert_close(by_label.get("2+0", {}).get("threshold_amount_wan"), 2.0, "account pool: 2+0 mismatch", failures)
+    _assert_close(by_label.get("2+1", {}).get("threshold_amount_wan"), 2.5, "account pool: 2+1 mismatch", failures)
+    _assert(
+        by_label.get("2+1", {}).get("basis") == "account_pool_fractional_estimate",
+        "account pool: 2+1 should use account pool cutoff",
+        failures,
+    )
+    _assert(
+        prediction.get("fractional_time_priority_note") == "2+1以下碎股可能需要抢时间",
+        "account pool: fractional time note mismatch",
+        failures,
+    )
+    _assert(
+        prediction.get("fractional_time_priority_overview_text") == "2+1以下可能",
+        "account pool: fractional overview mismatch",
+        failures,
+    )
+    pool_estimate = prediction.get("account_pool_fractional_estimate") or {}
+    _assert_close(pool_estimate.get("full_allocated_lots_estimate"), 70.0, "account pool: full lots mismatch", failures)
+    _assert_close(pool_estimate.get("leftover_lots"), 10.0, "account pool: leftover lots mismatch", failures)
+
+
+def _run_account_pool_fully_covered_fractional_case(failures: list[str]) -> None:
+    account_pool_row: dict[str, Any] = {
+        "security_code": "920910",
+        "apply_date": "2026-06-30",
+    }
+    for threshold, accounts in {1: 50, 2: 30, 4: 10}.items():
+        account_pool_row[f"accounts_ge_{threshold}w_estimate"] = accounts
+        account_pool_row[f"accounts_ge_{threshold}w_basis"] = "exact_observed_threshold"
+
+    prediction = subscription_predictor.build_subscription_prediction(
+        {
+            "SECURITY_CODE": "920911",
+            "SECURITY_NAME_ABBR": "CoveredPool",
+            "ISSUE_PRICE": 10.0,
+            "ONLINE_ISSUE_NUM": 10000.0,
+            "ONLINE_VA_SHARES": 200000.0,
+            "TOP_APPLY_MARKETCAP": 4.0,
+        },
+        recent_ipos=[],
+        params={
+            "subscription_prediction_account_pool_rows": [account_pool_row],
+            "subscription_prediction_account_pool_recent_samples": 1,
+            "subscription_prediction_lot_threshold_max_lots": 5,
+        },
+    )
+    by_label = {str(item.get("ladder_label") or ""): item for item in prediction.get("lot_thresholds") or []}
+    _assert(prediction.get("fractional_time_priority_required") is False, "covered account pool: global time priority mismatch", failures)
+    _assert_close(by_label.get("0+1", {}).get("threshold_amount_wan"), 1.0, "covered account pool: 0+1 mismatch", failures)
+    _assert_close(by_label.get("2+1", {}).get("threshold_amount_wan"), 4.0, "covered account pool: 2+1 mismatch", failures)
+    _assert(by_label.get("2+1", {}).get("time_priority_required") is False, "covered account pool: 2+1 should not require time", failures)
 
 
 def _run_top_apply_below_guaranteed_case(failures: list[str]) -> None:
@@ -298,7 +452,10 @@ def main() -> int:
     _run_actual_distribution_case(failures)
     _run_estimated_case(failures)
     _run_frozen_funds_floor_case(failures)
+    _run_similar_top_apply_frozen_anchor_case(failures)
     _run_920126_lot_threshold_case(failures)
+    _run_account_pool_fractional_threshold_case(failures)
+    _run_account_pool_fully_covered_fractional_case(failures)
     _run_top_apply_below_guaranteed_case(failures)
     if failures:
         for failure in failures:

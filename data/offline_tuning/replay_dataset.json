@@ -1,7 +1,7 @@
 {
   "schema": "offline_tuning_replay_v1",
   "evaluation_scope": "composite",
-  "generated_at": "2026-07-01 22:15:48",
+  "generated_at": "2026-07-02 20:38:06",
   "source_months": 18,
   "replay_item_cache_version": 3,
   "sample_codes": [
@@ -40,7 +40,8 @@
     "920083",
     "920126",
     "920072",
-    "920222"
+    "920222",
+    "920193"
   ],
   "requested_codes": [
     "920011",
@@ -73,6 +74,7 @@
     "920187",
     "920188",
     "920191",
+    "920193",
     "920200",
     "920206",
     "920211",
@@ -80,9 +82,9 @@
     "920220",
     "920222"
   ],
-  "available_count": 36,
+  "available_count": 37,
   "method1_ready_count": 32,
-  "method1_ready_rate": 0.8888888888888888,
+  "method1_ready_rate": 0.8648648648648649,
   "skipped": [],
   "caveats": [
     "方法一历史回放快照基于 Tushare `daily_basic`，按标的上市日前一日向前回看交易窗口，未取到时该样本自动降级为仅方法二。",
@@ -92,9 +94,9 @@
   "item_cache": {
     "enabled": true,
     "dir": "D:\\BJ_IPO\\data\\offline_tuning\\replay_items",
-    "hits": 34,
-    "misses": 2,
-    "writes": 2,
+    "hits": 36,
+    "misses": 1,
+    "writes": 1,
     "existing_dataset_reused": 0
   },
   "items": [
@@ -4067,6 +4069,85 @@
       "average_price_calc_version": 3,
       "average_price_unit_mode": "volume_shares_amount_yuan",
       "average_price_reference": 39.485
+    },
+    {
+      "SECURITY_CODE": "920193",
+      "SECURITY_NAME_ABBR": "吉和昌",
+      "APPLY_DATE": "2026-06-17 00:00:00",
+      "LISTING_DATE": "2026-07-02 00:00:00",
+      "ISSUE_PRICE": 8.52,
+      "AFTER_ISSUE_PE": 14.98,
+      "INDUSTRY_PE_NEW": 30.32,
+      "TOTAL_ISSUE_NUM": 2800.0,
+      "CLOSE_PRICE": 61.05,
+      "AVERAGE_PRICE": 60.55768950658245,
+      "LD_CLOSE_CHANGE": 616.5493,
+      "LD_AVERAGE_CHANGE": 610.7710035983856,
+      "TURNOVERRATE": 96.873,
+      "SW_INDUSTRY": "",
+      "INDUSTRY": "",
+      "industry_primary": "未分类",
+      "industry_secondary": "未分类",
+      "industry_source": "unclassified",
+      "old_shares": 0.0,
+      "old_shares_desc": "0.00 万股（PDF 提取：上市公告书）",
+      "old_shares_meta": {
+        "value_wan_shares": 0.0,
+        "source_file_type": "上市公告书",
+        "source_rule": "listing_table",
+        "source_anchor": "本次发行前后的股本结构变动情况 -> 无限售流通股小计",
+        "raw_snippet": "象伙）小计83,330,800100.0086,130,80077.36--二、无限售流通股小计0.000.0025,200,00022.64--合计83,330,800100.00111,330,800100.00--53六、",
+        "confidence": 0.98,
+        "unit": "万股",
+        "pre_unrestricted_wan_shares": 0.0,
+        "listing_pdf_found": true,
+        "prospectus_pdf_found": true,
+        "selected_source_label": "上市公告书",
+        "fallback_used": false
+      },
+      "float_shares": 2800.0,
+      "has_intraday_file": true,
+      "comparable_codes": [
+        "688359.SH"
+      ],
+      "comparable_data": [
+        {
+          "code": "688359.SH",
+          "name": "688359.SH",
+          "close": 213.5,
+          "pe_ttm": null,
+          "pb_lf": 33.5537,
+          "mkt_cap": 210.82292349999997,
+          "trade_date": "20260701",
+          "source": "tushare_historical",
+          "close_source": "tushare_historical",
+          "pe_source": "tushare_historical",
+          "pb_source": "tushare_historical",
+          "mkt_cap_source": "tushare_historical"
+        }
+      ],
+      "comparable_summary": {
+        "provider": "tushare_historical",
+        "requested_codes": [
+          "688359.SH"
+        ],
+        "returned_codes": [
+          "688359.SH"
+        ],
+        "cache_hits": [],
+        "api_fetched": [
+          "688359.SH"
+        ],
+        "skipped_unsupported": [],
+        "reference_trade_date": "20260701",
+        "reason": ""
+      },
+      "method1_replay_available": false,
+      "average_price_source": "intraday_csv",
+      "average_price_reason": "",
+      "average_price_calc_version": 3,
+      "average_price_unit_mode": "volume_shares_amount_yuan",
+      "average_price_reference": 63.5
     }
   ]
 }

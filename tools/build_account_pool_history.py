@@ -23,7 +23,13 @@ DEFAULT_LADDER_LABEL_PATH = ROOT_DIR / "data" / "offline_tuning" / "subscription
 DEFAULT_POINTS_PATH = ROOT_DIR / "data" / "offline_tuning" / "account_pool_history_points.csv"
 DEFAULT_THRESHOLDS_PATH = ROOT_DIR / "data" / "offline_tuning" / "account_pool_history_thresholds.csv"
 DEFAULT_SUMMARY_PATH = ROOT_DIR / "data" / "offline_tuning" / "account_pool_history_summary.json"
-DEFAULT_THRESHOLDS_WAN = (300.0, 500.0, 800.0, 1000.0, 1500.0, 2000.0)
+DEFAULT_THRESHOLDS_WAN = tuple(float(value) for value in range(100, 5001, 100))
+UNINFORMATIVE_THRESHOLD_BASES = {
+    "",
+    "no_observed_points",
+    "above_top_observed_threshold",
+    "above_top_apply_zero",
+}
 
 
 POINT_COLUMNS = (
@@ -514,7 +520,12 @@ def build_account_pool_history(
     for threshold in thresholds:
         prefix = _threshold_column_prefix(threshold)
         values = [_safe_float(row.get(f"{prefix}_estimate")) for row in recent_rows]
-        clean = [value for value in values if value is not None]
+        informative_values = [
+            _safe_float(row.get(f"{prefix}_estimate"))
+            for row in recent_rows
+            if str(row.get(f"{prefix}_basis") or "").strip() not in UNINFORMATIVE_THRESHOLD_BASES
+        ]
+        clean = [value for value in informative_values if value is not None]
         recent_snapshot[f"{prefix}_median_estimate"] = median(clean) if clean else None
         recent_snapshot[f"{prefix}_latest_usable_estimate"] = clean[-1] if clean else None
         recent_snapshot[f"{prefix}_recent_usable_count"] = len(clean)

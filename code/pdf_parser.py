@@ -356,6 +356,16 @@ ISSUE_RESULT_LWR_PATTERNS = (
 ISSUE_RESULT_MULTIPLE_PATTERNS = (
     re.compile(rf"(?:有效申购倍数|超额认购倍数|认购倍数)[^0-9]{{0,32}}(?P<value>{NUMERIC_TOKEN_PATTERN})倍?"),
 )
+ISSUE_RESULT_DATE_PATTERNS = (
+    re.compile(
+        r"(?:日期|公告日期|披露日期)\s*[:：]?\s*"
+        r"(?P<date>20[0-9]{2}\s*年\s*[0-9]{1,2}\s*月\s*[0-9]{1,2}\s*日)"
+    ),
+    re.compile(
+        r"(?:日期|公告日期|披露日期)\s*[:：]?\s*"
+        r"(?P<date>20[0-9]{2}[-/][0-9]{1,2}[-/][0-9]{1,2})"
+    ),
+)
 ISSUE_RESULT_THRESHOLD_PATTERNS = (
     re.compile(
         rf"(?:申购数量|申购股数|申购金额)[^0-9]{{0,16}}(?P<value>{NUMERIC_TOKEN_PATTERN})(?P<unit>万股|股|万元|元)"
@@ -388,7 +398,7 @@ PARSE_CACHE_SCHEMA = "pdf_parse_cache_v1"
 PARSE_CACHE_KIND_VERSIONS = {
     "prospectus_issue_info": 8,
     "issue_announcement_info": 5,
-    "issue_result_info": 3,
+    "issue_result_info": 4,
     "comparable_companies": 9,
     "business_desc": 3,
 }
@@ -872,6 +882,18 @@ def _extract_apply_date_from_prospectus_text(result: dict[str, dict[str, object]
         return
 
 
+def _extract_issue_result_date_from_text(text: str) -> str:
+    normalized_text = _normalize_fullwidth_text(text)
+    matches: list[tuple[int, str]] = []
+    for pattern in ISSUE_RESULT_DATE_PATTERNS:
+        for match in pattern.finditer(normalized_text):
+            raw_date = re.sub(r"\s+", "", match.group("date"))
+            matches.append((match.start(), _normalize_issue_date(raw_date)))
+    if not matches:
+        return ""
+    return max(matches, key=lambda item: item[0])[1]
+
+
 def _build_prospectus_issue_search_targets(text: str) -> list[tuple[str, str]]:
     compact_text = _compact_text(_normalize_fullwidth_text(text))
     if not compact_text:
@@ -991,6 +1013,12 @@ def _extract_issue_result_info_from_text(text: str) -> dict[str, object]:
         "field_sources": field_sources if isinstance(field_sources, dict) else {},
         "raw_snippets": raw_snippets if isinstance(raw_snippets, dict) else {},
     }
+    result_date = _extract_issue_result_date_from_text(text)
+    if result_date and "ISSUE_RESULT_DATE" not in typed_result["fields"]:
+        typed_result["fields"]["ISSUE_RESULT_DATE"] = result_date
+        typed_result["field_sources"]["ISSUE_RESULT_DATE"] = "issue_result:document_date"
+        typed_result["raw_snippets"]["ISSUE_RESULT_DATE"] = ""
+
     _extract_numeric_patterns(typed_result, compact_text, "result", "ONLINE_VA_NUM", ISSUE_RESULT_VALID_ACCOUNT_PATTERNS)
     _extract_numeric_patterns(
         typed_result,

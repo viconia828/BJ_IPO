@@ -158,12 +158,36 @@ def _run_candidate_search_case(failures: list[str]) -> None:
         progress_callback=lambda current, total, best: progress_events.append((current, total, bool(best))),
     )
     _assert(result.get("candidate_count") == 3, "search: candidate count mismatch", failures)
+    _assert(result.get("search_profile") == "coarse_fine", "search: default profile mismatch", failures)
+    _assert((result.get("rounds") or [{}])[0].get("name") == "core_decay_coarse", "search: first round mismatch", failures)
     _assert(len(result.get("top_candidates") or []) == 2, "search: top candidate count mismatch", failures)
     best = result.get("best") or {}
     _assert(best.get("params"), "search: best params missing", failures)
     _assert("rank_key" in best, "search: rank key missing", failures)
     _assert(progress_events[0] == (0, 3, False), "search progress: start event mismatch", failures)
     _assert(progress_events[-1][0] == 3 and progress_events[-1][2], "search progress: final event missing", failures)
+
+
+def _run_similar_top_apply_frozen_search_grid_case(failures: list[str]) -> None:
+    key_set = set(tune_subscription_prediction.SIMILAR_TOP_APPLY_FROZEN_PARAM_KEYS)
+    main_key_set = set(tune_subscription_prediction.MAIN_TUNABLE_PARAM_KEYS)
+    _assert(key_set.issubset(main_key_set), "similar grid: keys missing from main tunables", failures)
+    enabled_key = "subscription_prediction_similar_top_apply_frozen_enabled"
+    weight_key = "subscription_prediction_similar_top_apply_frozen_weight"
+    recent_key = "subscription_prediction_similar_top_apply_frozen_recent_samples"
+    base_params = tune_subscription_prediction._resolve_subscription_base_params({})
+    coarse_candidates = tune_subscription_prediction._candidate_params_from_grid(
+        tune_subscription_prediction.DEFAULT_SIMILAR_TOP_APPLY_FROZEN_COARSE_GRID,
+        base_params,
+    )
+    _assert(coarse_candidates, "similar grid: coarse candidates missing", failures)
+    _assert(any(not item.get(enabled_key) for item in coarse_candidates), "similar grid: disabled branch missing", failures)
+    _assert(any(item.get(weight_key) == 0.85 for item in coarse_candidates), "similar grid: coarse weight missing", failures)
+    fine_grid = tune_subscription_prediction._similar_top_apply_frozen_fine_grid(base_params)
+    _assert(weight_key in fine_grid, "similar grid: fine weight missing", failures)
+    _assert(recent_key in fine_grid, "similar grid: fine recent samples missing", failures)
+    _assert(base_params.get(weight_key) in fine_grid.get(weight_key, []), "similar grid: fine should include current weight", failures)
+    _assert(base_params.get(recent_key) in fine_grid.get(recent_key, []), "similar grid: fine should include current recent samples", failures)
 
 
 def _run_window_and_robustness_case(failures: list[str]) -> None:
@@ -218,11 +242,16 @@ def _run_account_pool_prior_case(failures: list[str]) -> None:
         _sample_prior_row("920004", "2026-06-04"),
     ]
     rows[-1]["top_apply_below_guaranteed"] = "true"
-    without_prior = tune_subscription_prediction.evaluate_subscription_prediction(rows, min_history_samples=3)
+    without_prior = tune_subscription_prediction.evaluate_subscription_prediction(
+        rows,
+        min_history_samples=3,
+        params={"subscription_prediction_similar_top_apply_frozen_enabled": False},
+    )
     with_prior = tune_subscription_prediction.evaluate_subscription_prediction(
         rows,
         min_history_samples=3,
         params={
+            "subscription_prediction_similar_top_apply_frozen_enabled": False,
             "subscription_prediction_account_pool_prior_weight": 1.0,
             "subscription_prediction_account_pool_recent_samples": 3,
             "subscription_prediction_account_pool_half_life_samples": 2,
@@ -252,6 +281,7 @@ def _run_account_pool_prior_case(failures: list[str]) -> None:
         rows,
         min_history_samples=3,
         params={
+            "subscription_prediction_similar_top_apply_frozen_enabled": False,
             "subscription_prediction_account_pool_prior_weight": 1.0,
             "subscription_prediction_account_pool_recent_samples": 3,
             "subscription_prediction_account_pool_half_life_samples": 2,
@@ -273,6 +303,7 @@ def _run_account_pool_prior_case(failures: list[str]) -> None:
         min_uplift_ratio_values=[1.1],
         min_source_sample_values=[3],
         top_n=1,
+        base_params={"subscription_prediction_similar_top_apply_frozen_enabled": False},
     )
     _assert(search.get("candidate_count") == 1, "prior search: candidate count mismatch", failures)
     _assert(
@@ -537,6 +568,7 @@ def main() -> int:
     _run_baseline_evaluation_case(failures)
     _run_csv_load_case(failures)
     _run_candidate_search_case(failures)
+    _run_similar_top_apply_frozen_search_grid_case(failures)
     _run_window_and_robustness_case(failures)
     _run_large_account_pool_case(failures)
     _run_account_pool_prior_case(failures)
