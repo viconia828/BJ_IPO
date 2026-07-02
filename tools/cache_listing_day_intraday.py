@@ -4,6 +4,7 @@ import argparse
 import csv
 import io
 import json
+import math
 import re
 from datetime import date, datetime, time, timedelta
 from pathlib import Path
@@ -370,6 +371,247 @@ def _scaled_number_or_zero(raw_value: Any, scale: float) -> float:
     return scaled
 
 
+INTRADAY_UNIT_CANDIDATES: tuple[tuple[float, float, str], ...] = (
+    (1.0, 1.0, "volume_shares_amount_yuan"),
+    (100.0, 1.0, "volume_hands_amount_yuan"),
+    (1.0, 1000.0, "volume_shares_amount_thousand_yuan"),
+    (100.0, 1000.0, "volume_hands_amount_thousand_yuan"),
+    (1.0, 10000.0, "volume_shares_amount_wan_yuan"),
+    (100.0, 10000.0, "volume_hands_amount_wan_yuan"),
+    (1.0, 1_000_000.0, "volume_shares_amount_million_yuan"),
+    (100.0, 1_000_000.0, "volume_hands_amount_million_yuan"),
+)
+
+
+def _median_float(values: list[float]) -> float | None:
+    if not values:
+        return None
+    ordered = sorted(values)
+    midpoint = len(ordered) // 2
+    if len(ordered) % 2:
+        return ordered[midpoint]
+    return (ordered[midpoint - 1] + ordered[midpoint]) / 2
+
+
+def _row_reference_price(row: dict[str, Any]) -> float | None:
+    prices = [
+        value
+        for key in ("open", "high", "low", "close")
+        if (value := _parse_number(row.get(key))) is not None and value > 0
+    ]
+    return _median_float(prices)
+
+
+def _format_unit_scaled_value(value: float) -> float:
+    scaled = round(value, 6)
+    if abs(scaled - round(scaled)) < 0.000001:
+        return float(round(scaled))
+    return scaled
+
+
+def _infer_intraday_unit_mode(rows: list[dict[str, Any]]) -> dict[str, Any]:
+    raw_ratios: list[float] = []
+    for row in rows:
+        volume = _parse_number(row.get("volume"))
+        amount = _parse_number(row.get("amount"))
+        reference_price = _row_reference_price(row)
+        if volume is None or amount is None or reference_price is None:
+            continue
+        if volume <= 0 or amount <= 0 or reference_price <= 0:
+            continue
+        raw_ratios.append(amount / (volume * reference_price))
+
+    if not raw_ratios:
+        return {
+            "unit_mode": "unknown",
+            "volume_multiplier": 1.0,
+            "amount_multiplier": 1.0,
+            "unit_score": None,
+            "normalized": False,
+        }
+
+    best: tuple[float, float, float, str] | None = None
+    for volume_multiplier, amount_multiplier, mode in INTRADAY_UNIT_CANDIDATES:
+        distances = [
+            abs(math.log(raw_ratio * amount_multiplier / volume_multiplier))
+            for raw_ratio in raw_ratios
+            if raw_ratio > 0
+        ]
+        score = _median_float(distances)
+        if score is None:
+            continue
+        if best is None or score < best[0]:
+            best = (score, volume_multiplier, amount_multiplier, mode)
+
+    if best is None:
+        return {
+            "unit_mode": "unknown",
+            "volume_multiplier": 1.0,
+            "amount_multiplier": 1.0,
+            "unit_score": None,
+            "normalized": False,
+        }
+
+    score, volume_multiplier, amount_multiplier, mode = best
+    # If no candidate fits within a broad 3x price band, avoid rewriting questionable data.
+    if score > math.log(3):
+        return {
+            "unit_mode": "unknown",
+            "volume_multiplier": 1.0,
+            "amount_multiplier": 1.0,
+            "unit_score": round(score, 6),
+            "normalized": False,
+        }
+
+    return {
+        "unit_mode": mode,
+        "volume_multiplier": volume_multiplier,
+        "amount_multiplier": amount_multiplier,
+        "unit_score": round(score, 6),
+        "normalized": volume_multiplier != 1.0 or amount_multiplier != 1.0,
+    }
+
+
+def _normalize_intraday_units(rows: list[dict[str, Any]]) -> tuple[list[dict[str, Any]], dict[str, Any]]:
+    unit_summary = _infer_intraday_unit_mode(rows)
+    volume_multiplier = float(unit_summary.get("volume_multiplier") or 1.0)
+    amount_multiplier = float(unit_summary.get("amount_multiplier") or 1.0)
+    normalized_rows: list[dict[str, Any]] = []
+
+    for row in rows:
+        normalized_row = dict(row)
+        volume = _parse_number(row.get("volume"))
+        amount = _parse_number(row.get("amount"))
+        if volume is not None:
+            normalized_row["volume"] = _format_unit_scaled_value(volume * volume_multiplier)
+        if amount is not None:
+            normalized_row["amount"] = _format_unit_scaled_value(amount * amount_multiplier)
+        normalized_rows.append(normalized_row)
+
+    return normalized_rows, unit_summary
+
+
+def _write_normalized_intraday_csv(
+    code: str,
+    rows: list[dict[str, Any]],
+    output_path: Path,
+) -> tuple[Path, list[dict[str, Any]], dict[str, Any]]:
+    normalized_rows, unit_summary = _normalize_intraday_units(rows)
+    written_path = tushare_helper.write_intraday_csv(code, normalized_rows, output_dir=output_path)
+    return written_path, normalized_rows, unit_summary
+
+
+def _unit_summary_fields(unit_summary: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "unit_mode": unit_summary.get("unit_mode"),
+        "unit_normalized": bool(unit_summary.get("normalized")),
+        "volume_multiplier": unit_summary.get("volume_multiplier"),
+        "amount_multiplier": unit_summary.get("amount_multiplier"),
+    }
+
+
+def _normalize_cached_datetime(raw_value: Any) -> str:
+    text = str(raw_value or "").strip()
+    if not text:
+        return ""
+    normalized = text.replace("T", " ").replace("-", "/")
+    normalized = re.sub(r"\s+", " ", normalized).strip()
+    for fmt in ("%Y/%m/%d %H:%M:%S", "%Y/%m/%d %H:%M"):
+        try:
+            return datetime.strptime(normalized, fmt).strftime("%Y/%m/%d %H:%M")
+        except ValueError:
+            pass
+    return ""
+
+
+def _read_cached_intraday_csv(path: Path) -> tuple[list[dict[str, Any]], str]:
+    errors: list[str] = []
+    for encoding in ("utf-8-sig", "gb18030", "utf-16"):
+        try:
+            with path.open("r", encoding=encoding, newline="") as handle:
+                rows: list[dict[str, Any]] = []
+                for row in csv.DictReader(handle):
+                    dt = _normalize_cached_datetime(row.get("DateTime"))
+                    if not dt:
+                        continue
+                    open_price = _parse_number(row.get("open"))
+                    high_price = _parse_number(row.get("high"))
+                    low_price = _parse_number(row.get("low"))
+                    close_price = _parse_number(row.get("close"))
+                    if None in {open_price, high_price, low_price, close_price}:
+                        continue
+                    rows.append(
+                        {
+                            "DateTime": dt,
+                            "open": open_price,
+                            "high": high_price,
+                            "low": low_price,
+                            "close": close_price,
+                            "volume": _parse_number(row.get("volume")),
+                            "amount": _parse_number(row.get("amount")),
+                        }
+                    )
+        except UnicodeError as exc:
+            errors.append(f"{encoding}: {exc}")
+            continue
+        except OSError as exc:
+            return [], str(exc)
+        return rows, ""
+    return [], "; ".join(errors)
+
+
+def normalize_existing_intraday_cache(
+    output_dir: str | Path | None = None,
+    codes: list[str] | None = None,
+) -> dict[str, Any]:
+    output_path = Path(output_dir) if output_dir is not None else DEFAULT_OUTPUT_DIR
+    requested_codes = {_base_code(code).upper() for code in (codes or []) if str(code or "").strip()}
+    summary = {
+        "output_dir": str(output_path),
+        "checked": [],
+        "normalized": [],
+        "unchanged": [],
+        "errors": [],
+        "checked_count": 0,
+        "normalized_count": 0,
+        "unchanged_count": 0,
+        "error_count": 0,
+    }
+    if not output_path.exists():
+        summary["errors"].append({"path": str(output_path), "reason": "output_dir_not_found"})
+        summary["error_count"] = 1
+        return summary
+
+    for path in sorted(output_path.glob("*.csv")):
+        code = _base_code(path.stem).upper()
+        if requested_codes and code not in requested_codes:
+            continue
+        summary["checked"].append(code)
+        rows, reason = _read_cached_intraday_csv(path)
+        if not rows:
+            summary["errors"].append({"code": code, "path": str(path), "reason": reason or "no_valid_rows"})
+            continue
+        normalized_rows, unit_summary = _normalize_intraday_units(rows)
+        item = {
+            "code": code,
+            "path": str(path),
+            "rows": len(normalized_rows),
+            **_unit_summary_fields(unit_summary),
+        }
+        if unit_summary.get("normalized"):
+            written_path = tushare_helper.write_intraday_csv(code, normalized_rows, output_dir=output_path)
+            item["path"] = str(written_path)
+            summary["normalized"].append(item)
+        else:
+            summary["unchanged"].append(item)
+
+    summary["checked_count"] = len(summary["checked"])
+    summary["normalized_count"] = len(summary["normalized"])
+    summary["unchanged_count"] = len(summary["unchanged"])
+    summary["error_count"] = len(summary["errors"])
+    return summary
+
+
 def _cell_at(row: list[Any], index: int | None) -> Any:
     if index is None or index < 0 or index >= len(row):
         return None
@@ -721,7 +963,7 @@ def _cache_single_candidate(
         except data_fetcher.DataFetcherError as exc:
             eastmoney_reason = str(exc)
         else:
-            written_path = tushare_helper.write_intraday_csv(code, rows, output_dir=output_path)
+            written_path, normalized_rows, unit_summary = _write_normalized_intraday_csv(code, rows, output_path)
             attempted_apis.append("eastmoney_trends2")
             return {
                 "status": "cached",
@@ -729,10 +971,11 @@ def _cache_single_candidate(
                 "name": name,
                 "listing_date": listing_date,
                 "path": str(written_path),
-                "rows": len(rows),
+                "rows": len(normalized_rows),
                 "source_api": "eastmoney_trends2",
                 "attempted_apis": attempted_apis,
                 "source_failures": source_failures,
+                **_unit_summary_fields(unit_summary),
             }
 
         source_failures.append(
@@ -761,19 +1004,20 @@ def _cache_single_candidate(
         local_summary = local_result.get("summary") or {}
         attempted_apis.extend(["eastmoney_trends2", MANUAL_FILE_SOURCE_API])
         if local_rows:
-            written_path = tushare_helper.write_intraday_csv(code, local_rows, output_dir=output_path)
+            written_path, normalized_rows, unit_summary = _write_normalized_intraday_csv(code, local_rows, output_path)
             return {
                 "status": "cached",
                 "code": code,
                 "name": name,
                 "listing_date": listing_date,
                 "path": str(written_path),
-                "rows": len(local_rows),
+                "rows": len(normalized_rows),
                 "source_api": MANUAL_FILE_SOURCE_API,
                 "source_path": local_summary.get("source_path"),
                 "attempted_apis": attempted_apis,
                 "attempted_files": list(local_summary.get("attempted_files") or []),
                 "source_failures": source_failures,
+                **_unit_summary_fields(unit_summary),
             }
 
         manual_reason = str(local_summary.get("reason") or MANUAL_FILE_PROMPT)
@@ -791,16 +1035,17 @@ def _cache_single_candidate(
             "source_failures": source_failures,
         }
 
-    written_path = tushare_helper.write_intraday_csv(code, rows, output_dir=output_path)
+    written_path, normalized_rows, unit_summary = _write_normalized_intraday_csv(code, rows, output_path)
     return {
         "status": "cached",
         "code": code,
         "name": name,
         "listing_date": listing_date,
         "path": str(written_path),
-        "rows": len(rows),
+        "rows": len(normalized_rows),
         "source_api": fetch_summary.get("source_api"),
         "attempted_apis": list(fetch_summary.get("attempted_apis") or []),
+        **_unit_summary_fields(unit_summary),
     }
 
 
@@ -994,9 +1239,15 @@ def main() -> int:
     parser.add_argument("--output-dir", default=str(DEFAULT_OUTPUT_DIR), help="CSV 输出目录，默认 首日分时走势。")
     parser.add_argument("--force", action="store_true", help="即使本地已存在 CSV 也强制覆盖。")
     parser.add_argument("--latest-until-cached", action="store_true", help="按最新上市顺序往前补缓存，直到遇到本地已有 CSV 为止。")
+    parser.add_argument("--normalize-existing", action="store_true", help="扫描已有首日分时 CSV，并把成交量/成交额统一为股/元口径。")
     args = parser.parse_args()
 
-    if args.latest_until_cached:
+    if args.normalize_existing:
+        summary = normalize_existing_intraday_cache(
+            output_dir=args.output_dir,
+            codes=_parse_codes(args.codes),
+        )
+    elif args.latest_until_cached:
         summary = run_latest_missing_cache_job(
             months=max(args.months, 1),
             output_dir=args.output_dir,

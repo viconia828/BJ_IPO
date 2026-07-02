@@ -349,8 +349,65 @@ def _run_eastmoney_fallback_case(failures: list[str]) -> None:
     _assert(summary["cached_count"] == 1, "eastmoney_fallback: expected one cached csv", failures)
     _assert(summary["cached"][0]["source_api"] == "eastmoney_trends2", "eastmoney_fallback: expected eastmoney source", failures)
     _assert(summary["cached"][0]["attempted_apis"] == ["rt_min_daily", "stk_mins", "eastmoney_trends2"], "eastmoney_fallback: expected attempted api chain", failures)
-    _assert((output_dir / "920191.csv").exists(), "eastmoney_fallback: expected output csv", failures)
+    csv_path = output_dir / "920191.csv"
+    _assert(csv_path.exists(), "eastmoney_fallback: expected output csv", failures)
+    content = csv_path.read_text(encoding="utf-8-sig").splitlines() if csv_path.exists() else []
+    _assert(summary["cached"][0]["unit_mode"] == "volume_hands_amount_yuan", "eastmoney_fallback: expected hand-volume unit mode", failures)
+    _assert(summary["cached"][0]["unit_normalized"] is True, "eastmoney_fallback: expected unit normalization", failures)
+    _assert(
+        content[:2]
+        == [
+            "DateTime,open,high,low,close,volume,amount",
+            f"{today.replace('-', '/')} 09:30,15.99,15.99,15.99,15.99,1464700.0,23420680.0",
+        ],
+        "eastmoney_fallback: expected volume converted from hands to shares",
+        failures,
+    )
     print("OK eastmoney_fallback: Eastmoney minute endpoint backfilled csv after Tushare failure")
+
+
+def _run_existing_cache_normalization_case(failures: list[str]) -> None:
+    output_dir = TEMP_ROOT / "existing_cache_normalization" / "csv"
+    output_dir.mkdir(parents=True, exist_ok=True)
+    today = cache_listing_day_intraday.date.today().isoformat().replace("-", "/")
+    csv_path = output_dir / "920191.csv"
+    csv_path.write_text(
+        "\n".join(
+            [
+                "DateTime,open,high,low,close,volume,amount",
+                f"{today} 09:30:00,15.9,16.1,15.8,15.99,100,159900",
+                f"{today} 09:31:00,16.0,16.2,15.9,16.1,120,193200",
+            ]
+        )
+        + "\n",
+        encoding="utf-8-sig",
+    )
+
+    summary = cache_listing_day_intraday.normalize_existing_intraday_cache(
+        output_dir=output_dir,
+        codes=["920191"],
+    )
+    content = csv_path.read_text(encoding="utf-8-sig").splitlines()
+
+    _assert(summary["checked_count"] == 1, "existing_cache_normalization: expected one checked csv", failures)
+    _assert(summary["normalized_count"] == 1, "existing_cache_normalization: expected one normalized csv", failures)
+    _assert(summary["error_count"] == 0, "existing_cache_normalization: expected zero errors", failures)
+    _assert(
+        summary["normalized"][0]["unit_mode"] == "volume_hands_amount_yuan",
+        "existing_cache_normalization: expected hand-volume unit mode",
+        failures,
+    )
+    _assert(
+        content[:3]
+        == [
+            "DateTime,open,high,low,close,volume,amount",
+            f"{today} 09:30,15.9,16.1,15.8,15.99,10000.0,159900.0",
+            f"{today} 09:31,16.0,16.2,15.9,16.1,12000.0,193200.0",
+        ],
+        "existing_cache_normalization: expected hand volume converted to shares",
+        failures,
+    )
+    print("OK existing_cache_normalization: existing csv hand volume was converted to shares")
 
 
 def _run_eastmoney_imprecise_case(failures: list[str]) -> None:
@@ -704,6 +761,7 @@ def main() -> int:
         _run_history_fetch_case(failures)
         _run_latest_until_cached_case(failures)
         _run_eastmoney_fallback_case(failures)
+        _run_existing_cache_normalization_case(failures)
         _run_eastmoney_imprecise_case(failures)
         _run_manual_file_fallback_case(failures)
         _run_retry_deferred_case(failures)

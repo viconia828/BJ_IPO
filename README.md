@@ -161,11 +161,14 @@
 
 如果两个在线数据源都失败，可以把该股票首日分钟文件拖入项目根目录后重试。文件名建议包含股票代码，例如 `920200.BJ.xlsx`；表头可使用常见字段如 `代码`、`日期` / `时间`、`开盘价(元)`、`最高价(元)`、`最低价(元)`、`收盘价(元)`、`成交额(百万)`、`成交量`。成功后会统一写入 `首日分时走势/代码.csv`。
 
+写入缓存时，系统会根据价格、成交量和成交额自动判断原始数据的单位，并统一保存为 `volume=股`、`amount=元`。如果你担心历史 CSV 里混有“手/股”或“万元/元”等不同口径，可以先运行一次归一化命令；它只会重写需要换算的文件。
+
 常用命令：
 
 - `python tools\add_new_ipo_intraday_cache.py`
 - `python tools\cache_listing_day_intraday.py`
 - `python tools\cache_listing_day_intraday.py --latest-until-cached --months 18`
+- `python tools\cache_listing_day_intraday.py --normalize-existing`
 
 这套缓存会直接写入 `首日分时走势/`，后续主程序和调参会自动复用。
 
