@@ -14,7 +14,7 @@
 
 - 生成估值报告：双击 `运行.bat`
 - 调参（手动 / 自动）：双击 `调参.bat`
-- 补最新首日分时走势：双击 `添加新股首日走势.bat`
+- 补最新首日走势、调参样本和缺公告重试：双击 `添加新股首日走势.bat`
 
 也可以直接用命令行：
 
@@ -85,7 +85,11 @@
 
 每次通过 `调参.bat` 启动调参时，系统会先扫描 `首日分时走势/` 里的 CSV，自动同步估值回放样本集 `data/offline_tuning/replay_dataset.json`，再重建申购资金历史样本集 `data/offline_tuning/subscription_history_sample.csv` 并同步手工分档表。估值回放会优先复用旧数据集条目和 `data/offline_tuning/replay_items/代码.json` 单样本缓存，只为新增样本补齐回放资料；申购资金历史表会保留旧表中信息更完整的发行结果行，避免自动更新把 `model_ready` 样本降级。若外部数据源临时超时或拒绝连接，本次会继续使用旧样本集，不会中断调参；网络恢复后再次运行即可自动重试同步。
 
-申购配售模型的历史样本表保存在 `data/offline_tuning/subscription_history_sample.csv`，这是可提交的训练样本产物。它按历史新股逐行记录发行价、网上发行数量、顶格申购金额、有效申购户数、有效申购股数、冻结资金、申购冻结天数、正股门槛、碎股门槛估算和字段来源。常用生成命令：
+申购配售模型的历史样本表保存在 `data/offline_tuning/subscription_history_sample.csv`，这是可提交的训练样本产物。它按历史新股逐行记录发行价、网上发行数量、顶格申购金额、有效申购户数、有效申购股数、冻结资金、申购冻结天数、正股门槛、碎股门槛估算和字段来源。申购规模按网上发行口径处理：系统会用网上发行数量和发行价得到网上发行金额，用顶格申购金额判断单户上限，再用有效申购股数或冻结资金反推全市场有效申购资金池。正股/碎股门槛和是否需要抢时间，都是在这个口径上计算出来的。
+
+如果申购规模相关字段缺失，通常是发行公告或发行结果公告还没有补齐。你可以双击 `添加新股首日走势.bat`，选择 `2. 刷新新上市新股数据（估值 replay / 申购 history / 缺公告重试）`，系统会重新尝试下载缺失公告并更新申购 history。
+
+常用生成命令：
 
 - `python tools\build_subscription_history.py`
 - `python tools\build_subscription_history.py --download-missing-issue --download-missing-result`
@@ -145,11 +149,16 @@
 - 如果某个“和为 1”的二因子权重组只输入了一个因子，会自动补足另一个因子到 `1`
 - 如果某个“和为 1”的多因子组只调了一个因子，其余因子会按当前 `策略参数.txt` 的现有比例自动缩放
 
-### 3. 补最新首日分时走势
+### 3. 补最新上市样本资料
 
 最简单的方式：
 
 - 双击 `添加新股首日走势.bat`
+
+启动后可以选择：
+
+- `1. 刷新新股首日走势`：只补首日分时 CSV。
+- `2. 刷新新上市新股数据（估值 replay / 申购 history / 缺公告重试）`：补估值回放样本、申购资金历史样本、手工阶梯标签上下文和样本 manifest；缺失的发行公告/发行结果公告也会自动重试下载。
 
 如果当天有正在交易的新股，程序会在盘中跳过当日上市样本，不写入不完整的首日分时 CSV，并提示盘后再运行。默认盘后缓存时间为 15:30 后。
 
@@ -169,8 +178,9 @@
 - `python tools\cache_listing_day_intraday.py`
 - `python tools\cache_listing_day_intraday.py --latest-until-cached --months 18`
 - `python tools\cache_listing_day_intraday.py --normalize-existing`
+- `python tools\sync_offline_tuning_dataset.py`
 
-这套缓存会直接写入 `首日分时走势/`，后续主程序和调参会自动复用。
+首日走势缓存会直接写入 `首日分时走势/`，后续主程序和调参会自动复用；调参样本刷新会更新 `data/offline_tuning/` 下的 replay、申购 history、手工标签上下文和样本 manifest。
 
 ### 4. 下载公告文件
 
@@ -264,6 +274,8 @@
 - 方法二 PE：`pe_low_threshold = 0.35`，`pe_discount_boost = 0.075`，`pe_high_threshold = 0.45`，`pe_premium_drag = -0.20`
 - 趋势权重：`industry_trend_weight = 0.85`，`market_sentiment_weight = 0.15`
 - 首日表现判断：正式估值与调参回放统一使用首日成交均价；本地分时 CSV 会自动缓存均价
+- 申购规模口径：申购资金模型以网上发行数量、发行价、顶格申购金额、有效申购股数/冻结资金为主；网上发行金额用于发行规模修正，顶格申购金额用于单户上限修正，冻结资金或有效申购股数用于估算全市场有效申购资金池
+- 申购资金默认参数：样本时间半衰期为 5 天，顶格规模修正指数为 `0.45`，网上发行规模修正指数为 `0.3`，冻结天数修正指数为 `0.2`，正股建议金额会在正股门槛上增加 50-100 万保护垫
 
 WSI 细项权重仍保留在 `策略参数.txt` 中，通常无需手动改动；如接受自动调参结果，系统会自动写回对应权重。
 
@@ -290,6 +302,7 @@ WSI 细项权重仍保留在 `策略参数.txt` 中，通常无需手动改动�
 - `tools/review_candidate_params.py`：复核已有候选参数集
 - `tools/cache_listing_day_intraday.py`：缓存首日分时走势
 - `tools/add_new_ipo_intraday_cache.py`：补最新上市样本缓存
+- `tools/sync_offline_tuning_dataset.py`：刷新估值 replay、申购 history、手工标签上下文和缺公告重试
 - `tools/download_bse_official_pdf.py`：下载公告 PDF
 - `tools/scan_pdf_samples.py`：批量扫描本地 PDF 样本
 
