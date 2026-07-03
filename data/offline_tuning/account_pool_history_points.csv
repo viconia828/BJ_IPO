@@ -1,4 +1,9 @@
 ﻿security_code,security_name_abbr,apply_date,listing_date,issue_price,online_issue_shares,online_lots_total,online_valid_accounts,online_allocated_accounts,top_apply_amount_wan,threshold_amount_wan,accounts_ge_threshold,account_count_basis,lot_level,manual_ladder_item,manual_threshold_kind,time_priority_required,fit_quality,fit_confidence,point_quality,source,basis,notes
+920081,欧伦电气,,,,,,,,,707.85,,,1,1+0=707.85,guaranteed,false,,,threshold_only,manual_ladder+manual_only,,missing_allocation_fit_counts
+920081,欧伦电气,,,,,,,,,1258,,,2,1+1=1258,fractional,false,,,threshold_only,manual_ladder+manual_only,,missing_allocation_fit_counts
+920081,欧伦电气,,,,,,,,,1416,,,3,2+1=1416,fractional,false,,,threshold_only,manual_ladder+manual_only,,missing_allocation_fit_counts
+920081,欧伦电气,,,,,,,,,2124,,,4,3+1=2124,fractional,false,,,threshold_only,manual_ladder+manual_only,,missing_allocation_fit_counts
+920081,欧伦电气,,,,,,,,,2836,,,5,4+1=2836,fractional,false,,,threshold_only,manual_ladder+manual_only,,missing_allocation_fit_counts
 920136,永励精密,,,,,,,,,1131.3,,,2,1+1=1131.3,fractional,false,,,threshold_only,manual_ladder+manual_only,,missing_allocation_fit_counts
 920136,永励精密,,,,,,,,,1217.8,,,3,2+1=1217.8,fractional,false,,,threshold_only,manual_ladder+manual_only,,missing_allocation_fit_counts
 920189,康美特,,,,,,,,,447,,,1,1+0=447,guaranteed,false,,,threshold_only,manual_ladder+manual_only,,missing_allocation_fit_counts
@@ -70,8 +75,8 @@
 920191,瑞尔竞达,2026-04-09,2026-04-20,7.71,39915000,399150,460563,93651,1538.6847,893,50916,cumulative_allocated_lots,5,4+1=893,fractional,false,rough_lot_account_fit,0.7,rough_fit,manual_ladder+allocation_fit,,allocation_counts_are_model_fit
 920191,瑞尔竞达,2026-04-09,2026-04-20,7.71,39915000,399150,460563,93651,1538.6847,1116,50916,cumulative_allocated_lots,6,5+1=1116,fractional,false,rough_lot_account_fit,0.7,rough_fit,manual_ladder+allocation_fit,,allocation_counts_are_model_fit
 920191,瑞尔竞达,2026-04-09,2026-04-20,7.71,39915000,399150,460563,93651,1538.6847,1339,50916,cumulative_allocated_lots,7,6+1=1339,fractional,false,rough_lot_account_fit,0.7,rough_fit,manual_ladder+allocation_fit,compressed_extra_lots,allocation_counts_are_model_fit|manual_threshold_overrides_fit:1538.6847
-920125,鸿仕达,2026-04-13,2026-04-24,16.57,13500000,135000,523224,72162,1006.6275,675.39,72162,cumulative_allocated_lots,1,1+0=675.39,guaranteed,false,rough_lot_account_fit,0.7,rough_fit,manual_ladder+allocation_fit,fractional_cutoff_estimate,allocation_counts_are_model_fit|manual_threshold_overrides_fit:607.6219
-920125,鸿仕达,2026-04-13,2026-04-24,16.57,13500000,135000,523224,72162,1006.6275,1006.6275,62838,cumulative_allocated_lots,2,1+1=顶格抢时间,top_apply_time_priority,true,rough_lot_account_fit,0.7,rough_fit,manual_ladder+allocation_fit,compressed_extra_lots,allocation_counts_are_model_fit
+920125,鸿仕达,2026-04-13,2026-04-24,16.57,12150000,121500,523224,72162,1006.6275,675.39,72162,cumulative_allocated_lots,1,1+0=675.39,guaranteed,false,rough_lot_account_fit,0.7,rough_fit,manual_ladder+allocation_fit,fractional_cutoff_estimate,allocation_counts_are_model_fit
+920125,鸿仕达,2026-04-13,2026-04-24,16.57,12150000,121500,523224,72162,1006.6275,1006.6275,49338,cumulative_allocated_lots,2,1+1=顶格抢时间,top_apply_time_priority,true,rough_lot_account_fit,0.7,rough_fit,manual_ladder+allocation_fit,compressed_extra_lots,allocation_counts_are_model_fit
 920156,海昌智能,2026-04-15,2026-04-27,20.93,21708000,217080,522014,74732,2271.7422,476.27,74732,cumulative_allocated_lots,1,1+0=476.27,guaranteed,false,rough_lot_account_fit,0.7,rough_fit,manual_ladder+allocation_fit,fractional_cutoff_estimate,allocation_counts_are_model_fit
 920156,海昌智能,2026-04-15,2026-04-27,20.93,21708000,217080,522014,74732,2271.7422,614.09,35587,cumulative_allocated_lots,2,1+1=614.09,fractional,false,rough_lot_account_fit,0.7,rough_fit,manual_ladder+allocation_fit,,allocation_counts_are_model_fit
 920156,海昌智能,2026-04-15,2026-04-27,20.93,21708000,217080,522014,74732,2271.7422,952.5,35587,cumulative_allocated_lots,3,2+1=952.5,fractional,false,rough_lot_account_fit,0.7,rough_fit,manual_ladder+allocation_fit,,allocation_counts_are_model_fit
