@@ -538,6 +538,7 @@ def build_account_pool_history(
         "ladder_label_path": str(ladder_label_path),
         "points_path": str(points_path),
         "thresholds_path": str(thresholds_path),
+        "summary_path": str(summary_path),
         "thresholds_wan": list(thresholds),
         "sample_count": len(merged_rows),
         "history_row_count": len(history_rows),

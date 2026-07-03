@@ -207,6 +207,29 @@ def _run_top_apply_time_priority_label_case(failures: list[str]) -> None:
     _assert(residuals.get("allocated_lot_residual") == 0, "time race: lot residual mismatch", failures)
 
 
+def _run_new_model_ready_row_overrides_existing_case(failures: list[str]) -> None:
+    new_row = {
+        "security_code": "920006",
+        "security_name_abbr": "New Result",
+        "model_ready": "true",
+        "online_valid_shares": "123000000",
+    }
+    existing_row = {
+        "security_code": "920006",
+        "security_name_abbr": "Old Result",
+        "model_ready": "true",
+        "guaranteed_label_ready": "true",
+        "fractional_label_ready": "true",
+        "online_valid_shares": "999000000",
+        "frozen_funds_yi": "99",
+        "allocation_fit_json": "{}",
+    }
+    merged = build_subscription_history._merge_existing_history_rows([new_row], [existing_row])
+    row = merged[0] if merged else {}
+    _assert(row.get("security_name_abbr") == "New Result", "merge: model_ready new row should override old row", failures)
+    _assert(row.get("online_valid_shares") == "123000000", "merge: latest model_ready values should win", failures)
+
+
 def _run_result_date_text_case(failures: list[str]) -> None:
     text = "发行人：示例股份有限公司\n日期：2026年1月9日"
     _assert(
@@ -223,6 +246,7 @@ def main() -> int:
     _run_download_skip_codes_case(failures)
     _run_implausible_online_issue_case(failures)
     _run_top_apply_time_priority_label_case(failures)
+    _run_new_model_ready_row_overrides_existing_case(failures)
     _run_result_date_text_case(failures)
     if failures:
         for failure in failures:

@@ -20,6 +20,7 @@ if str(CODE_DIR) not in sys.path:
 if str(CURRENT_DIR) not in sys.path:
     sys.path.insert(0, str(CURRENT_DIR))
 
+import build_account_pool_history
 import build_subscription_history
 import config_loader
 import param_tuning
@@ -31,6 +32,9 @@ DEFAULT_PARAMS_PATH = ROOT_DIR / "策略参数.txt"
 DEFAULT_DATASET_PATH = ROOT_DIR / "data" / "offline_tuning" / "replay_dataset.json"
 DEFAULT_HISTORY_PATH = ROOT_DIR / "data" / "offline_tuning" / "subscription_history_sample.csv"
 DEFAULT_LADDER_LABEL_PATH = ROOT_DIR / "data" / "offline_tuning" / "subscription_ladder_labels.csv"
+DEFAULT_ACCOUNT_POOL_POINTS_PATH = ROOT_DIR / "data" / "offline_tuning" / "account_pool_history_points.csv"
+DEFAULT_ACCOUNT_POOL_THRESHOLDS_PATH = ROOT_DIR / "data" / "offline_tuning" / "account_pool_history_thresholds.csv"
+DEFAULT_ACCOUNT_POOL_SUMMARY_PATH = ROOT_DIR / "data" / "offline_tuning" / "account_pool_history_summary.json"
 DEFAULT_MANIFEST_PATH = ROOT_DIR / "data" / "offline_tuning" / "sample_manifest.json"
 DEFAULT_REPLAY_ITEM_DIR = ROOT_DIR / "data" / "offline_tuning" / "replay_items"
 DEFAULT_RETRY_MARKER_PATH = ROOT_DIR / "data" / "offline_tuning" / "deferred_listing_data_codes.json"
@@ -766,6 +770,18 @@ def sync_offline_tuning_dataset(
     dataset_path = _as_path(getattr(args, "dataset_path", None), DEFAULT_DATASET_PATH)
     history_path = _as_path(getattr(args, "history_path", None), DEFAULT_HISTORY_PATH)
     ladder_label_path = _as_path(getattr(args, "ladder_label_path", None), DEFAULT_LADDER_LABEL_PATH)
+    account_pool_points_path = _as_path(
+        getattr(args, "account_pool_points_path", None),
+        dataset_path.parent / "account_pool_history_points.csv",
+    )
+    account_pool_thresholds_path = _as_path(
+        getattr(args, "account_pool_thresholds_path", None),
+        dataset_path.parent / "account_pool_history_thresholds.csv",
+    )
+    account_pool_summary_path = _as_path(
+        getattr(args, "account_pool_summary_path", None),
+        dataset_path.parent / "account_pool_history_summary.json",
+    )
     manifest_path = _as_path(getattr(args, "manifest_path", None), dataset_path.parent / "sample_manifest.json")
     replay_item_dir = _as_path(getattr(args, "replay_item_dir", None), dataset_path.parent / "replay_items")
     intraday_dir = _as_path(getattr(args, "intraday_dir", None), DEFAULT_INTRADAY_DIR)
@@ -864,6 +880,21 @@ def sync_offline_tuning_dataset(
             flush=True,
         )
 
+    account_pool_summary = build_account_pool_history.build_account_pool_history(
+        history_path=history_path,
+        ladder_label_path=ladder_label_path,
+        points_path=account_pool_points_path,
+        thresholds_path=account_pool_thresholds_path,
+        summary_path=account_pool_summary_path,
+    )
+    if verbose:
+        print(
+            "account-pool history refreshed: samples={sample_count}, usable_points={usable_point_count}, thresholds={threshold_row_count}.".format(
+                **account_pool_summary
+            ),
+            flush=True,
+        )
+
     history_rows = _load_csv_rows_by_code(history_path)
     retry_reasons_by_code = collect_listing_data_retry_reasons(
         history_rows,
@@ -893,6 +924,7 @@ def sync_offline_tuning_dataset(
             "item_cache": item_cache,
         },
         "subscription_history": history_summary,
+        "account_pool_history": account_pool_summary,
         "listing_data_retry": {
             "marker_path": str(retry_marker_path),
             "pending_before": pending_before,
@@ -923,6 +955,7 @@ def sync_offline_tuning_dataset(
     return {
         "dataset": dataset,
         "history_summary": history_summary,
+        "account_pool_summary": account_pool_summary,
         "manifest": manifest,
         "manifest_path": saved_manifest_path,
         "retry_marker_path": retry_marker_path,
@@ -936,6 +969,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--dataset-path", type=Path, default=DEFAULT_DATASET_PATH)
     parser.add_argument("--history-path", type=Path, default=DEFAULT_HISTORY_PATH)
     parser.add_argument("--ladder-label-path", type=Path, default=DEFAULT_LADDER_LABEL_PATH)
+    parser.add_argument("--account-pool-points-path", type=Path, default=DEFAULT_ACCOUNT_POOL_POINTS_PATH)
+    parser.add_argument("--account-pool-thresholds-path", type=Path, default=DEFAULT_ACCOUNT_POOL_THRESHOLDS_PATH)
+    parser.add_argument("--account-pool-summary-path", type=Path, default=DEFAULT_ACCOUNT_POOL_SUMMARY_PATH)
     parser.add_argument("--manifest-path", type=Path, default=DEFAULT_MANIFEST_PATH)
     parser.add_argument("--replay-item-dir", type=Path, default=DEFAULT_REPLAY_ITEM_DIR)
     parser.add_argument("--intraday-dir", type=Path, default=DEFAULT_INTRADAY_DIR)
@@ -984,6 +1020,7 @@ def main() -> int:
                 {
                     "manifest_path": str(manifest_path),
                     "retry_marker_path": str(result["retry_marker_path"]),
+                    "account_pool_summary_path": str(result["account_pool_summary"].get("summary_path", "")),
                     "summary": summary,
                     "retry_codes": sorted(result["retry_reasons_by_code"]),
                 },

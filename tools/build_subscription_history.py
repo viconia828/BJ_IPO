@@ -897,7 +897,7 @@ def _merge_existing_history_rows(
     for row in rows:
         code = str(row.get("security_code") or "").strip()
         existing = existing_by_code.get(code)
-        if existing and _row_quality_score(existing) > _row_quality_score(row):
+        if existing and not _truthy(row.get("model_ready")) and _row_quality_score(existing) > _row_quality_score(row):
             merged_rows.append({column: existing.get(column, "") for column in CSV_COLUMNS})
         else:
             merged_rows.append(row)
