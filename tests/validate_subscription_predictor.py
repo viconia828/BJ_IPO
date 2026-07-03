@@ -288,6 +288,11 @@ def _run_920126_lot_threshold_case(failures: list[str]) -> None:
     lot_thresholds = prediction.get("lot_thresholds") or []
     _assert(len(lot_thresholds) == 10, "920126 lot thresholds: expected 10 rows", failures)
     by_label = {str(item.get("ladder_label") or ""): item for item in lot_thresholds}
+    display_labels = [
+        str(item.get("ladder_label") or "")
+        for item in lot_thresholds
+        if item.get("display") is not False
+    ]
     expected_by_label = {
         "1+0": actual_amounts[1],
         "1+1": actual_amounts[3],
@@ -313,7 +318,46 @@ def _run_920126_lot_threshold_case(failures: list[str]) -> None:
     _assert(by_label["5+1"].get("basis") == "issue_result_threshold", "920126: 5+1 should use fractional threshold", failures)
     _assert(by_label["2+1"].get("time_priority_required") is True, "920126: 2+1 should require time priority", failures)
     _assert(by_label["3+1"].get("time_priority_required") is False, "920126: 3+1 should not require time priority", failures)
+    _assert("1+1" not in display_labels, "920126: dominated fractional row should be hidden", failures)
+    _assert("2+0" in display_labels, "920126: lower regular row should display", failures)
+    _assert("2+1" in display_labels, "920126: fractional row should display for the next total lot", failures)
+    _assert("3+0" not in display_labels, "920126: dominated regular row should be hidden", failures)
+    _assert("3+1" in display_labels, "920126: covered regular row should display as fractional", failures)
+    _assert(by_label["3+0"].get("display") is False, "920126: covered regular display flag mismatch", failures)
     _assert(prediction.get("fractional_time_priority_required") is True, "920126: fractional time priority missing", failures)
+
+
+def _run_fractional_between_one_and_two_display_case(failures: list[str]) -> None:
+    issue_price = 17.83
+    first_regular_amount = 586.96
+    fractional_amount = 1007.93
+    allocation_ratio = 100 / (first_regular_amount * 10000 / issue_price)
+    online_issue_shares = 10000000.0
+    prediction = subscription_predictor.build_subscription_prediction(
+        {
+            "SECURITY_CODE": "920117",
+            "SECURITY_NAME_ABBR": "Longxin",
+            "ISSUE_PRICE": issue_price,
+            "ONLINE_ISSUE_NUM": online_issue_shares,
+            "ONLINE_VA_SHARES": online_issue_shares / allocation_ratio,
+            "TOP_APPLY_MARKETCAP": 1802.08,
+            "FRACTIONAL_THRESHOLD_SHARES": fractional_amount * 10000 / issue_price,
+            "FRACTIONAL_TIME_PRIORITY_REQUIRED": False,
+        },
+        recent_ipos=[],
+        params={"subscription_prediction_lot_threshold_max_lots": 4},
+    )
+    display_labels = [
+        str(item.get("ladder_label") or "")
+        for item in (prediction.get("lot_thresholds") or [])
+        if item.get("display") is not False
+    ]
+    _assert(display_labels == ["1+0", "1+1", "2+1", "3+1"], "fractional 1-2 display labels mismatch", failures)
+    table_labels = [str(row[0]) for row in (prediction.get("table_rows") or []) if "建议申购门槛" in str(row[0])]
+    _assert("2+0建议申购门槛" not in table_labels, "fractional 1-2 table should hide 2+0", failures)
+    _assert("3+0建议申购门槛" not in table_labels, "fractional 1-2 table should hide 3+0", failures)
+    _assert("2+1建议申购门槛" in table_labels, "fractional 1-2 table should keep 2+1", failures)
+    _assert("3+1建议申购门槛" in table_labels, "fractional 1-2 table should keep 3+1", failures)
 
 
 def _run_account_pool_fractional_threshold_case(failures: list[str]) -> None:
@@ -454,6 +498,7 @@ def main() -> int:
     _run_frozen_funds_floor_case(failures)
     _run_similar_top_apply_frozen_anchor_case(failures)
     _run_920126_lot_threshold_case(failures)
+    _run_fractional_between_one_and_two_display_case(failures)
     _run_account_pool_fractional_threshold_case(failures)
     _run_account_pool_fully_covered_fractional_case(failures)
     _run_top_apply_below_guaranteed_case(failures)

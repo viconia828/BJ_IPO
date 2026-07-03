@@ -1341,6 +1341,24 @@ def _build_lot_thresholds(
                 "time_priority_required": bool(fractional_time_required and fractional_shares > guaranteed_shares),
             }
         )
+    best_by_lots: dict[int, tuple[float, int, int]] = {}
+    for idx, row in enumerate(rows):
+        lots = int(row.get("lots") or 0)
+        amount = _safe_float(row.get("threshold_amount_wan"))
+        if lots <= 0 or amount is None:
+            continue
+        preference = 0 if int(row.get("fractional_lots") or 0) > 0 else 1
+        current = best_by_lots.get(lots)
+        if current is None or (amount, preference, idx) < current:
+            best_by_lots[lots] = (amount, preference, idx)
+    display_indexes = {item[2] for item in best_by_lots.values()}
+    for idx, row in enumerate(rows):
+        if idx in display_indexes:
+            row["display"] = True
+            row["display_reason"] = ""
+        else:
+            row["display"] = False
+            row["display_reason"] = "superseded_by_lower_lot_threshold"
     return rows
 
 
@@ -1588,6 +1606,8 @@ def build_subscription_prediction(
         ],
     ]
     for item in lot_thresholds:
+        if item.get("display") is False:
+            continue
         lot_label = f"{item.get('ladder_label') or str(int(item.get('lots') or 0)) + '手'}建议申购门槛"
         source = str(item.get("basis") or "-")
         if item.get("time_priority_required"):

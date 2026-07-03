@@ -556,15 +556,10 @@ def _assert_report_overview_text(failures: list[str]) -> None:
         "最大申购上限（万元） 1234.50\n"
         "1+0门槛（万元） 3.00\n"
         "1+1门槛（万元） 6.00\n"
-        "2+0门槛（万元） 6.00\n"
         "2+1门槛（万元） 6.00\n"
-        "3+0门槛（万元） 9.00\n"
         "3+1门槛（万元） 9.00\n"
-        "4+0门槛（万元） 12.00\n"
         "4+1门槛（万元） 12.00\n"
-        "5+0门槛（万元） 15.00\n"
         "5+1门槛（万元） 15.00\n"
-        "6+0门槛（万元） 18.00\n"
         "正股抢时间 否\n"
         "碎股抢时间 1+1以下可能\n"
         "上市日期\n"
@@ -613,11 +608,16 @@ def _assert_report_overview_text(failures: list[str]) -> None:
     )
     _assert_contains(
         protected_overview,
-        ("1+0门槛（万元） 3.00", "5+1门槛（万元） 15.00", "6+0门槛（万元） 18.00"),
+        ("1+0门槛（万元） 3.00", "1+1门槛（万元） 6.00", "5+1门槛（万元） 15.00"),
         failures,
         "protected overview",
     )
-    _assert_not_contains(protected_overview, ("正股建议申购（万元）",), failures, "protected overview")
+    _assert_not_contains(
+        protected_overview,
+        ("正股建议申购（万元）", "2+0门槛（万元） 6.00", "6+0门槛（万元） 18.00"),
+        failures,
+        "protected overview",
+    )
     _assert_contains(protected_overview, ("正股抢时间 可能",), failures, "protected overview")
 
     estimated_overview = report_generator.build_report_overview_text(

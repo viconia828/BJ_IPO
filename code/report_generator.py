@@ -261,6 +261,8 @@ def _build_lot_threshold_overview_items(prediction: dict[str, Any]) -> list[tupl
     for raw_item in prediction.get("lot_thresholds") or []:
         if not isinstance(raw_item, dict):
             continue
+        if raw_item.get("display") is False:
+            continue
         label = str(raw_item.get("ladder_label") or "").strip()
         if not label:
             lots = int(_safe_float(raw_item.get("lots")) or 0)
