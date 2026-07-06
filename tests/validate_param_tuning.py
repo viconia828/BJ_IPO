@@ -20,6 +20,7 @@ if str(CODE_DIR) not in sys.path:
 
 import param_tuning
 import listing_average_price_helper
+import subscription_ladder_labels
 import valuation_engine
 
 import importlib.util
@@ -233,6 +234,35 @@ def time_split_case(failures: list[str]) -> None:
     _assert(validation_codes == ["000004", "000005", "000006"], "时间切分验证集顺序不正确", failures)
 
 
+def replay_sample_source_includes_intraday_and_ladder_labels_case(failures: list[str]) -> None:
+    temp_dir = TEMP_ROOT / "sample_sources"
+    _reset_dir(temp_dir)
+    intraday_dir = temp_dir / "intraday"
+    intraday_dir.mkdir(parents=True, exist_ok=True)
+    (intraday_dir / "920001.csv").write_text("time,price,volume,amount\n", encoding="utf-8")
+    label_path = temp_dir / "subscription_ladder_labels.csv"
+    subscription_ladder_labels.write_label_rows(
+        [
+            {
+                "security_code": "920002",
+                "security_name_abbr": "Label Source",
+                "manual_ladder": "1+0=300",
+            },
+            {
+                "security_code": "920003",
+                "security_name_abbr": "Auto Context Only",
+                "manual_ladder": "",
+            },
+        ],
+        label_path,
+    )
+    codes = param_tuning.discover_replay_sample_codes(
+        intraday_dir=intraday_dir,
+        ladder_label_path=label_path,
+    )
+    _assert(codes == ["920001", "920002"], f"replay sample source should merge intraday and manual labels, got {codes}", failures)
+
+
 def replay_dataset_sync_inspection_case(failures: list[str]) -> None:
     dataset = _make_method2_dataset()
     same_codes = ["000001", "000002", "000003", "000004", "000005", "000006"]
@@ -321,13 +351,13 @@ def manual_dataset_auto_refresh_failure_fallback_case(failures: list[str]) -> No
         months=12,
         page_size=100,
     )
-    original_build = tune_params_cli._build_and_save_dataset
+    original_build = tune_params_cli.offline_tuning_sync.build_and_save_replay_dataset
 
     def _raise_build_error(*args: Any, **kwargs: Any) -> dict[str, Any]:
         _ = (args, kwargs)
         raise RuntimeError("fixture build failed")
 
-    tune_params_cli._build_and_save_dataset = _raise_build_error
+    tune_params_cli.offline_tuning_sync.build_and_save_replay_dataset = _raise_build_error
     try:
         loaded = tune_params_cli._load_or_refresh_dataset(
             args,
@@ -336,7 +366,7 @@ def manual_dataset_auto_refresh_failure_fallback_case(failures: list[str]) -> No
             ["000001", "000002", "000003", "000004", "000005", "000006", "000007"],
         )
     finally:
-        tune_params_cli._build_and_save_dataset = original_build
+        tune_params_cli.offline_tuning_sync.build_and_save_replay_dataset = original_build
 
     _assert(
         loaded.get("sample_codes") == dataset.get("sample_codes"),
@@ -469,6 +499,89 @@ def replay_item_cache_incremental_case(failures: list[str]) -> None:
         param_tuning._resolve_replay_pdf_paths = original_pdf_paths
         param_tuning._build_pdf_inputs_from_paths = original_pdf_inputs
         param_tuning._resolve_listing_average_price = original_resolve_average
+
+
+def replay_item_announcement_fallback_case(failures: list[str]) -> None:
+    _reset_dir(TEMP_ROOT)
+    cache_dir = TEMP_ROOT / "announcement_fallback_replay_items"
+    progress_statuses: list[str] = []
+
+    class FakeIndustryMapper:
+        def __init__(self, params: dict[str, Any]) -> None:
+            self.params = params
+
+        def enrich_recent_ipos(self, raw_records: list[dict[str, Any]]) -> list[dict[str, Any]]:
+            return list(raw_records)
+
+        def resolve_stock_industry(self, code: str, record: dict[str, Any]) -> SimpleNamespace:
+            _ = (code, record)
+            return SimpleNamespace(primary="信息技术", secondary="电子", source="fixture")
+
+    original_fetch = param_tuning.data_fetcher.fetch_recent_ipos
+    original_mapper = param_tuning.IndustryMapper
+    original_pdf_paths = param_tuning._resolve_replay_pdf_paths
+    original_pdf_inputs = param_tuning._build_pdf_inputs_from_paths
+    original_resolve_average = param_tuning._resolve_listing_average_price
+    original_fallback_record = param_tuning._build_replay_record_from_announcements
+    try:
+        param_tuning.data_fetcher.fetch_recent_ipos = lambda months=12, page_size=100: []
+        param_tuning.IndustryMapper = FakeIndustryMapper
+        param_tuning._resolve_replay_pdf_paths = lambda code: {"listing": None, "old_shares": None, "comparables": None}
+        param_tuning._build_pdf_inputs_from_paths = lambda params, pdf_paths: (0.0, "0 万股（fixture）", {})
+        param_tuning._resolve_listing_average_price = lambda *args, **kwargs: {
+            "average_price": None,
+            "source": "fixture_missing_intraday",
+            "reason": "fixture",
+        }
+        param_tuning._build_replay_record_from_announcements = lambda code: {
+            "SECURITY_CODE": code,
+            "SECURITY_NAME_ABBR": "公告样本",
+            "APPLY_DATE": "2026-02-01",
+            "LISTING_DATE": "2026-02-01",
+            "LISTING_DATE_SOURCE": "apply_date_fallback",
+            "ISSUE_PRICE": 8.14,
+            "AFTER_ISSUE_PE": 12.3,
+            "INDUSTRY_PE_NEW": 20.0,
+            "TOTAL_ISSUE_NUM": 2000.0,
+            "ISSUE_NUM": 2000.0,
+            "ONLINE_ISSUE_NUM": 10000000.0,
+            "TOP_APPLY_MARKETCAP": 500.0,
+            "SUBSCRIPTION_LIMIT_WAN_SHARES": 60.0,
+            "SW_INDUSTRY": "电子",
+            "INDUSTRY": "半导体",
+            "replay_record_source": "announcement_pdf_fallback",
+            "announcement_fallback_field_sources": {"ISSUE_PRICE": "issue_announcement"},
+            "announcement_fallback_parse_errors": [],
+            "announcement_fallback_pdf_files": {"issue": "000009_样本_发行公告.pdf"},
+        }
+
+        dataset = param_tuning.build_replay_dataset(
+            _base_params(),
+            months=12,
+            sample_codes=["000009"],
+            item_cache_dir=cache_dir,
+            progress_callback=lambda index, total, spec: progress_statuses.append(str(spec.get("status") or "")),
+        )
+    finally:
+        param_tuning.data_fetcher.fetch_recent_ipos = original_fetch
+        param_tuning.IndustryMapper = original_mapper
+        param_tuning._resolve_replay_pdf_paths = original_pdf_paths
+        param_tuning._build_pdf_inputs_from_paths = original_pdf_inputs
+        param_tuning._resolve_listing_average_price = original_resolve_average
+        param_tuning._build_replay_record_from_announcements = original_fallback_record
+
+    items = dataset.get("items") or []
+    item = items[0] if items else {}
+    cache = dataset.get("item_cache") or {}
+    _assert(dataset.get("sample_codes") == ["000009"], "公告兜底样本应进入 replay dataset", failures)
+    _assert(dataset.get("skipped") == [], "公告兜底样本不应被 skipped", failures)
+    _assert(item.get("replay_record_source") == "announcement_pdf_fallback", "公告兜底来源应写入 replay item", failures)
+    _assert(item.get("ONLINE_ISSUE_NUM") == 10000000.0, "公告兜底样本应保留网上发行股数", failures)
+    _assert(item.get("TOP_APPLY_MARKETCAP") == 500.0, "公告兜底样本应保留顶格申购金额", failures)
+    _assert(item.get("listing_date_source") == "apply_date_fallback", "公告兜底样本应标记日期兜底来源", failures)
+    _assert(item.get("AVERAGE_PRICE") is None, "申购样本无分时数据时不应伪造首日均价", failures)
+    _assert(cache.get("misses") == 1 and cache.get("writes") == 1, "公告兜底样本应写入单样本缓存", failures)
+    _assert(progress_statuses == ["announcement_fallback"], "公告兜底构建应暴露进度状态", failures)
 
 
 def replay_metrics_case(failures: list[str]) -> None:
@@ -1727,10 +1840,12 @@ def composite_cli_case(failures: list[str]) -> None:
 def main() -> int:
     failures: list[str] = []
     time_split_case(failures)
+    replay_sample_source_includes_intraday_and_ladder_labels_case(failures)
     replay_dataset_sync_inspection_case(failures)
     manual_dataset_auto_refresh_gate_case(failures)
     manual_dataset_auto_refresh_failure_fallback_case(failures)
     replay_item_cache_incremental_case(failures)
+    replay_item_announcement_fallback_case(failures)
     replay_metrics_case(failures)
     ranking_case(failures)
     auto_score_case(failures)
@@ -1764,7 +1879,7 @@ def main() -> int:
     if failures:
         raise AssertionError("\n".join(failures))
 
-    print("Param tuning validation passed: 34 cases")
+    print("Param tuning validation passed")
     return 0
 
 

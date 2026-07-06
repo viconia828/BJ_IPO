@@ -1,7 +1,7 @@
 {
   "schema": "offline_tuning_replay_item_v1",
-  "cache_version": 3,
-  "generated_at": "2026-05-29 19:35:07",
+  "cache_version": 4,
+  "generated_at": "2026-07-06 21:16:55",
   "code": "920181",
   "listing_date": "2026-04-10 00:00:00",
   "record_signature": {
@@ -14,6 +14,9 @@
     "INDUSTRY_PE_NEW": 29.27,
     "TOTAL_ISSUE_NUM": 1080.0,
     "ISSUE_NUM": 1080.0,
+    "ONLINE_ISSUE_NUM": 9720000.0,
+    "TOP_APPLY_MARKETCAP": 1360.8,
+    "SUBSCRIPTION_LIMIT_WAN_SHARES": null,
     "CLOSE_PRICE": 61.8,
     "LD_CLOSE_CHANGE": 120.7143,
     "TURNOVERRATE": 91.4467,
@@ -46,8 +49,13 @@
     "AFTER_ISSUE_PE": 13.79,
     "INDUSTRY_PE_NEW": 29.27,
     "TOTAL_ISSUE_NUM": 1080.0,
+    "ONLINE_ISSUE_NUM": 9720000.0,
+    "TOP_APPLY_MARKETCAP": 1360.8,
+    "SUBSCRIPTION_LIMIT_WAN_SHARES": null,
     "CLOSE_PRICE": 61.8,
+    "AVERAGE_PRICE": 62.999635707198955,
     "LD_CLOSE_CHANGE": 120.7143,
+    "LD_AVERAGE_CHANGE": 124.99869895428199,
     "TURNOVERRATE": 91.4467,
     "SW_INDUSTRY": "",
     "INDUSTRY": "",
@@ -130,12 +138,12 @@
       "reason": ""
     },
     "method1_replay_available": true,
-    "AVERAGE_PRICE": 62.999635707198955,
-    "LD_AVERAGE_CHANGE": 124.99869895428199,
     "average_price_source": "intraday_csv",
     "average_price_reason": "",
     "average_price_calc_version": 3,
     "average_price_unit_mode": "volume_shares_amount_yuan",
-    "average_price_reference": 63.08
+    "average_price_reference": 63.08,
+    "replay_record_source": "",
+    "listing_date_source": ""
   }
 }

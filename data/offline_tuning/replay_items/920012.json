@@ -1,7 +1,7 @@
 {
   "schema": "offline_tuning_replay_item_v1",
-  "cache_version": 3,
-  "generated_at": "2026-05-29 19:35:07",
+  "cache_version": 4,
+  "generated_at": "2026-07-06 21:16:40",
   "code": "920012",
   "listing_date": "2026-04-13 00:00:00",
   "record_signature": {
@@ -14,6 +14,9 @@
     "INDUSTRY_PE_NEW": 63.36,
     "TOTAL_ISSUE_NUM": 1232.9345,
     "ISSUE_NUM": 1232.9345,
+    "ONLINE_ISSUE_NUM": 11096411.0,
+    "TOP_APPLY_MARKETCAP": 1086.2984,
+    "SUBSCRIPTION_LIMIT_WAN_SHARES": null,
     "CLOSE_PRICE": 51.67,
     "LD_CLOSE_CHANGE": 163.8917,
     "TURNOVERRATE": 88.1704,
@@ -46,6 +49,9 @@
     "AFTER_ISSUE_PE": 14.99,
     "INDUSTRY_PE_NEW": 63.36,
     "TOTAL_ISSUE_NUM": 1232.9345,
+    "ONLINE_ISSUE_NUM": 11096411.0,
+    "TOP_APPLY_MARKETCAP": 1086.2984,
+    "SUBSCRIPTION_LIMIT_WAN_SHARES": null,
     "CLOSE_PRICE": 51.67,
     "AVERAGE_PRICE": 46.36499865971817,
     "LD_CLOSE_CHANGE": 163.8917,
@@ -75,10 +81,25 @@
     "float_shares": 1450.1601,
     "has_intraday_file": true,
     "comparable_codes": [
+      "688535.SH",
       "920526.BJ",
       "874318.NQ"
     ],
     "comparable_data": [
+      {
+        "code": "688535.SH",
+        "name": "688535.SH",
+        "close": 120.0,
+        "pe_ttm": 475.0806,
+        "pb_lf": 5.3877,
+        "mkt_cap": 115.21718759999999,
+        "trade_date": "20260410",
+        "source": "tushare_historical",
+        "close_source": "tushare_historical",
+        "pe_source": "tushare_historical",
+        "pb_source": "tushare_historical",
+        "mkt_cap_source": "tushare_historical"
+      },
       {
         "code": "920526.BJ",
         "name": "920526.BJ",
@@ -97,14 +118,17 @@
     "comparable_summary": {
       "provider": "tushare_historical",
       "requested_codes": [
+        "688535.SH",
         "920526.BJ",
         "874318.NQ"
       ],
       "returned_codes": [
+        "688535.SH",
         "920526.BJ"
       ],
       "cache_hits": [],
       "api_fetched": [
+        "688535.SH",
         "920526.BJ"
       ],
       "skipped_unsupported": [
@@ -118,6 +142,8 @@
     "average_price_reason": "",
     "average_price_calc_version": 3,
     "average_price_unit_mode": "volume_shares_amount_yuan",
-    "average_price_reference": 50.81
+    "average_price_reference": 50.81,
+    "replay_record_source": "",
+    "listing_date_source": ""
   }
 }

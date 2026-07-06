@@ -169,6 +169,42 @@ def _item_code(item: dict[str, Any]) -> str:
     return str(item.get("SECURITY_CODE") or item.get("code") or "").strip()
 
 
+def _label_row_to_history_item(label_row: dict[str, Any]) -> dict[str, Any]:
+    item: dict[str, Any] = {"SECURITY_CODE": str(label_row.get("security_code") or "").strip()}
+    field_map = {
+        "security_name_abbr": "SECURITY_NAME_ABBR",
+        "apply_date": "APPLY_DATE",
+        "issue_price": "ISSUE_PRICE",
+        "online_issue_shares": "ONLINE_ISSUE_NUM",
+        "top_apply_amount_wan": "TOP_APPLY_MARKETCAP",
+    }
+    for source_key, target_key in field_map.items():
+        value = label_row.get(source_key)
+        if not _is_missing(value):
+            item[target_key] = value
+    return item
+
+
+def _augment_items_with_ladder_labels(
+    items: list[dict[str, Any]],
+    label_rows: list[dict[str, Any]],
+) -> tuple[list[dict[str, Any]], int]:
+    seen_codes = {_item_code(item) for item in items if _item_code(item)}
+    augmented = list(items)
+    added_count = 0
+    for label_row in label_rows:
+        if not str(label_row.get("manual_ladder") or "").strip():
+            continue
+        item = _label_row_to_history_item(label_row)
+        code = _item_code(item)
+        if not code or code in seen_codes:
+            continue
+        augmented.append(item)
+        seen_codes.add(code)
+        added_count += 1
+    return augmented, added_count
+
+
 def _load_replay_dataset_items(dataset_path: Path) -> list[dict[str, Any]]:
     payload = json.loads(dataset_path.read_text(encoding="utf-8"))
     items = payload.get("items")
@@ -919,6 +955,8 @@ def build_subscription_history_table(
     progress_callback: HistoryProgressCallback | None = None,
 ) -> dict[str, Any]:
     items = _load_replay_dataset_items(dataset_path)
+    label_rows = subscription_ladder_labels.load_label_rows(ladder_label_path)
+    items, label_only_history_item_count = _augment_items_with_ladder_labels(items, label_rows)
     rows = build_subscription_history_rows(
         items,
         pdf_dir=pdf_dir,
@@ -932,8 +970,16 @@ def build_subscription_history_table(
     )
     existing_rows = _load_existing_subscription_history_csv(output_path)
     rows = _merge_existing_history_rows(rows, existing_rows)
-    write_subscription_history_csv(rows, output_path)
     ladder_summary = subscription_ladder_labels.sync_label_rows(rows, ladder_label_path)
+    label_rows = subscription_ladder_labels.load_label_rows(ladder_label_path)
+    active_codes = {str(row.get("security_code") or "").strip() for row in rows}
+    active_label_rows = [
+        row
+        for row in label_rows
+        if str(row.get("security_code") or "").strip() in active_codes
+    ]
+    rows = subscription_ladder_labels.apply_labels_to_history_rows(rows, active_label_rows)
+    write_subscription_history_csv(rows, output_path)
     return {
         "output_path": str(output_path),
         "row_count": len(rows),
@@ -941,6 +987,7 @@ def build_subscription_history_table(
         "fractional_label_ready_count": sum(1 for row in rows if row.get("fractional_label_ready")),
         "result_pdf_count": sum(1 for row in rows if row.get("result_pdf_found")),
         "issue_pdf_count": sum(1 for row in rows if row.get("issue_pdf_found")),
+        "label_only_history_item_count": label_only_history_item_count,
         "ladder_label_path": ladder_summary.get("path"),
         "ladder_label_rows": ladder_summary.get("row_count"),
         "ladder_label_filled": ladder_summary.get("filled_count"),

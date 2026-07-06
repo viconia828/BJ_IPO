@@ -1,7 +1,7 @@
 {
   "schema": "offline_tuning_replay_item_v1",
-  "cache_version": 3,
-  "generated_at": "2026-05-29 19:35:07",
+  "cache_version": 4,
+  "generated_at": "2026-07-06 21:16:56",
   "code": "920188",
   "listing_date": "2026-03-30 00:00:00",
   "record_signature": {
@@ -14,6 +14,9 @@
     "INDUSTRY_PE_NEW": 28.52,
     "TOTAL_ISSUE_NUM": 2199.3198,
     "ISSUE_NUM": 2199.3198,
+    "ONLINE_ISSUE_NUM": 19793879.0,
+    "TOP_APPLY_MARKETCAP": 1389.3984,
+    "SUBSCRIPTION_LIMIT_WAN_SHARES": null,
     "CLOSE_PRICE": 30.2,
     "LD_CLOSE_CHANGE": 115.0997,
     "TURNOVERRATE": 87.4507,
@@ -46,8 +49,13 @@
     "AFTER_ISSUE_PE": 14.99,
     "INDUSTRY_PE_NEW": 28.52,
     "TOTAL_ISSUE_NUM": 2199.3198,
+    "ONLINE_ISSUE_NUM": 19793879.0,
+    "TOP_APPLY_MARKETCAP": 1389.3984,
+    "SUBSCRIPTION_LIMIT_WAN_SHARES": null,
     "CLOSE_PRICE": 30.2,
+    "AVERAGE_PRICE": 33.940438585337475,
     "LD_CLOSE_CHANGE": 115.0997,
+    "LD_AVERAGE_CHANGE": 141.74101556508174,
     "TURNOVERRATE": 87.4507,
     "SW_INDUSTRY": "",
     "INDUSTRY": "",
@@ -73,15 +81,13 @@
     "float_shares": 2199.3198,
     "has_intraday_file": true,
     "comparable_codes": [
-      "871694.BJ",
-      "836871.BJ"
+      "871694.BJ"
     ],
     "comparable_data": [],
     "comparable_summary": {
       "provider": "tushare_historical",
       "requested_codes": [
-        "871694.BJ",
-        "836871.BJ"
+        "871694.BJ"
       ],
       "returned_codes": [],
       "cache_hits": [],
@@ -91,12 +97,12 @@
       "reason": "未取到可用的历史可比快照。"
     },
     "method1_replay_available": false,
-    "AVERAGE_PRICE": 33.940438585337475,
-    "LD_AVERAGE_CHANGE": 141.74101556508174,
     "average_price_source": "intraday_csv",
     "average_price_reason": "",
     "average_price_calc_version": 3,
     "average_price_unit_mode": "volume_shares_amount_yuan",
-    "average_price_reference": 31.9
+    "average_price_reference": 31.9,
+    "replay_record_source": "",
+    "listing_date_source": ""
   }
 }

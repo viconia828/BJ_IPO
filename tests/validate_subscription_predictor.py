@@ -463,6 +463,64 @@ def _run_account_pool_fractional_threshold_case(failures: list[str]) -> None:
     _assert_close(pool_estimate.get("leftover_lots"), 10.0, "account pool: leftover lots mismatch", failures)
 
 
+def _run_latest_calibrated_account_pool_snapshot_case(failures: list[str]) -> None:
+    older_row = {
+        "security_code": "920800",
+        "apply_date": "2026-06-20",
+        "accounts_ge_1w_estimate": 10,
+        "accounts_ge_1w_basis": "exact_observed_threshold",
+    }
+    latest_row = {
+        "security_code": "920801",
+        "apply_date": "2026-06-30",
+        "accounts_ge_1w_estimate": 90,
+        "accounts_ge_1w_basis": "calibrated_exact_observed_threshold",
+    }
+    estimate = subscription_predictor._estimate_account_pool_accounts_ge(
+        amount_wan=1.0,
+        rows=[older_row, latest_row],
+        thresholds=[1.0],
+        top_apply_amount_wan=2.0,
+        settings={},
+    )
+    _assert_close(estimate.get("estimate"), 90.0, "latest calibrated account pool: estimate mismatch", failures)
+    _assert(
+        estimate.get("basis") == "latest_calibrated_account_pool_snapshot",
+        "latest calibrated account pool: basis mismatch",
+        failures,
+    )
+    _assert(
+        estimate.get("source_codes") == ["920801"],
+        "latest calibrated account pool: source code mismatch",
+        failures,
+    )
+
+
+
+def _run_observed_account_pool_snapshot_runtime_interpolation_case(failures: list[str]) -> None:
+    snapshot_row = {
+        "security_code": "920802",
+        "apply_date": "2026-07-01",
+        "account_pool_snapshot_state": "true",
+        "accounts_ge_400w_estimate": 100,
+        "accounts_ge_400w_basis": "observed_threshold",
+        "accounts_ge_800w_estimate": 40,
+        "accounts_ge_800w_basis": "observed_threshold",
+    }
+    estimate = subscription_predictor._estimate_account_pool_accounts_ge(
+        amount_wan=600.0,
+        rows=[snapshot_row],
+        thresholds=[400.0, 800.0],
+        top_apply_amount_wan=1000.0,
+        settings={},
+    )
+    _assert_close(estimate.get("estimate"), 70.0, "observed snapshot interpolation: estimate mismatch", failures)
+    _assert(
+        estimate.get("basis") == "latest_account_pool_snapshot",
+        "observed snapshot interpolation: basis mismatch",
+        failures,
+    )
+
 def _run_account_pool_fully_covered_fractional_case(failures: list[str]) -> None:
     account_pool_row: dict[str, Any] = {
         "security_code": "920910",
@@ -555,6 +613,8 @@ def main() -> int:
     _run_920126_lot_threshold_case(failures)
     _run_fractional_between_one_and_two_display_case(failures)
     _run_account_pool_fractional_threshold_case(failures)
+    _run_latest_calibrated_account_pool_snapshot_case(failures)
+    _run_observed_account_pool_snapshot_runtime_interpolation_case(failures)
     _run_account_pool_fully_covered_fractional_case(failures)
     _run_top_apply_below_guaranteed_case(failures)
     if failures:

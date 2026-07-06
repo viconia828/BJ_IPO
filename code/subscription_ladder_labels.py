@@ -245,6 +245,30 @@ def derive_fields_from_ladder(row: dict[str, Any]) -> dict[str, Any]:
     derived["manual_ladder_guaranteed_amount_wan"] = one_lot_amount
     if top_apply is not None:
         derived["manual_ladder_top_apply_below_guaranteed"] = top_apply < one_lot_amount
+
+    fractional_candidates = [
+        item
+        for item in labels
+        if int(item.get("fractional_lots") or 0) > 0
+        and _safe_float(item.get("threshold_amount_wan")) is not None
+    ]
+    if fractional_candidates:
+        fractional_item = min(
+            fractional_candidates,
+            key=lambda item: (
+                int(item.get("total_lots") or 0),
+                _safe_float(item.get("threshold_amount_wan")) or float("inf"),
+            ),
+        )
+        fractional_amount = _safe_float(fractional_item.get("threshold_amount_wan"))
+        if fractional_amount is not None:
+            derived["manual_ladder_fractional_amount_wan"] = fractional_amount
+            derived["manual_ladder_fractional_time_priority_required"] = bool(
+                fractional_item.get("time_priority_required")
+            )
+            if issue_price and issue_price > 0:
+                derived["manual_ladder_fractional_shares"] = fractional_amount * 10000 / issue_price
+
     if issue_price and issue_price > 0 and online_issue_shares and online_issue_shares > 0:
         threshold_shares = one_lot_amount * 10000 / issue_price
         if threshold_shares > 0:
@@ -262,9 +286,20 @@ def derive_fields_from_ladder(row: dict[str, Any]) -> dict[str, Any]:
     return derived
 
 
+def _remove_missing_field_tokens(row: dict[str, Any], tokens: set[str]) -> None:
+    parts = [
+        part
+        for part in str(row.get("missing_fields") or "").split("|")
+        if part and part not in tokens
+    ]
+    row["missing_fields"] = "|".join(parts)
+
+
 def apply_labels_to_history_rows(
     history_rows: list[dict[str, Any]],
     label_rows: list[dict[str, Any]],
+    *,
+    apply_threshold_overrides: bool = True,
 ) -> list[dict[str, Any]]:
     rows_by_code = {_normalize_code(row.get("security_code")): dict(row) for row in history_rows}
     for label_row in label_rows:
@@ -288,6 +323,9 @@ def apply_labels_to_history_rows(
         if derived.get("manual_ladder_label_ready"):
             row["manual_ladder_label_ready"] = "true"
             row["manual_ladder_item_count"] = _format_value(derived.get("manual_ladder_item_count"))
+            if not apply_threshold_overrides:
+                rows_by_code[code] = row
+                continue
             one_lot_amount = _safe_float(derived.get("manual_ladder_guaranteed_amount_wan"))
             if one_lot_amount is not None:
                 row["guaranteed_threshold_amount_wan"] = _format_value(one_lot_amount)
@@ -298,16 +336,23 @@ def apply_labels_to_history_rows(
                 top_below = derived.get("manual_ladder_top_apply_below_guaranteed")
                 if top_below is not None:
                     row["top_apply_below_guaranteed"] = "true" if bool(top_below) else "false"
-                for source_key, target_key in (
-                    ("manual_ladder_valid_subscription_shares", "online_valid_shares"),
-                    ("manual_ladder_frozen_funds_yi", "frozen_funds_yi"),
-                    ("manual_ladder_allocation_rate_pct", "allocation_rate_pct"),
-                    ("manual_ladder_subscription_multiple", "subscription_multiple"),
-                ):
-                    value = _safe_float(derived.get(source_key))
-                    if value is not None:
-                        row[target_key] = _format_value(value)
-                row["online_valid_source"] = "manual_ladder"
+            fractional_amount = _safe_float(derived.get("manual_ladder_fractional_amount_wan"))
+            if fractional_amount is not None:
+                row["fractional_threshold_amount_wan"] = _format_value(fractional_amount)
+                row["fractional_threshold_source"] = "manual_ladder"
+                fractional_shares = _safe_float(derived.get("manual_ladder_fractional_shares"))
+                if fractional_shares is not None:
+                    row["fractional_threshold_shares"] = _format_value(fractional_shares)
+                time_required = derived.get("manual_ladder_fractional_time_priority_required")
+                if time_required is not None:
+                    row["fractional_time_priority_required"] = "true" if bool(time_required) else "false"
+                _remove_missing_field_tokens(
+                    row,
+                    {
+                        "SUBSCRIPTION_AMOUNT_DISTRIBUTION/FRACTIONAL_THRESHOLD_SHARES",
+                        "FRACTIONAL_TIME_PRIORITY_REQUIRED",
+                    },
+                )
             row["fractional_label_ready"] = "true"
         elif row.get("manual_ladder"):
             row["manual_ladder_label_ready"] = "true"

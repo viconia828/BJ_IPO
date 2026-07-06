@@ -267,7 +267,7 @@ def _run_account_pool_prior_case(failures: list[str]) -> None:
     _assert(detail.get("account_pool_prior_applied"), "prior: detail should mark prior applied", failures)
     _assert_close(
         detail.get("account_pool_prior_base_subscription_multiple"),
-        37.5,
+        33.0,
         "prior: base multiple mismatch",
         failures,
     )

@@ -1,7 +1,7 @@
 {
   "schema": "offline_tuning_replay_item_v1",
-  "cache_version": 3,
-  "generated_at": "2026-05-29 19:35:08",
+  "cache_version": 4,
+  "generated_at": "2026-07-06 21:17:02",
   "code": "920220",
   "listing_date": "2026-05-22 00:00:00",
   "record_signature": {
@@ -14,6 +14,9 @@
     "INDUSTRY_PE_NEW": 29.17,
     "TOTAL_ISSUE_NUM": 1324.1252,
     "ISSUE_NUM": 1324.1252,
+    "ONLINE_ISSUE_NUM": 11917127.0,
+    "TOP_APPLY_MARKETCAP": 1685.5182,
+    "SUBSCRIPTION_LIMIT_WAN_SHARES": null,
     "CLOSE_PRICE": 138.8,
     "LD_CLOSE_CHANGE": 390.6327,
     "TURNOVERRATE": 89.9138,
@@ -46,6 +49,9 @@
     "AFTER_ISSUE_PE": 14.99,
     "INDUSTRY_PE_NEW": 29.17,
     "TOTAL_ISSUE_NUM": 1324.1252,
+    "ONLINE_ISSUE_NUM": 11917127.0,
+    "TOP_APPLY_MARKETCAP": 1685.5182,
+    "SUBSCRIPTION_LIMIT_WAN_SHARES": null,
     "CLOSE_PRICE": 138.8,
     "AVERAGE_PRICE": 175.46014538542545,
     "LD_CLOSE_CHANGE": 390.6327,
@@ -63,7 +69,7 @@
       "source_file_type": "上市公告书",
       "source_rule": "listing_table",
       "source_anchor": "本次发行前后的股本结构变动情况 -> 无限售流通股小计",
-      "raw_snippet": "%小计52,965,010100.00%54,289,13582.00%--二、无限售流通股小计--11,917,12718.00%--合计52,965,010100.00%66,206,262100.00%--注1：若出现合计数与各单项加总数尾数不符的情况，系四舍五入所致；注2：发行人不存在表决权差异安排的情况。江苏朗信电气股份有限公司上市公告书48六、",
+      "raw_snippet": "象小计52,965,010100.00%54,289,13582.00%--二、无限售流通股小计--11,917,12718.00%--合计52,965,010100.00%66,206,262100.00%--注1：若出现合计数与各单项加总数尾数不符的情况，系四舍五入所致；注2：发行人不存在表决权差异安排的情况。47江苏朗信电气股份有限公司上市公告书六、",
       "confidence": 0.95,
       "unit": "股",
       "pre_unrestricted_wan_shares": 0.0,
@@ -74,23 +80,120 @@
     },
     "float_shares": 1324.1252,
     "has_intraday_file": true,
-    "comparable_codes": [],
-    "comparable_data": [],
+    "comparable_codes": [
+      "300969.SZ",
+      "002536.SZ",
+      "603305.SH",
+      "603348.SH",
+      "603266.SH"
+    ],
+    "comparable_data": [
+      {
+        "code": "300969.SZ",
+        "name": "300969.SZ",
+        "close": 159.34,
+        "pe_ttm": 113.1995,
+        "pb_lf": 10.4974,
+        "mkt_cap": 186.7918425,
+        "trade_date": "20260521",
+        "source": "tushare_historical",
+        "close_source": "tushare_historical",
+        "pe_source": "tushare_historical",
+        "pb_source": "tushare_historical",
+        "mkt_cap_source": "tushare_historical"
+      },
+      {
+        "code": "002536.SZ",
+        "name": "002536.SZ",
+        "close": 44.58,
+        "pe_ttm": 101.6345,
+        "pb_lf": 7.2961,
+        "mkt_cap": 256.23954887,
+        "trade_date": "20260521",
+        "source": "tushare_historical",
+        "close_source": "tushare_historical",
+        "pe_source": "tushare_historical",
+        "pb_source": "tushare_historical",
+        "mkt_cap_source": "tushare_historical"
+      },
+      {
+        "code": "603305.SH",
+        "name": "603305.SH",
+        "close": 17.11,
+        "pe_ttm": 50.1056,
+        "pb_lf": 2.1136,
+        "mkt_cap": 197.74173393,
+        "trade_date": "20260521",
+        "source": "tushare_historical",
+        "close_source": "tushare_historical",
+        "pe_source": "tushare_historical",
+        "pb_source": "tushare_historical",
+        "mkt_cap_source": "tushare_historical"
+      },
+      {
+        "code": "603348.SH",
+        "name": "603348.SH",
+        "close": 17.7,
+        "pe_ttm": null,
+        "pb_lf": 1.4297,
+        "mkt_cap": 55.66246298,
+        "trade_date": "20260521",
+        "source": "tushare_historical",
+        "close_source": "tushare_historical",
+        "pe_source": "tushare_historical",
+        "pb_source": "tushare_historical",
+        "mkt_cap_source": "tushare_historical"
+      },
+      {
+        "code": "603266.SH",
+        "name": "603266.SH",
+        "close": 20.6,
+        "pe_ttm": 37.1383,
+        "pb_lf": 2.5248,
+        "mkt_cap": 40.970670500000004,
+        "trade_date": "20260521",
+        "source": "tushare_historical",
+        "close_source": "tushare_historical",
+        "pe_source": "tushare_historical",
+        "pb_source": "tushare_historical",
+        "mkt_cap_source": "tushare_historical"
+      }
+    ],
     "comparable_summary": {
       "provider": "tushare_historical",
-      "requested_codes": [],
-      "returned_codes": [],
+      "requested_codes": [
+        "300969.SZ",
+        "002536.SZ",
+        "603305.SH",
+        "603348.SH",
+        "603266.SH"
+      ],
+      "returned_codes": [
+        "300969.SZ",
+        "002536.SZ",
+        "603305.SH",
+        "603348.SH",
+        "603266.SH"
+      ],
       "cache_hits": [],
-      "api_fetched": [],
+      "api_fetched": [
+        "300969.SZ",
+        "002536.SZ",
+        "603305.SH",
+        "603348.SH",
+        "603266.SH"
+      ],
       "skipped_unsupported": [],
       "reference_trade_date": "20260521",
-      "reason": "未提取到可比公司代码。"
+      "reason": ""
     },
-    "method1_replay_available": false,
+    "method1_replay_available": true,
     "average_price_source": "intraday_csv",
     "average_price_reason": "",
     "average_price_calc_version": 3,
     "average_price_unit_mode": "volume_shares_amount_yuan",
-    "average_price_reference": 180.275
+    "average_price_reference": 180.275,
+    "replay_record_source": "",
+    "listing_date_source": ""
   }
 }

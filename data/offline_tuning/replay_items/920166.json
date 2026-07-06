@@ -1,7 +1,7 @@
 {
   "schema": "offline_tuning_replay_item_v1",
-  "cache_version": 3,
-  "generated_at": "2026-05-29 19:35:07",
+  "cache_version": 4,
+  "generated_at": "2026-07-06 21:16:52",
   "code": "920166",
   "listing_date": "2026-02-12 00:00:00",
   "record_signature": {
@@ -14,6 +14,9 @@
     "INDUSTRY_PE_NEW": 42.95,
     "TOTAL_ISSUE_NUM": 1129.4118,
     "ISSUE_NUM": 1129.4118,
+    "ONLINE_ISSUE_NUM": 10164707.0,
+    "TOP_APPLY_MARKETCAP": 642.3648,
+    "SUBSCRIPTION_LIMIT_WAN_SHARES": null,
     "CLOSE_PRICE": 34.49,
     "LD_CLOSE_CHANGE": 172.8639,
     "TURNOVERRATE": 41.799,
@@ -46,8 +49,13 @@
     "AFTER_ISSUE_PE": 13.99,
     "INDUSTRY_PE_NEW": 42.95,
     "TOTAL_ISSUE_NUM": 1129.4118,
+    "ONLINE_ISSUE_NUM": 10164707.0,
+    "TOP_APPLY_MARKETCAP": 642.3648,
+    "SUBSCRIPTION_LIMIT_WAN_SHARES": null,
     "CLOSE_PRICE": 34.49,
+    "AVERAGE_PRICE": 30.627913731031416,
     "LD_CLOSE_CHANGE": 172.8639,
+    "LD_AVERAGE_CHANGE": 142.30944407461564,
     "TURNOVERRATE": 41.799,
     "SW_INDUSTRY": "",
     "INDUSTRY": "",
@@ -61,7 +69,7 @@
       "source_file_type": "上市公告书",
       "source_rule": "listing_table",
       "source_anchor": "本次发行前后的股本结构变动情况 -> 无限售流通股小计",
-      "raw_snippet": "对象小计50,400,00078.75%51,529,41168.44%--二、无限售流通股小计13,600,00021.25%23,764,70731.56%--合计64,000,000100.00%75,294,118100.00%--注1：若出现合计数与各单项加总数尾数不符的情况，系四舍五入所致。注2：发行人不存在表决权差异安排的情况。六、",
+      "raw_snippet": "伙）小计50,400,00078.75%51,529,41168.44%--二、无限售流通股小计13,600,00021.25%23,764,70731.56%--合计64,000,000100.00%75,294,118100.00%--注1：若出现合计数与各单项加总数尾数不符的情况，系四舍五入所致。注2：发行人不存在表决权差异安排的情况。六、",
       "confidence": 0.98,
       "unit": "股",
       "pre_unrestricted_wan_shares": 1360.0,
@@ -73,9 +81,7 @@
     "float_shares": 2489.4118,
     "has_intraday_file": true,
     "comparable_codes": [
-      "603309.SH",
-      "300453.SZ",
-      "301097.SZ"
+      "603309.SH"
     ],
     "comparable_data": [
       {
@@ -91,65 +97,31 @@
         "pe_source": "tushare_historical",
         "pb_source": "tushare_historical",
         "mkt_cap_source": "tushare_historical"
-      },
-      {
-        "code": "300453.SZ",
-        "name": "300453.SZ",
-        "close": 9.47,
-        "pe_ttm": 20.224,
-        "pb_lf": 3.5825,
-        "mkt_cap": 49.44138084,
-        "trade_date": "20260211",
-        "source": "tushare_historical",
-        "close_source": "tushare_historical",
-        "pe_source": "tushare_historical",
-        "pb_source": "tushare_historical",
-        "mkt_cap_source": "tushare_historical"
-      },
-      {
-        "code": "301097.SZ",
-        "name": "301097.SZ",
-        "close": 56.52,
-        "pe_ttm": 256.1354,
-        "pb_lf": 2.8192,
-        "mkt_cap": 33.31705239,
-        "trade_date": "20260211",
-        "source": "tushare_historical",
-        "close_source": "tushare_historical",
-        "pe_source": "tushare_historical",
-        "pb_source": "tushare_historical",
-        "mkt_cap_source": "tushare_historical"
       }
     ],
     "comparable_summary": {
       "provider": "tushare_historical",
       "requested_codes": [
-        "603309.SH",
-        "300453.SZ",
-        "301097.SZ"
+        "603309.SH"
       ],
       "returned_codes": [
-        "603309.SH",
-        "300453.SZ",
-        "301097.SZ"
+        "603309.SH"
       ],
       "cache_hits": [],
       "api_fetched": [
-        "603309.SH",
-        "300453.SZ",
-        "301097.SZ"
+        "603309.SH"
       ],
       "skipped_unsupported": [],
       "reference_trade_date": "20260211",
       "reason": ""
     },
     "method1_replay_available": true,
-    "AVERAGE_PRICE": 30.627913731031416,
-    "LD_AVERAGE_CHANGE": 142.30944407461564,
     "average_price_source": "intraday_csv",
     "average_price_reason": "",
     "average_price_calc_version": 3,
     "average_price_unit_mode": "volume_shares_amount_yuan",
-    "average_price_reference": 30.555
+    "average_price_reference": 30.555,
+    "replay_record_source": "",
+    "listing_date_source": ""
   }
 }

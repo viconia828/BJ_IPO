@@ -1,7 +1,7 @@
 {
   "schema": "offline_tuning_replay_item_v1",
-  "cache_version": 3,
-  "generated_at": "2026-05-29 19:35:07",
+  "cache_version": 4,
+  "generated_at": "2026-07-06 21:16:53",
   "code": "920178",
   "listing_date": "2026-05-15 00:00:00",
   "record_signature": {
@@ -14,6 +14,9 @@
     "INDUSTRY_PE_NEW": 41.25,
     "TOTAL_ISSUE_NUM": 1374.618,
     "ISSUE_NUM": 1374.618,
+    "ONLINE_ISSUE_NUM": 12371562.0,
+    "TOP_APPLY_MARKETCAP": 1822.7195,
+    "SUBSCRIPTION_LIMIT_WAN_SHARES": null,
     "CLOSE_PRICE": 173.99,
     "LD_CLOSE_CHANGE": 490.397,
     "TURNOVERRATE": 79.4492,
@@ -46,6 +49,9 @@
     "AFTER_ISSUE_PE": 14.99,
     "INDUSTRY_PE_NEW": 41.25,
     "TOTAL_ISSUE_NUM": 1374.618,
+    "ONLINE_ISSUE_NUM": 12371562.0,
+    "TOP_APPLY_MARKETCAP": 1822.7195,
+    "SUBSCRIPTION_LIMIT_WAN_SHARES": null,
     "CLOSE_PRICE": 173.99,
     "AVERAGE_PRICE": 176.49749135971862,
     "LD_CLOSE_CHANGE": 490.397,
@@ -56,28 +62,29 @@
     "industry_primary": "未分类",
     "industry_secondary": "未分类",
     "industry_source": "unclassified",
-    "old_shares": 0.0,
-    "old_shares_desc": "待确认（当前按 0 万股计）",
+    "old_shares": 223.7989,
+    "old_shares_desc": "223.80 万股（PDF 提取：上市公告书）",
     "old_shares_meta": {
-      "value_wan_shares": null,
-      "source_file_type": "待确认",
-      "source_rule": "pending",
-      "source_anchor": "",
-      "raw_snippet": "",
-      "confidence": 0.0,
-      "unit": "万股",
-      "pre_unrestricted_wan_shares": null,
-      "listing_pdf_found": false,
+      "value_wan_shares": 223.7989,
+      "source_file_type": "上市公告书",
+      "source_rule": "listing_table",
+      "source_anchor": "本次发行前后的股本结构变动情况 -> 无限售流通股小计",
+      "raw_snippet": "对象小计49,953,90495.71%51,328,52277.84%--二、无限售流通股小计2,237,9894.29%14,609,55122.16%--合计52,191,893100.00%65,938,073100.00%--注1：若出现合计数与各单项加总数尾数不符的情况，系由四舍五入所致；注2：发行人不存在表决权差异安排的情况。74六、",
+      "confidence": 0.98,
+      "unit": "股",
+      "pre_unrestricted_wan_shares": 223.7989,
+      "listing_pdf_found": true,
       "prospectus_pdf_found": true,
-      "selected_source_label": "",
-      "fallback_used": false,
-      "pending_reason": "未找到上市公告书，且招股文件未提取到有效老股数据"
+      "selected_source_label": "上市公告书",
+      "fallback_used": false
     },
-    "float_shares": 1374.618,
+    "float_shares": 1598.4169,
     "has_intraday_file": true,
     "comparable_codes": [
       "002384.SZ",
-      "603228.SH"
+      "603228.SH",
+      "002475.SZ",
+      "002938.SZ"
     ],
     "comparable_data": [
       {
@@ -107,22 +114,56 @@
         "pe_source": "tushare_historical",
         "pb_source": "tushare_historical",
         "mkt_cap_source": "tushare_historical"
+      },
+      {
+        "code": "002475.SZ",
+        "name": "002475.SZ",
+        "close": 75.4,
+        "pe_ttm": 31.9103,
+        "pb_lf": 6.2187,
+        "mkt_cap": 5493.63360008,
+        "trade_date": "20260514",
+        "source": "tushare_historical",
+        "close_source": "tushare_historical",
+        "pe_source": "tushare_historical",
+        "pb_source": "tushare_historical",
+        "mkt_cap_source": "tushare_historical"
+      },
+      {
+        "code": "002938.SZ",
+        "name": "002938.SZ",
+        "close": 84.17,
+        "pe_ttm": 52.556,
+        "pb_lf": 5.6309,
+        "mkt_cap": 1951.10354017,
+        "trade_date": "20260514",
+        "source": "tushare_historical",
+        "close_source": "tushare_historical",
+        "pe_source": "tushare_historical",
+        "pb_source": "tushare_historical",
+        "mkt_cap_source": "tushare_historical"
       }
     ],
     "comparable_summary": {
       "provider": "tushare_historical",
       "requested_codes": [
         "002384.SZ",
-        "603228.SH"
+        "603228.SH",
+        "002475.SZ",
+        "002938.SZ"
       ],
       "returned_codes": [
         "002384.SZ",
-        "603228.SH"
+        "603228.SH",
+        "002475.SZ",
+        "002938.SZ"
       ],
       "cache_hits": [],
       "api_fetched": [
         "002384.SZ",
-        "603228.SH"
+        "603228.SH",
+        "002475.SZ",
+        "002938.SZ"
       ],
       "skipped_unsupported": [],
       "reference_trade_date": "20260514",
@@ -133,6 +174,8 @@
     "average_price_reason": "",
     "average_price_calc_version": 3,
     "average_price_unit_mode": "volume_shares_amount_yuan",
-    "average_price_reference": 180.485
+    "average_price_reference": 180.485,
+    "replay_record_source": "",
+    "listing_date_source": ""
   }
 }

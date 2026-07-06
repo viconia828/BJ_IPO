@@ -1,7 +1,7 @@
 {
   "schema": "offline_tuning_replay_item_v1",
-  "cache_version": 3,
-  "generated_at": "2026-05-29 19:35:07",
+  "cache_version": 4,
+  "generated_at": "2026-07-06 21:16:42",
   "code": "920055",
   "listing_date": "2026-03-31 00:00:00",
   "record_signature": {
@@ -14,6 +14,9 @@
     "INDUSTRY_PE_NEW": 29.78,
     "TOTAL_ISSUE_NUM": 1700.0,
     "ISSUE_NUM": 1700.0,
+    "ONLINE_ISSUE_NUM": 15300000.0,
+    "TOP_APPLY_MARKETCAP": 1889.55,
+    "SUBSCRIPTION_LIMIT_WAN_SHARES": null,
     "CLOSE_PRICE": 37.8,
     "LD_CLOSE_CHANGE": 53.0364,
     "TURNOVERRATE": 93.3504,
@@ -46,6 +49,9 @@
     "AFTER_ISSUE_PE": 14.99,
     "INDUSTRY_PE_NEW": 29.78,
     "TOTAL_ISSUE_NUM": 1700.0,
+    "ONLINE_ISSUE_NUM": 15300000.0,
+    "TOP_APPLY_MARKETCAP": 1889.55,
+    "SUBSCRIPTION_LIMIT_WAN_SHARES": null,
     "CLOSE_PRICE": 37.8,
     "AVERAGE_PRICE": 38.07569298569772,
     "LD_CLOSE_CHANGE": 53.0364,
@@ -63,7 +69,7 @@
       "source_file_type": "上市公告书",
       "source_rule": "listing_table",
       "source_anchor": "本次发行前后的股本结构变动情况 -> 无限售流通股小计",
-      "raw_snippet": "象小计51,000,000100.00%52,700,00077.50%--二、无限售流通股小计--15,300,00022.50%--41合计51,000,000100.00%68,000,000100.00%--注1：数据尾数如存有差异系四舍五入所致；注2：发行人不存在表决权差异安排的情况42六、",
+      "raw_snippet": "象小计51,000,000100.00%52,700,00077.50%--二、无限售流通股小计--15,300,00022.50%--40合计51,000,000100.00%68,000,000100.00%--注1：数据尾数如存有差异系四舍五入所致；注2：发行人不存在表决权差异安排的情况41六、",
       "confidence": 0.95,
       "unit": "股",
       "pre_unrestricted_wan_shares": 0.0,
@@ -168,6 +174,8 @@
     "average_price_reason": "",
     "average_price_calc_version": 3,
     "average_price_unit_mode": "volume_shares_amount_yuan",
-    "average_price_reference": 38.4
+    "average_price_reference": 38.4,
+    "replay_record_source": "",
+    "listing_date_source": ""
   }
 }

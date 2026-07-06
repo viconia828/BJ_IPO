@@ -17,6 +17,7 @@ if str(TOOLS_DIR) not in sys.path:
 
 import build_subscription_history
 import pdf_parser
+import subscription_ladder_labels
 
 
 def _reset_temp_dir(name: str) -> Path:
@@ -207,6 +208,87 @@ def _run_top_apply_time_priority_label_case(failures: list[str]) -> None:
     _assert(residuals.get("allocated_lot_residual") == 0, "time race: lot residual mismatch", failures)
 
 
+def _run_ladder_label_only_items_are_augmented_case(failures: list[str]) -> None:
+    items = [{"SECURITY_CODE": "920010", "SECURITY_NAME_ABBR": "Replay"}]
+    label_rows = [
+        {"security_code": "920010", "manual_ladder": "1+0=100"},
+        {
+            "security_code": "920999",
+            "security_name_abbr": "Label Only",
+            "apply_date": "2026-07-01",
+            "issue_price": "8.14",
+            "online_issue_shares": "1000000",
+            "top_apply_amount_wan": "500",
+            "manual_ladder": "1+0=100",
+        },
+        {"security_code": "920998", "manual_ladder": ""},
+    ]
+    augmented, added_count = build_subscription_history._augment_items_with_ladder_labels(items, label_rows)
+    by_code = {str(item.get("SECURITY_CODE") or ""): item for item in augmented}
+    _assert(added_count == 1, "label-only augmentation: added count mismatch", failures)
+    _assert(set(by_code) == {"920010", "920999"}, "label-only augmentation: code set mismatch", failures)
+    _assert(by_code["920999"].get("SECURITY_NAME_ABBR") == "Label Only", "label-only augmentation: name missing", failures)
+    _assert(by_code["920999"].get("ISSUE_PRICE") == "8.14", "label-only augmentation: issue price missing", failures)
+
+
+def _run_history_table_applies_manual_ladder_case(failures: list[str]) -> None:
+    temp_dir = _reset_temp_dir("validate_subscription_history_manual_ladder")
+    try:
+        dataset_path = temp_dir / "replay_dataset.json"
+        output_path = temp_dir / "subscription_history_sample.csv"
+        label_path = temp_dir / "subscription_ladder_labels.csv"
+        dataset_path.write_text(
+            json.dumps(
+                {
+                    "schema": "offline_tuning_replay_v1",
+                    "items": [
+                        {
+                            "SECURITY_CODE": "920777",
+                            "SECURITY_NAME_ABBR": "Manual Ladder",
+                            "APPLY_DATE": "2026-06-29",
+                            "ISSUE_PRICE": 8.14,
+                            "TOTAL_ISSUE_NUM": 2121.0,
+                            "ONLINE_ISSUE_NUM": 19089000.0,
+                            "TOP_APPLY_MARKETCAP": 776.8816,
+                        }
+                    ],
+                },
+                ensure_ascii=False,
+                indent=2,
+            ),
+            encoding="utf-8",
+        )
+        subscription_ladder_labels.write_label_rows(
+            [
+                {
+                    "security_code": "920777",
+                    "security_name_abbr": "Manual Ladder",
+                    "apply_date": "2026-06-29",
+                    "issue_price": "8.14",
+                    "online_issue_shares": "19089000",
+                    "top_apply_amount_wan": "776.8816",
+                    "manual_ladder": "1+0=447;1+1=631",
+                }
+            ],
+            label_path,
+        )
+        build_subscription_history.build_subscription_history_table(
+            dataset_path=dataset_path,
+            output_path=output_path,
+            ladder_label_path=label_path,
+            pdf_dir=temp_dir / "missing_pdfs",
+        )
+        with output_path.open("r", encoding="utf-8-sig", newline="") as file_obj:
+            row = next(csv.DictReader(file_obj))
+    finally:
+        shutil.rmtree(temp_dir, ignore_errors=True)
+
+    _assert_close(row.get("guaranteed_threshold_amount_wan"), 447.0, "manual ladder table: guaranteed mismatch", failures)
+    _assert_close(row.get("fractional_threshold_amount_wan"), 631.0, "manual ladder table: fractional mismatch", failures)
+    _assert(row.get("fractional_threshold_source") == "manual_ladder", "manual ladder table: fractional source mismatch", failures)
+    _assert(row.get("fractional_label_ready") == "true", "manual ladder table: fractional ready mismatch", failures)
+
+
 def _run_new_model_ready_row_overrides_existing_case(failures: list[str]) -> None:
     new_row = {
         "security_code": "920006",
@@ -246,6 +328,8 @@ def main() -> int:
     _run_download_skip_codes_case(failures)
     _run_implausible_online_issue_case(failures)
     _run_top_apply_time_priority_label_case(failures)
+    _run_ladder_label_only_items_are_augmented_case(failures)
+    _run_history_table_applies_manual_ladder_case(failures)
     _run_new_model_ready_row_overrides_existing_case(failures)
     _run_result_date_text_case(failures)
     if failures:

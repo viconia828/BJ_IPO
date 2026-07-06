@@ -107,12 +107,14 @@ def _dataset_progress(index: int, total: int, spec: dict[str, object]) -> None:
         text = "复用旧数据集条目"
     elif status == "upgraded_dataset":
         text = "补齐旧条目均价"
+    elif status == "announcement_fallback":
+        text = "公告兜底回放条目"
     elif status == "skipped":
         text = "跳过"
     else:
         text = "处理"
 
-    if status in {"built", "upgraded_dataset", "skipped"} or index in {1, total} or index % 10 == 0:
+    if status in {"built", "announcement_fallback", "upgraded_dataset", "skipped"} or index in {1, total} or index % 10 == 0:
         print(f"[{index}/{total}] 回放数据集同步：{text} {code}", flush=True)
 
 
@@ -261,7 +263,7 @@ def build_parser(params_file: str, tuning_settings: dict[str, Any]) -> argparse.
     parser.add_argument(
         "--no-auto-refresh-dataset",
         action="store_true",
-        help="手动调参时不根据首日分时走势 CSV 自动同步回放数据集",
+        help="手动调参时不根据本地样本源自动同步回放数据集",
     )
     parser.add_argument(
         "--months",
@@ -275,7 +277,7 @@ def build_parser(params_file: str, tuning_settings: dict[str, Any]) -> argparse.
         default=int(tuning_settings["tuning_page_size"]),
         help="历史样本抓取分页大小；默认取策略参数.txt 的 tuning_page_size",
     )
-    parser.add_argument("--sample-codes", help="限定构建数据集时纳入的样本代码，逗号分隔；默认自动发现本地分时 CSV")
+    parser.add_argument("--sample-codes", help="限定构建数据集时纳入的样本代码，逗号分隔；默认自动发现本地分时 CSV 和手工梯度表")
     parser.add_argument("--stage", default="quick_method2", choices=param_tuning.list_stage_names(), help="内置调参阶段")
     parser.add_argument("--grid-file", help="search 模式下自定义候选参数文件，支持 list[dict] 或 dict[str, list]")
     parser.add_argument(

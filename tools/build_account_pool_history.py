@@ -23,15 +23,13 @@ DEFAULT_LADDER_LABEL_PATH = ROOT_DIR / "data" / "offline_tuning" / "subscription
 DEFAULT_POINTS_PATH = ROOT_DIR / "data" / "offline_tuning" / "account_pool_history_points.csv"
 DEFAULT_THRESHOLDS_PATH = ROOT_DIR / "data" / "offline_tuning" / "account_pool_history_thresholds.csv"
 DEFAULT_SUMMARY_PATH = ROOT_DIR / "data" / "offline_tuning" / "account_pool_history_summary.json"
-DEFAULT_THRESHOLDS_WAN = tuple(float(value) for value in range(100, 5001, 100))
+DEFAULT_THRESHOLDS_WAN: tuple[float, ...] = ()
 UNINFORMATIVE_THRESHOLD_BASES = {
     "",
     "no_observed_points",
     "above_top_observed_threshold",
     "above_top_apply_zero",
 }
-
-
 POINT_COLUMNS = (
     "security_code",
     "security_name_abbr",
@@ -75,6 +73,9 @@ BASE_THRESHOLD_COLUMNS = (
     "point_count",
     "manual_point_count",
     "usable_point_count",
+    "account_pool_snapshot_state",
+    "snapshot_cutpoint_count",
+    "updated_cutpoint_count",
     "max_observed_threshold_wan",
     "max_observed_accounts",
     "source",
@@ -347,104 +348,131 @@ def _build_points_for_row(row: dict[str, Any]) -> list[dict[str, Any]]:
     return sorted(points, key=lambda item: (_safe_float(item.get("threshold_amount_wan")) or 0.0, item.get("lot_level") or 0))
 
 
-def _estimate_accounts_for_threshold(
-    points: list[dict[str, Any]],
-    threshold: float,
-    top_apply_amount_wan: float | None = None,
-) -> dict[str, Any]:
-    if top_apply_amount_wan is not None and threshold > top_apply_amount_wan + 1e-6:
-        return {
-            "estimate": 0.0,
-            "lower_bound": 0.0,
-            "upper_bound": 0.0,
-            "nearest_lower_amount": None,
-            "nearest_upper_amount": None,
-            "basis": "above_top_apply_zero",
-        }
-
-    usable = [
-        point
-        for point in points
-        if _safe_float(point.get("threshold_amount_wan")) is not None
-        and _safe_float(point.get("accounts_ge_threshold")) is not None
-    ]
-    if not usable:
-        return {
-            "estimate": None,
-            "lower_bound": None,
-            "upper_bound": None,
-            "nearest_lower_amount": None,
-            "nearest_upper_amount": None,
-            "basis": "no_observed_points",
-        }
-    usable = sorted(usable, key=lambda item: float(item["threshold_amount_wan"]))
-    exact = [
-        point
-        for point in usable
-        if abs(float(point["threshold_amount_wan"]) - threshold) < 1e-6
-    ]
-    if exact:
-        accounts = max(float(point["accounts_ge_threshold"]) for point in exact)
-        return {
-            "estimate": accounts,
-            "lower_bound": accounts,
-            "upper_bound": accounts,
-            "nearest_lower_amount": threshold,
-            "nearest_upper_amount": threshold,
-            "basis": "exact_observed_threshold",
-        }
-
-    lower_points = [point for point in usable if float(point["threshold_amount_wan"]) < threshold]
-    upper_points = [point for point in usable if float(point["threshold_amount_wan"]) > threshold]
-    nearest_lower = max(lower_points, key=lambda item: float(item["threshold_amount_wan"])) if lower_points else None
-    nearest_upper = min(upper_points, key=lambda item: float(item["threshold_amount_wan"])) if upper_points else None
-
-    lower_bound = float(nearest_upper["accounts_ge_threshold"]) if nearest_upper else 0.0
-    upper_bound = float(nearest_lower["accounts_ge_threshold"]) if nearest_lower else None
-    if nearest_lower and nearest_upper:
-        low_amount = float(nearest_lower["threshold_amount_wan"])
-        high_amount = float(nearest_upper["threshold_amount_wan"])
-        low_accounts = float(nearest_lower["accounts_ge_threshold"])
-        high_accounts = float(nearest_upper["accounts_ge_threshold"])
-        if high_amount > low_amount:
-            ratio = (threshold - low_amount) / (high_amount - low_amount)
-            estimate = low_accounts + ratio * (high_accounts - low_accounts)
-        else:
-            estimate = lower_bound
-        basis = "linear_between_observed_thresholds"
-    elif nearest_upper:
-        estimate = lower_bound
-        basis = "lower_bound_below_first_observed_threshold"
-    else:
-        estimate = None
-        basis = "above_top_observed_threshold"
-    return {
-        "estimate": estimate,
-        "lower_bound": lower_bound,
-        "upper_bound": upper_bound,
-        "nearest_lower_amount": _safe_float(nearest_lower.get("threshold_amount_wan")) if nearest_lower else None,
-        "nearest_upper_amount": _safe_float(nearest_upper.get("threshold_amount_wan")) if nearest_upper else None,
-        "basis": basis,
-    }
-
-
 def _threshold_column_prefix(threshold: float) -> str:
-    return f"accounts_ge_{int(threshold)}w"
+    text = _format_value(float(threshold))
+    safe_text = text.replace("-", "m").replace(".", "p")
+    return f"accounts_ge_{safe_text}w"
 
 
-def _build_threshold_row(row: dict[str, Any], points: list[dict[str, Any]], thresholds: tuple[float, ...]) -> dict[str, Any]:
+def _threshold_state_key(threshold: float) -> str:
+    return _format_value(float(threshold))
+
+
+def _observed_state_points(points: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    observed_by_key: dict[str, dict[str, Any]] = {}
+    for point in points:
+        threshold = _safe_float(point.get("threshold_amount_wan"))
+        accounts = _safe_float(point.get("accounts_ge_threshold"))
+        if threshold is None or threshold <= 0 or accounts is None:
+            continue
+        key = _threshold_state_key(threshold)
+        candidate = {
+            "key": key,
+            "threshold_amount_wan": float(threshold),
+            "estimate": max(float(accounts), 0.0),
+            "source": str(point.get("source") or ""),
+        }
+        current = observed_by_key.get(key)
+        if current is None or float(candidate["estimate"]) > float(current["estimate"]):
+            observed_by_key[key] = candidate
+    return sorted(observed_by_key.values(), key=lambda item: float(item["threshold_amount_wan"]))
+
+
+def _cover_state_item(
+    item: dict[str, Any],
+    observation: dict[str, Any],
+    code: str,
+) -> None:
+    item["estimate"] = max(float(observation["estimate"]), 0.0)
+    item["basis"] = "covered_by_newer_observation"
+    item["covered_by_threshold_wan"] = observation.get("threshold_amount_wan")
+    item["last_update_code"] = code
+
+
+def _enforce_state_monotone(
+    state: dict[str, dict[str, Any]],
+    touched_keys: set[str],
+    code: str,
+) -> None:
+    previous_estimate: float | None = None
+    previous_threshold: float | None = None
+    for key, item in sorted(state.items(), key=lambda entry: float(entry[1].get("threshold_amount_wan") or 0.0)):
+        estimate = _safe_float(item.get("estimate"))
+        if estimate is None:
+            continue
+        estimate = max(float(estimate), 0.0)
+        if previous_estimate is not None and estimate > previous_estimate:
+            item["estimate"] = previous_estimate
+            item["basis"] = "monotone_adjusted_by_newer_observation"
+            item["covered_by_threshold_wan"] = previous_threshold
+            item["last_update_code"] = code
+            touched_keys.add(key)
+            estimate = previous_estimate
+        else:
+            item["estimate"] = estimate
+        previous_estimate = estimate
+        previous_threshold = _safe_float(item.get("threshold_amount_wan"))
+
+
+def _update_threshold_state(
+    state: dict[str, dict[str, Any]],
+    points: list[dict[str, Any]],
+    code: str,
+) -> set[str]:
+    observations = _observed_state_points(points)
+    touched_keys: set[str] = set()
+    if not observations:
+        return touched_keys
+
+    for observation in observations:
+        key = str(observation["key"])
+        current = state.get(key) or {}
+        state[key] = {
+            "threshold_amount_wan": observation["threshold_amount_wan"],
+            "estimate": observation["estimate"],
+            "basis": "observed_threshold",
+            "source": observation.get("source", ""),
+            "observation_count": int(_safe_float(current.get("observation_count")) or 0) + 1,
+            "last_update_code": code,
+        }
+        touched_keys.add(key)
+
+    for observation in observations:
+        obs_threshold = float(observation["threshold_amount_wan"])
+        obs_estimate = float(observation["estimate"])
+        obs_key = str(observation["key"])
+        for key, item in state.items():
+            if key == obs_key:
+                continue
+            threshold = _safe_float(item.get("threshold_amount_wan"))
+            estimate = _safe_float(item.get("estimate"))
+            if threshold is None or estimate is None:
+                continue
+            if threshold < obs_threshold - 1e-9 and estimate < obs_estimate - 1e-9:
+                _cover_state_item(item, observation, code)
+                touched_keys.add(key)
+            elif threshold > obs_threshold + 1e-9 and estimate > obs_estimate + 1e-9:
+                _cover_state_item(item, observation, code)
+                touched_keys.add(key)
+
+    _enforce_state_monotone(state, touched_keys, code)
+    return touched_keys
+
+
+def _build_threshold_base_row(row: dict[str, Any], points: list[dict[str, Any]]) -> dict[str, Any]:
     fit = _parse_json_object(row.get("allocation_fit_json"))
     usable_points = [point for point in points if _safe_float(point.get("accounts_ge_threshold")) is not None]
     max_point = max(usable_points, key=lambda item: _safe_float(item.get("threshold_amount_wan")) or 0.0) if usable_points else {}
     top_apply_amount = _safe_float(row.get("top_apply_amount_wan"))
-    output = {
+    online_issue_shares = _safe_float(row.get("online_issue_shares"))
+    return {
         "security_code": _row_code(row),
         "security_name_abbr": row.get("security_name_abbr") or "",
         "apply_date": _clean_date(row.get("apply_date")),
         "listing_date": _clean_date(row.get("listing_date")),
         "issue_price": _safe_float(row.get("issue_price")),
-        "online_issue_shares": _safe_float(row.get("online_issue_shares")),
-        "online_lots_total": (_safe_float(row.get("online_issue_shares")) or 0.0) / 100.0 if _safe_float(row.get("online_issue_shares")) is not None else None,
+        "online_issue_shares": online_issue_shares,
+        "online_lots_total": online_issue_shares / 100.0 if online_issue_shares is not None else None,
         "online_valid_accounts": _safe_float(row.get("online_valid_accounts")),
         "online_allocated_accounts": _safe_float(row.get("online_allocated_accounts")),
         "top_apply_amount_wan": top_apply_amount,
@@ -456,15 +484,33 @@ def _build_threshold_row(row: dict[str, Any], points: list[dict[str, Any]], thre
         "max_observed_threshold_wan": _safe_float(max_point.get("threshold_amount_wan")),
         "max_observed_accounts": _safe_float(max_point.get("accounts_ge_threshold")),
         "source": "manual_ladder+allocation_fit" if any("manual_ladder" in str(point.get("source") or "") for point in points) else ("allocation_fit" if points else ""),
-        "notes": "threshold estimates are interpolated from observed allocation ladder points",
+        "notes": "snapshot uses observed cutpoints only; runtime callers interpolate between cutpoints",
     }
-    for threshold in thresholds:
+
+
+def _build_threshold_snapshot_row(
+    row: dict[str, Any],
+    points: list[dict[str, Any]],
+    state: dict[str, dict[str, Any]],
+    touched_keys: set[str],
+) -> dict[str, Any]:
+    output = _build_threshold_base_row(row, points)
+    output["account_pool_snapshot_state"] = bool(state)
+    output["snapshot_cutpoint_count"] = len(state)
+    output["updated_cutpoint_count"] = len(touched_keys)
+    for key, item in sorted(state.items(), key=lambda entry: float(entry[1].get("threshold_amount_wan") or 0.0)):
+        threshold = _safe_float(item.get("threshold_amount_wan"))
+        estimate = _safe_float(item.get("estimate"))
+        if threshold is None or estimate is None:
+            continue
         prefix = _threshold_column_prefix(threshold)
-        estimate = _estimate_accounts_for_threshold(points, threshold, top_apply_amount)
-        output[f"{prefix}_estimate"] = estimate.get("estimate")
-        output[f"{prefix}_lb"] = estimate.get("lower_bound")
-        output[f"{prefix}_ub"] = estimate.get("upper_bound")
-        output[f"{prefix}_basis"] = estimate.get("basis")
+        basis = str(item.get("basis") or "observed_threshold")
+        if key not in touched_keys:
+            basis = "carry_forward"
+        output[f"{prefix}_estimate"] = estimate
+        output[f"{prefix}_lb"] = estimate
+        output[f"{prefix}_ub"] = estimate
+        output[f"{prefix}_basis"] = basis
     return output
 
 
@@ -474,7 +520,6 @@ def _threshold_columns(thresholds: tuple[float, ...]) -> list[str]:
         prefix = _threshold_column_prefix(threshold)
         columns.extend((f"{prefix}_estimate", f"{prefix}_lb", f"{prefix}_ub", f"{prefix}_basis"))
     return columns
-
 
 def _write_csv(path: Path, rows: list[dict[str, Any]], columns: list[str] | tuple[str, ...]) -> Path:
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -501,15 +546,24 @@ def build_account_pool_history(
     points_by_code: dict[str, list[dict[str, Any]]] = {}
     point_rows: list[dict[str, Any]] = []
     threshold_rows: list[dict[str, Any]] = []
+    threshold_state: dict[str, dict[str, Any]] = {}
+    all_thresholds_seen: set[float] = set()
     for row in merged_rows:
         code = _row_code(row)
         points = _build_points_for_row(row)
         points_by_code[code] = points
         point_rows.extend(points)
-        threshold_rows.append(_build_threshold_row(row, points, thresholds))
+        touched_keys = _update_threshold_state(threshold_state, points, code)
+        all_thresholds_seen.update(
+            float(item["threshold_amount_wan"])
+            for item in threshold_state.values()
+            if _safe_float(item.get("threshold_amount_wan")) is not None
+        )
+        threshold_rows.append(_build_threshold_snapshot_row(row, points, threshold_state, touched_keys))
 
+    observed_thresholds = tuple(sorted(all_thresholds_seen))
     _write_csv(points_path, point_rows, POINT_COLUMNS)
-    _write_csv(thresholds_path, threshold_rows, _threshold_columns(thresholds))
+    _write_csv(thresholds_path, threshold_rows, _threshold_columns(observed_thresholds))
 
     usable_rows = [row for row in threshold_rows if int(_safe_float(row.get("usable_point_count")) or 0) > 0]
     recent_rows = sorted(
@@ -517,7 +571,7 @@ def build_account_pool_history(
         key=lambda row: (str(row.get("apply_date") or ""), str(row.get("security_code") or "")),
     )[-12:]
     recent_snapshot: dict[str, Any] = {}
-    for threshold in thresholds:
+    for threshold in observed_thresholds:
         prefix = _threshold_column_prefix(threshold)
         values = [_safe_float(row.get(f"{prefix}_estimate")) for row in recent_rows]
         informative_values = [
@@ -539,7 +593,8 @@ def build_account_pool_history(
         "points_path": str(points_path),
         "thresholds_path": str(thresholds_path),
         "summary_path": str(summary_path),
-        "thresholds_wan": list(thresholds),
+        "thresholds_wan": list(observed_thresholds),
+        "requested_thresholds_wan": list(thresholds or ()),
         "sample_count": len(merged_rows),
         "history_row_count": len(history_rows),
         "label_row_count": len(label_rows),
@@ -547,6 +602,8 @@ def build_account_pool_history(
         "usable_point_count": sum(1 for row in point_rows if _safe_float(row.get("accounts_ge_threshold")) is not None),
         "threshold_row_count": len(threshold_rows),
         "usable_threshold_row_count": len(usable_rows),
+        "snapshot_cutpoint_count": len(threshold_state),
+        "calibrated_threshold_count": len(threshold_state),
         "recent_snapshot_window": len(recent_rows),
         "recent_snapshot": recent_snapshot,
     }
@@ -574,7 +631,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--points-path", type=Path, default=DEFAULT_POINTS_PATH)
     parser.add_argument("--thresholds-path", type=Path, default=DEFAULT_THRESHOLDS_PATH)
     parser.add_argument("--summary-path", type=Path, default=DEFAULT_SUMMARY_PATH)
-    parser.add_argument("--thresholds", default=",".join(_format_value(value) for value in DEFAULT_THRESHOLDS_WAN))
+    parser.add_argument("--thresholds", default="", help="Deprecated: account-pool snapshots now use observed cutpoints only.")
     parser.add_argument("--json", action="store_true")
     return parser.parse_args()
 

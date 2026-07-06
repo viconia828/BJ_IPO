@@ -1,7 +1,7 @@
 {
   "schema": "offline_tuning_replay_item_v1",
-  "cache_version": 3,
-  "generated_at": "2026-05-29 19:35:07",
+  "cache_version": 4,
+  "generated_at": "2026-07-06 21:16:57",
   "code": "920191",
   "listing_date": "2026-04-20 00:00:00",
   "record_signature": {
@@ -14,6 +14,9 @@
     "INDUSTRY_PE_NEW": 39.14,
     "TOTAL_ISSUE_NUM": 4435.0,
     "ISSUE_NUM": 4435.0,
+    "ONLINE_ISSUE_NUM": 39915000.0,
+    "TOP_APPLY_MARKETCAP": 1538.6847,
+    "SUBSCRIPTION_LIMIT_WAN_SHARES": null,
     "CLOSE_PRICE": 14.88,
     "LD_CLOSE_CHANGE": 92.9961,
     "TURNOVERRATE": 92.1221,
@@ -46,8 +49,13 @@
     "AFTER_ISSUE_PE": 14.99,
     "INDUSTRY_PE_NEW": 39.14,
     "TOTAL_ISSUE_NUM": 4435.0,
+    "ONLINE_ISSUE_NUM": 39915000.0,
+    "TOP_APPLY_MARKETCAP": 1538.6847,
+    "SUBSCRIPTION_LIMIT_WAN_SHARES": null,
     "CLOSE_PRICE": 14.88,
+    "AVERAGE_PRICE": 15.187777375895397,
     "LD_CLOSE_CHANGE": 92.9961,
+    "LD_AVERAGE_CHANGE": 96.98803340979762,
     "TURNOVERRATE": 92.1221,
     "SW_INDUSTRY": "",
     "INDUSTRY": "",
@@ -61,7 +69,7 @@
       "source_file_type": "上市公告书",
       "source_rule": "listing_table",
       "source_anchor": "本次发行前后的股本结构变动情况 -> 无限售流通股小计",
-      "raw_snippet": "--51股东名称本次发行前本次发行后限售期限备注数量（股）占比数量（股）占比二、无限售流通股小计00.00%39,915,00022.50%--合计133,045,400100.00%177,395,400100.00%--52六、",
+      "raw_snippet": "--50本次发行前本次发行后股东名称限售期限备注数量数量占比占比（股）（股）二、无限售流通股小计00.00%39,915,00022.50%--合计133,045,400100.00%177,395,400100.00%--51六、",
       "confidence": 0.98,
       "unit": "股",
       "pre_unrestricted_wan_shares": 0.0,
@@ -162,12 +170,12 @@
       "reason": ""
     },
     "method1_replay_available": true,
-    "AVERAGE_PRICE": 15.187777375895395,
-    "LD_AVERAGE_CHANGE": 96.98803340979761,
     "average_price_source": "intraday_csv",
     "average_price_reason": "",
     "average_price_calc_version": 3,
-    "average_price_unit_mode": "volume_hands_amount_yuan",
-    "average_price_reference": 14.98
+    "average_price_unit_mode": "volume_shares_amount_yuan",
+    "average_price_reference": 14.98,
+    "replay_record_source": "",
+    "listing_date_source": ""
   }
 }

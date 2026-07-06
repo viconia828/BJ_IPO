@@ -13,6 +13,7 @@ import bse_ipo_valuation
 import data_fetcher
 import listing_average_price_helper
 import pdf_parser
+import subscription_ladder_labels
 import tushare_helper
 import tushare_ipo_helper
 import valuation_engine
@@ -23,6 +24,7 @@ from local_file_db import LocalFileDB
 REPO_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_DATASET_PATH = REPO_ROOT / "data" / "offline_tuning" / "replay_dataset.json"
 DEFAULT_REPLAY_ITEM_CACHE_DIR = REPO_ROOT / "data" / "offline_tuning" / "replay_items"
+DEFAULT_LADDER_LABEL_PATH = REPO_ROOT / "data" / "offline_tuning" / "subscription_ladder_labels.csv"
 DEFAULT_LISTING_AVERAGE_PRICE_CACHE_PATH = listing_average_price_helper.DEFAULT_CACHE_PATH
 DEFAULT_CANDIDATE_SET_DIR = REPO_ROOT / "data" / "offline_tuning" / "candidate_sets"
 DEFAULT_OUTPUT_DIR = REPO_ROOT / "输出" / "调参"
@@ -32,7 +34,7 @@ INTRADAY_DIR = listing_average_price_helper.DEFAULT_INTRADAY_DIR
 PDF_DIR = REPO_ROOT / "公告文件"
 DATASET_SCHEMA = "offline_tuning_replay_v1"
 REPLAY_ITEM_SCHEMA = "offline_tuning_replay_item_v1"
-REPLAY_ITEM_CACHE_VERSION = 3
+REPLAY_ITEM_CACHE_VERSION = 4
 REPLAY_AVERAGE_PRICE_CALC_VERSION = listing_average_price_helper.AVERAGE_PRICE_CALC_VERSION
 METHOD2_ONLY_SCOPE = "method2_only"
 COMPOSITE_EVALUATION_SCOPE = "composite"
@@ -73,6 +75,9 @@ REPLAY_RECORD_SIGNATURE_KEYS = (
     "INDUSTRY_PE_NEW",
     "TOTAL_ISSUE_NUM",
     "ISSUE_NUM",
+    "ONLINE_ISSUE_NUM",
+    "TOP_APPLY_MARKETCAP",
+    "SUBSCRIPTION_LIMIT_WAN_SHARES",
     "CLOSE_PRICE",
     "LD_CLOSE_CHANGE",
     "TURNOVERRATE",
@@ -482,13 +487,35 @@ def _normalize_codes(values: list[str] | None) -> list[str]:
     return normalized
 
 
-def discover_local_sample_codes() -> list[str]:
+def discover_local_sample_codes(intraday_dir: str | Path = INTRADAY_DIR) -> list[str]:
+    source_dir = Path(intraday_dir)
     codes = {
         path.stem[:6]
-        for path in INTRADAY_DIR.glob("*.csv")
+        for path in source_dir.glob("*.csv")
         if len(path.stem) >= 6 and path.stem[:6].isdigit()
     }
     return sorted(codes)
+
+
+def discover_ladder_label_sample_codes(label_path: str | Path = DEFAULT_LADDER_LABEL_PATH) -> list[str]:
+    codes = {
+        str(row.get("security_code") or "").strip()
+        for row in subscription_ladder_labels.load_label_rows(label_path)
+        if str(row.get("security_code") or "").strip()
+        and str(row.get("manual_ladder") or "").strip()
+    }
+    return sorted(codes)
+
+
+def discover_replay_sample_codes(
+    *,
+    intraday_dir: str | Path = INTRADAY_DIR,
+    ladder_label_path: str | Path = DEFAULT_LADDER_LABEL_PATH,
+) -> list[str]:
+    return sorted(
+        set(discover_local_sample_codes(intraday_dir))
+        | set(discover_ladder_label_sample_codes(ladder_label_path))
+    )
 
 
 def inspect_replay_dataset_sync(
@@ -496,7 +523,7 @@ def inspect_replay_dataset_sync(
     local_sample_codes: list[str] | None = None,
     months: int | None = None,
 ) -> dict[str, Any]:
-    local_codes = _normalize_codes(local_sample_codes if local_sample_codes is not None else discover_local_sample_codes())
+    local_codes = _normalize_codes(local_sample_codes if local_sample_codes is not None else discover_replay_sample_codes())
     dataset_codes = _normalize_codes(dataset.get("requested_codes") or dataset.get("sample_codes") or [])
     local_code_set = set(local_codes)
     dataset_code_set = set(dataset_codes)
@@ -505,9 +532,9 @@ def inspect_replay_dataset_sync(
 
     reasons: list[str] = []
     if missing_in_dataset:
-        reasons.append("本地首日分时走势新增样本：" + ",".join(missing_in_dataset))
+        reasons.append("本地样本源新增样本：" + ",".join(missing_in_dataset))
     if extra_in_dataset:
-        reasons.append("回放数据集中存在本地已无 CSV 的样本：" + ",".join(extra_in_dataset))
+        reasons.append("回放数据集中存在本地样本源已无该样本：" + ",".join(extra_in_dataset))
     if months is not None:
         dataset_months = dataset.get("source_months")
         try:
@@ -547,6 +574,159 @@ def _build_pdf_inputs_from_paths(
 
 def _build_pdf_inputs(params: dict[str, Any], code: str) -> tuple[float, str, dict[str, Any] | None]:
     return _build_pdf_inputs_from_paths(params, _resolve_replay_pdf_paths(code))
+
+
+def _is_missing_replay_value(value: Any) -> bool:
+    if value in (None, "", "--"):
+        return True
+    if isinstance(value, str) and not value.strip():
+        return True
+    return False
+
+
+def _merge_announcement_issue_fields(
+    values: dict[str, Any],
+    issue_info: dict[str, Any],
+    sources: dict[str, str],
+    *,
+    source_label: str,
+    override: bool = False,
+) -> None:
+    fields = dict(issue_info.get("fields") or {}) if isinstance(issue_info, dict) else {}
+    if not fields:
+        return
+    field_sources = issue_info.get("field_sources") if isinstance(issue_info, dict) else {}
+    field_sources = field_sources if isinstance(field_sources, dict) else {}
+    for field_name in bse_ipo_valuation.ISSUE_DOCUMENT_SUPPLEMENT_FIELDS:
+        value = fields.get(field_name)
+        if _is_missing_replay_value(value):
+            continue
+        if not override and not _is_missing_replay_value(values.get(field_name)):
+            continue
+        values[field_name] = value
+        sources[field_name] = str(field_sources.get(field_name) or source_label).strip()
+
+
+def _fallback_replay_name_from_sources(code: str, pdfs: dict[str, Path | None]) -> str:
+    for row in subscription_ladder_labels.load_label_rows(DEFAULT_LADDER_LABEL_PATH):
+        if str(row.get("security_code") or "").strip() != code:
+            continue
+        name = str(row.get("security_name_abbr") or "").strip()
+        if name:
+            return name
+
+    for path in pdfs.values():
+        if path is None:
+            continue
+        stem = path.stem.strip()
+        if stem.startswith(code):
+            stem = stem[len(code) :].lstrip("_- ")
+        for marker in ("招股说明书", "发行公告", "发行结果公告", "上市公告书"):
+            if marker in stem:
+                stem = stem.split(marker, 1)[0]
+        stem = stem.strip("_- ")
+        if stem:
+            return stem
+    return code
+
+
+def _build_replay_record_from_announcements(code: str) -> dict[str, Any] | None:
+    normalized_code = str(code or "").strip()
+    if not normalized_code:
+        return None
+
+    pdfs = {
+        "prospectus": bse_ipo_valuation._pick_prospectus_pdf(PDF_DIR, normalized_code, "old_shares"),
+        "issue": bse_ipo_valuation._find_pdf(PDF_DIR, normalized_code, "发行公告"),
+        "result": bse_ipo_valuation._find_pdf(PDF_DIR, normalized_code, "发行结果公告"),
+        "listing": bse_ipo_valuation._find_pdf(PDF_DIR, normalized_code, "上市公告书"),
+    }
+    values: dict[str, Any] = {
+        "SECURITY_CODE": normalized_code,
+        "SECURITY_NAME_ABBR": _fallback_replay_name_from_sources(normalized_code, pdfs),
+    }
+    sources: dict[str, str] = {}
+    parse_errors: list[str] = []
+
+    if pdfs.get("prospectus") is not None:
+        try:
+            _merge_announcement_issue_fields(
+                values,
+                pdf_parser.extract_prospectus_issue_info(pdfs["prospectus"]),
+                sources,
+                source_label="prospectus",
+            )
+        except Exception as exc:
+            parse_errors.append(f"prospectus:{exc}")
+    if pdfs.get("issue") is not None:
+        try:
+            _merge_announcement_issue_fields(
+                values,
+                pdf_parser.extract_issue_announcement_info(pdfs["issue"]),
+                sources,
+                source_label="issue_announcement",
+                override=True,
+            )
+        except Exception as exc:
+            parse_errors.append(f"issue:{exc}")
+    if pdfs.get("result") is not None:
+        try:
+            _merge_announcement_issue_fields(
+                values,
+                pdf_parser.extract_issue_result_info(pdfs["result"]),
+                sources,
+                source_label="issue_result",
+            )
+        except Exception as exc:
+            parse_errors.append(f"result:{exc}")
+
+    apply_date = str(values.get("APPLY_DATE") or "").strip()
+    listing_date = str(values.get("LISTING_DATE") or "").strip()
+    listing_date_source = str(sources.get("LISTING_DATE") or "").strip()
+    if not listing_date and apply_date:
+        listing_date = apply_date
+        listing_date_source = "apply_date_fallback"
+
+    total_issue_num = _safe_float(values.get("TOTAL_ISSUE_NUM")) or _safe_float(values.get("ISSUE_NUM"))
+    issue_num = _safe_float(values.get("ISSUE_NUM")) or total_issue_num
+    parsed_field_count = sum(
+        1
+        for field_name in (
+            "APPLY_DATE",
+            "ISSUE_PRICE",
+            "AFTER_ISSUE_PE",
+            "INDUSTRY_PE_NEW",
+            "TOTAL_ISSUE_NUM",
+            "ONLINE_ISSUE_NUM",
+            "TOP_APPLY_MARKETCAP",
+        )
+        if not _is_missing_replay_value(values.get(field_name))
+    )
+    source = "announcement_pdf_fallback" if parsed_field_count else "sample_seed_pending_announcements"
+    return {
+        "SECURITY_CODE": normalized_code,
+        "SECURITY_NAME_ABBR": str(values.get("SECURITY_NAME_ABBR") or normalized_code).strip(),
+        "APPLY_DATE": apply_date,
+        "LISTING_DATE": listing_date,
+        "LISTING_DATE_SOURCE": listing_date_source,
+        "ISSUE_PRICE": _safe_float(values.get("ISSUE_PRICE")),
+        "AFTER_ISSUE_PE": _safe_float(values.get("AFTER_ISSUE_PE")),
+        "INDUSTRY_PE_NEW": _safe_float(values.get("INDUSTRY_PE_NEW")),
+        "TOTAL_ISSUE_NUM": total_issue_num,
+        "ISSUE_NUM": issue_num,
+        "ONLINE_ISSUE_NUM": _safe_float(values.get("ONLINE_ISSUE_NUM")),
+        "TOP_APPLY_MARKETCAP": _safe_float(values.get("TOP_APPLY_MARKETCAP")),
+        "SUBSCRIPTION_LIMIT_WAN_SHARES": _safe_float(values.get("SUBSCRIPTION_LIMIT_WAN_SHARES")),
+        "SW_INDUSTRY": str(values.get("INDUSTRY") or "").strip(),
+        "INDUSTRY": str(values.get("INDUSTRY") or "").strip(),
+        "replay_record_source": source,
+        "announcement_fallback_field_sources": sources,
+        "announcement_fallback_parse_errors": parse_errors,
+        "announcement_fallback_pdf_files": {
+            label: path.name if path is not None else ""
+            for label, path in pdfs.items()
+        },
+    }
 
 
 def _upgrade_existing_replay_item_average_price(
@@ -594,10 +774,13 @@ def _build_replay_item(
     if total_issue_num is None:
         total_issue_num = _safe_float(record.get("ISSUE_NUM"))
     issue_price = _safe_float(record.get("ISSUE_PRICE"))
+    listing_date_for_average = record.get("LISTING_DATE")
+    if str(record.get("LISTING_DATE_SOURCE") or "").strip() == "apply_date_fallback":
+        listing_date_for_average = None
     average_price_result = _resolve_listing_average_price(
         params,
         code,
-        record.get("LISTING_DATE"),
+        listing_date_for_average,
         record,
         prefer_local_intraday=True,
     )
@@ -609,7 +792,7 @@ def _build_replay_item(
     comparable_codes = pdf_parser.extract_comparable_companies(comparable_pdf) if comparable_pdf else []
     comparable_data, comparable_summary = _fetch_historical_comparable_data(
         comparable_codes,
-        record.get("LISTING_DATE"),
+        listing_date_for_average,
         params,
         comparable_snapshot_cache,
     )
@@ -628,6 +811,9 @@ def _build_replay_item(
         "AFTER_ISSUE_PE": _safe_float(record.get("AFTER_ISSUE_PE")),
         "INDUSTRY_PE_NEW": _safe_float(record.get("INDUSTRY_PE_NEW")),
         "TOTAL_ISSUE_NUM": total_issue_num,
+        "ONLINE_ISSUE_NUM": _safe_float(record.get("ONLINE_ISSUE_NUM")),
+        "TOP_APPLY_MARKETCAP": _safe_float(record.get("TOP_APPLY_MARKETCAP")),
+        "SUBSCRIPTION_LIMIT_WAN_SHARES": _safe_float(record.get("SUBSCRIPTION_LIMIT_WAN_SHARES")),
         "CLOSE_PRICE": _safe_float(record.get("CLOSE_PRICE")),
         "AVERAGE_PRICE": average_price,
         "LD_CLOSE_CHANGE": _safe_float(record.get("LD_CLOSE_CHANGE")),
@@ -652,6 +838,8 @@ def _build_replay_item(
         "average_price_calc_version": average_price_result.get("calc_version") or REPLAY_AVERAGE_PRICE_CALC_VERSION,
         "average_price_unit_mode": str(average_price_result.get("unit_mode") or "").strip(),
         "average_price_reference": _safe_float(average_price_result.get("price_reference")),
+        "replay_record_source": str(record.get("replay_record_source") or "").strip(),
+        "listing_date_source": str(record.get("LISTING_DATE_SOURCE") or "").strip(),
     }
 
 
@@ -709,7 +897,7 @@ def build_replay_dataset(
     progress_callback: Callable[[int, int, dict[str, Any]], None] | None = None,
 ) -> dict[str, Any]:
     mapper = IndustryMapper(params)
-    requested_codes = sample_codes if sample_codes is not None else discover_local_sample_codes()
+    requested_codes = sample_codes if sample_codes is not None else discover_replay_sample_codes()
     requested_codes = sorted(_normalize_codes(requested_codes))
     raw_records = data_fetcher.fetch_recent_ipos(months=months, page_size=page_size)
     enriched_records = mapper.enrich_recent_ipos(list(raw_records))
@@ -748,8 +936,12 @@ def build_replay_dataset(
     total_codes = len(requested_codes)
     for index, code in enumerate(requested_codes, start=1):
         record = record_by_code.get(code)
+        fallback_record = False
         if record is None:
-            skipped.append({"code": code, "reason": f"最近 {months} 个月历史池中未找到该样本"})
+            record = _build_replay_record_from_announcements(code)
+            fallback_record = record is not None
+        if record is None:
+            skipped.append({"code": code, "reason": f"最近 {months} 个月历史池中未找到该样本，且无法生成样本种子"})
             if progress_callback:
                 progress_callback(index, total_codes, {"code": code, "status": "skipped"})
             continue
@@ -758,7 +950,7 @@ def build_replay_dataset(
         pdf_paths = _resolve_replay_pdf_paths(code)
         pdf_signature = _build_replay_pdf_signature(pdf_paths)
         existing_item = existing_items_by_code.get(code)
-        status = "built"
+        status = "announcement_fallback" if fallback_record else "built"
         item = None
         cache_path = _replay_item_cache_path(code, item_cache_dir) if cache_enabled else None
 
@@ -789,6 +981,11 @@ def build_replay_dataset(
             if cache_enabled:
                 item_cache["misses"] += 1
             item = _build_replay_item(params, code, record, mapper, comparable_snapshot_cache, pdf_paths)
+            if fallback_record:
+                item["replay_record_source"] = str(record.get("replay_record_source") or "announcement_pdf_fallback")
+                item["announcement_fallback_field_sources"] = dict(record.get("announcement_fallback_field_sources") or {})
+                item["announcement_fallback_parse_errors"] = list(record.get("announcement_fallback_parse_errors") or [])
+                item["announcement_fallback_pdf_files"] = dict(record.get("announcement_fallback_pdf_files") or {})
             if cache_enabled:
                 save_replay_item_cache(item, record_signature, pdf_signature, item_cache_dir)
                 item_cache["writes"] += 1

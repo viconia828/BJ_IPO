@@ -1,7 +1,7 @@
 {
   "schema": "offline_tuning_replay_item_v1",
-  "cache_version": 3,
-  "generated_at": "2026-05-29 19:35:07",
+  "cache_version": 4,
+  "generated_at": "2026-07-06 21:16:54",
   "code": "920180",
   "listing_date": "2026-02-10 00:00:00",
   "record_signature": {
@@ -14,6 +14,9 @@
     "INDUSTRY_PE_NEW": 42.57,
     "TOTAL_ISSUE_NUM": 2953.0762,
     "ISSUE_NUM": 2953.0762,
+    "ONLINE_ISSUE_NUM": 26577686.0,
+    "TOP_APPLY_MARKETCAP": 1019.1896,
+    "SUBSCRIPTION_LIMIT_WAN_SHARES": null,
     "CLOSE_PRICE": 21.23,
     "LD_CLOSE_CHANGE": 176.7927,
     "TURNOVERRATE": 89.6132,
@@ -46,8 +49,13 @@
     "AFTER_ISSUE_PE": 14.98,
     "INDUSTRY_PE_NEW": 42.57,
     "TOTAL_ISSUE_NUM": 2953.0762,
+    "ONLINE_ISSUE_NUM": 26577686.0,
+    "TOP_APPLY_MARKETCAP": 1019.1896,
+    "SUBSCRIPTION_LIMIT_WAN_SHARES": null,
     "CLOSE_PRICE": 21.23,
+    "AVERAGE_PRICE": 23.23710907830547,
     "LD_CLOSE_CHANGE": 176.7927,
+    "LD_AVERAGE_CHANGE": 202.9610049322747,
     "TURNOVERRATE": 89.6132,
     "SW_INDUSTRY": "",
     "INDUSTRY": "",
@@ -61,7 +69,7 @@
       "source_file_type": "上市公告书",
       "source_rule": "listing_table",
       "source_anchor": "本次发行前后的股本结构变动情况 -> 无限售流通股 -> 小计",
-      "raw_snippet": "-二、无限售流通股本次发行新股-公开发行--26,577,68622.50%--小计--26,577,68622.50%--合计88,592,284100.00%118,123,046100.00%--69六、",
+      "raw_snippet": "-二、无限售流通股本次发行新股-公--26,577,68622.50%--开发行小计--26,577,68622.50%--合计88,592,284100.00%118,123,046100.00%--68六、",
       "confidence": 0.95,
       "unit": "股",
       "pre_unrestricted_wan_shares": 0.0,
@@ -180,12 +188,12 @@
       "reason": ""
     },
     "method1_replay_available": true,
-    "AVERAGE_PRICE": 23.23710907830547,
-    "LD_AVERAGE_CHANGE": 202.9610049322747,
     "average_price_source": "intraday_csv",
     "average_price_reason": "",
     "average_price_calc_version": 3,
     "average_price_unit_mode": "volume_shares_amount_yuan",
-    "average_price_reference": 22.695
+    "average_price_reference": 22.695,
+    "replay_record_source": "",
+    "listing_date_source": ""
   }
 }

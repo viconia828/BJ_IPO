@@ -226,6 +226,73 @@ def manifest_includes_label_only_samples_case(failures: list[str]) -> None:
         failures.append("retry-only sample flags are incorrect")
 
 
+def replay_refresh_uses_unified_sample_source_case(failures: list[str]) -> None:
+    temp_dir = _reset_temp_dir()
+    dataset_path = temp_dir / "replay_dataset.json"
+    dataset_path.write_text(
+        json.dumps(
+            {
+                "schema": "offline_tuning_replay_v1",
+                "evaluation_scope": "composite",
+                "source_months": 18,
+                "replay_item_cache_version": sync_offline_tuning_dataset.param_tuning.REPLAY_ITEM_CACHE_VERSION,
+                "requested_codes": ["920001"],
+                "sample_codes": ["920001"],
+                "available_count": 1,
+                "method1_ready_count": 1,
+                "items": [{"SECURITY_CODE": "920001"}],
+            },
+            ensure_ascii=False,
+        ),
+        encoding="utf-8",
+    )
+    args = SimpleNamespace(
+        rebuild_dataset=False,
+        mode="offline",
+        no_auto_refresh_dataset=False,
+        months=18,
+        page_size=100,
+    )
+    captured: dict[str, object] = {}
+
+    def fake_discover_replay_sample_codes() -> list[str]:
+        return ["920001", "920999"]
+
+    def fake_build_and_save_replay_dataset(*args: object, **kwargs: object) -> dict[str, object]:
+        captured["sample_codes"] = list(kwargs.get("sample_codes") or [])
+        return {
+            "schema": "offline_tuning_replay_v1",
+            "source_months": 18,
+            "requested_codes": captured["sample_codes"],
+            "sample_codes": captured["sample_codes"],
+            "available_count": 2,
+            "items": [{"SECURITY_CODE": "920001"}, {"SECURITY_CODE": "920999"}],
+        }
+
+    original_discover = sync_offline_tuning_dataset.param_tuning.discover_replay_sample_codes
+    original_build = sync_offline_tuning_dataset.build_and_save_replay_dataset
+    original_should_refresh = sync_offline_tuning_dataset._should_auto_refresh_dataset
+    try:
+        sync_offline_tuning_dataset.param_tuning.discover_replay_sample_codes = fake_discover_replay_sample_codes
+        sync_offline_tuning_dataset.build_and_save_replay_dataset = fake_build_and_save_replay_dataset
+        sync_offline_tuning_dataset._should_auto_refresh_dataset = lambda *args, **kwargs: True
+        result = sync_offline_tuning_dataset.load_or_refresh_replay_dataset(
+            args,
+            {},
+            dataset_path,
+            sample_codes=None,
+        )
+    finally:
+        sync_offline_tuning_dataset.param_tuning.discover_replay_sample_codes = original_discover
+        sync_offline_tuning_dataset.build_and_save_replay_dataset = original_build
+        sync_offline_tuning_dataset._should_auto_refresh_dataset = original_should_refresh
+
+    if captured.get("sample_codes") != ["920001", "920999"]:
+        failures.append(f"sync refresh should use unified replay sample source, got {captured.get('sample_codes')}")
+    if result.get("available_count") != 2:
+        failures.append("sync refresh should return rebuilt dataset from unified source")
+
+
 def sync_rebuilds_account_pool_history_case(failures: list[str]) -> None:
     temp_dir = _reset_temp_dir()
     dataset_path = temp_dir / "replay_dataset.json"
@@ -365,10 +432,12 @@ def sync_rebuilds_account_pool_history_case(failures: list[str]) -> None:
         failures.append("sync should return account pool summary")
     if summary.get("sample_count") != 1 or summary.get("usable_point_count") != 2:
         failures.append("account pool summary should be rebuilt from latest history")
-    if threshold_row.get("accounts_ge_500w_estimate") in {"", "999999"}:
+    if threshold_row.get("accounts_ge_500w_estimate") == "999999":
         failures.append("account pool thresholds should overwrite stale historical estimate with latest rebuild")
-    if threshold_row.get("accounts_ge_500w_basis") != "linear_between_observed_thresholds":
-        failures.append("account pool 500w basis should come from rebuilt observed points")
+    if threshold_row.get("accounts_ge_447w_estimate") in {"", "999999"}:
+        failures.append("account pool thresholds should materialize observed manual cutpoints")
+    if threshold_row.get("accounts_ge_447w_basis") != "observed_threshold":
+        failures.append("account pool 447w basis should come from rebuilt observed points")
     if not any(row.get("security_code") == "920001" and row.get("manual_ladder_item") == "1+0=447" for row in point_rows):
         failures.append("account pool points should be rebuilt from latest allocation fit and ladder")
 
@@ -377,6 +446,7 @@ def main() -> int:
     failures: list[str] = []
     retry_marker_same_day_download_cooldown_case(failures)
     manifest_includes_label_only_samples_case(failures)
+    replay_refresh_uses_unified_sample_source_case(failures)
     sync_rebuilds_account_pool_history_case(failures)
     if failures:
         for failure in failures:

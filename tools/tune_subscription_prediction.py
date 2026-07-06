@@ -346,7 +346,11 @@ def _prepare_rows_with_ladder_labels(
             "added_codes": [],
         }
     label_rows = subscription_ladder_labels.load_label_rows(label_path)
-    merged_rows = subscription_ladder_labels.apply_labels_to_history_rows(rows, label_rows)
+    merged_rows = subscription_ladder_labels.apply_labels_to_history_rows(
+        rows,
+        label_rows,
+        apply_threshold_overrides=False,
+    )
     sync_summary["merged_row_count"] = len(merged_rows)
     sync_summary["manual_ladder_ready_count"] = sum(
         1 for row in merged_rows if _parse_bool(row.get("manual_ladder_label_ready"))

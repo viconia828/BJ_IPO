@@ -222,7 +222,7 @@ def _should_auto_refresh_dataset(
 def _default_dataset_progress(index: int, total: int, spec: dict[str, object]) -> None:
     status = str(spec.get("status") or "")
     code = str(spec.get("code") or "")
-    if status in {"built", "upgraded_dataset", "skipped"} or index in {1, total} or index % 10 == 0:
+    if status in {"built", "announcement_fallback", "upgraded_dataset", "skipped"} or index in {1, total} or index % 10 == 0:
         print(f"[{index}/{total}] replay dataset sync: {status or 'processing'} {code}", flush=True)
 
 
@@ -291,7 +291,7 @@ def load_or_refresh_replay_dataset(
     if not _should_auto_refresh_dataset(args, dataset_path, sample_codes):
         return dataset
 
-    local_codes = sample_codes if sample_codes is not None else param_tuning.discover_local_sample_codes()
+    local_codes = sample_codes if sample_codes is not None else param_tuning.discover_replay_sample_codes()
     sync_status = param_tuning.inspect_replay_dataset_sync(
         dataset,
         local_sample_codes=local_codes,
@@ -299,7 +299,7 @@ def load_or_refresh_replay_dataset(
     )
     if not sync_status["needs_refresh"]:
         print(
-            "回放数据集已同步本地首日分时走势：CSV {csv_count} 个，可用样本 {sample_count} 个。".format(
+            "回放数据集已同步本地样本源：样本源 {csv_count} 个，可用样本 {sample_count} 个。".format(
                 csv_count=len(sync_status.get("local_codes") or []),
                 sample_count=dataset.get("available_count", 0),
             ),
@@ -307,7 +307,7 @@ def load_or_refresh_replay_dataset(
         )
         return dataset
 
-    print("检测到本地首日分时走势与回放数据集不一致，开始自动更新数据集...", flush=True)
+    print("检测到本地样本源与回放数据集不一致，开始自动更新数据集...", flush=True)
     if mode == "auto":
         print(
             "提示：这是自动调参前的数据集同步步骤；如外部数据源不可用，会自动回退到旧回放数据集继续调参。",
@@ -328,7 +328,7 @@ def load_or_refresh_replay_dataset(
         )
     except Exception as exc:
         print(f"自动更新回放数据集失败：{exc}", flush=True)
-        print("本次将继续使用旧回放数据集；训练集/验证集暂不包含上述新增 CSV。", flush=True)
+        print("本次将继续使用旧回放数据集；训练集/验证集暂不包含上述新增样本。", flush=True)
         print("网络恢复后重新运行调参入口即可再次自动同步；如需强制刷新，可加 --rebuild-dataset。", flush=True)
         if mode == "auto":
             print("继续进入自动调参搜索...", flush=True)
@@ -889,7 +889,7 @@ def sync_offline_tuning_dataset(
     )
     if verbose:
         print(
-            "account-pool history refreshed: samples={sample_count}, usable_points={usable_point_count}, thresholds={threshold_row_count}.".format(
+            "account-pool history refreshed: samples={sample_count}, usable_points={usable_point_count}, snapshots={threshold_row_count}, cutpoints={snapshot_cutpoint_count}.".format(
                 **account_pool_summary
             ),
             flush=True,
@@ -980,7 +980,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--no-auto-refresh-dataset", action="store_true")
     parser.add_argument("--months", type=int, default=None)
     parser.add_argument("--page-size", type=int, default=None)
-    parser.add_argument("--sample-codes", help="限定同步的样本代码，逗号分隔；默认读取本地首日分时 CSV。")
+    parser.add_argument("--sample-codes", help="限定同步的样本代码，逗号分隔；默认自动发现本地分时 CSV 和手工梯度表。")
     parser.add_argument(
         "--no-download-missing-announcements",
         action="store_true",
