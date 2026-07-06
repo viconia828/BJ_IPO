@@ -15,6 +15,9 @@ DEFAULT_GUARANTEED_BUFFER_MAX_WAN = 100.0
 DEFAULT_FROZEN_FUNDS_FLOOR_RECENT_SAMPLES = 20
 DEFAULT_FROZEN_FUNDS_FLOOR_QUANTILE = 0.0
 DEFAULT_FROZEN_FUNDS_FLOOR_WEIGHT = 0.95
+DEFAULT_FROZEN_FUNDS_CAP_RECENT_SAMPLES = 20
+DEFAULT_FROZEN_FUNDS_CAP_QUANTILE = 1.0
+DEFAULT_FROZEN_FUNDS_CAP_WEIGHT = 1.10
 DEFAULT_LOT_THRESHOLD_MAX_LOTS = 20
 DEFAULT_SIMILAR_TOP_APPLY_FROZEN_WEIGHT = 0.65
 DEFAULT_SIMILAR_TOP_APPLY_FROZEN_RECENT_SAMPLES = 24
@@ -678,6 +681,56 @@ def _frozen_funds_floor_from_samples(
     }
 
 
+def _frozen_funds_cap_from_samples(
+    samples: list[dict[str, float]],
+    issue_price: float,
+    online_issue_shares: float,
+    params: dict[str, Any],
+) -> dict[str, Any] | None:
+    if not _is_enabled(params.get("subscription_prediction_frozen_funds_cap_enabled"), default=True):
+        return None
+    recent_sample_count = int(
+        float(
+            params.get(
+                "subscription_prediction_frozen_funds_cap_recent_samples",
+                DEFAULT_FROZEN_FUNDS_CAP_RECENT_SAMPLES,
+            )
+        )
+    )
+    cap_samples = samples[:recent_sample_count] if recent_sample_count > 0 else list(samples)
+    min_samples = int(float(params.get("subscription_prediction_frozen_funds_cap_min_samples", 3)))
+    frozen_values = [float(sample["frozen_funds_yi"]) for sample in cap_samples if sample.get("frozen_funds_yi", 0) > 0]
+    if len(frozen_values) < min_samples:
+        return None
+
+    quantile = float(
+        params.get(
+            "subscription_prediction_frozen_funds_cap_quantile",
+            DEFAULT_FROZEN_FUNDS_CAP_QUANTILE,
+        )
+    )
+    raw_cap_yi = _quantile(frozen_values, quantile)
+    if raw_cap_yi is None or raw_cap_yi <= 0:
+        return None
+
+    weight = float(params.get("subscription_prediction_frozen_funds_cap_weight", DEFAULT_FROZEN_FUNDS_CAP_WEIGHT))
+    if weight <= 0:
+        return None
+    cap_yi = raw_cap_yi * weight
+    cap_valid_shares = cap_yi * 100000000 / issue_price
+    return {
+        "raw_cap_frozen_funds_yi": raw_cap_yi,
+        "cap_frozen_funds_yi": cap_yi,
+        "cap_weight": weight,
+        "cap_quantile": _clamp(quantile, 0.0, 1.0),
+        "cap_recent_samples": recent_sample_count,
+        "source_sample_count": len(frozen_values),
+        "source_codes": [str(sample.get("security_code") or "") for sample in cap_samples if sample.get("frozen_funds_yi", 0) > 0],
+        "cap_valid_subscription_shares": cap_valid_shares,
+        "cap_subscription_multiple": cap_valid_shares / online_issue_shares,
+    }
+
+
 def _similar_top_apply_frozen_funds_from_samples(
     samples: list[dict[str, float]],
     target_top_apply_wan: float | None,
@@ -900,7 +953,9 @@ def _estimate_valid_subscription_shares(
         else:
             similar_top_apply_frozen["applied"] = False
     frozen_floor = _frozen_funds_floor_from_samples(samples, issue_price, online_issue_shares, params)
+    frozen_cap = _frozen_funds_cap_from_samples(samples, issue_price, online_issue_shares, params)
     frozen_floor_applied = False
+    frozen_cap_applied = False
     valid_subscription_shares = base_valid_shares
     if frozen_floor:
         floor_valid_shares = float(frozen_floor.get("floor_valid_subscription_shares") or 0.0)
@@ -915,6 +970,26 @@ def _estimate_valid_subscription_shares(
         frozen_floor["base_subscription_multiple"] = base_valid_shares / online_issue_shares
         frozen_floor["uplift_ratio"] = (
             valid_subscription_shares / base_valid_shares if base_valid_shares > 0 else None
+        )
+    if frozen_cap:
+        pre_cap_valid_subscription_shares = valid_subscription_shares
+        pre_cap_frozen_funds_yi = pre_cap_valid_subscription_shares * issue_price / 100000000
+        cap_valid_shares = float(frozen_cap.get("cap_valid_subscription_shares") or 0.0)
+        if online_issue_shares < cap_valid_shares < valid_subscription_shares:
+            valid_subscription_shares = cap_valid_shares
+            predicted_multiple = valid_subscription_shares / online_issue_shares
+            frozen_cap_applied = True
+        frozen_cap["applied"] = frozen_cap_applied
+        frozen_cap["base_frozen_funds_yi"] = base_frozen_funds_yi
+        frozen_cap["base_valid_subscription_shares"] = base_valid_shares
+        frozen_cap["base_subscription_multiple"] = base_valid_shares / online_issue_shares
+        frozen_cap["pre_cap_frozen_funds_yi"] = pre_cap_frozen_funds_yi
+        frozen_cap["pre_cap_valid_subscription_shares"] = pre_cap_valid_subscription_shares
+        frozen_cap["pre_cap_subscription_multiple"] = pre_cap_valid_subscription_shares / online_issue_shares
+        frozen_cap["reduction_ratio"] = (
+            valid_subscription_shares / pre_cap_valid_subscription_shares
+            if pre_cap_valid_subscription_shares > 0
+            else None
         )
     return {
         "valid_subscription_shares": valid_subscription_shares,
@@ -933,6 +1008,7 @@ def _estimate_valid_subscription_shares(
         "raw_base_predicted_frozen_funds_yi": raw_base_frozen_funds_yi,
         "similar_top_apply_frozen_funds": similar_top_apply_frozen,
         "frozen_funds_floor": frozen_floor,
+        "frozen_funds_cap": frozen_cap,
         "reason": "",
     }
 
@@ -1637,6 +1713,20 @@ def build_subscription_prediction(
                     floor_source,
                 ]
             )
+        frozen_cap = estimate.get("frozen_funds_cap") or {}
+        if frozen_cap:
+            cap_source = (
+                "recent_frozen_cap"
+                if frozen_cap.get("applied")
+                else "recent_frozen_cap:not_applied"
+            )
+            table_rows.append(
+                [
+                    "冻结资金上限",
+                    _fmt_yi(frozen_cap.get("cap_frozen_funds_yi")),
+                    cap_source,
+                ]
+            )
 
     return {
         "available": True,
@@ -1684,4 +1774,5 @@ def build_subscription_prediction(
         "table_rows": table_rows,
         "estimate": estimate,
         "frozen_funds_floor": estimate.get("frozen_funds_floor") if mode == "estimated" else None,
+        "frozen_funds_cap": estimate.get("frozen_funds_cap") if mode == "estimated" else None,
     }

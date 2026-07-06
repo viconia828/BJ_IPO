@@ -257,6 +257,60 @@ def _run_similar_top_apply_frozen_anchor_case(failures: list[str]) -> None:
     _assert(float(similar_anchor.get("base_frozen_funds_yi") or 0.0) > 15000.0, "similar frozen anchor: base should be higher", failures)
 
 
+def _run_frozen_funds_cap_case(failures: list[str]) -> None:
+    recent_ipos = [
+        {
+            "SECURITY_CODE": "920201",
+            "ISSUE_PRICE": 10.0,
+            "ONLINE_ISSUE_NUM": 10000000.0,
+            "FROZEN_FUNDS_YI": 9000.0,
+            "TOP_APPLY_MARKETCAP": 1000.0,
+            "APPLY_DATE": "2026-05-10",
+            "ISSUE_RESULT_DATE": "2026-05-13",
+        },
+        {
+            "SECURITY_CODE": "920202",
+            "ISSUE_PRICE": 10.0,
+            "ONLINE_ISSUE_NUM": 10000000.0,
+            "FROZEN_FUNDS_YI": 9600.0,
+            "TOP_APPLY_MARKETCAP": 1000.0,
+            "APPLY_DATE": "2026-05-20",
+            "ISSUE_RESULT_DATE": "2026-05-23",
+        },
+        {
+            "SECURITY_CODE": "920203",
+            "ISSUE_PRICE": 10.0,
+            "ONLINE_ISSUE_NUM": 10000000.0,
+            "FROZEN_FUNDS_YI": 11000.0,
+            "TOP_APPLY_MARKETCAP": 1000.0,
+            "APPLY_DATE": "2026-05-25",
+            "ISSUE_RESULT_DATE": "2026-05-28",
+        },
+    ]
+    prediction = subscription_predictor.build_subscription_prediction(
+        {
+            "ISSUE_PRICE": 10.0,
+            "ONLINE_ISSUE_NUM": 20000000.0,
+            "TOP_APPLY_MARKETCAP": 3200.0,
+            "APPLY_DATE": "2026-06-01",
+            "ISSUE_RESULT_DATE": "2026-06-04",
+        },
+        recent_ipos=recent_ipos,
+        params={
+            "subscription_prediction_min_samples": 3,
+            "subscription_prediction_similar_top_apply_frozen_enabled": False,
+            "subscription_prediction_frozen_funds_floor_enabled": False,
+            "subscription_prediction_frozen_funds_cap_weight": 1.0,
+        },
+    )
+    cap = prediction.get("frozen_funds_cap") or {}
+    _assert(prediction.get("available") is True, "frozen cap: prediction unavailable", failures)
+    _assert(cap.get("applied") is True, "frozen cap: cap not applied", failures)
+    _assert_close(cap.get("cap_frozen_funds_yi"), 11000.0, "frozen cap: cap mismatch", failures)
+    _assert_close(prediction.get("frozen_funds_yi"), 11000.0, "frozen cap: frozen funds mismatch", failures)
+    _assert(float(cap.get("pre_cap_frozen_funds_yi") or 0.0) > 18000.0, "frozen cap: pre-cap should be higher", failures)
+
+
 def _run_920126_lot_threshold_case(failures: list[str]) -> None:
     issue_price = 7.79
     online_issue_shares = 41868000.0
@@ -497,6 +551,7 @@ def main() -> int:
     _run_estimated_case(failures)
     _run_frozen_funds_floor_case(failures)
     _run_similar_top_apply_frozen_anchor_case(failures)
+    _run_frozen_funds_cap_case(failures)
     _run_920126_lot_threshold_case(failures)
     _run_fractional_between_one_and_two_display_case(failures)
     _run_account_pool_fractional_threshold_case(failures)

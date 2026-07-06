@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 import sys
+from tempfile import TemporaryDirectory
 from typing import Any
 
 CURRENT_DIR = Path(__file__).resolve().parent
@@ -361,6 +362,42 @@ def _assert_not_contains(text: str, snippets: tuple[str, ...], failures: list[st
     for snippet in snippets:
         if snippet in text:
             failures.append(f"{label}: unexpected snippet {snippet}")
+
+
+def _assert_subscription_history_overlay(failures: list[str]) -> None:
+    with TemporaryDirectory() as temp_dir:
+        history_path = Path(temp_dir) / "subscription_history_sample.csv"
+        history_path.write_text(
+            "security_code,security_name_abbr,apply_date,issue_result_date,listing_date,issue_price,total_issue_num_wan,online_issue_shares,top_apply_amount_wan,top_apply_shares,online_valid_accounts,online_allocated_accounts,online_valid_shares,online_valid_source,frozen_funds_yi,allocation_rate_pct,subscription_multiple,model_ready,data_quality\n"
+            "920126,Sample,2026-06-03,2026-06-06,2026-06-18,7.79,4652.2222,41870000,1630.7586,2093400,615820,85951,147468471600,issue_result:result,11487.793938,0.028391,3522.223932,true,ready\n",
+            encoding="utf-8",
+        )
+        recent_ipos = [
+            {
+                "SECURITY_CODE": "920126",
+                "ISSUE_PRICE": 7.79,
+                "ONLINE_ISSUE_NUM": 32616730.0,
+                "ONLINE_ES_MULTIPLE": 3333.333333,
+                "FROZEN_FUNDS_YI": 10872.243333,
+            },
+            {"SECURITY_CODE": "920999", "ISSUE_PRICE": 10.0},
+        ]
+        overlaid, summary = bse_ipo_valuation._overlay_subscription_history_recent_ipos(recent_ipos, history_path)
+
+    if len(overlaid) != 2:
+        failures.append("subscription history overlay: row count changed")
+        return
+    row = overlaid[0]
+    if row.get("ONLINE_VA_SHARES") != 147468471600.0:
+        failures.append(f"subscription history overlay: valid shares mismatch {row.get('ONLINE_VA_SHARES')}")
+    if abs(float(row.get("FROZEN_FUNDS_YI") or 0.0) - 11487.793938) > 1e-6:
+        failures.append(f"subscription history overlay: frozen funds mismatch {row.get('FROZEN_FUNDS_YI')}")
+    if abs(float(row.get("ONLINE_ES_MULTIPLE") or 0.0) - 3522.223932) > 1e-6:
+        failures.append(f"subscription history overlay: multiple mismatch {row.get('ONLINE_ES_MULTIPLE')}")
+    if row.get("ISSUE_RESULT_DATE") != "2026-06-06" or row.get("BALLOT_NUM_DATE") != "2026-06-06":
+        failures.append("subscription history overlay: issue result date not applied")
+    if summary.get("overlay_count") != 1 or summary.get("matched_codes") != ["920126"]:
+        failures.append(f"subscription history overlay: summary mismatch {summary}")
 
 
 def _assert_missing_online_va_num_placeholder(failures: list[str]) -> None:
@@ -799,6 +836,7 @@ def main() -> int:
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
     params = config_loader.load_params(ROOT_DIR / "策略参数.txt")
     failures: list[str] = []
+    _assert_subscription_history_overlay(failures)
     _assert_missing_online_va_num_placeholder(failures)
     _assert_recent_table_time_window(failures)
     _assert_report_overview_text(failures)

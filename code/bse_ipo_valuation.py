@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import csv
 from contextlib import contextmanager
 from dataclasses import asdict
 import re
@@ -25,6 +26,7 @@ from industry_mapping import IndustryMapper
 
 CODE_PATTERN = re.compile(r"^\d{6}$")
 ROOT_DIR = Path(__file__).resolve().parents[1]
+SUBSCRIPTION_HISTORY_SAMPLE_PATH = ROOT_DIR / "data" / "offline_tuning" / "subscription_history_sample.csv"
 
 
 class RequiredProspectusNotFoundError(RuntimeError):
@@ -266,6 +268,146 @@ PROSPECTUS_SUPPLEMENT_FIELDS = ISSUE_DOCUMENT_SUPPLEMENT_FIELDS
 
 def _value_is_missing(value: Any) -> bool:
     return value in (None, "", "--")
+
+
+def _history_text(row: dict[str, Any], field_name: str) -> str | None:
+    value = row.get(field_name)
+    if value in (None, ""):
+        return None
+    text = str(value).strip()
+    return text or None
+
+
+def _history_float(row: dict[str, Any], field_name: str) -> float | None:
+    return _safe_float(row.get(field_name))
+
+
+def _history_bool(row: dict[str, Any], field_name: str) -> bool | None:
+    value = _history_text(row, field_name)
+    if value is None:
+        return None
+    normalized = value.lower()
+    if normalized in {"1", "true", "yes", "y", "是"}:
+        return True
+    if normalized in {"0", "false", "no", "n", "否"}:
+        return False
+    return None
+
+
+def _build_subscription_history_overlay(row: dict[str, Any]) -> dict[str, Any] | None:
+    code = _history_text(row, "security_code")
+    if not code or not CODE_PATTERN.fullmatch(code):
+        return None
+
+    valid_shares = _history_float(row, "online_valid_shares")
+    frozen_funds_yi = _history_float(row, "frozen_funds_yi")
+    if (valid_shares is None or valid_shares <= 0) and (frozen_funds_yi is None or frozen_funds_yi <= 0):
+        return None
+
+    overlay: dict[str, Any] = {
+        "SECURITY_CODE": code,
+        "SUBSCRIPTION_HISTORY_SAMPLE_USED": True,
+    }
+    text_fields = (
+        ("security_name_abbr", "SECURITY_NAME_ABBR"),
+        ("apply_date", "APPLY_DATE"),
+        ("issue_result_date", "ISSUE_RESULT_DATE"),
+        ("listing_date", "LISTING_DATE"),
+        ("online_valid_source", "ONLINE_VA_SHARES_SOURCE"),
+        ("data_quality", "SUBSCRIPTION_HISTORY_DATA_QUALITY"),
+        ("missing_fields", "SUBSCRIPTION_HISTORY_MISSING_FIELDS"),
+    )
+    for csv_field, target_field in text_fields:
+        value = _history_text(row, csv_field)
+        if value is not None:
+            overlay[target_field] = value
+
+    if overlay.get("ISSUE_RESULT_DATE"):
+        overlay["BALLOT_NUM_DATE"] = overlay["ISSUE_RESULT_DATE"]
+
+    numeric_fields = (
+        ("issue_price", "ISSUE_PRICE"),
+        ("total_issue_num_wan", "TOTAL_ISSUE_NUM"),
+        ("online_issue_shares", "ONLINE_ISSUE_NUM"),
+        ("top_apply_amount_wan", "TOP_APPLY_MARKETCAP"),
+        ("top_apply_shares", "ONLINE_APPLY_UPPER"),
+        ("online_valid_accounts", "ONLINE_VA_NUM"),
+        ("online_allocated_accounts", "ONLINE_ALLOCATED_ACCOUNTS"),
+        ("online_valid_shares", "ONLINE_VA_SHARES"),
+        ("frozen_funds_yi", "FROZEN_FUNDS_YI"),
+        ("allocation_rate_pct", "ONLINE_ISSUE_LWR"),
+        ("subscription_multiple", "ONLINE_ES_MULTIPLE"),
+        ("fractional_threshold_shares", "FRACTIONAL_THRESHOLD_SHARES"),
+    )
+    for csv_field, target_field in numeric_fields:
+        value = _history_float(row, csv_field)
+        if value is not None and value > 0:
+            overlay[target_field] = value
+
+    time_priority_required = _history_bool(row, "fractional_time_priority_required")
+    if time_priority_required is not None:
+        overlay["FRACTIONAL_TIME_PRIORITY_REQUIRED"] = time_priority_required
+    model_ready = _history_bool(row, "model_ready")
+    if model_ready is not None:
+        overlay["SUBSCRIPTION_HISTORY_MODEL_READY"] = model_ready
+    return overlay
+
+
+def _load_subscription_history_overlays(
+    history_path: Path = SUBSCRIPTION_HISTORY_SAMPLE_PATH,
+) -> dict[str, dict[str, Any]]:
+    if not history_path.exists():
+        return {}
+
+    overlays: dict[str, dict[str, Any]] = {}
+    with history_path.open("r", encoding="utf-8-sig", newline="") as handle:
+        for row in csv.DictReader(handle):
+            overlay = _build_subscription_history_overlay(row)
+            if overlay is None:
+                continue
+            overlays[str(overlay["SECURITY_CODE"])] = overlay
+    return overlays
+
+
+def _overlay_subscription_history_recent_ipos(
+    recent_ipos: list[dict[str, Any]],
+    history_path: Path = SUBSCRIPTION_HISTORY_SAMPLE_PATH,
+) -> tuple[list[dict[str, Any]], dict[str, Any]]:
+    overlays = _load_subscription_history_overlays(history_path)
+    if not overlays:
+        return list(recent_ipos), {
+            "history_path": str(history_path),
+            "history_row_count": 0,
+            "overlay_count": 0,
+            "matched_codes": [],
+        }
+
+    overlaid: list[dict[str, Any]] = []
+    matched_codes: list[str] = []
+    applied_fields_by_code: dict[str, list[str]] = {}
+    for item in recent_ipos:
+        merged = dict(item)
+        code = str(merged.get("SECURITY_CODE") or "").strip()
+        overlay = overlays.get(code)
+        if overlay:
+            applied_fields: list[str] = []
+            for field_name, value in overlay.items():
+                if _value_is_missing(value):
+                    continue
+                if merged.get(field_name) != value:
+                    applied_fields.append(field_name)
+                merged[field_name] = value
+            matched_codes.append(code)
+            applied_fields_by_code[code] = applied_fields
+        overlaid.append(merged)
+
+    return overlaid, {
+        "history_path": str(history_path),
+        "history_row_count": len(overlays),
+        "overlay_count": len(matched_codes),
+        "matched_codes": matched_codes,
+        "applied_fields_by_code": applied_fields_by_code,
+    }
 
 
 def _apply_issue_document_info(
@@ -694,6 +836,8 @@ def build_analysis_data(
 
     recent_ipos = mapper.enrich_recent_ipos(ipo_data_bundle.get("recent_ipos") or [])
     recent_ipos = [item for item in recent_ipos if item.get("SECURITY_CODE") != code]
+    recent_ipos, subscription_history_overlay_summary = _overlay_subscription_history_recent_ipos(recent_ipos)
+    ipo_data_summary["subscription_history_overlay"] = subscription_history_overlay_summary
     subscription_prediction = subscription_predictor.build_subscription_prediction(ipo_info, recent_ipos, params)
 
     issue_price = _safe_float(ipo_info.get("ISSUE_PRICE"))
