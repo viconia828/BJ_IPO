@@ -1,7 +1,7 @@
 {
   "schema": "offline_tuning_replay_v1",
   "evaluation_scope": "composite",
-  "generated_at": "2026-07-06 21:17:02",
+  "generated_at": "2026-07-07 19:29:10",
   "source_months": 18,
   "replay_item_cache_version": 4,
   "sample_codes": [
@@ -44,7 +44,8 @@
     "920189",
     "920222",
     "920081",
-    "920193"
+    "920193",
+    "920117"
   ],
   "requested_codes": [
     "920011",
@@ -61,6 +62,7 @@
     "920083",
     "920086",
     "920096",
+    "920117",
     "920119",
     "920125",
     "920126",
@@ -88,9 +90,9 @@
     "920220",
     "920222"
   ],
-  "available_count": 40,
+  "available_count": 41,
   "method1_ready_count": 29,
-  "method1_ready_rate": 0.725,
+  "method1_ready_rate": 0.7073170731707317,
   "skipped": [],
   "caveats": [
     "方法一历史回放快照基于 Tushare `daily_basic`，按标的上市日前一日向前回看交易窗口，未取到时该样本自动降级为仅方法二。",
@@ -100,9 +102,9 @@
   "item_cache": {
     "enabled": true,
     "dir": "D:\\BJ_IPO\\data\\offline_tuning\\replay_items",
-    "hits": 0,
-    "misses": 40,
-    "writes": 40,
+    "hits": 39,
+    "misses": 2,
+    "writes": 2,
     "existing_dataset_reused": 0
   },
   "items": [
@@ -2684,7 +2686,7 @@
       "LISTING_DATE": "2026-04-29 00:00:00",
       "ISSUE_PRICE": 16.21,
       "AFTER_ISSUE_PE": 35.23,
-      "INDUSTRY_PE_NEW": 47.71,
+      "INDUSTRY_PE_NEW": 48.48,
       "TOTAL_ISSUE_NUM": 5200.0,
       "ONLINE_ISSUE_NUM": 23400000.0,
       "TOP_APPLY_MARKETCAP": 1517.256,
@@ -4556,6 +4558,102 @@
       "average_price_reference": 63.5,
       "replay_record_source": "",
       "listing_date_source": ""
+    },
+    {
+      "SECURITY_CODE": "920117",
+      "SECURITY_NAME_ABBR": "龙鑫智能",
+      "APPLY_DATE": "2026-07-06",
+      "LISTING_DATE": "2026-07-06",
+      "ISSUE_PRICE": 17.83,
+      "AFTER_ISSUE_PE": 14.99,
+      "INDUSTRY_PE_NEW": 48.92,
+      "TOTAL_ISSUE_NUM": 2246.0003,
+      "ONLINE_ISSUE_NUM": 20214003.0,
+      "TOP_APPLY_MARKETCAP": 1802.0780999999997,
+      "SUBSCRIPTION_LIMIT_WAN_SHARES": 101.07,
+      "CLOSE_PRICE": null,
+      "AVERAGE_PRICE": null,
+      "LD_CLOSE_CHANGE": null,
+      "LD_AVERAGE_CHANGE": null,
+      "TURNOVERRATE": null,
+      "SW_INDUSTRY": "专用设备制造业",
+      "INDUSTRY": "专用设备制造业",
+      "industry_primary": "高端装备",
+      "industry_secondary": "机械设备",
+      "industry_source": "record_mapping",
+      "old_shares": 2246.0003,
+      "old_shares_desc": "2246.00 万股（PDF 提取：招股文件）",
+      "old_shares_meta": {
+        "value_wan_shares": 2246.0003,
+        "source_file_type": "招股文件",
+        "source_rule": "keyword_value",
+        "source_anchor": "公开发售股份",
+        "raw_snippet": "公开发售股份。根据截至本招股说明书签署日的公司股东持股情况，假设本次发行22,460,003股",
+        "confidence": 0.7,
+        "unit": "股",
+        "pre_unrestricted_wan_shares": 2246.0003,
+        "listing_pdf_found": false,
+        "prospectus_pdf_found": true,
+        "selected_source_label": "招股文件",
+        "fallback_used": false
+      },
+      "float_shares": 4492.0006,
+      "has_intraday_file": false,
+      "comparable_codes": [
+        "301662.SZ",
+        "832522.BJ",
+        "833284.BJ",
+        "300619.SZ",
+        "874378.NQ",
+        "874312.NQ"
+      ],
+      "comparable_data": [],
+      "comparable_summary": {
+        "provider": "tushare_historical",
+        "requested_codes": [
+          "301662.SZ",
+          "832522.BJ",
+          "833284.BJ",
+          "300619.SZ",
+          "874378.NQ",
+          "874312.NQ"
+        ],
+        "returned_codes": [],
+        "cache_hits": [],
+        "api_fetched": [],
+        "skipped_unsupported": [],
+        "reference_trade_date": null,
+        "reason": "上市日期缺失，无法构建方法一历史快照。"
+      },
+      "method1_replay_available": false,
+      "average_price_source": "",
+      "average_price_reason": "本地首日分时 CSV 不存在",
+      "average_price_calc_version": 3,
+      "average_price_unit_mode": "",
+      "average_price_reference": null,
+      "replay_record_source": "announcement_pdf_fallback",
+      "listing_date_source": "apply_date_fallback",
+      "announcement_fallback_field_sources": {
+        "PRICE_WAY": "issue_announcement:全文",
+        "APPLY_DATE": "issue_announcement:全文",
+        "ISSUE_PRICE": "issue_announcement:全文",
+        "AFTER_ISSUE_PE": "prospectus:全文",
+        "TOTAL_ISSUE_NUM": "issue_announcement:全文",
+        "INDUSTRY": "issue_announcement:全文",
+        "INDUSTRY_CODE": "issue_announcement:全文",
+        "TOTAL_SHARE_CAPITAL_AFTER_ISSUE": "issue_announcement:全文",
+        "INDUSTRY_PE_NEW": "issue_announcement:全文",
+        "TOP_APPLY_MARKETCAP": "issue_announcement:全文",
+        "SUBSCRIPTION_LIMIT_WAN_SHARES": "issue_announcement:全文",
+        "ONLINE_ISSUE_NUM": "issue_announcement:全文"
+      },
+      "announcement_fallback_parse_errors": [],
+      "announcement_fallback_pdf_files": {
+        "prospectus": "920117_龙鑫智能_招股说明书.pdf",
+        "issue": "920117_龙鑫智能_发行公告.pdf",
+        "result": "",
+        "listing": ""
+      }
     }
   ]
 }

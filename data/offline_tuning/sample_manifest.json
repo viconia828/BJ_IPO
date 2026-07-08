@@ -1,6 +1,6 @@
 {
   "schema": "offline_tuning_sample_manifest_v1",
-  "generated_at": "2026-07-06 21:44:42",
+  "generated_at": "2026-07-08 19:06:22",
   "paths": {
     "dataset": "D:\\BJ_IPO\\data\\offline_tuning\\replay_dataset.json",
     "replay_items": "D:\\BJ_IPO\\data\\offline_tuning\\replay_items",
@@ -9,54 +9,56 @@
     "intraday": "D:\\BJ_IPO\\首日分时走势"
   },
   "summary": {
-    "intraday_csv_count": 37,
-    "replay_item_count": 40,
-    "replay_dataset_count": 40,
-    "replay_requested_count": 40,
-    "subscription_history_count": 40,
-    "ladder_label_count": 40,
+    "intraday_csv_count": 38,
+    "replay_item_count": 41,
+    "replay_dataset_count": 41,
+    "replay_requested_count": 41,
+    "subscription_history_count": 41,
+    "ladder_label_count": 41,
     "label_only_count": 0,
     "intraday_only_count": 0,
     "dataset_only_count": 3,
     "method1_ready_count": 29,
-    "model_ready_count": 40,
-    "manual_ladder_ready_count": 40,
-    "listing_data_retry_count": 0
+    "model_ready_count": 41,
+    "manual_ladder_ready_count": 41,
+    "listing_data_retry_count": 1
   },
   "differences": {
     "label_only_codes": [],
     "intraday_only_codes": [],
     "dataset_only_codes": [
       "920081",
-      "920136",
-      "920189"
+      "920117",
+      "920136"
     ],
-    "listing_data_retry_codes": []
+    "listing_data_retry_codes": [
+      "920117"
+    ]
   },
   "sync_summary": {
     "replay": {
-      "available_count": 40,
+      "available_count": 41,
       "method1_ready_count": 29,
       "item_cache": {
         "enabled": true,
         "dir": "D:\\BJ_IPO\\data\\offline_tuning\\replay_items",
-        "hits": 0,
-        "misses": 40,
-        "writes": 40,
+        "hits": 39,
+        "misses": 2,
+        "writes": 2,
         "existing_dataset_reused": 0
       }
     },
     "subscription_history": {
       "output_path": "D:\\BJ_IPO\\data\\offline_tuning\\subscription_history_sample.csv",
-      "row_count": 40,
-      "model_ready_count": 40,
-      "fractional_label_ready_count": 40,
-      "result_pdf_count": 40,
-      "issue_pdf_count": 40,
+      "row_count": 41,
+      "model_ready_count": 41,
+      "fractional_label_ready_count": 41,
+      "result_pdf_count": 41,
+      "issue_pdf_count": 41,
       "label_only_history_item_count": 0,
       "ladder_label_path": "D:\\BJ_IPO\\data\\offline_tuning\\subscription_ladder_labels.csv",
-      "ladder_label_rows": 40,
-      "ladder_label_filled": 40,
+      "ladder_label_rows": 41,
+      "ladder_label_filled": 41,
       "ladder_label_added_codes": []
     },
     "account_pool_history": {
@@ -185,12 +187,12 @@
         2949.2
       ],
       "requested_thresholds_wan": [],
-      "sample_count": 40,
-      "history_row_count": 40,
-      "label_row_count": 40,
-      "point_count": 121,
+      "sample_count": 41,
+      "history_row_count": 41,
+      "label_row_count": 41,
+      "point_count": 125,
       "usable_point_count": 118,
-      "threshold_row_count": 40,
+      "threshold_row_count": 41,
       "usable_threshold_row_count": 38,
       "snapshot_cutpoint_count": 117,
       "calibrated_threshold_count": 117,
@@ -785,12 +787,18 @@
     },
     "listing_data_retry": {
       "marker_path": "D:\\BJ_IPO\\data\\offline_tuning\\deferred_listing_data_codes.json",
-      "pending_before": [],
-      "pending_after": [],
-      "pending_after_count": 0,
+      "pending_before": [
+        "920117"
+      ],
+      "pending_after": [
+        "920117"
+      ],
+      "pending_after_count": 1,
       "download_missing_announcements": true,
-      "same_day_download_cooldown_codes": [],
-      "same_day_download_cooldown_count": 0,
+      "same_day_download_cooldown_codes": [
+        "920117"
+      ],
+      "same_day_download_cooldown_count": 1,
       "download_attempted_codes": [],
       "download_attempted_count": 0,
       "download_retries": 1,
@@ -1371,6 +1379,50 @@
         ],
         "present_count": 3,
         "missing_count": 0
+      }
+    },
+    {
+      "security_code": "920117",
+      "security_name_abbr": "龙鑫智能",
+      "apply_date": "2026-07-06",
+      "listing_date": "2026-07-06",
+      "in_intraday_csv": false,
+      "in_replay_dataset": true,
+      "has_replay_item": true,
+      "in_subscription_history": true,
+      "in_ladder_labels": true,
+      "method1_replay_available": false,
+      "has_intraday_file_in_replay": false,
+      "old_shares_source": "招股文件",
+      "old_shares_confidence": 0.7,
+      "old_shares_pending_reason": "",
+      "comparable_code_count": 6,
+      "comparable_returned_count": 0,
+      "comparable_reason": "上市日期缺失，无法构建方法一历史快照。",
+      "history_quality_score": 225,
+      "model_ready": true,
+      "allocation_fit_ready": false,
+      "allocation_fit_usable_for_tuning": true,
+      "manual_ladder_label_ready": true,
+      "manual_ladder_item_count": 4,
+      "needs_listing_data_retry": true,
+      "pending_listing_data_retry_before": true,
+      "listing_data_retry_reasons": [
+        "missing_result_announcement",
+        "download_errors"
+      ],
+      "top_apply_amount_wan": 1802.0781,
+      "online_issue_shares": 20214003.0,
+      "replay_item_generated_at": "2026-07-07 19:29:09",
+      "replay_item_cache_version": 4,
+      "replay_pdf_signature": {
+        "keys": [
+          "comparables",
+          "listing",
+          "old_shares"
+        ],
+        "present_count": 2,
+        "missing_count": 1
       }
     },
     {
@@ -1976,7 +2028,7 @@
       "listing_data_retry_reasons": [],
       "top_apply_amount_wan": 1517.256,
       "online_issue_shares": 23400000.0,
-      "replay_item_generated_at": "2026-07-06 21:16:55",
+      "replay_item_generated_at": "2026-07-07 19:29:09",
       "replay_item_cache_version": 4,
       "replay_pdf_signature": {
         "keys": [
@@ -2075,7 +2127,7 @@
       "security_name_abbr": "康美特",
       "apply_date": "2026-06-29",
       "listing_date": "2026-06-29",
-      "in_intraday_csv": false,
+      "in_intraday_csv": true,
       "in_replay_dataset": true,
       "has_replay_item": true,
       "in_subscription_history": true,
