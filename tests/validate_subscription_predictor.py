@@ -603,6 +603,35 @@ def _run_top_apply_below_guaranteed_case(failures: list[str]) -> None:
     _assert(residuals.get("allocated_lot_residual") == 0, "top apply below guaranteed: lot residual mismatch", failures)
 
 
+def _run_manual_ladder_runtime_override_case(failures: list[str]) -> None:
+    prediction = subscription_predictor.build_subscription_prediction(
+        {
+            "SECURITY_CODE": "920136",
+            "ISSUE_PRICE": 19.28,
+            "ONLINE_ISSUE_NUM": 18000000.0,
+            "TOP_APPLY_MARKETCAP": 1735.2,
+            "ONLINE_VA_SHARES": 56781496200.0,
+            "SUBSCRIPTION_MANUAL_LADDER": "1+1=1131.3;2+1=1217.8",
+        },
+        recent_ipos=[],
+        params={"subscription_prediction_lot_threshold_max_lots": 4},
+    )
+    by_label = {str(item.get("ladder_label") or ""): item for item in prediction.get("lot_thresholds") or []}
+    display_labels = [
+        str(item.get("ladder_label") or "")
+        for item in (prediction.get("lot_thresholds") or [])
+        if item.get("display") is not False
+    ]
+    _assert_close(by_label.get("1+1", {}).get("threshold_amount_wan"), 1131.3, "manual ladder: 1+1 mismatch", failures)
+    _assert_close(by_label.get("2+1", {}).get("threshold_amount_wan"), 1217.8, "manual ladder: 2+1 mismatch", failures)
+    _assert(by_label.get("1+1", {}).get("basis") == "manual_ladder", "manual ladder: 1+1 source mismatch", failures)
+    _assert("1+1" in display_labels, "manual ladder: 1+1 should display", failures)
+    _assert("2+0" not in display_labels, "manual ladder: estimated 2+0 should be hidden", failures)
+    _assert_close(prediction.get("fractional_threshold_amount_wan"), 1131.3, "manual ladder: fractional amount mismatch", failures)
+    overlay = prediction.get("manual_ladder_overlay") or {}
+    _assert(int(overlay.get("override_count") or 0) >= 2, "manual ladder: override count mismatch", failures)
+
+
 def main() -> int:
     failures: list[str] = []
     _run_actual_distribution_case(failures)
@@ -617,6 +646,7 @@ def main() -> int:
     _run_observed_account_pool_snapshot_runtime_interpolation_case(failures)
     _run_account_pool_fully_covered_fractional_case(failures)
     _run_top_apply_below_guaranteed_case(failures)
+    _run_manual_ladder_runtime_override_case(failures)
     if failures:
         for failure in failures:
             print(f"FAIL: {failure}")

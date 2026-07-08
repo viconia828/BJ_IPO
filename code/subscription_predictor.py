@@ -7,6 +7,8 @@ from pathlib import Path
 import statistics
 from typing import Any
 
+import subscription_ladder_labels
+
 
 ROOT_DIR = Path(__file__).resolve().parents[1]
 LOT_SIZE = 100
@@ -1405,6 +1407,123 @@ def _distribution_cutoff(
     }
 
 
+def _manual_ladder_text(record: dict[str, Any]) -> str:
+    for key in (
+        "SUBSCRIPTION_MANUAL_LADDER",
+        "MANUAL_SUBSCRIPTION_LADDER",
+        "manual_ladder",
+    ):
+        text = str(record.get(key) or "").strip()
+        if text:
+            return text
+    return ""
+
+
+def _manual_ladder_items(record: dict[str, Any], top_apply_amount_wan: Any) -> list[dict[str, Any]]:
+    text = _manual_ladder_text(record)
+    if not text:
+        return []
+    return subscription_ladder_labels.parse_manual_ladder(text, top_apply_amount_wan)
+
+
+def _manual_fractional_item(manual_ladder_items: list[dict[str, Any]]):
+    candidates = [
+        item
+        for item in manual_ladder_items
+        if int(item.get("fractional_lots") or 0) > 0
+        and _safe_float(item.get("threshold_amount_wan")) is not None
+    ]
+    if not candidates:
+        return None
+    return min(
+        candidates,
+        key=lambda item: (
+            int(item.get("total_lots") or 0),
+            _safe_float(item.get("threshold_amount_wan")) or float("inf"),
+        ),
+    )
+
+
+def _mark_lot_threshold_display(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    best_by_lots: dict[int, tuple[float, int, int]] = {}
+    for idx, row in enumerate(rows):
+        lots = int(row.get("lots") or 0)
+        amount = _safe_float(row.get("threshold_amount_wan"))
+        if lots <= 0 or amount is None:
+            continue
+        preference = 0 if int(row.get("fractional_lots") or 0) > 0 else 1
+        current = best_by_lots.get(lots)
+        if current is None or (amount, preference, idx) < current:
+            best_by_lots[lots] = (amount, preference, idx)
+    display_indexes = {item[2] for item in best_by_lots.values()}
+    for idx, row in enumerate(rows):
+        if idx in display_indexes:
+            row["display"] = True
+            row["display_reason"] = ""
+        else:
+            row["display"] = False
+            row["display_reason"] = "superseded_by_lower_lot_threshold"
+    return rows
+
+
+def _apply_manual_ladder_thresholds(
+    rows: list[dict[str, Any]],
+    manual_ladder_items: list[dict[str, Any]],
+    *,
+    issue_price: float,
+    max_lots_limit: int,
+) -> dict[str, Any]:
+    if not manual_ladder_items:
+        return {"override_count": 0, "append_count": 0}
+
+    rows_by_label = {
+        str(row.get("ladder_label") or ""): row
+        for row in rows
+        if str(row.get("ladder_label") or "")
+    }
+    override_count = 0
+    append_count = 0
+    limit = max(int(max_lots_limit), 1)
+    for item in manual_ladder_items:
+        amount = _safe_float(item.get("threshold_amount_wan"))
+        if amount is None or amount <= 0:
+            continue
+        regular_lots = int(item.get("regular_lots") or 0)
+        fractional_lots = int(item.get("fractional_lots") or 0)
+        total_lots = int(item.get("total_lots") or (regular_lots + fractional_lots))
+        if total_lots <= 0 or total_lots > limit:
+            continue
+        label = f"{regular_lots}+{fractional_lots}"
+        threshold_kind = str(
+            item.get("threshold_kind")
+            or ("fractional" if fractional_lots > 0 else "guaranteed")
+        )
+        manual_values = {
+            "lots": total_lots,
+            "regular_lots": regular_lots,
+            "fractional_lots": fractional_lots,
+            "ladder_label": label,
+            "threshold_shares": _amount_wan_to_ceiling_lot_shares(amount, issue_price),
+            "threshold_amount_wan": amount,
+            "basis": "manual_ladder",
+            "threshold_kind": threshold_kind,
+            "time_priority_required": bool(item.get("time_priority_required")),
+            "manual_ladder": True,
+        }
+        existing = rows_by_label.get(label)
+        if existing is None:
+            rows.append(manual_values)
+            rows_by_label[label] = manual_values
+            append_count += 1
+        else:
+            existing.update(manual_values)
+            override_count += 1
+
+    if override_count or append_count:
+        _mark_lot_threshold_display(rows)
+    return {"override_count": override_count, "append_count": append_count}
+
+
 def _build_lot_thresholds(
     *,
     allocation_ratio: float,
@@ -1477,25 +1596,7 @@ def _build_lot_thresholds(
                 "time_priority_required": bool(fractional_time_required and fractional_shares > guaranteed_shares),
             }
         )
-    best_by_lots: dict[int, tuple[float, int, int]] = {}
-    for idx, row in enumerate(rows):
-        lots = int(row.get("lots") or 0)
-        amount = _safe_float(row.get("threshold_amount_wan"))
-        if lots <= 0 or amount is None:
-            continue
-        preference = 0 if int(row.get("fractional_lots") or 0) > 0 else 1
-        current = best_by_lots.get(lots)
-        if current is None or (amount, preference, idx) < current:
-            best_by_lots[lots] = (amount, preference, idx)
-    display_indexes = {item[2] for item in best_by_lots.values()}
-    for idx, row in enumerate(rows):
-        if idx in display_indexes:
-            row["display"] = True
-            row["display_reason"] = ""
-        else:
-            row["display"] = False
-            row["display_reason"] = "superseded_by_lower_lot_threshold"
-    return rows
+    return _mark_lot_threshold_display(rows)
 
 
 def _fractional_time_priority_limit_label(lot_thresholds: list[dict[str, Any]]) -> str:
@@ -1596,6 +1697,13 @@ def build_subscription_prediction(
         protected_amount_max_wan - top_apply_wan if protected_threshold_exceeds_top_apply and top_apply_wan is not None else None
     )
 
+    manual_ladder_items = _manual_ladder_items(ipo_info, top_apply_wan)
+    manual_fractional_item = _manual_fractional_item(manual_ladder_items)
+    manual_fractional_amount_wan = (
+        _safe_float(manual_fractional_item.get("threshold_amount_wan"))
+        if manual_fractional_item
+        else None
+    )
     distribution_result = _distribution_cutoff(
         ipo_info.get("SUBSCRIPTION_AMOUNT_DISTRIBUTION"),
         allocation_ratio,
@@ -1605,7 +1713,13 @@ def build_subscription_prediction(
     direct_time_required = ipo_info.get("FRACTIONAL_TIME_PRIORITY_REQUIRED")
     account_pool_fractional_estimate = None
     fractional_min_lots = 1
-    if direct_fractional_shares:
+    if manual_fractional_amount_wan is not None:
+        fractional_shares = _amount_wan_to_ceiling_lot_shares(manual_fractional_amount_wan, issue_price)
+        fractional_basis = "manual_ladder"
+        time_required = bool(manual_fractional_item.get("time_priority_required"))
+        cutoff_fill_rate = None
+        leftover_lots = None
+    elif direct_fractional_shares:
         fractional_shares = _ceil_to_lot(direct_fractional_shares)
         fractional_basis = "issue_result_threshold"
         time_required = bool(direct_time_required)
@@ -1676,6 +1790,7 @@ def build_subscription_prediction(
     )
 
     fractional_amount_wan = _shares_to_amount_wan(fractional_shares, issue_price)
+    lot_threshold_max_lots = _resolve_lot_threshold_max_lots(settings)
     lot_thresholds = _build_lot_thresholds(
         allocation_ratio=allocation_ratio,
         issue_price=issue_price,
@@ -1684,8 +1799,16 @@ def build_subscription_prediction(
         fractional_basis=fractional_basis,
         fractional_time_required=time_required,
         fractional_min_lots=fractional_min_lots,
-        max_lots_limit=_resolve_lot_threshold_max_lots(settings),
+        max_lots_limit=lot_threshold_max_lots,
     )
+    manual_ladder_overlay = _apply_manual_ladder_thresholds(
+        lot_thresholds,
+        manual_ladder_items,
+        issue_price=issue_price,
+        max_lots_limit=lot_threshold_max_lots,
+    )
+    if manual_fractional_amount_wan is not None:
+        fractional_amount_wan = manual_fractional_amount_wan
     time_required = any(
         bool(item.get("time_priority_required"))
         for item in lot_thresholds
@@ -1829,6 +1952,9 @@ def build_subscription_prediction(
         "fractional_cutoff_fill_rate": cutoff_fill_rate,
         "leftover_lots": leftover_lots,
         "lot_thresholds": lot_thresholds,
+        "manual_ladder": _manual_ladder_text(ipo_info),
+        "manual_ladder_items": manual_ladder_items,
+        "manual_ladder_overlay": manual_ladder_overlay,
         "account_pool_fractional_estimate": account_pool_fractional_estimate,
         "allocation_fit": allocation_fit,
         "table_rows": table_rows,

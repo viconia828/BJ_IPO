@@ -19,6 +19,7 @@ import ipo_data_helper
 import note_builder
 import pdf_parser
 import report_generator
+import subscription_ladder_labels
 import subscription_predictor
 import valuation_engine
 from industry_mapping import IndustryMapper
@@ -27,6 +28,7 @@ from industry_mapping import IndustryMapper
 CODE_PATTERN = re.compile(r"^\d{6}$")
 ROOT_DIR = Path(__file__).resolve().parents[1]
 SUBSCRIPTION_HISTORY_SAMPLE_PATH = ROOT_DIR / "data" / "offline_tuning" / "subscription_history_sample.csv"
+SUBSCRIPTION_LADDER_LABEL_PATH = ROOT_DIR / "data" / "offline_tuning" / "subscription_ladder_labels.csv"
 
 
 class RequiredProspectusNotFoundError(RuntimeError):
@@ -408,6 +410,161 @@ def _overlay_subscription_history_recent_ipos(
         "matched_codes": matched_codes,
         "applied_fields_by_code": applied_fields_by_code,
     }
+
+
+TARGET_SUBSCRIPTION_HISTORY_OVERWRITE_FIELDS = {
+    "ONLINE_APPLY_UPPER",
+    "ONLINE_VA_NUM",
+    "ONLINE_ALLOCATED_ACCOUNTS",
+    "ONLINE_VA_SHARES",
+    "ONLINE_VA_SHARES_SOURCE",
+    "FROZEN_FUNDS_YI",
+    "ONLINE_ISSUE_LWR",
+    "ONLINE_ES_MULTIPLE",
+    "FRACTIONAL_THRESHOLD_SHARES",
+    "FRACTIONAL_TIME_PRIORITY_REQUIRED",
+}
+
+
+def _target_code(ipo_info: dict[str, Any]) -> str:
+    return str(ipo_info.get("SECURITY_CODE") or ipo_info.get("code") or "").strip()
+
+
+def _overlay_subscription_history_target_ipo(
+    ipo_info: dict[str, Any],
+    history_path: Path = SUBSCRIPTION_HISTORY_SAMPLE_PATH,
+) -> tuple[dict[str, Any], dict[str, Any]]:
+    overlays = _load_subscription_history_overlays(history_path)
+    code = _target_code(ipo_info)
+    summary: dict[str, Any] = {
+        "history_path": str(history_path),
+        "history_row_count": len(overlays),
+        "overlay_count": 0,
+        "matched_code": "",
+        "applied_fields": [],
+    }
+    overlay = overlays.get(code)
+    if not overlay:
+        return dict(ipo_info), summary
+
+    merged = dict(ipo_info)
+    applied_fields: list[str] = []
+    for field_name, value in overlay.items():
+        if field_name == "SECURITY_CODE" or _value_is_missing(value):
+            continue
+        should_apply = (
+            field_name in TARGET_SUBSCRIPTION_HISTORY_OVERWRITE_FIELDS
+            or field_name.startswith("SUBSCRIPTION_HISTORY_")
+            or _value_is_missing(merged.get(field_name))
+        )
+        if not should_apply:
+            continue
+        if merged.get(field_name) != value:
+            applied_fields.append(field_name)
+        merged[field_name] = value
+
+    summary.update(
+        {
+            "overlay_count": 1,
+            "matched_code": code,
+            "applied_fields": applied_fields,
+        }
+    )
+    return merged, summary
+
+
+def _build_subscription_ladder_overlay(row: dict[str, Any]) -> dict[str, Any] | None:
+    code = str(row.get("security_code") or "").strip()
+    manual_ladder = str(row.get("manual_ladder") or "").strip()
+    if not code or not CODE_PATTERN.fullmatch(code) or not manual_ladder:
+        return None
+
+    overlay: dict[str, Any] = {
+        "SECURITY_CODE": code,
+        "SUBSCRIPTION_MANUAL_LADDER": manual_ladder,
+        "SUBSCRIPTION_MANUAL_LADDER_USED": True,
+    }
+    manual_note = str(row.get("manual_note") or "").strip()
+    if manual_note:
+        overlay["SUBSCRIPTION_MANUAL_LADDER_NOTE"] = manual_note
+    text_fields = (
+        ("security_name_abbr", "SECURITY_NAME_ABBR"),
+        ("apply_date", "APPLY_DATE"),
+    )
+    for source_field, target_field in text_fields:
+        value = str(row.get(source_field) or "").strip()
+        if value:
+            overlay[target_field] = value
+    numeric_fields = (
+        ("issue_price", "ISSUE_PRICE"),
+        ("online_issue_shares", "ONLINE_ISSUE_NUM"),
+        ("top_apply_amount_wan", "TOP_APPLY_MARKETCAP"),
+    )
+    for source_field, target_field in numeric_fields:
+        value = _safe_float(row.get(source_field))
+        if value is not None and value > 0:
+            overlay[target_field] = value
+    return overlay
+
+
+def _load_subscription_ladder_overlays(
+    label_path: Path = SUBSCRIPTION_LADDER_LABEL_PATH,
+) -> dict[str, dict[str, Any]]:
+    if not label_path.exists():
+        return {}
+    overlays: dict[str, dict[str, Any]] = {}
+    try:
+        rows = subscription_ladder_labels.load_label_rows(label_path)
+    except (OSError, ValueError):
+        return {}
+    for row in rows:
+        overlay = _build_subscription_ladder_overlay(row)
+        if overlay is None:
+            continue
+        overlays[str(overlay["SECURITY_CODE"])] = overlay
+    return overlays
+
+
+def _overlay_subscription_ladder_label_ipo_info(
+    ipo_info: dict[str, Any],
+    label_path: Path = SUBSCRIPTION_LADDER_LABEL_PATH,
+) -> tuple[dict[str, Any], dict[str, Any]]:
+    overlays = _load_subscription_ladder_overlays(label_path)
+    code = _target_code(ipo_info)
+    summary: dict[str, Any] = {
+        "label_path": str(label_path),
+        "label_row_count": len(overlays),
+        "overlay_count": 0,
+        "matched_code": "",
+        "applied_fields": [],
+    }
+    overlay = overlays.get(code)
+    if not overlay:
+        return dict(ipo_info), summary
+
+    merged = dict(ipo_info)
+    applied_fields: list[str] = []
+    for field_name, value in overlay.items():
+        if field_name == "SECURITY_CODE" or _value_is_missing(value):
+            continue
+        should_apply = (
+            field_name.startswith("SUBSCRIPTION_MANUAL_LADDER")
+            or _value_is_missing(merged.get(field_name))
+        )
+        if not should_apply:
+            continue
+        if merged.get(field_name) != value:
+            applied_fields.append(field_name)
+        merged[field_name] = value
+
+    summary.update(
+        {
+            "overlay_count": 1,
+            "matched_code": code,
+            "applied_fields": applied_fields,
+        }
+    )
+    return merged, summary
 
 
 def _apply_issue_document_info(
@@ -838,6 +995,10 @@ def build_analysis_data(
     recent_ipos = [item for item in recent_ipos if item.get("SECURITY_CODE") != code]
     recent_ipos, subscription_history_overlay_summary = _overlay_subscription_history_recent_ipos(recent_ipos)
     ipo_data_summary["subscription_history_overlay"] = subscription_history_overlay_summary
+    ipo_info, target_subscription_history_overlay_summary = _overlay_subscription_history_target_ipo(ipo_info)
+    ipo_data_summary["subscription_history_target_overlay"] = target_subscription_history_overlay_summary
+    ipo_info, subscription_ladder_label_overlay_summary = _overlay_subscription_ladder_label_ipo_info(ipo_info)
+    ipo_data_summary["subscription_ladder_label_overlay"] = subscription_ladder_label_overlay_summary
     subscription_prediction = subscription_predictor.build_subscription_prediction(ipo_info, recent_ipos, params)
 
     issue_price = _safe_float(ipo_info.get("ISSUE_PRICE"))

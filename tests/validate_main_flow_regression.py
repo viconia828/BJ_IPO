@@ -400,6 +400,35 @@ def _assert_subscription_history_overlay(failures: list[str]) -> None:
         failures.append(f"subscription history overlay: summary mismatch {summary}")
 
 
+def _assert_target_subscription_overlays(failures: list[str]) -> None:
+    with TemporaryDirectory() as temp_dir:
+        temp_root = Path(temp_dir)
+        history_path = temp_root / "subscription_history_sample.csv"
+        history_path.write_text(
+            "security_code,listing_date,online_valid_accounts,online_allocated_accounts,online_valid_shares,frozen_funds_yi,fractional_threshold_shares,fractional_time_priority_required,model_ready\n"
+            "920136,2026-06-24,541549,81008,56781496200,10947.472467,636200,false,true\n",
+            encoding="utf-8",
+        )
+        label_path = temp_root / "subscription_ladder_labels.csv"
+        label_path.write_text(
+            "security_code,security_name_abbr,apply_date,issue_price,online_issue_shares,top_apply_amount_wan,manual_ladder,manual_note\n"
+            "920136,Sample,2026-06-24,19.28,18000000,1735.2,1+1=1131.3;2+1=1217.8,manual\n",
+            encoding="utf-8-sig",
+        )
+        target = {"SECURITY_CODE": "920136", "LISTING_DATE": "2026-07-08", "ISSUE_PRICE": 19.28}
+        merged, history_summary = bse_ipo_valuation._overlay_subscription_history_target_ipo(target, history_path)
+        merged, ladder_summary = bse_ipo_valuation._overlay_subscription_ladder_label_ipo_info(merged, label_path)
+
+    if merged.get("LISTING_DATE") != "2026-07-08":
+        failures.append(f"target overlay: listing date was overwritten {merged.get('LISTING_DATE')}")
+    if merged.get("ONLINE_VA_SHARES") != 56781496200.0:
+        failures.append(f"target overlay: valid shares mismatch {merged.get('ONLINE_VA_SHARES')}")
+    if merged.get("SUBSCRIPTION_MANUAL_LADDER") != "1+1=1131.3;2+1=1217.8":
+        failures.append(f"target overlay: manual ladder mismatch {merged.get('SUBSCRIPTION_MANUAL_LADDER')}")
+    if history_summary.get("overlay_count") != 1 or ladder_summary.get("overlay_count") != 1:
+        failures.append(f"target overlay: summary mismatch {history_summary} {ladder_summary}")
+
+
 def _assert_missing_online_va_num_placeholder(failures: list[str]) -> None:
     markdown = report_generator.build_report_markdown(
         {
@@ -837,6 +866,7 @@ def main() -> int:
     params = config_loader.load_params(ROOT_DIR / "策略参数.txt")
     failures: list[str] = []
     _assert_subscription_history_overlay(failures)
+    _assert_target_subscription_overlays(failures)
     _assert_missing_online_va_num_placeholder(failures)
     _assert_recent_table_time_window(failures)
     _assert_report_overview_text(failures)
