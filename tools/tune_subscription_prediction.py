@@ -210,6 +210,29 @@ def _main_tunable_snapshot(params: dict[str, Any]) -> dict[str, Any]:
 def _prior_tunable_snapshot(params: dict[str, Any]) -> dict[str, Any]:
     return {key: params.get(key) for key in PRIOR_TUNABLE_PARAM_KEYS if key in params}
 
+def _subscription_auto_param_snapshot(params: dict[str, Any], *, include_prior: bool = False) -> dict[str, Any]:
+    snapshot = _main_tunable_snapshot(params)
+    if include_prior:
+        snapshot.update(_prior_tunable_snapshot(params))
+    return snapshot
+
+
+def _preload_account_pool_rows_for_tuning(params: dict[str, Any]) -> dict[str, Any]:
+    if not isinstance(params, dict):
+        return {"enabled": False, "row_count": 0, "source": "invalid_params"}
+    rows = params.get("subscription_prediction_account_pool_rows")
+    source = "params"
+    if not isinstance(rows, list):
+        rows, source = subscription_predictor._load_account_pool_rows(params)
+        if rows:
+            params["subscription_prediction_account_pool_rows"] = rows
+    params.setdefault(subscription_predictor.ACCOUNT_POOL_RUNTIME_CACHE_KEY, {})
+    return {
+        "enabled": bool(rows),
+        "row_count": len(rows) if isinstance(rows, list) else 0,
+        "source": source,
+    }
+
 
 def _values_differ(old_value: Any, new_value: Any) -> bool:
     old_number = _safe_float(old_value)
@@ -1231,6 +1254,7 @@ def evaluate_candidate_grid(
     progress_callback: Callable[[int, int, dict[str, Any] | None], None] | None = None,
 ) -> dict[str, Any]:
     resolved_base_params = _resolve_subscription_base_params(base_params)
+    _preload_account_pool_rows_for_tuning(resolved_base_params)
     baseline = evaluate_subscription_prediction(
         rows,
         min_history_samples=min_history_samples,
@@ -1461,6 +1485,7 @@ def evaluate_robustness(
     prior_min_uplift_ratio = max(account_pool_prior_min_uplift_ratio, 0.0)
     prior_min_source_samples = max(account_pool_prior_min_source_samples, 1)
     resolved_base_params = _resolve_subscription_base_params(base_params)
+    _preload_account_pool_rows_for_tuning(resolved_base_params)
     search = evaluate_candidate_grid(
         rows,
         min_history_samples=3,
@@ -1509,7 +1534,7 @@ def evaluate_robustness(
                     params=prior_params,
                 )
                 _attach_account_pool_prior_rollup(prior)
-                prior["params"] = prior_params
+                prior["params"] = _subscription_auto_param_snapshot(prior_params, include_prior=True)
                 prior["rank_key"] = _candidate_rank_key(prior)
                 prior_rank = _candidate_rank_key(prior)
                 weight_key = str(weight)
@@ -1569,13 +1594,14 @@ def evaluate_account_pool_prior(
     top_n: int = 5,
 ) -> dict[str, Any]:
     base_params = _resolve_subscription_base_params(base_params, DEFAULT_ACCOUNT_POOL_PRIOR_BASE_PARAMS)
+    _preload_account_pool_rows_for_tuning(base_params)
     baseline = evaluate_subscription_prediction(
         rows,
         min_history_samples=min_history_samples,
         max_history_samples=max_history_samples,
         params=base_params,
     )
-    baseline["params"] = base_params
+    baseline["params"] = _subscription_auto_param_snapshot(base_params, include_prior=True)
 
     weight_values = weights or DEFAULT_ACCOUNT_POOL_PRIOR_WEIGHTS
     recent_values = recent_sample_values or DEFAULT_ACCOUNT_POOL_PRIOR_RECENT_SAMPLES
@@ -1605,7 +1631,7 @@ def evaluate_account_pool_prior(
             params=params,
         )
         _attach_account_pool_prior_rollup(summary)
-        summary["params"] = params
+        summary["params"] = _subscription_auto_param_snapshot(params, include_prior=True)
         summary["rank_key"] = _candidate_rank_key(summary)
         ranked.append(_compact_summary(summary))
 
@@ -1660,6 +1686,7 @@ def evaluate_auto_with_prior_branch(
     main_best_rank = _summary_rank_key(main_best) if main_best else baseline_rank
 
     prior_base_params = _resolve_subscription_base_params(base_params)
+    _preload_account_pool_rows_for_tuning(prior_base_params)
     if main_best.get("params"):
         prior_base_params.update(dict(main_best.get("params") or {}))
     prior_result = evaluate_account_pool_prior(
@@ -2335,6 +2362,7 @@ def main() -> int:
     args = parse_args()
     strategy_params = config_loader.load_params(args.params_file)
     _refresh_subscription_history_before_tuning(args, strategy_params)
+    account_pool_runtime_summary = _preload_account_pool_rows_for_tuning(strategy_params)
     rows = _load_history_rows(args.history_path)
     ladder_summary: dict[str, Any] = {}
     if not args.no_ladder_labels:
@@ -2401,6 +2429,8 @@ def main() -> int:
         summary["history_path"] = str(args.history_path)
     if ladder_summary:
         summary["ladder_label_summary"] = ladder_summary
+    if account_pool_runtime_summary.get("enabled"):
+        summary["account_pool_runtime_cache"] = account_pool_runtime_summary
     if args.json:
         print(json.dumps(summary, ensure_ascii=False, indent=2))
     elif args.mode == "search":

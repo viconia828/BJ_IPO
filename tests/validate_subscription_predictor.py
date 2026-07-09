@@ -463,6 +463,54 @@ def _run_account_pool_fractional_threshold_case(failures: list[str]) -> None:
     _assert_close(pool_estimate.get("leftover_lots"), 10.0, "account pool: leftover lots mismatch", failures)
 
 
+
+def _run_account_pool_runtime_index_cache_case(failures: list[str]) -> None:
+    account_pool_row: dict[str, Any] = {
+        "security_code": "920920",
+        "apply_date": "2026-06-30",
+    }
+    for threshold, accounts in {1: 45, 2: 25, 3: 15, 4: 5}.items():
+        account_pool_row[f"accounts_ge_{threshold}w_estimate"] = accounts
+        account_pool_row[f"accounts_ge_{threshold}w_basis"] = "exact_observed_threshold"
+
+    params = {
+        "subscription_prediction_account_pool_rows": [account_pool_row],
+        "subscription_prediction_account_pool_recent_samples": 1,
+        "subscription_prediction_lot_threshold_max_lots": 5,
+    }
+    target = {
+        "SECURITY_CODE": "920921",
+        "SECURITY_NAME_ABBR": "PoolCache",
+        "ISSUE_PRICE": 10.0,
+        "ONLINE_ISSUE_NUM": 8000.0,
+        "ONLINE_VA_SHARES": 80000.0,
+        "TOP_APPLY_MARKETCAP": 2.5,
+    }
+    first = subscription_predictor.build_subscription_prediction(target, recent_ipos=[], params=params)
+    cache = params.get(subscription_predictor.ACCOUNT_POOL_RUNTIME_CACHE_KEY) or {}
+    index = cache.get("account_pool_index") or {}
+    memo = index.get("accounts_ge_memo") or {}
+    _assert(index.get("source") == "params", "account pool cache: expected params source", failures)
+    _assert(len(index.get("thresholds") or []) == 4, "account pool cache: threshold count mismatch", failures)
+    _assert(bool(memo), "account pool cache: expected populated accounts_ge memo", failures)
+    index_id = id(index)
+    memo_size = len(memo)
+
+    second = subscription_predictor.build_subscription_prediction(target, recent_ipos=[], params=params)
+    cache_after = params.get(subscription_predictor.ACCOUNT_POOL_RUNTIME_CACHE_KEY) or {}
+    index_after = cache_after.get("account_pool_index") or {}
+    _assert(id(index_after) == index_id, "account pool cache: index should be reused", failures)
+    _assert(
+        len(index_after.get("accounts_ge_memo") or {}) == memo_size,
+        "account pool cache: identical second prediction should reuse memo",
+        failures,
+    )
+    _assert_close(
+        first.get("fractional_threshold_amount_wan"),
+        second.get("fractional_threshold_amount_wan"),
+        "account pool cache: prediction amount changed",
+        failures,
+    )
 def _run_latest_calibrated_account_pool_snapshot_case(failures: list[str]) -> None:
     older_row = {
         "security_code": "920800",
@@ -603,6 +651,56 @@ def _run_top_apply_below_guaranteed_case(failures: list[str]) -> None:
     _assert(residuals.get("allocated_lot_residual") == 0, "top apply below guaranteed: lot residual mismatch", failures)
 
 
+def _run_top_apply_below_guaranteed_account_pool_cutoff_case(failures: list[str]) -> None:
+    account_pool_row: dict[str, Any] = {
+        "security_code": "920922",
+        "apply_date": "2026-07-01",
+        "account_pool_snapshot_state": "true",
+    }
+    for threshold, accounts in {1.0: 100, 2.0: 60, 2.5: 40}.items():
+        prefix = subscription_predictor._account_pool_column_prefix(threshold)
+        account_pool_row[f"{prefix}_estimate"] = accounts
+        account_pool_row[f"{prefix}_basis"] = "carry_forward"
+
+    prediction = subscription_predictor.build_subscription_prediction(
+        {
+            "SECURITY_CODE": "920923",
+            "ISSUE_PRICE": 10.0,
+            "ONLINE_ISSUE_NUM": 8000.0,
+            "ONLINE_VA_SHARES": 800000.0,
+            "TOP_APPLY_MARKETCAP": 2.5,
+        },
+        recent_ipos=[],
+        params={
+            "subscription_prediction_account_pool_rows": [account_pool_row],
+            "subscription_prediction_account_pool_recent_samples": 1,
+            "subscription_prediction_lot_threshold_max_lots": 3,
+        },
+    )
+    _assert(prediction.get("top_apply_below_guaranteed") is True, "top apply pool cutoff: expected top apply below guaranteed", failures)
+    _assert(
+        prediction.get("top_apply_time_priority_required") is False,
+        "top apply pool cutoff: top apply should not need time priority when cutoff is below top apply",
+        failures,
+    )
+    _assert(
+        prediction.get("time_priority_scope") == "none",
+        "top apply pool cutoff: no time priority expected at interpolated boundary",
+        failures,
+    )
+    _assert_close(
+        prediction.get("fractional_threshold_amount_wan"),
+        1.5,
+        "top apply pool cutoff: fractional cutoff amount mismatch",
+        failures,
+    )
+    pool_estimate = prediction.get("account_pool_fractional_estimate") or {}
+    _assert_close(pool_estimate.get("full_allocated_lots_estimate"), 0.0, "top apply pool cutoff: full lots mismatch", failures)
+    _assert_close(pool_estimate.get("leftover_lots"), 80.0, "top apply pool cutoff: leftover lots mismatch", failures)
+    by_label = {str(item.get("ladder_label") or ""): item for item in prediction.get("lot_thresholds") or []}
+    _assert_close(by_label.get("0+1", {}).get("threshold_amount_wan"), 1.5, "top apply pool cutoff: 0+1 amount mismatch", failures)
+
+
 def _run_manual_ladder_runtime_override_case(failures: list[str]) -> None:
     prediction = subscription_predictor.build_subscription_prediction(
         {
@@ -642,10 +740,12 @@ def main() -> int:
     _run_920126_lot_threshold_case(failures)
     _run_fractional_between_one_and_two_display_case(failures)
     _run_account_pool_fractional_threshold_case(failures)
+    _run_account_pool_runtime_index_cache_case(failures)
     _run_latest_calibrated_account_pool_snapshot_case(failures)
     _run_observed_account_pool_snapshot_runtime_interpolation_case(failures)
     _run_account_pool_fully_covered_fractional_case(failures)
     _run_top_apply_below_guaranteed_case(failures)
+    _run_top_apply_below_guaranteed_account_pool_cutoff_case(failures)
     _run_manual_ladder_runtime_override_case(failures)
     if failures:
         for failure in failures:

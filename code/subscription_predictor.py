@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import bisect
 import csv
 from datetime import date
 import math
@@ -30,6 +31,7 @@ DEFAULT_SIMILAR_TOP_APPLY_FROZEN_BANDWIDTH = 0.18
 DEFAULT_ACCOUNT_POOL_RECENT_SAMPLES = 8
 DEFAULT_ACCOUNT_POOL_HALF_LIFE_SAMPLES = 4.0
 DEFAULT_ACCOUNT_POOL_THRESHOLDS_PATH = ROOT_DIR / "data" / "offline_tuning" / "account_pool_history_thresholds.csv"
+ACCOUNT_POOL_RUNTIME_CACHE_KEY = "_subscription_prediction_account_pool_runtime_cache"
 ACCOUNT_POOL_UNINFORMATIVE_BASES = {
     "",
     "no_observed_points",
@@ -306,6 +308,190 @@ def _row_has_calibrated_account_pool(row: dict[str, Any], thresholds: list[float
 def _row_is_account_pool_snapshot(row: dict[str, Any]) -> bool:
     return _is_enabled(row.get("account_pool_snapshot_state"), default=False)
 
+def _account_pool_runtime_cache(settings: dict[str, Any]) -> dict[str, Any]:
+    cache = settings.get(ACCOUNT_POOL_RUNTIME_CACHE_KEY)
+    if not isinstance(cache, dict):
+        cache = {}
+        settings[ACCOUNT_POOL_RUNTIME_CACHE_KEY] = cache
+    return cache
+
+
+def _account_pool_row_identity(row: dict[str, Any]) -> tuple[str, str, str]:
+    return (
+        str(row.get("security_code") or ""),
+        str(row.get("apply_date") or ""),
+        str(row.get("listing_date") or ""),
+    )
+
+
+def _account_pool_input_signature(settings: dict[str, Any]) -> tuple[Any, ...]:
+    raw_rows = settings.get("subscription_prediction_account_pool_rows")
+    if isinstance(raw_rows, list):
+        first = _account_pool_row_identity(raw_rows[0]) if raw_rows and isinstance(raw_rows[0], dict) else ("", "", "")
+        last = _account_pool_row_identity(raw_rows[-1]) if raw_rows and isinstance(raw_rows[-1], dict) else ("", "", "")
+        return ("params", id(raw_rows), len(raw_rows), first, last)
+
+    if not _is_enabled(settings.get("subscription_prediction_account_pool_enabled"), default=True):
+        return ("disabled",)
+
+    raw_path = settings.get("subscription_prediction_account_pool_thresholds_path")
+    path = Path(str(raw_path)) if raw_path not in (None, "") else DEFAULT_ACCOUNT_POOL_THRESHOLDS_PATH
+    if not path.is_absolute():
+        path = ROOT_DIR / path
+    try:
+        stat = path.stat()
+    except OSError:
+        return ("missing", str(path))
+    return ("path", str(path), stat.st_mtime_ns, stat.st_size)
+
+
+def _build_account_pool_index(
+    rows: list[dict[str, Any]],
+    thresholds: list[float],
+    *,
+    source: str,
+    signature: tuple[Any, ...],
+) -> dict[str, Any]:
+    threshold_values = sorted(float(threshold) for threshold in thresholds if threshold > 0)
+    clean_rows = [dict(row) for row in rows if isinstance(row, dict)]
+    indexed_rows: list[dict[str, Any]] = []
+    for row in clean_rows:
+        points: list[tuple[float, float]] = []
+        has_calibrated = False
+        for threshold in threshold_values:
+            prefix = _account_pool_column_prefix(threshold)
+            estimate = _safe_float(row.get(f"{prefix}_estimate"))
+            basis = row.get(f"{prefix}_basis")
+            if estimate is None or not _account_pool_basis_is_usable(basis):
+                continue
+            points.append((threshold, max(float(estimate), 0.0)))
+            if _account_pool_basis_is_calibrated(basis):
+                has_calibrated = True
+        points.sort(key=lambda item: item[0])
+        indexed_rows.append(
+            {
+                "row": row,
+                "code": str(row.get("security_code") or ""),
+                "sort_key": (str(row.get("apply_date") or ""), str(row.get("security_code") or "")),
+                "is_snapshot": _row_is_account_pool_snapshot(row),
+                "has_values": bool(points),
+                "has_calibrated": has_calibrated,
+                "point_amounts": [amount for amount, _ in points],
+                "point_estimates": [estimate for _, estimate in points],
+            }
+        )
+    indexed_rows.sort(key=lambda item: item["sort_key"])
+    return {
+        "signature": signature,
+        "source": source,
+        "rows": clean_rows,
+        "thresholds": threshold_values,
+        "sorted_rows": indexed_rows,
+        "accounts_ge_memo": {},
+    }
+
+
+def _prepare_account_pool_index(settings: dict[str, Any]) -> dict[str, Any]:
+    cache = _account_pool_runtime_cache(settings)
+    signature = _account_pool_input_signature(settings)
+    cached_index = cache.get("account_pool_index")
+    if isinstance(cached_index, dict) and cached_index.get("signature") == signature:
+        return cached_index
+    rows, source = _load_account_pool_rows(settings)
+    thresholds = _account_pool_thresholds(rows)
+    index = _build_account_pool_index(rows, thresholds, source=source, signature=signature)
+    cache["account_pool_index"] = index
+    return index
+
+
+def _indexed_row_estimate_accounts_ge(indexed_row: dict[str, Any], amount_wan: float) -> float | None:
+    amounts = indexed_row.get("point_amounts") or []
+    estimates = indexed_row.get("point_estimates") or []
+    if not amounts or not estimates:
+        return None
+    position = bisect.bisect_left(amounts, amount_wan)
+    if position < len(amounts) and abs(float(amounts[position]) - amount_wan) < 1e-6:
+        return float(estimates[position])
+
+    nearest_lower = position - 1 if position > 0 else None
+    nearest_upper = position if position < len(amounts) else None
+    if nearest_lower is not None and nearest_upper is not None:
+        low_amount = float(amounts[nearest_lower])
+        high_amount = float(amounts[nearest_upper])
+        low_accounts = float(estimates[nearest_lower])
+        high_accounts = float(estimates[nearest_upper])
+        if high_amount <= low_amount:
+            return max(high_accounts, 0.0)
+        ratio = (amount_wan - low_amount) / (high_amount - low_amount)
+        estimate = low_accounts + ratio * (high_accounts - low_accounts)
+        return max(float(estimate), 0.0)
+    if nearest_upper is not None:
+        return max(float(estimates[nearest_upper]), 0.0)
+    return None
+
+
+def _estimate_account_pool_accounts_ge_indexed(
+    *,
+    amount_wan: float,
+    account_pool_index: dict[str, Any],
+    recent_limit: int,
+    half_life: float,
+) -> dict[str, Any]:
+    sorted_rows = account_pool_index.get("sorted_rows") or []
+
+    for indexed_row in reversed(sorted_rows):
+        if not indexed_row.get("has_calibrated"):
+            continue
+        estimate = _indexed_row_estimate_accounts_ge(indexed_row, amount_wan)
+        if estimate is None:
+            continue
+        code = str(indexed_row.get("code") or "")
+        return {
+            "estimate": estimate,
+            "sample_count": 1,
+            "source_codes": [code] if code else [],
+            "basis": "latest_calibrated_account_pool_snapshot",
+        }
+
+    for indexed_row in reversed(sorted_rows):
+        if not indexed_row.get("is_snapshot") or not indexed_row.get("has_values"):
+            continue
+        estimate = _indexed_row_estimate_accounts_ge(indexed_row, amount_wan)
+        if estimate is None:
+            continue
+        code = str(indexed_row.get("code") or "")
+        return {
+            "estimate": estimate,
+            "sample_count": 1,
+            "source_codes": [code] if code else [],
+            "basis": "latest_account_pool_snapshot",
+        }
+
+    samples: list[tuple[float, float, str]] = []
+    for indexed_row in reversed(sorted_rows):
+        estimate = _indexed_row_estimate_accounts_ge(indexed_row, amount_wan)
+        if estimate is None:
+            continue
+        weight = 0.5 ** (len(samples) / half_life)
+        samples.append((estimate, weight, str(indexed_row.get("code") or "")))
+        if len(samples) >= recent_limit:
+            break
+
+    if not samples:
+        return {
+            "estimate": None,
+            "sample_count": 0,
+            "source_codes": [],
+            "basis": "no_account_pool_samples",
+        }
+
+    estimate = _weighted_median([(value, weight) for value, weight, _ in samples])
+    return {
+        "estimate": estimate,
+        "sample_count": len(samples),
+        "source_codes": [code for _, _, code in samples if code],
+        "basis": "recent_account_pool_thresholds",
+    }
 
 def _row_estimate_accounts_ge(
     row: dict[str, Any],
@@ -353,6 +539,7 @@ def _estimate_account_pool_accounts_ge(
     thresholds: list[float],
     top_apply_amount_wan: float | None,
     settings: dict[str, Any],
+    account_pool_index: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     if top_apply_amount_wan is not None and amount_wan > top_apply_amount_wan + 1e-6:
         return {
@@ -364,6 +551,22 @@ def _estimate_account_pool_accounts_ge(
 
     recent_limit = _resolve_account_pool_recent_samples(settings)
     half_life = _resolve_account_pool_half_life(settings)
+    if account_pool_index is not None:
+        top_apply_key = round(float(top_apply_amount_wan), 6) if top_apply_amount_wan is not None else None
+        memo_key = (round(float(amount_wan), 6), top_apply_key, int(recent_limit), round(float(half_life), 6))
+        memo = account_pool_index.setdefault("accounts_ge_memo", {})
+        cached = memo.get(memo_key)
+        if isinstance(cached, dict):
+            return dict(cached)
+        result = _estimate_account_pool_accounts_ge_indexed(
+            amount_wan=amount_wan,
+            account_pool_index=account_pool_index,
+            recent_limit=recent_limit,
+            half_life=half_life,
+        )
+        memo[memo_key] = dict(result)
+        return result
+
     sorted_rows = sorted(
         rows,
         key=lambda row: (str(row.get("apply_date") or ""), str(row.get("security_code") or "")),
@@ -433,6 +636,7 @@ def _estimate_account_pool_cutoff_amount(
     thresholds: list[float],
     top_apply_amount_wan: float | None,
     settings: dict[str, Any],
+    account_pool_index: dict[str, Any] | None = None,
 ) -> dict[str, Any] | None:
     if leftover_lots <= 0 or not thresholds:
         return None
@@ -451,6 +655,7 @@ def _estimate_account_pool_cutoff_amount(
             thresholds=thresholds,
             top_apply_amount_wan=top_apply_amount_wan,
             settings=settings,
+            account_pool_index=account_pool_index,
         )
         accounts = _safe_float(account_estimate.get("estimate"))
         if accounts is None:
@@ -486,6 +691,7 @@ def _estimate_account_pool_cutoff_amount(
             thresholds=thresholds,
             top_apply_amount_wan=top_apply_amount_wan,
             settings=settings,
+            account_pool_index=account_pool_index,
         )
         return {
             "cutoff_amount_wan": cutoff_amount,
@@ -519,14 +725,14 @@ def _estimate_account_pool_fractional_cutoff(
     if top_apply_shares is None or top_apply_shares <= 0 or not top_apply_amount_wan:
         return None
 
-    rows, source = _load_account_pool_rows(settings)
-    thresholds = _account_pool_thresholds(rows)
+    account_pool_index = _prepare_account_pool_index(settings)
+    rows = account_pool_index.get("rows") or []
+    thresholds = account_pool_index.get("thresholds") or []
+    source = str(account_pool_index.get("source") or "")
     if not rows or not thresholds:
         return None
 
     max_full_lots = int(math.floor((top_apply_shares * allocation_ratio) / LOT_SIZE))
-    if max_full_lots <= 0:
-        return None
 
     guaranteed_counts: list[dict[str, Any]] = []
     full_allocated_lots = 0.0
@@ -543,6 +749,7 @@ def _estimate_account_pool_fractional_cutoff(
             thresholds=thresholds,
             top_apply_amount_wan=top_apply_amount_wan,
             settings=settings,
+            account_pool_index=account_pool_index,
         )
         accounts = _safe_float(account_estimate.get("estimate"))
         if accounts is None:
@@ -569,6 +776,7 @@ def _estimate_account_pool_fractional_cutoff(
         thresholds=thresholds,
         top_apply_amount_wan=top_apply_amount_wan,
         settings=settings,
+        account_pool_index=account_pool_index,
     )
     if not cutoff:
         return None
@@ -1733,35 +1941,32 @@ def build_subscription_prediction(
         cutoff_fill_rate = distribution_result.get("cutoff_fill_rate")
         leftover_lots = distribution_result.get("leftover_lots")
     else:
-        if guaranteed_reachable:
-            account_pool_fractional_estimate = _estimate_account_pool_fractional_cutoff(
-                allocation_ratio=allocation_ratio,
-                issue_price=issue_price,
-                online_issue_shares=online_issue_shares,
-                top_apply_shares=top_apply_shares,
-                top_apply_amount_wan=top_apply_wan,
-                settings=settings,
-            )
-            if account_pool_fractional_estimate:
-                fractional_shares = int(account_pool_fractional_estimate["fractional_threshold_shares"])
-                time_required = bool(account_pool_fractional_estimate.get("time_priority_required"))
-                fractional_basis = str(account_pool_fractional_estimate.get("basis") or "account_pool_fractional_estimate")
-                fractional_min_lots = int(account_pool_fractional_estimate.get("fractional_min_lots") or 1)
+        account_pool_fractional_estimate = _estimate_account_pool_fractional_cutoff(
+            allocation_ratio=allocation_ratio,
+            issue_price=issue_price,
+            online_issue_shares=online_issue_shares,
+            top_apply_shares=top_apply_shares,
+            top_apply_amount_wan=top_apply_wan,
+            settings=settings,
+        )
+        if account_pool_fractional_estimate:
+            fractional_shares = int(account_pool_fractional_estimate["fractional_threshold_shares"])
+            time_required = bool(account_pool_fractional_estimate.get("time_priority_required"))
+            fractional_basis = str(account_pool_fractional_estimate.get("basis") or "account_pool_fractional_estimate")
+            fractional_min_lots = int(account_pool_fractional_estimate.get("fractional_min_lots") or 1)
+            cutoff_fill_rate = account_pool_fractional_estimate.get("cutoff_fill_rate")
+            leftover_lots = account_pool_fractional_estimate.get("leftover_lots")
+        elif guaranteed_reachable:
+            extra_lot_shares = _ceil_to_lot((2 * LOT_SIZE) / allocation_ratio)
+            if top_apply_shares is not None and extra_lot_shares <= top_apply_shares:
+                fractional_shares = extra_lot_shares
+                time_required = True
+                fractional_basis = "extra_lot_estimate_without_distribution"
             else:
-                extra_lot_shares = _ceil_to_lot((2 * LOT_SIZE) / allocation_ratio)
-                if top_apply_shares is not None and extra_lot_shares <= top_apply_shares:
-                    fractional_shares = extra_lot_shares
-                    time_required = True
-                    fractional_basis = "extra_lot_estimate_without_distribution"
-                else:
-                    fractional_shares = None
-                    time_required = False
-                    fractional_basis = "extra_lot_unreachable_without_distribution"
-            if account_pool_fractional_estimate:
-                cutoff_fill_rate = account_pool_fractional_estimate.get("cutoff_fill_rate")
-                leftover_lots = account_pool_fractional_estimate.get("leftover_lots")
+                fractional_shares = None
+                time_required = False
+                fractional_basis = "extra_lot_unreachable_without_distribution"
         else:
-            account_pool_fractional_estimate = None
             fractional_shares = top_apply_shares
             time_required = True
             fractional_basis = "top_apply_below_guaranteed_all_time_priority"
@@ -1770,8 +1975,17 @@ def build_subscription_prediction(
             leftover_lots = None
 
     top_apply_time_priority_required = top_apply_below_guaranteed
+    if top_apply_below_guaranteed and account_pool_fractional_estimate:
+        top_apply_time_priority_required = bool(
+            time_required
+            and top_apply_shares is not None
+            and fractional_shares is not None
+            and int(fractional_shares) >= int(top_apply_shares)
+        )
     if top_apply_time_priority_required:
         top_apply_time_priority_note = "必须抢时间（顶格仍不足正股）"
+    elif top_apply_below_guaranteed and account_pool_fractional_estimate:
+        top_apply_time_priority_note = "否（顶格不足正股，但顶格档预计可获碎股）"
     elif protected_threshold_exceeds_top_apply:
         top_apply_time_priority_note = "可能需要抢时间（保护后建议金额超过顶格）"
     else:
@@ -1822,8 +2036,8 @@ def build_subscription_prediction(
     )
     time_priority_scope = "none"
     if time_required:
-        time_priority_scope = "all_top_apply_accounts" if top_apply_below_guaranteed else "fractional_cutoff"
-    if top_apply_below_guaranteed:
+        time_priority_scope = "all_top_apply_accounts" if top_apply_time_priority_required else "fractional_cutoff"
+    if top_apply_time_priority_required:
         fractional_time_priority_note = "必须抢时间（顶格账户正股/碎股均按时间优先）" if time_required else "否"
     elif time_required:
         fractional_time_priority_note = (
@@ -1860,7 +2074,7 @@ def build_subscription_prediction(
         ["碎股加配抢时间提示", fractional_time_priority_note, fractional_basis],
         [
             "时间优先场景",
-            "顶格仍不足正股，全员抢碎股" if top_apply_below_guaranteed else ("碎股边界抢时间" if time_required else "否"),
+            "顶格仍不足正股，全员抢碎股" if top_apply_time_priority_required else ("碎股边界抢时间" if time_required else "否"),
             fractional_basis,
         ],
     ]
