@@ -1,7 +1,7 @@
 {
   "schema": "offline_tuning_replay_item_v1",
-  "cache_version": 4,
-  "generated_at": "2026-07-06 21:16:44",
+  "cache_version": 7,
+  "generated_at": "2026-07-09 23:33:19",
   "code": "920078",
   "listing_date": "2026-03-18 00:00:00",
   "record_signature": {
@@ -19,9 +19,17 @@
     "SUBSCRIPTION_LIMIT_WAN_SHARES": null,
     "CLOSE_PRICE": 35.3,
     "LD_CLOSE_CHANGE": 405.7307,
+    "NEXT_DAY_CLOSE": null,
+    "THIRD_DAY_CLOSE": null,
+    "NEXT_DAY_CLOSE_CHANGE": null,
+    "THIRD_DAY_CLOSE_CHANGE": null,
+    "NEXT_DAY_FROM_LISTING_CLOSE_PCT": null,
+    "THIRD_DAY_FROM_LISTING_CLOSE_PCT": null,
+    "POST_LISTING_PROFIT_EFFECT_PCT": null,
     "TURNOVERRATE": 96.391,
     "SW_INDUSTRY": null,
-    "INDUSTRY": null
+    "INDUSTRY": null,
+    "INDUSTRY_CODE": null
   },
   "pdf_signature": {
     "listing": {
@@ -56,9 +64,19 @@
     "AVERAGE_PRICE": 35.70731418099931,
     "LD_CLOSE_CHANGE": 405.7307,
     "LD_AVERAGE_CHANGE": 411.5661057449758,
+    "NEXT_DAY_CLOSE": 36.23,
+    "THIRD_DAY_CLOSE": 29.08,
+    "NEXT_DAY_CLOSE_CHANGE": 419.05444126074485,
+    "THIRD_DAY_CLOSE_CHANGE": 316.618911174785,
+    "NEXT_DAY_FROM_LISTING_CLOSE_PCT": 2.6345609065155706,
+    "THIRD_DAY_FROM_LISTING_CLOSE_PCT": -17.62039660056657,
+    "POST_LISTING_PROFIT_EFFECT_PCT": -7.492917847025499,
+    "post_listing_performance_source": "tushare_daily",
+    "post_listing_performance_reason": "",
     "TURNOVERRATE": 96.391,
     "SW_INDUSTRY": "",
     "INDUSTRY": "",
+    "INDUSTRY_CODE": "",
     "industry_primary": "化工新材",
     "industry_secondary": "金属新材料",
     "industry_source": "built_in_sample_map",

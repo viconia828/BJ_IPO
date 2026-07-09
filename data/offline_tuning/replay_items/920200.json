@@ -1,7 +1,7 @@
 {
   "schema": "offline_tuning_replay_item_v1",
-  "cache_version": 4,
-  "generated_at": "2026-07-06 21:16:58",
+  "cache_version": 7,
+  "generated_at": "2026-07-09 23:33:30",
   "code": "920200",
   "listing_date": "2026-05-07 00:00:00",
   "record_signature": {
@@ -19,9 +19,17 @@
     "SUBSCRIPTION_LIMIT_WAN_SHARES": null,
     "CLOSE_PRICE": 94.02,
     "LD_CLOSE_CHANGE": 356.8513,
+    "NEXT_DAY_CLOSE": null,
+    "THIRD_DAY_CLOSE": null,
+    "NEXT_DAY_CLOSE_CHANGE": null,
+    "THIRD_DAY_CLOSE_CHANGE": null,
+    "NEXT_DAY_FROM_LISTING_CLOSE_PCT": null,
+    "THIRD_DAY_FROM_LISTING_CLOSE_PCT": null,
+    "POST_LISTING_PROFIT_EFFECT_PCT": null,
     "TURNOVERRATE": 94.2249,
     "SW_INDUSTRY": null,
-    "INDUSTRY": null
+    "INDUSTRY": null,
+    "INDUSTRY_CODE": null
   },
   "pdf_signature": {
     "listing": {
@@ -56,9 +64,19 @@
     "AVERAGE_PRICE": 53.693813233118554,
     "LD_CLOSE_CHANGE": 356.8513,
     "LD_AVERAGE_CHANGE": 160.90288257103285,
+    "NEXT_DAY_CLOSE": null,
+    "THIRD_DAY_CLOSE": null,
+    "NEXT_DAY_CLOSE_CHANGE": null,
+    "THIRD_DAY_CLOSE_CHANGE": null,
+    "NEXT_DAY_FROM_LISTING_CLOSE_PCT": null,
+    "THIRD_DAY_FROM_LISTING_CLOSE_PCT": null,
+    "POST_LISTING_PROFIT_EFFECT_PCT": null,
+    "post_listing_performance_source": "",
+    "post_listing_performance_reason": "Tushare quota 已达上限，本次不再发起新请求。",
     "TURNOVERRATE": 94.2249,
     "SW_INDUSTRY": "",
     "INDUSTRY": "",
+    "INDUSTRY_CODE": "",
     "industry_primary": "未分类",
     "industry_secondary": "未分类",
     "industry_source": "unclassified",
@@ -87,78 +105,7 @@
       "301063.SZ",
       "301040.SZ"
     ],
-    "comparable_data": [
-      {
-        "code": "300443.SZ",
-        "name": "300443.SZ",
-        "close": 30.67,
-        "pe_ttm": 30.0496,
-        "pb_lf": 1.5441,
-        "mkt_cap": 98.18528121,
-        "trade_date": "20260506",
-        "source": "tushare_historical",
-        "close_source": "tushare_historical",
-        "pe_source": "tushare_historical",
-        "pb_source": "tushare_historical",
-        "mkt_cap_source": "tushare_historical"
-      },
-      {
-        "code": "300185.SZ",
-        "name": "300185.SZ",
-        "close": 3.23,
-        "pe_ttm": 191.9649,
-        "pb_lf": 1.8444,
-        "mkt_cap": 130.36880296,
-        "trade_date": "20260506",
-        "source": "tushare_historical",
-        "close_source": "tushare_historical",
-        "pe_source": "tushare_historical",
-        "pb_source": "tushare_historical",
-        "mkt_cap_source": "tushare_historical"
-      },
-      {
-        "code": "605123.SH",
-        "name": "605123.SH",
-        "close": 110.5,
-        "pe_ttm": 51.2155,
-        "pb_lf": 2.8945,
-        "mkt_cap": 133.89383566,
-        "trade_date": "20260506",
-        "source": "tushare_historical",
-        "close_source": "tushare_historical",
-        "pe_source": "tushare_historical",
-        "pb_source": "tushare_historical",
-        "mkt_cap_source": "tushare_historical"
-      },
-      {
-        "code": "301063.SZ",
-        "name": "301063.SZ",
-        "close": 23.99,
-        "pe_ttm": 67.273,
-        "pb_lf": 1.5842,
-        "mkt_cap": 25.03613769,
-        "trade_date": "20260506",
-        "source": "tushare_historical",
-        "close_source": "tushare_historical",
-        "pe_source": "tushare_historical",
-        "pb_source": "tushare_historical",
-        "mkt_cap_source": "tushare_historical"
-      },
-      {
-        "code": "301040.SZ",
-        "name": "301040.SZ",
-        "close": 32.41,
-        "pe_ttm": null,
-        "pb_lf": 4.6247,
-        "mkt_cap": 32.41033901,
-        "trade_date": "20260506",
-        "source": "tushare_historical",
-        "close_source": "tushare_historical",
-        "pe_source": "tushare_historical",
-        "pb_source": "tushare_historical",
-        "mkt_cap_source": "tushare_historical"
-      }
-    ],
+    "comparable_data": [],
     "comparable_summary": {
       "provider": "tushare_historical",
       "requested_codes": [
@@ -168,26 +115,14 @@
         "301063.SZ",
         "301040.SZ"
       ],
-      "returned_codes": [
-        "300443.SZ",
-        "300185.SZ",
-        "605123.SH",
-        "301063.SZ",
-        "301040.SZ"
-      ],
+      "returned_codes": [],
       "cache_hits": [],
-      "api_fetched": [
-        "300443.SZ",
-        "300185.SZ",
-        "605123.SH",
-        "301063.SZ",
-        "301040.SZ"
-      ],
+      "api_fetched": [],
       "skipped_unsupported": [],
       "reference_trade_date": "20260506",
-      "reason": ""
+      "reason": "Tushare quota 已达上限，本次不再发起新请求。"
     },
-    "method1_replay_available": true,
+    "method1_replay_available": false,
     "average_price_source": "intraday_csv",
     "average_price_reason": "",
     "average_price_calc_version": 3,

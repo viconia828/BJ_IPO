@@ -1017,7 +1017,14 @@ def build_analysis_data(
         target_code=code,
         target_listing_date=ipo_info.get("LISTING_DATE"),
     )
-    final = valuation_engine.composite_valuation(method1, method2, params)
+    method3 = valuation_engine.method3_recent_sentiment(
+        issue_price=issue_price,
+        recent_ipos=recent_ipos,
+        params=params,
+        target_code=code,
+        target_listing_date=ipo_info.get("LISTING_DATE"),
+    )
+    final = valuation_engine.composite_valuation(method1, method2, params, method3=method3)
 
     final_change_pct = _calc_change_pct(issue_price, final.get("target_price"))
     range_change_low = _calc_change_pct(issue_price, final.get("range_low"))
@@ -1030,6 +1037,7 @@ def build_analysis_data(
             "industry": {"primary": industry.primary, "secondary": industry.secondary},
             "method1": method1,
             "method2": method2,
+            "method3": method3,
             "old_shares_desc": old_shares_desc,
             "old_shares_meta": old_shares_meta,
             "comparable_codes": comparable_codes,
@@ -1074,6 +1082,7 @@ def build_analysis_data(
         "subscription_prediction": subscription_prediction,
         "method1": method1,
         "method2": method2,
+        "method3": method3,
         "final": final,
         "final_change_pct": final_change_pct,
         "range_change_low": range_change_low,

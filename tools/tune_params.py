@@ -414,7 +414,7 @@ def _print_auto_result_context(result: dict[str, Any], params: dict[str, Any]) -
     overrides = dict(result.get("changed_overrides") or {})
 
     print(
-        "方法二样本池截取窗口：{sample_days} 天；近期权重基准日：{date}，评分权重衰减窗口 {lookback_days} 天，最近 {floor_days} 天样本总权重至少 {share}。".format(
+        "方法三情绪样本窗口：{sample_days} 天；近期权重基准日：{date}，评分权重衰减窗口 {lookback_days} 天，最近 {floor_days} 天样本总权重至少 {share}。".format(
             sample_days=result.get("sample_window_days"),
             date=result.get("reference_date"),
             lookback_days=result.get("lookback_days"),

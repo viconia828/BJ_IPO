@@ -1,7 +1,7 @@
 {
   "schema": "offline_tuning_replay_item_v1",
-  "cache_version": 4,
-  "generated_at": "2026-07-06 21:16:43",
+  "cache_version": 7,
+  "generated_at": "2026-07-09 23:33:18",
   "code": "920069",
   "listing_date": "2026-03-27 00:00:00",
   "record_signature": {
@@ -19,9 +19,17 @@
     "SUBSCRIPTION_LIMIT_WAN_SHARES": null,
     "CLOSE_PRICE": 43.48,
     "LD_CLOSE_CHANGE": 136.5615,
+    "NEXT_DAY_CLOSE": null,
+    "THIRD_DAY_CLOSE": null,
+    "NEXT_DAY_CLOSE_CHANGE": null,
+    "THIRD_DAY_CLOSE_CHANGE": null,
+    "NEXT_DAY_FROM_LISTING_CLOSE_PCT": null,
+    "THIRD_DAY_FROM_LISTING_CLOSE_PCT": null,
+    "POST_LISTING_PROFIT_EFFECT_PCT": null,
     "TURNOVERRATE": 65.5272,
     "SW_INDUSTRY": null,
-    "INDUSTRY": null
+    "INDUSTRY": null,
+    "INDUSTRY_CODE": null
   },
   "pdf_signature": {
     "listing": {
@@ -56,9 +64,19 @@
     "AVERAGE_PRICE": 42.34166168392811,
     "LD_CLOSE_CHANGE": 136.5615,
     "LD_AVERAGE_CHANGE": 130.3681266807841,
+    "NEXT_DAY_CLOSE": 36.68,
+    "THIRD_DAY_CLOSE": 35.72,
+    "NEXT_DAY_CLOSE_CHANGE": 99.56474428726878,
+    "THIRD_DAY_CLOSE_CHANGE": 94.34167573449402,
+    "NEXT_DAY_FROM_LISTING_CLOSE_PCT": -15.63937442502299,
+    "THIRD_DAY_FROM_LISTING_CLOSE_PCT": -17.84728610855566,
+    "POST_LISTING_PROFIT_EFFECT_PCT": -16.743330266789325,
+    "post_listing_performance_source": "tushare_daily",
+    "post_listing_performance_reason": "",
     "TURNOVERRATE": 65.5272,
     "SW_INDUSTRY": "",
     "INDUSTRY": "",
+    "INDUSTRY_CODE": "",
     "industry_primary": "医药生物",
     "industry_secondary": "医疗器械",
     "industry_source": "built_in_sample_map",

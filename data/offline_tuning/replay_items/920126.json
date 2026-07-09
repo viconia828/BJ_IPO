@@ -1,7 +1,7 @@
 {
   "schema": "offline_tuning_replay_item_v1",
-  "cache_version": 4,
-  "generated_at": "2026-07-06 21:16:49",
+  "cache_version": 7,
+  "generated_at": "2026-07-09 23:33:27",
   "code": "920126",
   "listing_date": "2026-06-15 00:00:00",
   "record_signature": {
@@ -19,9 +19,17 @@
     "SUBSCRIPTION_LIMIT_WAN_SHARES": null,
     "CLOSE_PRICE": 17.68,
     "LD_CLOSE_CHANGE": 126.9576,
+    "NEXT_DAY_CLOSE": null,
+    "THIRD_DAY_CLOSE": null,
+    "NEXT_DAY_CLOSE_CHANGE": null,
+    "THIRD_DAY_CLOSE_CHANGE": null,
+    "NEXT_DAY_FROM_LISTING_CLOSE_PCT": null,
+    "THIRD_DAY_FROM_LISTING_CLOSE_PCT": null,
+    "POST_LISTING_PROFIT_EFFECT_PCT": null,
     "TURNOVERRATE": 85.0051,
     "SW_INDUSTRY": null,
-    "INDUSTRY": null
+    "INDUSTRY": null,
+    "INDUSTRY_CODE": null
   },
   "pdf_signature": {
     "listing": {
@@ -56,9 +64,19 @@
     "AVERAGE_PRICE": 19.75558779458297,
     "LD_CLOSE_CHANGE": 126.9576,
     "LD_AVERAGE_CHANGE": 153.60189723469793,
+    "NEXT_DAY_CLOSE": 17.95,
+    "THIRD_DAY_CLOSE": 16.71,
+    "NEXT_DAY_CLOSE_CHANGE": 130.42362002567393,
+    "THIRD_DAY_CLOSE_CHANGE": 114.50577663671373,
+    "NEXT_DAY_FROM_LISTING_CLOSE_PCT": 1.527149321266963,
+    "THIRD_DAY_FROM_LISTING_CLOSE_PCT": -5.486425339366507,
+    "POST_LISTING_PROFIT_EFFECT_PCT": -1.979638009049772,
+    "post_listing_performance_source": "tushare_daily",
+    "post_listing_performance_reason": "",
     "TURNOVERRATE": 85.0051,
     "SW_INDUSTRY": "",
     "INDUSTRY": "",
+    "INDUSTRY_CODE": "",
     "industry_primary": "未分类",
     "industry_secondary": "未分类",
     "industry_source": "unclassified",

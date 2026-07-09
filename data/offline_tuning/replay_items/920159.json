@@ -1,7 +1,7 @@
 {
   "schema": "offline_tuning_replay_item_v1",
-  "cache_version": 4,
-  "generated_at": "2026-07-06 21:16:51",
+  "cache_version": 7,
+  "generated_at": "2026-07-09 23:33:29",
   "code": "920159",
   "listing_date": "2026-01-28 00:00:00",
   "record_signature": {
@@ -19,9 +19,17 @@
     "SUBSCRIPTION_LIMIT_WAN_SHARES": null,
     "CLOSE_PRICE": 52.89,
     "LD_CLOSE_CHANGE": 111.56,
+    "NEXT_DAY_CLOSE": null,
+    "THIRD_DAY_CLOSE": null,
+    "NEXT_DAY_CLOSE_CHANGE": null,
+    "THIRD_DAY_CLOSE_CHANGE": null,
+    "NEXT_DAY_FROM_LISTING_CLOSE_PCT": null,
+    "THIRD_DAY_FROM_LISTING_CLOSE_PCT": null,
+    "POST_LISTING_PROFIT_EFFECT_PCT": null,
     "TURNOVERRATE": 95.0296,
     "SW_INDUSTRY": null,
-    "INDUSTRY": null
+    "INDUSTRY": null,
+    "INDUSTRY_CODE": null
   },
   "pdf_signature": {
     "listing": {
@@ -56,9 +64,19 @@
     "AVERAGE_PRICE": 51.40855681867674,
     "LD_CLOSE_CHANGE": 111.56,
     "LD_AVERAGE_CHANGE": 105.63422727470697,
+    "NEXT_DAY_CLOSE": 46.05,
+    "THIRD_DAY_CLOSE": 46.6,
+    "NEXT_DAY_CLOSE_CHANGE": 84.19999999999999,
+    "THIRD_DAY_CLOSE_CHANGE": 86.4,
+    "NEXT_DAY_FROM_LISTING_CLOSE_PCT": -12.932501418037445,
+    "THIRD_DAY_FROM_LISTING_CLOSE_PCT": -11.892607298166002,
+    "POST_LISTING_PROFIT_EFFECT_PCT": -12.412554358101723,
+    "post_listing_performance_source": "tushare_daily",
+    "post_listing_performance_reason": "",
     "TURNOVERRATE": 95.0296,
     "SW_INDUSTRY": "",
     "INDUSTRY": "",
+    "INDUSTRY_CODE": "",
     "industry_primary": "消费服务",
     "industry_secondary": "农林牧渔",
     "industry_source": "built_in_sample_map",
@@ -115,34 +133,6 @@
         "pe_source": "tushare_historical",
         "pb_source": "tushare_historical",
         "mkt_cap_source": "tushare_historical"
-      },
-      {
-        "code": "603395.SH",
-        "name": "603395.SH",
-        "close": 30.6,
-        "pe_ttm": 292.9631,
-        "pb_lf": 5.6875,
-        "mkt_cap": 79.56,
-        "trade_date": "20260127",
-        "source": "tushare_historical",
-        "close_source": "tushare_historical",
-        "pe_source": "tushare_historical",
-        "pb_source": "tushare_historical",
-        "mkt_cap_source": "tushare_historical"
-      },
-      {
-        "code": "002170.SZ",
-        "name": "002170.SZ",
-        "close": 13.54,
-        "pe_ttm": 14.6937,
-        "pb_lf": 3.7304,
-        "mkt_cap": 131.02251218,
-        "trade_date": "20260127",
-        "source": "tushare_historical",
-        "close_source": "tushare_historical",
-        "pe_source": "tushare_historical",
-        "pb_source": "tushare_historical",
-        "mkt_cap_source": "tushare_historical"
       }
     ],
     "comparable_summary": {
@@ -156,22 +146,18 @@
       ],
       "returned_codes": [
         "002588.SZ",
-        "000902.SZ",
-        "603395.SH",
-        "002170.SZ"
+        "000902.SZ"
       ],
       "cache_hits": [],
       "api_fetched": [
         "002588.SZ",
-        "000902.SZ",
-        "603395.SH",
-        "002170.SZ"
+        "000902.SZ"
       ],
       "skipped_unsupported": [
         "873757.NQ"
       ],
       "reference_trade_date": "20260127",
-      "reason": ""
+      "reason": "Tushare quota 已达上限，本次不再发起新请求。"
     },
     "method1_replay_available": true,
     "average_price_source": "intraday_csv",

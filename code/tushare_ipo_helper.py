@@ -28,6 +28,7 @@ SW_CLASSIFY_FIELD_PREFIX = "tushare_sw2021_classify_"
 SW_DAILY_FIELD_KEY = "tushare_sw_industry_daily"
 SW_DAILY_RANGE_FIELD_KEY = "tushare_sw_industry_daily_range"
 NEW_SHARE_RANGE_FIELD_KEY = "tushare_new_share_range"
+POST_LISTING_PERFORMANCE_FIELD_KEY = "tushare_ipo_post_listing_performance"
 INDUSTRY_PE_ALIAS_CODES: dict[str, tuple[str, ...]] = {
     "IT设备": ("852226.SI", "801103.SI"),
     "专用机械": ("850727.SI", "801074.SI"),
@@ -86,14 +87,22 @@ def _to_ts_code(code: str) -> str:
 
 
 def _to_iso_date(raw_value: Any) -> str:
-    text = str(raw_value or "").strip()
+    if isinstance(raw_value, date):
+        return raw_value.isoformat()
+    text = str(raw_value or "").strip().replace("/", "-")
+    if not text:
+        return ""
+    text = text.split(" ", 1)[0].split("T", 1)[0]
     if len(text) == 8 and text.isdigit():
         return f"{text[:4]}-{text[4:6]}-{text[6:8]}"
     return text
 
 
 def _to_ymd(raw_value: Any) -> str:
-    return _to_iso_date(raw_value).replace("-", "")
+    iso_text = _to_iso_date(raw_value)
+    if len(iso_text) >= 10:
+        iso_text = iso_text[:10]
+    return iso_text.replace("-", "")
 
 
 def _parse_iso_date(raw_value: Any) -> date | None:
@@ -144,12 +153,17 @@ def _record_summary_item(summary: dict[str, Any], key: str, value: Any) -> None:
 
 
 def _refresh_quota_snapshot(summary: dict[str, Any], settings: dict[str, Any], db: LocalFileDB) -> None:
-    quota_limit = int(settings["daily_quota"])
-    quota_used_today = db.get_today_api_call_count(source="tushare")
-    summary["quota_limit"] = quota_limit
-    summary["quota_used_today"] = quota_used_today
-    summary["quota_remaining"] = max(quota_limit - quota_used_today, 0)
-
+    quota_limit = tushare_helper._quota_limit_for_api('daily', settings)
+    quota_used_today = tushare_helper._get_today_api_call_count_for_api(db, 'daily')
+    intraday_quota_limit = tushare_helper._quota_limit_for_api('stk_mins', settings)
+    intraday_quota_used_today = tushare_helper._get_today_api_call_count_for_api(db, 'stk_mins')
+    summary['quota_scope'] = 'non_intraday'
+    summary['quota_limit'] = quota_limit
+    summary['quota_used_today'] = quota_used_today
+    summary['quota_remaining'] = max(quota_limit - quota_used_today, 0)
+    summary['intraday_quota_limit'] = intraday_quota_limit
+    summary['intraday_quota_used_today'] = intraday_quota_used_today
+    summary['intraday_quota_remaining'] = max(intraday_quota_limit - intraday_quota_used_today, 0)
 
 def _normalize_industry_name(name: Any) -> str:
     return (
@@ -275,6 +289,15 @@ def _extract_listing_day(record: dict[str, Any] | None) -> dict[str, Any] | None
     return None
 
 
+def _extract_post_listing_performance(record: dict[str, Any] | None) -> dict[str, Any] | None:
+    if not record:
+        return None
+    snapshot = (record.get("fields") or {}).get(POST_LISTING_PERFORMANCE_FIELD_KEY)
+    if isinstance(snapshot, dict):
+        return dict(snapshot)
+    return None
+
+
 def _calc_daily_average_price(daily_row: dict[str, Any]) -> float | None:
     volume_hands = tushare_helper._safe_float(daily_row.get("vol"))
     amount_thousand_yuan = tushare_helper._safe_float(daily_row.get("amount"))
@@ -283,6 +306,105 @@ def _calc_daily_average_price(daily_row: dict[str, Any]) -> float | None:
     if volume_hands <= 0 or amount_thousand_yuan <= 0:
         return None
     return amount_thousand_yuan * 10 / volume_hands
+
+
+def _calc_change_pct(base_value: Any, compare_value: Any) -> float | None:
+    base = tushare_helper._safe_float(base_value)
+    compare = tushare_helper._safe_float(compare_value)
+    if base is None or compare is None or base <= 0:
+        return None
+    return (compare / base - 1) * 100
+
+
+def _clean_ipo_daily_rows(rows: list[dict[str, Any]], ts_code: str) -> list[dict[str, Any]]:
+    cleaned_rows: list[dict[str, Any]] = []
+    for row in rows:
+        trade_date = str(row.get("trade_date") or "").strip()
+        if not trade_date:
+            continue
+        close_price = tushare_helper._safe_float(row.get("close"))
+        if close_price is None:
+            continue
+        cleaned_rows.append(
+            {
+                "ts_code": ts_code,
+                "trade_date": trade_date,
+                "open": tushare_helper._safe_float(row.get("open")),
+                "high": tushare_helper._safe_float(row.get("high")),
+                "low": tushare_helper._safe_float(row.get("low")),
+                "close": close_price,
+                "pct_chg": tushare_helper._safe_float(row.get("pct_chg")),
+                "volume": tushare_helper._safe_float(row.get("vol")),
+                "amount": tushare_helper._safe_float(row.get("amount")),
+            }
+        )
+    return sorted(cleaned_rows, key=lambda item: str(item.get("trade_date") or ""))
+
+
+def _post_listing_profit_effect(values: list[float | None]) -> float | None:
+    clean_values = [value for value in values if value is not None]
+    if not clean_values:
+        return None
+    return sum(clean_values) / len(clean_values)
+
+
+def _build_post_listing_performance_snapshot(
+    ts_code: str,
+    listing_date: str,
+    issue_price: Any,
+    rows: list[dict[str, Any]],
+    listing_day: dict[str, Any] | None = None,
+) -> dict[str, Any] | None:
+    listing_ymd = _to_ymd(listing_date)
+    if not listing_ymd:
+        return None
+    cleaned_rows = [row for row in _clean_ipo_daily_rows(rows, ts_code) if _to_ymd(row.get("trade_date")) >= listing_ymd]
+    if not cleaned_rows:
+        return None
+
+    listing_index = 0
+    for index, row in enumerate(cleaned_rows):
+        if _to_ymd(row.get("trade_date")) == listing_ymd:
+            listing_index = index
+            break
+    sequence = cleaned_rows[listing_index:]
+    if not sequence:
+        return None
+
+    listing_close = tushare_helper._safe_float(sequence[0].get("close"))
+    if listing_close is None:
+        listing_close = tushare_helper._safe_float((listing_day or {}).get("close"))
+    next_row = sequence[1] if len(sequence) > 1 else None
+    third_row = sequence[2] if len(sequence) > 2 else None
+    next_close = tushare_helper._safe_float((next_row or {}).get("close"))
+    third_close = tushare_helper._safe_float((third_row or {}).get("close"))
+
+    next_from_listing = _calc_change_pct(listing_close, next_close)
+    third_from_listing = _calc_change_pct(listing_close, third_close)
+    return {
+        "listing_date": _to_iso_date(listing_date),
+        "rows": sequence[:3],
+        "listing_trade_date": str(sequence[0].get("trade_date") or ""),
+        "listing_close": listing_close,
+        "next_trade_date": str((next_row or {}).get("trade_date") or ""),
+        "next_close": next_close,
+        "third_trade_date": str((third_row or {}).get("trade_date") or ""),
+        "third_close": third_close,
+        "next_day_change_pct": _calc_change_pct(issue_price, next_close),
+        "third_day_change_pct": _calc_change_pct(issue_price, third_close),
+        "next_day_from_listing_close_pct": next_from_listing,
+        "third_day_from_listing_close_pct": third_from_listing,
+        "post_listing_profit_effect_pct": _post_listing_profit_effect([next_from_listing, third_from_listing]),
+        "complete": next_close is not None and third_close is not None,
+        "updated_at": datetime.now().isoformat(timespec="seconds"),
+        "source": "tushare_daily",
+    }
+
+
+def _post_listing_snapshot_complete(snapshot: dict[str, Any] | None) -> bool:
+    if not snapshot:
+        return False
+    return tushare_helper._safe_float(snapshot.get("next_close")) is not None and tushare_helper._safe_float(snapshot.get("third_close")) is not None
 
 
 def _extract_sw_classify(record: dict[str, Any] | None, field_name: str) -> list[dict[str, Any]] | None:
@@ -390,6 +512,19 @@ def _save_listing_day(
         ts_code,
         {"tushare_ipo_listing_day": snapshot},
         trade_date=snapshot.get("trade_date"),
+        source="tushare_api",
+    )
+
+
+def _save_post_listing_performance(
+    db: LocalFileDB,
+    ts_code: str,
+    snapshot: dict[str, Any],
+) -> dict[str, Any]:
+    return db.save_variable_record(
+        ts_code,
+        {POST_LISTING_PERFORMANCE_FIELD_KEY: snapshot},
+        trade_date=snapshot.get("third_trade_date") or snapshot.get("next_trade_date") or snapshot.get("listing_trade_date"),
         source="tushare_api",
     )
 
@@ -841,6 +976,68 @@ def _get_listing_day_snapshot(
     return snapshot
 
 
+def _get_post_listing_performance(
+    ts_code: str,
+    listing_date: str,
+    issue_price: Any,
+    settings: dict[str, Any],
+    db: LocalFileDB,
+    summary: dict[str, Any],
+    listing_day: dict[str, Any] | None = None,
+) -> dict[str, Any] | None:
+    variable_record = db.load_variable_record(ts_code)
+    cached = _extract_post_listing_performance(variable_record)
+    iso_listing_date = _to_iso_date(listing_date)
+    if cached and cached.get("listing_date") == iso_listing_date:
+        if _post_listing_snapshot_complete(cached) or tushare_helper._snapshot_is_fresh(cached, settings["variable_ttl"]):
+            _record_summary_item(summary, "variable_cache_hits", f"post_listing:{ts_code}:{iso_listing_date}")
+            return cached
+
+    trade_date = _to_ymd(listing_date)
+    if not trade_date:
+        return cached
+    today_ymd = date.today().strftime("%Y%m%d")
+    if trade_date > today_ymd:
+        return cached
+
+    listing_date_obj = datetime.strptime(trade_date, "%Y%m%d").date()
+    end_date = min(listing_date_obj + timedelta(days=14), date.today()).strftime("%Y%m%d")
+    daily_rows, daily_error = _call_tushare(
+        "daily",
+        {"ts_code": ts_code, "start_date": trade_date, "end_date": end_date},
+        "ts_code,trade_date,open,high,low,close,pct_chg,vol,amount",
+        settings,
+        db,
+        summary,
+    )
+    if daily_error:
+        summary["reason"] = summary["reason"] or daily_error
+        return cached
+
+    snapshot = _build_post_listing_performance_snapshot(ts_code, listing_date, issue_price, daily_rows, listing_day)
+    if not snapshot:
+        return cached
+    _save_post_listing_performance(db, ts_code, snapshot)
+    _record_summary_item(summary, "api_fetched_variable", f"post_listing:{ts_code}:{iso_listing_date}")
+    return snapshot
+
+
+def get_post_listing_performance(
+    code: str,
+    listing_date: str,
+    issue_price: Any = None,
+    params: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    settings = tushare_helper._build_settings(params)
+    db = LocalFileDB(settings["cache_root"])
+    summary = _build_summary(code, 1, settings, db, recent_days=1)
+    if not settings["token"]:
+        summary["reason"] = f"Tushare token is not configured. Set environment variable {settings['token_env']}."
+        return {"performance": None, "summary": summary}
+    snapshot = _get_post_listing_performance(_to_ts_code(code), listing_date, issue_price, settings, db, summary)
+    return {"performance": snapshot, "summary": summary}
+
+
 def get_listing_day_average_price(
     code: str,
     listing_date: str,
@@ -1060,6 +1257,7 @@ def _build_recent_ipo_record(
     new_share_row: dict[str, Any],
     profile: dict[str, Any] | None,
     listing_day: dict[str, Any] | None,
+    post_listing: dict[str, Any] | None = None,
 ) -> dict[str, Any] | None:
     issue_price = tushare_helper._safe_float(new_share_row.get("price"))
     close_price = tushare_helper._safe_float((listing_day or {}).get("close"))
@@ -1079,6 +1277,7 @@ def _build_recent_ipo_record(
     if issue_price and issue_price > 0 and average_price is not None:
         ld_average_change = (average_price / issue_price - 1) * 100
 
+    post_listing = post_listing or {}
     ts_code = _normalize_code(new_share_row.get("ts_code"))
     return {
         "SECURITY_CODE": _base_code(ts_code),
@@ -1097,6 +1296,14 @@ def _build_recent_ipo_record(
         "AVERAGE_PRICE": average_price,
         "LD_CLOSE_CHANGE": ld_close_change,
         "LD_AVERAGE_CHANGE": ld_average_change,
+        "NEXT_DAY_CLOSE": tushare_helper._safe_float(post_listing.get("next_close")),
+        "THIRD_DAY_CLOSE": tushare_helper._safe_float(post_listing.get("third_close")),
+        "NEXT_DAY_CLOSE_CHANGE": tushare_helper._safe_float(post_listing.get("next_day_change_pct")),
+        "THIRD_DAY_CLOSE_CHANGE": tushare_helper._safe_float(post_listing.get("third_day_change_pct")),
+        "NEXT_DAY_FROM_LISTING_CLOSE_PCT": tushare_helper._safe_float(post_listing.get("next_day_from_listing_close_pct")),
+        "THIRD_DAY_FROM_LISTING_CLOSE_PCT": tushare_helper._safe_float(post_listing.get("third_day_from_listing_close_pct")),
+        "POST_LISTING_PROFIT_EFFECT_PCT": tushare_helper._safe_float(post_listing.get("post_listing_profit_effect_pct")),
+        "post_listing_performance_source": str(post_listing.get("source") or "").strip(),
         "average_price_source": "tushare_daily" if average_price is not None else "",
         "average_price_reason": "",
         "TURNOVERRATE": tushare_helper._safe_float((listing_day or {}).get("turnover_rate")),
@@ -1390,7 +1597,16 @@ def prepare_ipo_data(
         requested_codes.append(_base_code(ts_code))
         profile = _get_stock_profile(ts_code, settings, db, summary)
         listing_day = _get_listing_day_snapshot(ts_code, str(row.get("issue_date") or ""), settings, db, summary)
-        sample = _build_recent_ipo_record(row, profile, listing_day)
+        post_listing = _get_post_listing_performance(
+            ts_code,
+            str(row.get("issue_date") or ""),
+            row.get("price"),
+            settings,
+            db,
+            summary,
+            listing_day,
+        )
+        sample = _build_recent_ipo_record(row, profile, listing_day, post_listing)
         if sample is None:
             continue
         if not _is_within_recent_days(sample.get("LISTING_DATE"), recent_days, today_date):

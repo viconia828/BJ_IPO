@@ -46,6 +46,20 @@ def _fmt_pct(value: Any, digits: int = 2, fallback: str = "-") -> str:
     return f"{number:.{digits}f}%"
 
 
+def _fmt_signed_number(value: Any, digits: int = 2, fallback: str = "-") -> str:
+    number = _safe_float(value)
+    if number is None:
+        return fallback
+    return f"{number:+.{digits}f}"
+
+
+def _fmt_signed_pct(value: Any, digits: int = 2, fallback: str = "-") -> str:
+    number = _safe_float(value)
+    if number is None:
+        return fallback
+    return f"{number:+.{digits}f}%"
+
+
 def _fmt_weight(value: Any, fallback: str = "-") -> str:
     number = _safe_float(value)
     if number is None:
@@ -289,6 +303,7 @@ def _build_composite_lines(all_data: dict[str, Any]) -> list[str]:
     params = all_data["params"]
     method1 = all_data["method1"]
     method2 = all_data["method2"]
+    method3 = all_data.get("method3") or {}
     final = all_data["final"]
 
     width = float(params.get("price_range_width", 0.15))
@@ -296,41 +311,41 @@ def _build_composite_lines(all_data: dict[str, Any]) -> list[str]:
 
     if not final.get("available"):
         return [
-            f"综合估值公式 = {final.get('reason', '缺少可用的估值结果，无法给出综合定价。')}",
-            f"区间宽度 = ±{width_text}",
+            f"综合估值公式 = {final.get('reason', 'no available valuation result')}",
+            f"区间宽度 = +/-{width_text}",
         ]
 
-    weight_comparable = _safe_float(final.get("weight_comparable"))
-    weight_industry = _safe_float(final.get("weight_industry_momentum"))
+    weight_comparable = _safe_float(final.get("weight_comparable")) or 0.0
+    weight_industry = _safe_float(final.get("weight_industry_momentum")) or 0.0
+    base_target = _safe_float(final.get("base_target_price"))
+    premium_price = _safe_float(final.get("sentiment_premium_price")) or 0.0
+    premium_pct = _safe_float(final.get("sentiment_premium_pct")) or 0.0
+    base_text = _fmt_number(base_target if base_target is not None else final.get("target_price"))
 
-    if weight_comparable is None:
-        weight_comparable = _safe_float(params.get("weight_comparable")) or 0.0
-    if weight_industry is None:
-        weight_industry = _safe_float(params.get("weight_industry_momentum")) or 0.0
-
+    lines: list[str] = []
     if method1.get("available") and method2.get("available"):
-        return [
-            f"权重设置 = 方法一 {_fmt_weight(weight_comparable)} + 方法二 {_fmt_weight(weight_industry)}",
-            f"综合估值公式 = 方法一目标价 × {_fmt_weight(weight_comparable)} + 方法二目标价 × {_fmt_weight(weight_industry)}",
-            (
-                f"代入结果 = {_fmt_number(method1.get('target_price'))} × {_fmt_weight(weight_comparable)} + "
-                f"{_fmt_number(method2.get('target_price'))} × {_fmt_weight(weight_industry)} = {_fmt_number(final.get('target_price'))}"
-            ),
-            f"区间宽度 = ±{width_text}",
-        ]
+        lines.extend(
+            [
+                f"基础权重 = 方法一 {_fmt_weight(weight_comparable)} + 方法二 {_fmt_weight(weight_industry)}",
+                f"基础估值公式 = 方法一目标价 x {_fmt_weight(weight_comparable)} + 方法二目标价 x {_fmt_weight(weight_industry)}",
+                (
+                    f"基础估值 = {_fmt_number(method1.get('target_price'))} x {_fmt_weight(weight_comparable)} + "
+                    f"{_fmt_number(method2.get('target_price'))} x {_fmt_weight(weight_industry)} = {base_text}"
+                ),
+            ]
+        )
+    elif method1.get("available"):
+        lines.extend([f"基础权重 = 方法一 100%", f"基础估值 = {_fmt_number(method1.get('target_price'))}"])
+    elif method2.get("available"):
+        lines.extend([f"基础权重 = 方法二 100%", f"基础估值 = {_fmt_number(method2.get('target_price'))}"])
 
-    if method2.get("available"):
-        return [
-            "权重设置 = 方法一 0% + 方法二 100%",
-            "综合估值公式 = 当前仅采用方法二结果",
-            f"代入结果 = {_fmt_number(method2.get('target_price'))} = {_fmt_number(final.get('target_price'))}",
-            f"区间宽度 = ±{width_text}",
-        ]
-
-    return [
-        f"综合估值公式 = {final.get('reason', '缺少可用的估值结果，无法给出综合定价。')}",
-        f"区间宽度 = ±{width_text}",
-    ]
+    if method3.get("available"):
+        lines.append(f"方法三情绪溢价 = {_fmt_signed_number(premium_price)} 元（{_fmt_signed_pct(premium_pct)} 发行价）")
+        lines.append(f"综合估值 = 基础估值 {base_text} + 情绪溢价 {_fmt_signed_number(premium_price)} = {_fmt_number(final.get('target_price'))}")
+    else:
+        lines.append(f"综合估值 = 基础估值 {base_text}（方法三未启用：{method3.get('reason', '无可用近期情绪样本')}）")
+    lines.append(f"区间宽度 = +/-{width_text}")
+    return lines
 
 
 def _prepare_report_context(all_data: dict[str, Any]) -> dict[str, Any]:
@@ -340,6 +355,7 @@ def _prepare_report_context(all_data: dict[str, Any]) -> dict[str, Any]:
     industry = all_data["industry"]
     method1 = all_data["method1"]
     method2 = all_data["method2"]
+    method3 = all_data.get("method3") or {}
     final = all_data["final"]
     params = all_data["params"]
     notes = list(all_data.get("notes") or [])
@@ -386,21 +402,42 @@ def _prepare_report_context(all_data: dict[str, Any]) -> dict[str, Any]:
         sample_label = industry["display_name"] if method2.get("sample_scope") != "全市场" else "全市场"
         base_stat_label = str(method2.get("base_stat_label", "中位数")).strip() or "中位数"
         sample_codes_text = _format_code_list(method2.get("sample_codes") or [])
+        removed_codes_text = _format_code_list(method2.get("removed_sample_codes") or [], fallback="无")
+        window_label = str(method2.get("sample_window_label") or "标的上市当年").strip()
         method2_lines = [
             (
-                f"近{recent_days}天{sample_label}新股首日均价涨幅{base_stat_label} = "
+                f"{window_label}{sample_label}新股首日均价涨幅{base_stat_label} = "
                 f"{_fmt_pct(method2.get('base_chg'))}（样本 {method2.get('sample_count', 0)} 只，{method2.get('sample_scope')}）"
             ),
-            f"方法二样本范围 = 历史候选 {method2.get('historical_sample_count', 0)} 只，实际纳入 {method2.get('sample_count', 0)} 只",
+            f"方法二样本范围 = 历史候选 {method2.get('historical_sample_count', 0)} 只，同二级行业原始 {method2.get('raw_sample_count', 0)} 只，实际纳入 {method2.get('sample_count', 0)} 只",
             f"方法二实际样本代码 = {sample_codes_text}",
-            (
-                f"调节因子 = {_fmt_number(method2.get('adj_factor'), 4)}"
-                f"（流通盘 {_fmt_number(method2.get('float_factor'), 2)} × PE {_fmt_number(method2.get('pe_factor'), 2)} × 走势 {_fmt_number(method2.get('trend_factor'), 2)}）"
-            ),
+            f"MAD去极值剔除样本 = {removed_codes_text}",
             f"目标价 = {_fmt_number(method2.get('target_price'))} 元（涨幅 {_fmt_pct(method2.get('change_pct'))}）",
         ]
     else:
         method2_lines = [str(method2.get("reason", "当前未生成方法二结果。"))]
+
+    if method3.get("available"):
+        sentiment_stat_label = str(method3.get("base_stat_label") or "时间衰减均值").strip()
+        post_listing_factor = _safe_float(method3.get("post_listing_factor_pct"))
+        if post_listing_factor is None:
+            post_listing_line = "次日/第三日赚钱效应样本缺失，本次按 0 处理"
+        else:
+            post_listing_line = (
+                f"次日/第三日赚钱效应{sentiment_stat_label} = "
+                f"{_fmt_pct(post_listing_factor)}（样本 {method3.get('post_listing_sample_count', 0)} 只）"
+            )
+        method3_lines = [
+            (
+                f"近期首日涨幅{sentiment_stat_label} = "
+                f"{_fmt_pct(method3.get('first_day_factor_pct'))}（样本 {method3.get('first_day_sample_count', 0)} 只）"
+            ),
+            post_listing_line,
+            f"情绪溢价 = {_fmt_signed_number(method3.get('premium_price'))} 元（{_fmt_signed_pct(method3.get('sentiment_premium_pct'))} 发行价）",
+            f"方法三样本代码 = {_format_code_list(method3.get('sample_codes') or [])}",
+        ]
+    else:
+        method3_lines = [str(method3.get("reason", "当前未生成方法三结果。"))]
 
     basic_rows = [
         ["股票代码", str(ipo.get("SECURITY_CODE", "-"))],
@@ -420,7 +457,8 @@ def _prepare_report_context(all_data: dict[str, Any]) -> dict[str, Any]:
 
     valuation_rows = [
         ["可比公司估值法", _fmt_number(method1.get("target_price")), _fmt_pct(method1.get("change_pct"))],
-        ["行业新股折溢价法", _fmt_number(method2.get("target_price")), _fmt_pct(method2.get("change_pct"))],
+        ["行业新股首日涨幅法", _fmt_number(method2.get("target_price")), _fmt_pct(method2.get("change_pct"))],
+        ["近期情绪溢价", _fmt_signed_number(final.get("sentiment_premium_price")), _fmt_signed_pct(final.get("sentiment_premium_pct"))],
         ["综合估值", _fmt_number(final.get("target_price")), _fmt_pct(all_data.get("final_change_pct"))],
         [
             "估值区间",
@@ -482,6 +520,7 @@ def _prepare_report_context(all_data: dict[str, Any]) -> dict[str, Any]:
         ],
         "method1_lines": method1_lines,
         "method2_lines": method2_lines,
+        "method3_lines": method3_lines,
         "composite_lines": _build_composite_lines(all_data),
         "valuation_rows": valuation_rows,
         "note_items": note_items,
@@ -524,6 +563,7 @@ def build_report_markdown(all_data: dict[str, Any]) -> str:
 
     method1_text = "\n".join(f"- {line}" for line in context["method1_lines"])
     method2_text = "\n".join(f"- {line}" for line in context["method2_lines"])
+    method3_text = "\n".join(f"- {line}" for line in context["method3_lines"])
     composite_text = "\n".join(f"- {line}" for line in context["composite_lines"])
 
     return f"""# {context['title']}
@@ -555,9 +595,13 @@ def build_report_markdown(all_data: dict[str, Any]) -> str:
 
 {method1_text}
 
-### 方法二：行业新股综合折溢价
+### 方法二：同行业首日涨幅
 
 {method2_text}
+
+### 方法三：近期情绪溢价
+
+{method3_text}
 
 ### 综合估值
 
@@ -616,7 +660,7 @@ def _build_report_html(context: dict[str, Any]) -> str:
     valuation_table = _html_table(
         ["", "目标价(元)", "预期涨幅"],
         context["valuation_rows"],
-        bold_row_indices={2},
+        bold_row_indices={3},
     )
     recent_table = _html_table(
         ["代码", "简称", "上市日", "发行价", "首日均价", "均价涨幅", "行业"],
@@ -632,6 +676,7 @@ def _build_report_html(context: dict[str, Any]) -> str:
     )
     method1_html = "".join(f"<li>{html.escape(line)}</li>" for line in context["method1_lines"])
     method2_html = "".join(f"<li>{html.escape(line)}</li>" for line in context["method2_lines"])
+    method3_html = "".join(f"<li>{html.escape(line)}</li>" for line in context["method3_lines"])
     composite_html = "".join(f"<li>{html.escape(line)}</li>" for line in context["composite_lines"])
     notes_html = "".join(f"<li>{html.escape(item)}</li>" for item in context["note_items"])
 
@@ -730,8 +775,11 @@ def _build_report_html(context: dict[str, Any]) -> str:
   <h3>方法一：可比公司对比估值</h3>
   <ul>{method1_html}</ul>
 
-  <h3>方法二：行业新股综合折溢价</h3>
+  <h3>方法二：同行业首日涨幅</h3>
   <ul>{method2_html}</ul>
+
+  <h3>方法三：近期情绪溢价</h3>
+  <ul>{method3_html}</ul>
 
   <h3>综合估值</h3>
   <ul>{composite_html}</ul>

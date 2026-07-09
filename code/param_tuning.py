@@ -34,7 +34,7 @@ INTRADAY_DIR = listing_average_price_helper.DEFAULT_INTRADAY_DIR
 PDF_DIR = REPO_ROOT / "公告文件"
 DATASET_SCHEMA = "offline_tuning_replay_v1"
 REPLAY_ITEM_SCHEMA = "offline_tuning_replay_item_v1"
-REPLAY_ITEM_CACHE_VERSION = 4
+REPLAY_ITEM_CACHE_VERSION = 7
 REPLAY_AVERAGE_PRICE_CALC_VERSION = listing_average_price_helper.AVERAGE_PRICE_CALC_VERSION
 METHOD2_ONLY_SCOPE = "method2_only"
 COMPOSITE_EVALUATION_SCOPE = "composite"
@@ -80,11 +80,32 @@ REPLAY_RECORD_SIGNATURE_KEYS = (
     "SUBSCRIPTION_LIMIT_WAN_SHARES",
     "CLOSE_PRICE",
     "LD_CLOSE_CHANGE",
+    "NEXT_DAY_CLOSE",
+    "THIRD_DAY_CLOSE",
+    "NEXT_DAY_CLOSE_CHANGE",
+    "THIRD_DAY_CLOSE_CHANGE",
+    "NEXT_DAY_FROM_LISTING_CLOSE_PCT",
+    "THIRD_DAY_FROM_LISTING_CLOSE_PCT",
+    "POST_LISTING_PROFIT_EFFECT_PCT",
     "TURNOVERRATE",
     "SW_INDUSTRY",
     "INDUSTRY",
+    "INDUSTRY_CODE",
 )
-REPLAY_EXISTING_ITEM_SIGNATURE_KEYS = tuple(key for key in REPLAY_RECORD_SIGNATURE_KEYS if key != "ISSUE_NUM")
+REPLAY_DERIVED_POST_LISTING_KEYS = {
+    "NEXT_DAY_CLOSE",
+    "THIRD_DAY_CLOSE",
+    "NEXT_DAY_CLOSE_CHANGE",
+    "THIRD_DAY_CLOSE_CHANGE",
+    "NEXT_DAY_FROM_LISTING_CLOSE_PCT",
+    "THIRD_DAY_FROM_LISTING_CLOSE_PCT",
+    "POST_LISTING_PROFIT_EFFECT_PCT",
+}
+REPLAY_EXISTING_ITEM_SIGNATURE_KEYS = tuple(
+    key
+    for key in REPLAY_RECORD_SIGNATURE_KEYS
+    if key != "ISSUE_NUM" and key not in REPLAY_DERIVED_POST_LISTING_KEYS
+)
 
 
 def _build_wsi_turnover_candidates() -> list[dict[str, float]]:
@@ -357,6 +378,47 @@ def _resolve_listing_average_price(
         "source": "",
         "reason": str(csv_result.get("reason") or "未取得首日成交均价"),
     }
+
+
+def _resolve_post_listing_performance(
+    params: dict[str, Any],
+    code: str,
+    listing_date: Any,
+    issue_price: Any,
+    record: dict[str, Any],
+) -> dict[str, Any]:
+    existing = {
+        "next_close": _safe_float(record.get("NEXT_DAY_CLOSE")),
+        "third_close": _safe_float(record.get("THIRD_DAY_CLOSE")),
+        "next_day_change_pct": _safe_float(record.get("NEXT_DAY_CLOSE_CHANGE") or record.get("NEXT_DAY_CHANGE")),
+        "third_day_change_pct": _safe_float(record.get("THIRD_DAY_CLOSE_CHANGE") or record.get("THIRD_DAY_CHANGE")),
+        "next_day_from_listing_close_pct": _safe_float(record.get("NEXT_DAY_FROM_LISTING_CLOSE_PCT")),
+        "third_day_from_listing_close_pct": _safe_float(record.get("THIRD_DAY_FROM_LISTING_CLOSE_PCT")),
+        "post_listing_profit_effect_pct": _safe_float(record.get("POST_LISTING_PROFIT_EFFECT_PCT")),
+        "source": str(record.get("post_listing_performance_source") or "").strip(),
+        "reason": "",
+    }
+    if any(existing.get(key) is not None for key in ("next_close", "third_close", "post_listing_profit_effect_pct")):
+        existing["source"] = existing["source"] or "record"
+        return existing
+
+    listing_date_text = str(listing_date or "").strip()
+    if not listing_date_text:
+        return {"source": "", "reason": "Missing listing date; post-listing performance cannot be calculated."}
+    if _safe_float(issue_price) is None:
+        return {"source": "", "reason": "Missing issue price; post-listing performance cannot be calculated."}
+
+    try:
+        tushare_result = tushare_ipo_helper.get_post_listing_performance(code, listing_date_text, issue_price, params=params)
+    except Exception as exc:
+        return {"source": "", "reason": str(exc)}
+
+    performance = dict(tushare_result.get("performance") or {})
+    if performance:
+        performance["reason"] = ""
+        return performance
+    summary = tushare_result.get("summary") or {}
+    return {"source": "", "reason": str(summary.get("reason") or "Post-listing performance unavailable.")}
 
 
 def _resolve_replay_pdf_paths(code: str) -> dict[str, Path | None]:
@@ -719,6 +781,7 @@ def _build_replay_record_from_announcements(code: str) -> dict[str, Any] | None:
         "SUBSCRIPTION_LIMIT_WAN_SHARES": _safe_float(values.get("SUBSCRIPTION_LIMIT_WAN_SHARES")),
         "SW_INDUSTRY": str(values.get("INDUSTRY") or "").strip(),
         "INDUSTRY": str(values.get("INDUSTRY") or "").strip(),
+        "INDUSTRY_CODE": str(values.get("INDUSTRY_CODE") or "").strip(),
         "replay_record_source": source,
         "announcement_fallback_field_sources": sources,
         "announcement_fallback_parse_errors": parse_errors,
@@ -786,6 +849,13 @@ def _build_replay_item(
     )
     average_price = _safe_float(average_price_result.get("average_price"))
     average_change = _calc_change_pct(issue_price, average_price)
+    post_listing_result = _resolve_post_listing_performance(
+        params,
+        code,
+        listing_date_for_average,
+        issue_price,
+        record,
+    )
 
     industry = mapper.resolve_stock_industry(code, record)
     comparable_pdf = pdf_paths.get("comparables")
@@ -818,9 +888,19 @@ def _build_replay_item(
         "AVERAGE_PRICE": average_price,
         "LD_CLOSE_CHANGE": _safe_float(record.get("LD_CLOSE_CHANGE")),
         "LD_AVERAGE_CHANGE": average_change,
+        "NEXT_DAY_CLOSE": _safe_float(post_listing_result.get("next_close")),
+        "THIRD_DAY_CLOSE": _safe_float(post_listing_result.get("third_close")),
+        "NEXT_DAY_CLOSE_CHANGE": _safe_float(post_listing_result.get("next_day_change_pct")),
+        "THIRD_DAY_CLOSE_CHANGE": _safe_float(post_listing_result.get("third_day_change_pct")),
+        "NEXT_DAY_FROM_LISTING_CLOSE_PCT": _safe_float(post_listing_result.get("next_day_from_listing_close_pct")),
+        "THIRD_DAY_FROM_LISTING_CLOSE_PCT": _safe_float(post_listing_result.get("third_day_from_listing_close_pct")),
+        "POST_LISTING_PROFIT_EFFECT_PCT": _safe_float(post_listing_result.get("post_listing_profit_effect_pct")),
+        "post_listing_performance_source": str(post_listing_result.get("source") or "").strip(),
+        "post_listing_performance_reason": str(post_listing_result.get("reason") or "").strip(),
         "TURNOVERRATE": _safe_float(record.get("TURNOVERRATE")),
         "SW_INDUSTRY": str(record.get("SW_INDUSTRY") or "").strip(),
         "INDUSTRY": str(record.get("INDUSTRY") or "").strip(),
+        "INDUSTRY_CODE": str(record.get("INDUSTRY_CODE") or "").strip(),
         "industry_primary": industry.primary,
         "industry_secondary": industry.secondary,
         "industry_source": industry.source,
@@ -923,7 +1003,14 @@ def build_replay_dataset(
         existing_months = int((existing_dataset or {}).get("source_months"))
     except (TypeError, ValueError):
         existing_months = None
-    can_reuse_existing_dataset = existing_months == int(months)
+    try:
+        existing_cache_version = int((existing_dataset or {}).get("replay_item_cache_version"))
+    except (TypeError, ValueError):
+        existing_cache_version = None
+    can_reuse_existing_dataset = (
+        existing_months == int(months)
+        and existing_cache_version == REPLAY_ITEM_CACHE_VERSION
+    )
     if can_reuse_existing_dataset:
         existing_items_by_code = {
             str(item.get("SECURITY_CODE") or "").strip(): dict(item)
@@ -1479,6 +1566,13 @@ def _build_recent_pool(items: list[dict[str, Any]]) -> list[dict[str, Any]]:
             "AVERAGE_PRICE": item.get("AVERAGE_PRICE"),
             "LD_CLOSE_CHANGE": item.get("LD_CLOSE_CHANGE"),
             "LD_AVERAGE_CHANGE": item.get("LD_AVERAGE_CHANGE"),
+            "NEXT_DAY_CLOSE": item.get("NEXT_DAY_CLOSE"),
+            "THIRD_DAY_CLOSE": item.get("THIRD_DAY_CLOSE"),
+            "NEXT_DAY_CLOSE_CHANGE": item.get("NEXT_DAY_CLOSE_CHANGE"),
+            "THIRD_DAY_CLOSE_CHANGE": item.get("THIRD_DAY_CLOSE_CHANGE"),
+            "NEXT_DAY_FROM_LISTING_CLOSE_PCT": item.get("NEXT_DAY_FROM_LISTING_CLOSE_PCT"),
+            "THIRD_DAY_FROM_LISTING_CLOSE_PCT": item.get("THIRD_DAY_FROM_LISTING_CLOSE_PCT"),
+            "POST_LISTING_PROFIT_EFFECT_PCT": item.get("POST_LISTING_PROFIT_EFFECT_PCT"),
             "TURNOVERRATE": item.get("TURNOVERRATE"),
             "industry_primary": item.get("industry_primary"),
             "industry_secondary": item.get("industry_secondary"),
@@ -1519,7 +1613,7 @@ def _evaluate_replay_prediction(
     params: dict[str, Any],
     recent_pool: list[dict[str, Any]],
     evaluation_scope: str,
-) -> tuple[dict[str, Any], dict[str, Any] | None, dict[str, Any] | None]:
+) -> tuple[dict[str, Any], dict[str, Any] | None, dict[str, Any] | None, dict[str, Any] | None]:
     code = str(item.get("SECURITY_CODE") or "").strip()
     issue_price = _safe_float(item.get("ISSUE_PRICE"))
     method2 = valuation_engine.method2_industry_momentum(
@@ -1537,8 +1631,16 @@ def _evaluate_replay_prediction(
         target_listing_date=item.get("LISTING_DATE"),
     )
 
+    method3 = valuation_engine.method3_recent_sentiment(
+        issue_price=issue_price,
+        recent_ipos=recent_pool,
+        params=params,
+        target_code=code,
+        target_listing_date=item.get("LISTING_DATE"),
+    )
+
     if evaluation_scope == METHOD2_ONLY_SCOPE:
-        return method2, None, method2
+        return method2, None, method2, method3
 
     comparable_data = list(item.get("comparable_data") or [])
     method1 = valuation_engine.method1_comparable(
@@ -1547,8 +1649,8 @@ def _evaluate_replay_prediction(
         comparable_data=comparable_data,
         params=params,
     )
-    final = valuation_engine.composite_valuation(method1, method2, params)
-    return final, method1, method2
+    final = valuation_engine.composite_valuation(method1, method2, params, method3=method3)
+    return final, method1, method2, method3
 
 
 def evaluate_replay_targets(
@@ -1589,7 +1691,7 @@ def evaluate_replay_targets(
             "actual_change_pct": _safe_float(item.get("LD_CLOSE_CHANGE")),
             "actual_interval_change_pct": _actual_interval_change_pct(item),
         }
-        valuation_result, method1, method2 = _evaluate_replay_prediction(item, params, recent_pool, evaluation_scope)
+        valuation_result, method1, method2, method3 = _evaluate_replay_prediction(item, params, recent_pool, evaluation_scope)
         if not valuation_result.get("available"):
             unavailable_results.append({**base_result, "reason": str(valuation_result.get("reason") or "")})
             continue
@@ -1636,6 +1738,15 @@ def evaluate_replay_targets(
                 "method2_available": bool(method2 and method2.get("available")),
                 "method2_target_price": _safe_float((method2 or {}).get("target_price")),
                 "method2_change_pct": _safe_float((method2 or {}).get("change_pct")),
+                "method3_available": bool(method3 and method3.get("available")),
+                "method3_premium_price": _safe_float((method3 or {}).get("premium_price")),
+                "method3_sentiment_premium_pct": _safe_float((method3 or {}).get("sentiment_premium_pct")),
+                "method3_first_day_factor_pct": _safe_float((method3 or {}).get("first_day_factor_pct")),
+                "method3_post_listing_factor_pct": _safe_float((method3 or {}).get("post_listing_factor_pct")),
+                "method3_post_listing_sample_count": (method3 or {}).get("post_listing_sample_count"),
+                "method3_change_pct": _safe_float((method3 or {}).get("change_pct")),
+                "method3_sample_count": (method3 or {}).get("sample_count"),
+                "method3_sample_codes": list((method3 or {}).get("sample_codes") or []),
                 "sample_scope": (method2 or {}).get("sample_scope"),
                 "sample_count": (method2 or {}).get("sample_count"),
                 "historical_sample_count": (method2 or {}).get("historical_sample_count"),
@@ -1647,6 +1758,7 @@ def evaluate_replay_targets(
                 "pe_factor": (method2 or {}).get("pe_factor"),
                 "weight_comparable": _safe_float(valuation_result.get("weight_comparable")),
                 "weight_industry_momentum": _safe_float(valuation_result.get("weight_industry_momentum")),
+                "weight_recent_sentiment": _safe_float(valuation_result.get("weight_recent_sentiment")),
             }
         )
 
@@ -2330,6 +2442,54 @@ def build_auto_tune_candidate_groups(
         )
     )
 
+    sentiment_half_life_values = _auto_stage_int_values(params, "sentiment_decay_half_life_days", 5, 40, 15, (5, 2), stage_level)
+    groups.append(("sentiment_half_life", [{"sentiment_decay_half_life_days": value} for value in sentiment_half_life_values]))
+    groups.append(
+        (
+            "sentiment_first_day_baseline",
+            [
+                {"sentiment_first_day_baseline_pct": value}
+                for value in _auto_stage_values(params, "sentiment_first_day_baseline_pct", 60.0, 160.0, 100.0, (20.0, 10.0), stage_level, decimals=1)
+            ],
+        )
+    )
+    groups.append(
+        (
+            "sentiment_first_day_scale",
+            [
+                {"sentiment_first_day_scale": value}
+                for value in _auto_stage_values(params, "sentiment_first_day_scale", 0.05, 0.35, 0.15, (0.05, 0.025), stage_level, decimals=3)
+            ],
+        )
+    )
+    groups.append(
+        (
+            "sentiment_post_listing_scale",
+            [
+                {"sentiment_post_listing_scale": value}
+                for value in _auto_stage_values(params, "sentiment_post_listing_scale", 0.00, 0.40, 0.15, (0.05, 0.025), stage_level, decimals=3)
+            ],
+        )
+    )
+    groups.append(
+        (
+            "sentiment_premium_cap",
+            [
+                {"sentiment_premium_cap_pct": value}
+                for value in _auto_stage_values(params, "sentiment_premium_cap_pct", 15.0, 50.0, 35.0, (5.0, 2.5), stage_level, decimals=1)
+            ],
+        )
+    )
+    groups.append(
+        (
+            "sentiment_premium_floor",
+            [
+                {"sentiment_premium_floor_pct": value}
+                for value in _auto_stage_values(params, "sentiment_premium_floor_pct", -35.0, 0.0, -20.0, (5.0, 2.5), stage_level, decimals=1)
+            ],
+        )
+    )
+
     trend_weight_values = _auto_stage_values(params, "industry_trend_weight", 0.30, 0.85, 0.60, (0.05, 0.025), stage_level, decimals=3)
     groups.append(
         (
@@ -2797,7 +2957,7 @@ def prepend_auto_tuning_record(
         f"- 参数文件：{Path(params_file)}",
         f"- 评估范围：{result.get('evaluation_scope')}",
         f"- 最终搜索轮次：第 {result.get('stage_level')} 轮",
-        f"- 方法二样本池截取窗口：{result.get('sample_window_days')} 天（recent_days）",
+        f"- 方法三情绪样本窗口：{result.get('sample_window_days')} 天（recent_days）",
         f"- 近期权重基准日：{result.get('reference_date')}，评分权重衰减窗口：{result.get('lookback_days')} 天",
         f"- 最近 {result.get('recent_floor_days')} 天样本最低总权重：{_fmt_metric(result.get('recent_min_total_weight'))}",
         f"- baseline 排序分：{_fmt_metric(baseline_score.get('auto_score'))}",

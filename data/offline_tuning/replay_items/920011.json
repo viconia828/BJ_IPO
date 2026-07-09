@@ -1,7 +1,7 @@
 {
   "schema": "offline_tuning_replay_item_v1",
-  "cache_version": 4,
-  "generated_at": "2026-07-06 21:16:39",
+  "cache_version": 7,
+  "generated_at": "2026-07-09 23:33:12",
   "code": "920011",
   "listing_date": "2026-04-08 00:00:00",
   "record_signature": {
@@ -19,9 +19,17 @@
     "SUBSCRIPTION_LIMIT_WAN_SHARES": null,
     "CLOSE_PRICE": 29.04,
     "LD_CLOSE_CHANGE": 87.3548,
+    "NEXT_DAY_CLOSE": null,
+    "THIRD_DAY_CLOSE": null,
+    "NEXT_DAY_CLOSE_CHANGE": null,
+    "THIRD_DAY_CLOSE_CHANGE": null,
+    "NEXT_DAY_FROM_LISTING_CLOSE_PCT": null,
+    "THIRD_DAY_FROM_LISTING_CLOSE_PCT": null,
+    "POST_LISTING_PROFIT_EFFECT_PCT": null,
     "TURNOVERRATE": 92.7668,
     "SW_INDUSTRY": null,
-    "INDUSTRY": null
+    "INDUSTRY": null,
+    "INDUSTRY_CODE": null
   },
   "pdf_signature": {
     "listing": {
@@ -56,9 +64,19 @@
     "AVERAGE_PRICE": 29.661284131630037,
     "LD_CLOSE_CHANGE": 87.3548,
     "LD_AVERAGE_CHANGE": 91.36312342987121,
+    "NEXT_DAY_CLOSE": 25.21,
+    "THIRD_DAY_CLOSE": 25.04,
+    "NEXT_DAY_CLOSE_CHANGE": 62.645161290322584,
+    "THIRD_DAY_CLOSE_CHANGE": 61.54838709677419,
+    "NEXT_DAY_FROM_LISTING_CLOSE_PCT": -13.18870523415977,
+    "THIRD_DAY_FROM_LISTING_CLOSE_PCT": -13.774104683195599,
+    "POST_LISTING_PROFIT_EFFECT_PCT": -13.481404958677684,
+    "post_listing_performance_source": "tushare_daily",
+    "post_listing_performance_reason": "",
     "TURNOVERRATE": 92.7668,
     "SW_INDUSTRY": "",
     "INDUSTRY": "",
+    "INDUSTRY_CODE": "",
     "industry_primary": "高端装备",
     "industry_secondary": "机械设备",
     "industry_source": "built_in_sample_map",

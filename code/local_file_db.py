@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 from datetime import date, datetime
 from pathlib import Path
-from typing import Any
+from typing import Any, Iterable
 
 
 def _now_iso() -> str:
@@ -101,17 +101,26 @@ class LocalFileDB:
     def get_today_api_call_count(
         self,
         current_date: date | None = None,
-        source: str | None = "wind",
+        source: str | None = 'wind',
+        request_kinds: Iterable[str] | None = None,
+        exclude_request_kinds: Iterable[str] | None = None,
     ) -> int:
         today = (current_date or date.today()).isoformat()
+        include_kinds = {str(kind) for kind in request_kinds or []}
+        exclude_kinds = {str(kind) for kind in exclude_request_kinds or []}
         payload = self.load_request_log()
         count = 0
-        for event in payload.get("events", []):
-            if event.get("event_type") != "api_call":
+        for event in payload.get('events', []):
+            if event.get('event_type') != 'api_call':
                 continue
-            if source is not None and event.get("source", "wind") != source:
+            if source is not None and event.get('source', 'wind') != source:
                 continue
-            timestamp = str(event.get("timestamp", ""))
+            request_kind = str(event.get('request_kind') or event.get('api_name') or '')
+            if include_kinds and request_kind not in include_kinds:
+                continue
+            if exclude_kinds and request_kind in exclude_kinds:
+                continue
+            timestamp = str(event.get('timestamp', ''))
             if timestamp[:10] == today:
                 count += 1
         return count

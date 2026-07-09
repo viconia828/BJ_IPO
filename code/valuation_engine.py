@@ -4,7 +4,6 @@ import statistics
 from datetime import date, timedelta
 from typing import Any
 
-from trend_scorer import get_trend_factor
 
 
 def _median_or_mean(values: list[float], stat_name: str) -> float:
@@ -29,6 +28,16 @@ def _weighted_median(value_weight_pairs: list[tuple[float, float]]) -> float | N
         if cumulative >= threshold:
             return value
     return valid_pairs[-1][0]
+
+
+def _weighted_mean(value_weight_pairs: list[tuple[float, float]]) -> float | None:
+    valid_pairs = [(value, weight) for value, weight in value_weight_pairs if weight > 0]
+    if not valid_pairs:
+        return None
+    total_weight = sum(weight for _, weight in valid_pairs)
+    if total_weight <= 0:
+        return None
+    return sum(value * weight for value, weight in valid_pairs) / total_weight
 
 
 def _safe_float(value: Any) -> float | None:
@@ -59,6 +68,10 @@ def _get_sample_weight_mode(params: dict[str, Any]) -> str:
 
 def _get_sample_half_life_days(params: dict[str, Any]) -> float:
     return max(float(params.get("sample_decay_half_life_days", 20)), 1.0)
+
+
+def _get_sentiment_half_life_days(params: dict[str, Any]) -> float:
+    return max(float(params.get("sentiment_decay_half_life_days", params.get("sample_decay_half_life_days", 20))), 1.0)
 
 
 def _get_recent_window_days(params: dict[str, Any]) -> int:
@@ -109,6 +122,14 @@ def _get_sample_weight(sample_date: date | None, reference_date: date, params: d
     return 0.5 ** (day_gap / half_life_days)
 
 
+def _get_sentiment_weight(sample_date: date | None, reference_date: date, params: dict[str, Any]) -> float:
+    if sample_date is None:
+        return 0.0
+    day_gap = max((reference_date - sample_date).days, 0)
+    half_life_days = _get_sentiment_half_life_days(params)
+    return 0.5 ** (day_gap / half_life_days)
+
+
 def _sample_first_day_change_pct(item: dict[str, Any]) -> float | None:
     average_change = _safe_float(item.get("LD_AVERAGE_CHANGE"))
     if average_change is not None:
@@ -116,29 +137,136 @@ def _sample_first_day_change_pct(item: dict[str, Any]) -> float | None:
     return _safe_float(item.get("LD_CLOSE_CHANGE"))
 
 
-def _summarize_change_stat(
+def _change_from_listing_close(first_day_change: float | None, later_change: float | None) -> float | None:
+    if first_day_change is None or later_change is None:
+        return None
+    listing_base = 1 + first_day_change / 100
+    later_base = 1 + later_change / 100
+    if listing_base <= 0:
+        return None
+    return (later_base / listing_base - 1) * 100
+
+
+def _sample_post_listing_profit_effect_pct(item: dict[str, Any]) -> float | None:
+    direct_value = _safe_float(item.get("POST_LISTING_PROFIT_EFFECT_PCT"))
+    if direct_value is not None:
+        return direct_value
+
+    direct_values = [
+        _safe_float(item.get("NEXT_DAY_FROM_LISTING_CLOSE_PCT")),
+        _safe_float(item.get("THIRD_DAY_FROM_LISTING_CLOSE_PCT")),
+    ]
+    direct_values = [value for value in direct_values if value is not None]
+    if direct_values:
+        return statistics.fmean(direct_values)
+
+    first_day_close_change = _safe_float(item.get("LD_CLOSE_CHANGE"))
+    next_change = None
+    for key in ("NEXT_DAY_CLOSE_CHANGE", "NEXT_DAY_CHANGE", "D2_CLOSE_CHANGE"):
+        next_change = _safe_float(item.get(key))
+        if next_change is not None:
+            break
+    third_change = None
+    for key in ("THIRD_DAY_CLOSE_CHANGE", "THIRD_DAY_CHANGE", "D3_CLOSE_CHANGE"):
+        third_change = _safe_float(item.get(key))
+        if third_change is not None:
+            break
+
+    computed_values = [
+        _change_from_listing_close(first_day_close_change, next_change),
+        _change_from_listing_close(first_day_close_change, third_change),
+    ]
+    computed_values = [value for value in computed_values if value is not None]
+    if computed_values:
+        return statistics.fmean(computed_values)
+    return None
+
+
+def _build_change_entries(
     records: list[dict[str, Any]],
     params: dict[str, Any],
     reference_date: date,
-) -> tuple[float | None, str]:
-    value_weight_pairs: list[tuple[float, float]] = []
+) -> list[tuple[dict[str, Any], float, float]]:
+    entries: list[tuple[dict[str, Any], float, float]] = []
     for item in records:
         change_pct = _sample_first_day_change_pct(item)
         if change_pct is None:
             continue
         sample_date = _parse_date(item.get("LISTING_DATE"))
-        value_weight_pairs.append((change_pct, _get_sample_weight(sample_date, reference_date, params)))
+        entries.append((item, change_pct, _get_sample_weight(sample_date, reference_date, params)))
+    return entries
 
-    if not value_weight_pairs:
+
+def _summarize_change_entries(
+    entries: list[tuple[dict[str, Any], float, float]],
+    params: dict[str, Any],
+) -> tuple[float | None, str]:
+    if not entries:
         return None, "中位数"
 
     if _get_sample_weight_mode(params) == "time_decay":
-        value = _weighted_median(value_weight_pairs)
+        value = _weighted_median([(change_pct, weight) for _, change_pct, weight in entries])
         label = f"时间衰减中位数（半衰期 {_get_sample_half_life_days(params):.0f} 天）"
         return value, label
 
-    values = [value for value, _ in value_weight_pairs]
-    return statistics.median(values), "中位数"
+    return statistics.median([change_pct for _, change_pct, _ in entries]), "中位数"
+
+
+def _robust_filter_change_entries(
+    entries: list[tuple[dict[str, Any], float, float]],
+    params: dict[str, Any],
+) -> tuple[list[tuple[dict[str, Any], float, float]], list[tuple[dict[str, Any], float, float]]]:
+    min_samples = max(int(params.get("robust_median_min_samples", 4)), 1)
+    if len(entries) < min_samples:
+        return entries, []
+
+    values = [change_pct for _, change_pct, _ in entries]
+    median_value = statistics.median(values)
+    deviations = [abs(value - median_value) for value in values]
+    mad = statistics.median(deviations)
+    epsilon = 1e-9
+    if mad <= epsilon:
+        filtered = [entry for entry in entries if abs(entry[1] - median_value) <= epsilon]
+        if filtered and len(filtered) < len(entries):
+            removed = [entry for entry in entries if abs(entry[1] - median_value) > epsilon]
+            return filtered, removed
+        return entries, []
+
+    multiplier = max(float(params.get("robust_mad_multiplier", 3.0)), 0.1)
+    robust_sigma = 1.4826 * mad
+    limit = multiplier * robust_sigma
+    filtered = [entry for entry in entries if abs(entry[1] - median_value) <= limit]
+    if not filtered:
+        return entries, []
+    removed = [entry for entry in entries if abs(entry[1] - median_value) > limit]
+    return filtered, removed
+
+
+def _summarize_change_records(
+    records: list[dict[str, Any]],
+    params: dict[str, Any],
+    reference_date: date,
+    *,
+    robust: bool = False,
+) -> tuple[float | None, str, list[dict[str, Any]], list[dict[str, Any]]]:
+    entries = _build_change_entries(records, params, reference_date)
+    removed_entries: list[tuple[dict[str, Any], float, float]] = []
+    if robust:
+        entries, removed_entries = _robust_filter_change_entries(entries, params)
+
+    value, label = _summarize_change_entries(entries, params)
+    if robust:
+        label = f"MAD去极值{label}" if removed_entries else f"稳健{label}"
+    return value, label, [entry[0] for entry in entries], [entry[0] for entry in removed_entries]
+
+
+def _summarize_change_stat(
+    records: list[dict[str, Any]],
+    params: dict[str, Any],
+    reference_date: date,
+) -> tuple[float | None, str]:
+    value, label, _, _ = _summarize_change_records(records, params, reference_date)
+    return value, label
 
 
 def method1_comparable(
@@ -176,26 +304,30 @@ def method1_comparable(
     }
 
 
-def _pick_industry_samples(
+def _filter_samples_by_year_to_date(
+    records: list[dict[str, Any]],
+    reference_date: date,
+) -> list[dict[str, Any]]:
+    start_date = date(reference_date.year, 1, 1)
+    filtered: list[dict[str, Any]] = []
+    for item in records:
+        sample_date = _parse_date(item.get("LISTING_DATE"))
+        if sample_date is None:
+            continue
+        if start_date <= sample_date <= reference_date:
+            filtered.append(item)
+    return filtered
+
+
+def _pick_secondary_industry_samples(
     industry: dict[str, Any],
-    recent_ipos: list[dict[str, Any]],
-    min_samples: int,
+    records: list[dict[str, Any]],
 ) -> tuple[list[dict[str, Any]], str]:
-    valid_records = [item for item in recent_ipos if _sample_first_day_change_pct(item) is not None]
-    secondary = industry.get("secondary")
-    primary = industry.get("primary")
-
-    if secondary and secondary != "未分类":
-        secondary_records = [item for item in valid_records if item.get("industry_secondary") == secondary]
-        if len(secondary_records) >= min_samples:
-            return secondary_records, "二级行业"
-
-    if primary and primary != "未分类":
-        primary_records = [item for item in valid_records if item.get("industry_primary") == primary]
-        if len(primary_records) >= min_samples:
-            return primary_records, "一级行业"
-
-    return valid_records, "全市场"
+    valid_records = [item for item in records if _sample_first_day_change_pct(item) is not None]
+    secondary = str(industry.get("secondary") or "").strip()
+    if not secondary or secondary == "未分类":
+        return [], "未映射"
+    return [item for item in valid_records if item.get("industry_secondary") == secondary], "二级行业"
 
 
 def _filter_historical_samples(
@@ -231,127 +363,231 @@ def method2_industry_momentum(
     target_code: str | None = None,
     target_listing_date: str | date | None = None,
 ) -> dict[str, Any]:
+    _ = (issue_pe, industry_pe, float_shares)
     if not issue_price:
         return {"available": False, "reason": "发行价缺失，无法计算方法二。"}
     if not recent_ipos:
         return {"available": False, "reason": "近期新股样本为空，无法计算方法二。"}
+
+    secondary = str(industry.get("secondary") or "").strip()
+    if not secondary or secondary == "未分类":
+        return {"available": False, "reason": "标的未完成二级行业映射，方法二不再回退一级行业或全市场。"}
 
     historical_ipos = _filter_historical_samples(recent_ipos, target_code, target_listing_date)
     if not historical_ipos:
         return {"available": False, "reason": "不存在早于标的上市日的历史样本，无法计算方法二。"}
 
     reference_date = _resolve_reference_date(target_listing_date, historical_ipos)
-    historical_ipos = _filter_samples_by_recent_days(historical_ipos, params, reference_date)
-    if not historical_ipos:
-        return {
-            "available": False,
-            "reason": f"近{_get_recent_window_days(params)}天内不存在早于标的上市日的历史样本，无法计算方法二。",
-        }
+    year_records = _filter_samples_by_year_to_date(historical_ipos, reference_date)
+    if not year_records:
+        return {"available": False, "reason": f"{reference_date.year}年内不存在早于标的上市日的历史样本，无法计算方法二。"}
 
-    min_samples = int(params.get("min_industry_samples", 2))
-    samples, sample_scope = _pick_industry_samples(industry, historical_ipos, min_samples)
-    base_chg, base_stat_label = _summarize_change_stat(samples, params, reference_date)
-    clean_gains = [_sample_first_day_change_pct(item) for item in samples]
-    clean_gains = [value for value in clean_gains if value is not None]
-    if not clean_gains or base_chg is None:
-        return {"available": False, "reason": "样本缺少首日涨幅字段，无法计算方法二。"}
+    samples, sample_scope = _pick_secondary_industry_samples(industry, year_records)
+    if not samples:
+        return {"available": False, "reason": f"{reference_date.year}年内没有同二级行业历史新股样本，方法二不可用。"}
 
-    float_threshold = float(params.get("float_size_threshold", 2000))
-    small_cap_premium = float(params.get("small_cap_premium", 0.1))
-    if float_shares is not None and float_shares < float_threshold:
-        float_factor = 1 + small_cap_premium
-        float_note = f"{float_shares:.2f} 万股 < {float_threshold:.0f} 万股，给予小盘溢价"
-    else:
-        float_factor = 1.0
-        float_note = "流通盘未触发小盘溢价"
-
-    pe_low = float(params.get("pe_low_threshold", 0.3))
-    pe_low_boost = float(params.get("pe_discount_boost", 0.1))
-    pe_high = float(params.get("pe_high_threshold", 0.6))
-    pe_high_drag = float(params.get("pe_premium_drag", -0.1))
-    pe_ratio = None
-    pe_factor = 1.0
-    pe_note = "行业 PE 缺失，PE 因子按中性处理"
-    if issue_pe and industry_pe and industry_pe > 0:
-        pe_ratio = issue_pe / industry_pe
-        if pe_ratio < pe_low:
-            pe_factor = 1 + pe_low_boost
-            pe_note = f"发行 PE 明显低于行业 PE，给予 {pe_low_boost * 100:.0f}% 加成"
-        elif pe_ratio > pe_high:
-            pe_factor = 1 + pe_high_drag
-            pe_note = f"发行 PE 偏高，给予 {pe_high_drag * 100:.0f}% 调整"
-        else:
-            pe_note = "发行 PE 处于行业合理区间"
-
-    trend = get_trend_factor(
-        industry=industry,
-        recent_ipos=historical_ipos,
-        params=params,
-        target_code=target_code,
-        target_listing_date=target_listing_date,
+    base_chg, base_stat_label, clean_samples, removed_samples = _summarize_change_records(
+        samples,
+        params,
+        reference_date,
+        robust=True,
     )
-    adj_factor = float_factor * pe_factor * trend.factor
-    expected_change_pct = base_chg * adj_factor
-    target_price = issue_price * (1 + expected_change_pct / 100)
+    if not clean_samples or base_chg is None:
+        return {"available": False, "reason": "同行业样本缺少首日涨幅字段，无法计算方法二。"}
 
+    target_price = issue_price * (1 + base_chg / 100)
+    start_date = date(reference_date.year, 1, 1)
     return {
         "available": True,
+        "method": "industry_first_day_change",
         "base_chg": base_chg,
         "target_price": target_price,
-        "change_pct": expected_change_pct,
-        "sample_count": len(clean_gains),
+        "change_pct": base_chg,
+        "sample_count": len(clean_samples),
+        "raw_sample_count": len(samples),
         "sample_scope": sample_scope,
-        "sample_codes": [item.get("SECURITY_CODE", "") for item in samples],
-        "historical_sample_count": len(historical_ipos),
-        "recent_days": _get_recent_window_days(params),
+        "sample_window_label": f"{reference_date.year}年内",
+        "sample_window_start": start_date.isoformat(),
+        "sample_window_end": reference_date.isoformat(),
+        "sample_codes": [item.get("SECURITY_CODE", "") for item in clean_samples],
+        "raw_sample_codes": [item.get("SECURITY_CODE", "") for item in samples],
+        "removed_sample_codes": [item.get("SECURITY_CODE", "") for item in removed_samples],
+        "removed_sample_count": len(removed_samples),
+        "historical_sample_count": len(year_records),
+        "recent_days": None,
         "base_stat_label": base_stat_label,
-        "float_factor": float_factor,
-        "float_note": float_note,
-        "pe_ratio": pe_ratio,
-        "pe_factor": pe_factor,
-        "pe_note": pe_note,
-        "trend_factor": trend.factor,
-        "trend_note": trend.note,
-        "industry_trend_factor": trend.industry_factor,
-        "market_trend_factor": trend.market_factor,
-        "industry_trend_score_median": trend.industry_score_median,
-        "market_trend_score_median": trend.market_score_median,
-        "industry_trend_sample_codes": trend.industry_sample_codes,
-        "market_trend_sample_codes": trend.market_sample_codes,
-        "adj_factor": adj_factor,
+        "float_factor": 1.0,
+        "float_note": "方法二仅使用同行业首日涨幅，流通盘修正不在本方法内处理。",
+        "pe_ratio": None,
+        "pe_factor": 1.0,
+        "pe_note": "PE 估值已由方法一处理，方法二不再叠加 PE 因子。",
+        "trend_factor": 1.0,
+        "trend_note": "近期市场情绪已拆分到方法三，方法二不再叠加走势情绪因子。",
+        "industry_trend_factor": 1.0,
+        "market_trend_factor": 1.0,
+        "industry_trend_score_median": None,
+        "market_trend_score_median": None,
+        "industry_trend_sample_codes": [],
+        "market_trend_sample_codes": [],
+        "adj_factor": 1.0,
     }
+
+
+def _build_sentiment_entries(
+    records: list[dict[str, Any]],
+    params: dict[str, Any],
+    reference_date: date,
+    value_getter,
+) -> list[tuple[dict[str, Any], float, float]]:
+    entries: list[tuple[dict[str, Any], float, float]] = []
+    for item in records:
+        value = value_getter(item)
+        if value is None:
+            continue
+        sample_date = _parse_date(item.get("LISTING_DATE"))
+        weight = _get_sentiment_weight(sample_date, reference_date, params)
+        if weight <= 0:
+            continue
+        entries.append((item, value, weight))
+    return entries
+
+
+def _clamp(value: float, floor_value: float, cap_value: float) -> float:
+    lower = min(floor_value, cap_value)
+    upper = max(floor_value, cap_value)
+    return min(max(value, lower), upper)
+
+
+def method3_recent_sentiment(
+    issue_price: float | None,
+    recent_ipos: list[dict[str, Any]],
+    params: dict[str, Any],
+    target_code: str | None = None,
+    target_listing_date: str | date | None = None,
+) -> dict[str, Any]:
+    if not issue_price:
+        return {"available": False, "reason": "Missing issue price; method3 cannot be calculated."}
+    if not recent_ipos:
+        return {"available": False, "reason": "Recent IPO sample pool is empty; method3 cannot be calculated."}
+
+    historical_ipos = _filter_historical_samples(recent_ipos, target_code, target_listing_date)
+    if not historical_ipos:
+        return {"available": False, "reason": "No historical samples before target listing date; method3 cannot be calculated."}
+
+    reference_date = _resolve_reference_date(target_listing_date, historical_ipos)
+    recent_records = _filter_samples_by_recent_days(historical_ipos, params, reference_date)
+    recent_days = _get_recent_window_days(params)
+    if not recent_records:
+        return {
+            "available": False,
+            "reason": f"No historical samples within the latest {recent_days} days before target listing date; method3 cannot be calculated.",
+        }
+
+    first_day_entries = _build_sentiment_entries(recent_records, params, reference_date, _sample_first_day_change_pct)
+    post_listing_entries = _build_sentiment_entries(recent_records, params, reference_date, _sample_post_listing_profit_effect_pct)
+    first_day_factor = _weighted_mean([(value, weight) for _, value, weight in first_day_entries])
+    post_listing_factor = _weighted_mean([(value, weight) for _, value, weight in post_listing_entries])
+    if first_day_factor is None:
+        return {"available": False, "reason": "Recent samples lack first-day change fields; method3 cannot be calculated."}
+
+    first_day_baseline = float(params.get("sentiment_first_day_baseline_pct", 100.0))
+    first_day_scale = float(params.get("sentiment_first_day_scale", params.get("market_sentiment_weight", 0.15)))
+    post_listing_scale = float(params.get("sentiment_post_listing_scale", params.get("market_sentiment_weight", 0.15)))
+    premium_cap = float(params.get("sentiment_premium_cap_pct", 35.0))
+    premium_floor = float(params.get("sentiment_premium_floor_pct", -20.0))
+
+    first_day_signal = (first_day_factor - first_day_baseline) * first_day_scale
+    post_listing_signal = (post_listing_factor or 0.0) * post_listing_scale
+    raw_premium_pct = first_day_signal + post_listing_signal
+    premium_pct = _clamp(raw_premium_pct, premium_floor, premium_cap)
+    premium_price = issue_price * premium_pct / 100
+    half_life_days = _get_sentiment_half_life_days(params)
+    return {
+        "available": True,
+        "method": "recent_sentiment_premium",
+        "sentiment_premium_pct": premium_pct,
+        "raw_sentiment_premium_pct": raw_premium_pct,
+        "premium_price": premium_price,
+        "change_pct": premium_pct,
+        "first_day_factor_pct": first_day_factor,
+        "first_day_baseline_pct": first_day_baseline,
+        "first_day_signal_pct": first_day_signal,
+        "post_listing_factor_pct": post_listing_factor,
+        "post_listing_signal_pct": post_listing_signal,
+        "sample_count": len(first_day_entries),
+        "first_day_sample_count": len(first_day_entries),
+        "post_listing_sample_count": len(post_listing_entries),
+        "raw_sample_count": len(recent_records),
+        "sample_scope": "recent_market_sentiment",
+        "sample_window_label": f"latest {recent_days} days",
+        "sample_codes": [item.get("SECURITY_CODE", "") for item, _, _ in first_day_entries],
+        "post_listing_sample_codes": [item.get("SECURITY_CODE", "") for item, _, _ in post_listing_entries],
+        "raw_sample_codes": [item.get("SECURITY_CODE", "") for item in recent_records],
+        "historical_sample_count": len(historical_ipos),
+        "recent_days": recent_days,
+        "base_stat_label": f"time-decay mean (half-life {half_life_days:.0f} days)",
+        "decay_half_life_days": half_life_days,
+        "sentiment_first_day_scale": first_day_scale,
+        "sentiment_post_listing_scale": post_listing_scale,
+        "sentiment_premium_cap_pct": premium_cap,
+        "sentiment_premium_floor_pct": premium_floor,
+    }
+
+
+def _normalize_available_method_weights(candidates: list[tuple[str, dict[str, Any], float]]) -> dict[str, float]:
+    if not candidates:
+        return {}
+    total_weight = sum(max(weight, 0.0) for _, _, weight in candidates)
+    if total_weight <= 0:
+        return {key: 1 / len(candidates) for key, _, _ in candidates}
+    return {key: max(weight, 0.0) / total_weight for key, _, weight in candidates}
 
 
 def composite_valuation(
     method1: dict[str, Any] | None,
     method2: dict[str, Any] | None,
     params: dict[str, Any],
+    method3: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     width = float(params.get("price_range_width", 0.15))
-    if method2 and method2.get("available") and not (method1 and method1.get("available")):
-        target = float(method2["target_price"])
-        return {
-            "available": True,
-            "target_price": target,
-            "range_low": target * (1 - width),
-            "range_high": target * (1 + width),
-            "weight_comparable": 0.0,
-            "weight_industry_momentum": 1.0,
-        }
+    raw_weights = {
+        "method1": float(params.get("weight_comparable", 0.5)),
+        "method2": float(params.get("weight_industry_momentum", 0.5)),
+    }
+    candidates: list[tuple[str, dict[str, Any], float]] = []
+    for key, result in (("method1", method1), ("method2", method2)):
+        if result and result.get("available"):
+            candidates.append((key, result, raw_weights.get(key, 0.0)))
 
-    if not (method1 and method1.get("available")) or not (method2 and method2.get("available")):
-        return {"available": False, "reason": "缺少可用的估值结果，无法给出综合定价。"}
+    if not candidates:
+        return {"available": False, "reason": "No available base valuation result; composite valuation cannot be calculated."}
 
-    weight_comparable = float(params.get("weight_comparable", 0.5))
-    weight_industry = float(params.get("weight_industry_momentum", 0.5))
-    target_price = method1["target_price"] * weight_comparable + method2["target_price"] * weight_industry
+    normalized = _normalize_available_method_weights(candidates)
+    base_target_price = sum(float(result["target_price"]) * normalized[key] for key, result, _ in candidates)
+
+    sentiment_premium_price = 0.0
+    sentiment_premium_pct = 0.0
+    if method3 and method3.get("available"):
+        sentiment_premium_price = float(method3.get("premium_price") or 0.0)
+        sentiment_premium_pct = float(method3.get("sentiment_premium_pct") or 0.0)
+
+    target_price = base_target_price + sentiment_premium_price
     return {
         "available": True,
         "target_price": target_price,
+        "base_target_price": base_target_price,
+        "sentiment_premium_price": sentiment_premium_price,
+        "sentiment_premium_pct": sentiment_premium_pct,
         "range_low": target_price * (1 - width),
         "range_high": target_price * (1 + width),
-        "weight_comparable": weight_comparable,
-        "weight_industry_momentum": weight_industry,
+        "weight_comparable": normalized.get("method1", 0.0),
+        "weight_industry_momentum": normalized.get("method2", 0.0),
+        "weight_recent_sentiment": 0.0,
+        "weight_method1": normalized.get("method1", 0.0),
+        "weight_method2": normalized.get("method2", 0.0),
+        "weight_method3": 0.0,
+        "method3_available": bool(method3 and method3.get("available")),
+        "available_methods": [key for key, _, _ in candidates],
     }
 
 
@@ -368,8 +604,8 @@ def generate_notes(data_dict: dict[str, Any], params: dict[str, Any]) -> list[st
     comparable_codes = data_dict.get("comparable_codes", []) or []
     wind_summary = data_dict.get("wind_summary", {}) or {}
 
-    if industry.get("primary") == "未分类":
-        notes.append("当前标的尚未完成行业映射，方法二已自动退回全市场样本。建议在 `策略参数.txt` 中填写 `stock_industry`。")
+    if industry.get("primary") == "未分类" or industry.get("secondary") == "未分类":
+        notes.append("当前标的尚未完成二级行业映射，方法二不再回退一级行业或全市场。建议补充 `stock_industry` 或行业映射。")
 
     if issue_pe and industry_pe and industry_pe > 0:
         ratio = issue_pe / industry_pe
@@ -443,16 +679,10 @@ def generate_notes(data_dict: dict[str, Any], params: dict[str, Any]) -> list[st
         if wind_summary.get("reason") and wind_summary.get("reason") != "Wind 当前处于禁用状态。":
             notes.append(f"Wind 提示：{wind_summary.get('reason')}")
 
-    if method2.get("available") and method2.get("sample_scope") == "全市场":
-        notes.append("同行业样本数量不足，方法二当前回退为全市场新股统计口径。")
-
     if method2.get("available"):
         base_stat_label = str(method2.get("base_stat_label", "")).strip()
         if base_stat_label and base_stat_label != "中位数":
-            notes.append(f"方法二基础涨幅统计已切换为{base_stat_label}，越接近标的上市日的样本权重越高。")
-        trend_note = str(method2.get("trend_note", "")).strip()
-        if trend_note:
-            notes.append(f"走势模块说明：{trend_note}")
+            notes.append(f"方法二同行业首日涨幅统计使用{base_stat_label}，并限定在标的上市年内同二级行业样本。")
 
     old_shares_desc = data_dict.get("old_shares_desc", "")
     if "待确认" in old_shares_desc:

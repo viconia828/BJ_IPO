@@ -140,6 +140,18 @@ def _validate_params(params: dict[str, Any]) -> None:
 
     if float(params.get("sample_decay_half_life_days", 20)) <= 0:
         raise ValueError("sample_decay_half_life_days 必须大于 0")
+    if float(params.get("sentiment_decay_half_life_days", params.get("sample_decay_half_life_days", 20))) <= 0:
+        raise ValueError("sentiment_decay_half_life_days must be greater than 0")
+    if float(params.get("sentiment_first_day_scale", params.get("market_sentiment_weight", 0.15))) < 0:
+        raise ValueError("sentiment_first_day_scale cannot be negative")
+    if float(params.get("sentiment_post_listing_scale", params.get("market_sentiment_weight", 0.15))) < 0:
+        raise ValueError("sentiment_post_listing_scale cannot be negative")
+    if float(params.get("sentiment_premium_floor_pct", -20.0)) > float(params.get("sentiment_premium_cap_pct", 35.0)):
+        raise ValueError("sentiment_premium_floor_pct must be <= sentiment_premium_cap_pct")
+    if float(params.get("robust_median_min_samples", 4)) <= 0:
+        raise ValueError("robust_median_min_samples must be greater than 0")
+    if float(params.get("robust_mad_multiplier", 3.0)) <= 0:
+        raise ValueError("robust_mad_multiplier must be greater than 0")
     if float(
         params.get(
             "subscription_prediction_sample_decay_half_life_days",
@@ -195,6 +207,10 @@ def _validate_params(params: dict[str, Any]) -> None:
         raise ValueError("wind_request_pause_seconds 不能小于 0")
     if int(params.get("tushare_daily_request_quota", 200)) < 0:
         raise ValueError("tushare_daily_request_quota 不能小于 0")
+    if int(params.get('tushare_intraday_request_quota', params.get('tushare_daily_request_quota', 200))) < 0:
+        raise ValueError('tushare_intraday_request_quota 不能小于 0')
+    if int(params.get('tushare_non_intraday_daily_request_quota', 50000)) < 0:
+        raise ValueError('tushare_non_intraday_daily_request_quota 不能小于 0')
     if float(params.get("tushare_request_pause_seconds", 0.12)) < 0:
         raise ValueError("tushare_request_pause_seconds 不能小于 0")
     if float(params.get("tushare_static_ttl_days", 3650)) <= 0:

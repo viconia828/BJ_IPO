@@ -1,7 +1,7 @@
 {
   "schema": "offline_tuning_replay_item_v1",
-  "cache_version": 4,
-  "generated_at": "2026-07-06 21:16:57",
+  "cache_version": 7,
+  "generated_at": "2026-07-09 23:33:30",
   "code": "920191",
   "listing_date": "2026-04-20 00:00:00",
   "record_signature": {
@@ -19,9 +19,17 @@
     "SUBSCRIPTION_LIMIT_WAN_SHARES": null,
     "CLOSE_PRICE": 14.88,
     "LD_CLOSE_CHANGE": 92.9961,
+    "NEXT_DAY_CLOSE": null,
+    "THIRD_DAY_CLOSE": null,
+    "NEXT_DAY_CLOSE_CHANGE": null,
+    "THIRD_DAY_CLOSE_CHANGE": null,
+    "NEXT_DAY_FROM_LISTING_CLOSE_PCT": null,
+    "THIRD_DAY_FROM_LISTING_CLOSE_PCT": null,
+    "POST_LISTING_PROFIT_EFFECT_PCT": null,
     "TURNOVERRATE": 92.1221,
     "SW_INDUSTRY": null,
-    "INDUSTRY": null
+    "INDUSTRY": null,
+    "INDUSTRY_CODE": null
   },
   "pdf_signature": {
     "listing": {
@@ -56,9 +64,19 @@
     "AVERAGE_PRICE": 15.187777375895397,
     "LD_CLOSE_CHANGE": 92.9961,
     "LD_AVERAGE_CHANGE": 96.98803340979762,
+    "NEXT_DAY_CLOSE": null,
+    "THIRD_DAY_CLOSE": null,
+    "NEXT_DAY_CLOSE_CHANGE": null,
+    "THIRD_DAY_CLOSE_CHANGE": null,
+    "NEXT_DAY_FROM_LISTING_CLOSE_PCT": null,
+    "THIRD_DAY_FROM_LISTING_CLOSE_PCT": null,
+    "POST_LISTING_PROFIT_EFFECT_PCT": null,
+    "post_listing_performance_source": "",
+    "post_listing_performance_reason": "Tushare quota 已达上限，本次不再发起新请求。",
     "TURNOVERRATE": 92.1221,
     "SW_INDUSTRY": "",
     "INDUSTRY": "",
+    "INDUSTRY_CODE": "",
     "industry_primary": "未分类",
     "industry_secondary": "未分类",
     "industry_source": "unclassified",
@@ -86,64 +104,7 @@
       "002392.SZ",
       "002066.SZ"
     ],
-    "comparable_data": [
-      {
-        "code": "688119.SH",
-        "name": "688119.SH",
-        "close": 5.22,
-        "pe_ttm": null,
-        "pb_lf": 2.0867,
-        "mkt_cap": 58.725,
-        "trade_date": "20260417",
-        "source": "tushare_historical",
-        "close_source": "tushare_historical",
-        "pe_source": "tushare_historical",
-        "pb_source": "tushare_historical",
-        "mkt_cap_source": "tushare_historical"
-      },
-      {
-        "code": "002225.SZ",
-        "name": "002225.SZ",
-        "close": 5.66,
-        "pe_ttm": 61.3094,
-        "pb_lf": 1.5918,
-        "mkt_cap": 65.61293572,
-        "trade_date": "20260417",
-        "source": "tushare_historical",
-        "close_source": "tushare_historical",
-        "pe_source": "tushare_historical",
-        "pb_source": "tushare_historical",
-        "mkt_cap_source": "tushare_historical"
-      },
-      {
-        "code": "002392.SZ",
-        "name": "002392.SZ",
-        "close": 7.15,
-        "pe_ttm": 21.2283,
-        "pb_lf": 1.461,
-        "mkt_cap": 85.12009499,
-        "trade_date": "20260417",
-        "source": "tushare_historical",
-        "close_source": "tushare_historical",
-        "pe_source": "tushare_historical",
-        "pb_source": "tushare_historical",
-        "mkt_cap_source": "tushare_historical"
-      },
-      {
-        "code": "002066.SZ",
-        "name": "002066.SZ",
-        "close": 23.41,
-        "pe_ttm": null,
-        "pb_lf": 8.755,
-        "mkt_cap": 54.9917287,
-        "trade_date": "20260417",
-        "source": "tushare_historical",
-        "close_source": "tushare_historical",
-        "pe_source": "tushare_historical",
-        "pb_source": "tushare_historical",
-        "mkt_cap_source": "tushare_historical"
-      }
-    ],
+    "comparable_data": [],
     "comparable_summary": {
       "provider": "tushare_historical",
       "requested_codes": [
@@ -152,24 +113,14 @@
         "002392.SZ",
         "002066.SZ"
       ],
-      "returned_codes": [
-        "688119.SH",
-        "002225.SZ",
-        "002392.SZ",
-        "002066.SZ"
-      ],
+      "returned_codes": [],
       "cache_hits": [],
-      "api_fetched": [
-        "688119.SH",
-        "002225.SZ",
-        "002392.SZ",
-        "002066.SZ"
-      ],
+      "api_fetched": [],
       "skipped_unsupported": [],
       "reference_trade_date": "20260419",
-      "reason": ""
+      "reason": "Tushare quota 已达上限，本次不再发起新请求。"
     },
-    "method1_replay_available": true,
+    "method1_replay_available": false,
     "average_price_source": "intraday_csv",
     "average_price_reason": "",
     "average_price_calc_version": 3,

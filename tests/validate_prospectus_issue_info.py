@@ -238,6 +238,17 @@ def _run_industry_mapping_case(failures: list[str]) -> None:
     mapper = IndustryMapper({"industry_mapping": {"矿物制品": "化工新材 / 非金属材料"}})
     industry = mapper.resolve_stock_industry("920083", {"INDUSTRY": "非金属矿物制品业"})
     _assert(industry.display_name == "化工新材 / 非金属材料", "industry mapping: substring alias mismatch", failures)
+    auto_parts = mapper.resolve_stock_industry("920079", {"INDUSTRY": "汽车制造业", "INDUSTRY_CODE": "C36"})
+    _assert(auto_parts.display_name == "高端装备 / 汽车零部件", "industry code mapping: C36 should map to auto parts", failures)
+    _assert(auto_parts.source == "industry_code_mapping", "industry code mapping: source mismatch", failures)
+    known_auto_parts = mapper.resolve_stock_industry("920086", {"INDUSTRY": "汽车制造业", "INDUSTRY_CODE": "C36"})
+    _assert(known_auto_parts.display_name == "高端装备 / 汽车零部件", "industry mapping: known C36 sample should stay auto parts", failures)
+    known_override = mapper.resolve_stock_industry("920069", {"INDUSTRY": "专用设备制造业", "INDUSTRY_CODE": "C35"})
+    _assert(
+        known_override.display_name == "医药生物 / 医疗器械",
+        "industry code mapping: built-in verified map should take precedence",
+        failures,
+    )
 
 
 def main() -> int:

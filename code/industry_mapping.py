@@ -14,7 +14,7 @@ KNOWN_BSE_INDUSTRY_MAP: dict[str, tuple[str, str]] = {
     "920069": ("医药生物", "医疗器械"),
     "920076": ("化工新材", "金属新材料"),
     "920078": ("化工新材", "金属新材料"),
-    "920086": ("高端装备", "机械设备"),
+    "920086": ("高端装备", "汽车零部件"),
     "920119": ("高端装备", "仪器仪表制造业"),
     "920159": ("消费服务", "农林牧渔"),
     "920166": ("医药生物", "医疗器械"),
@@ -23,9 +23,23 @@ KNOWN_BSE_INDUSTRY_MAP: dict[str, tuple[str, str]] = {
     "920180": ("医药生物", "医疗器械"),
     "920181": ("信息技术", "半导体制造"),
     "920183": ("消费服务", "消费电子"),
-    "920187": ("高端装备", "机械设备"),
+    "920187": ("高端装备", "汽车零部件"),
     "920188": ("高端装备", "机械设备"),
     "920206": ("化工新材", "化学制品"),
+}
+
+CSRC_INDUSTRY_CODE_MAP: dict[str, tuple[str, str]] = {
+    "C26": ("化工新材", "化学制品"),
+    "C27": ("医药生物", "医药制造"),
+    "C29": ("化工新材", "橡胶和塑料制品"),
+    "C30": ("化工新材", "非金属材料"),
+    "C33": ("高端装备", "金属制品"),
+    "C34": ("高端装备", "通用设备"),
+    "C35": ("高端装备", "专用设备"),
+    "C36": ("高端装备", "汽车零部件"),
+    "C38": ("高端装备", "电气设备"),
+    "C39": ("信息技术", "电子"),
+    "C40": ("高端装备", "仪器仪表"),
 }
 
 UNCLASSIFIED = ("未分类", "未分类")
@@ -80,6 +94,13 @@ class IndustryMapper:
                 return primary, secondary
         return UNCLASSIFIED
 
+    def _resolve_from_industry_code(self, record: dict[str, Any]) -> tuple[str, str]:
+        raw_code = str(record.get("INDUSTRY_CODE") or record.get("CSRC_INDUSTRY_CODE") or "").strip().upper()
+        if raw_code and raw_code[0].isdigit():
+            raw_code = f"C{raw_code}"
+        industry_code = raw_code[:3]
+        return CSRC_INDUSTRY_CODE_MAP.get(industry_code, UNCLASSIFIED)
+
     def resolve_stock_industry(self, code: str, record: dict[str, Any] | None = None) -> IndustryInfo:
         manual_industry = str(self.params.get("stock_industry", "auto")).strip()
         if manual_industry and manual_industry.lower() != "auto":
@@ -94,6 +115,11 @@ class IndustryMapper:
         if code in KNOWN_BSE_INDUSTRY_MAP:
             primary, secondary = KNOWN_BSE_INDUSTRY_MAP[code]
             return IndustryInfo(primary, secondary, "built_in_sample_map")
+
+        if record:
+            primary, secondary = self._resolve_from_industry_code(record)
+            if primary != "未分类":
+                return IndustryInfo(primary, secondary, "industry_code_mapping")
 
         return IndustryInfo(*UNCLASSIFIED, source="unclassified")
 

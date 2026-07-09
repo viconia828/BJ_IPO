@@ -83,6 +83,14 @@ def _base_params(**overrides: Any) -> dict[str, Any]:
         "sample_weight_mode": "static",
         "sample_decay_half_life_days": 20,
         "recent_days": 365,
+        "robust_median_min_samples": 4,
+        "robust_mad_multiplier": 3.0,
+        "sentiment_decay_half_life_days": 20,
+        "sentiment_first_day_baseline_pct": 100.0,
+        "sentiment_first_day_scale": 0.0,
+        "sentiment_post_listing_scale": 0.0,
+        "sentiment_premium_cap_pct": 35.0,
+        "sentiment_premium_floor_pct": -20.0,
         "price_range_width": 0.10,
         "weight_comparable": 0.50,
         "weight_industry_momentum": 0.50,
@@ -107,9 +115,21 @@ def _make_item_with_comparables(
     change_pct: float,
     float_shares: float,
     comparable_pes: list[float] | None,
+    *,
+    post_listing_profit_effect_pct: float | None = 0.0,
 ) -> dict[str, Any]:
     issue_price = 10.0
     close_price = issue_price * (1 + change_pct / 100)
+    post_effect = post_listing_profit_effect_pct
+    next_day_close = None
+    third_day_close = None
+    next_day_change = None
+    third_day_change = None
+    if post_effect is not None:
+        next_day_close = close_price * (1 + post_effect / 100)
+        third_day_close = close_price * (1 + post_effect / 100)
+        next_day_change = (next_day_close / issue_price - 1) * 100
+        third_day_change = (third_day_close / issue_price - 1) * 100
     item = {
         "SECURITY_CODE": code,
         "SECURITY_NAME_ABBR": f"样本{code}",
@@ -123,6 +143,15 @@ def _make_item_with_comparables(
         "AVERAGE_PRICE": round(close_price, 4),
         "LD_CLOSE_CHANGE": change_pct,
         "LD_AVERAGE_CHANGE": change_pct,
+        "NEXT_DAY_CLOSE": round(next_day_close, 4) if next_day_close is not None else None,
+        "THIRD_DAY_CLOSE": round(third_day_close, 4) if third_day_close is not None else None,
+        "NEXT_DAY_CLOSE_CHANGE": next_day_change,
+        "THIRD_DAY_CLOSE_CHANGE": third_day_change,
+        "NEXT_DAY_FROM_LISTING_CLOSE_PCT": post_effect,
+        "THIRD_DAY_FROM_LISTING_CLOSE_PCT": post_effect,
+        "POST_LISTING_PROFIT_EFFECT_PCT": post_effect,
+        "post_listing_performance_source": "fixture",
+        "post_listing_performance_reason": "",
         "average_price_source": "fixture",
         "average_price_reason": "",
         "TURNOVERRATE": 75.0,
@@ -226,6 +255,37 @@ def _make_composite_dataset() -> dict[str, Any]:
         "items": items,
     }
 
+
+def _make_sentiment_dataset() -> dict[str, Any]:
+    items = [
+        _make_item("200001", "2026-01-01", 100.0, 3000.0),
+        _make_item("200002", "2026-01-10", 100.0, 3000.0),
+        _make_item("200003", "2026-01-20", 100.0, 3000.0),
+        _make_item("200004", "2026-02-01", 115.0, 3000.0),
+        _make_item("200005", "2026-02-10", 115.0, 3000.0),
+        _make_item("200006", "2026-02-20", 115.0, 3000.0),
+    ]
+    for item in items:
+        item["POST_LISTING_PROFIT_EFFECT_PCT"] = 100.0
+        item["NEXT_DAY_FROM_LISTING_CLOSE_PCT"] = 100.0
+        item["THIRD_DAY_FROM_LISTING_CLOSE_PCT"] = 100.0
+    return {
+        "schema": param_tuning.DATASET_SCHEMA,
+        "replay_item_cache_version": param_tuning.REPLAY_ITEM_CACHE_VERSION,
+        "evaluation_scope": param_tuning.COMPOSITE_EVALUATION_SCOPE,
+        "generated_at": "2026-04-20 10:00:00",
+        "source_months": 12,
+        "sample_codes": [item["SECURITY_CODE"] for item in items],
+        "requested_codes": [item["SECURITY_CODE"] for item in items],
+        "available_count": len(items),
+        "method1_ready_count": 0,
+        "method1_ready_rate": 0.0,
+        "skipped": [],
+        "caveats": [
+            "fixture 用于校验方法三情绪溢价调参。",
+        ],
+        "items": items,
+    }
 
 def time_split_case(failures: list[str]) -> None:
     dataset = _make_method2_dataset()
@@ -591,41 +651,43 @@ def replay_metrics_case(failures: list[str]) -> None:
         _base_params(),
         target_codes=["000004", "000005", "000006"],
     )
-    tuned_metrics = param_tuning.evaluate_replay_targets(
+    legacy_metrics = param_tuning.evaluate_replay_targets(
         dataset,
         _base_params(small_cap_premium=0.10),
         target_codes=["000004", "000005", "000006"],
     )
     _assert(base_metrics["available_count"] == 3, "baseline 回放可用样本数应为 3", failures)
-    _assert(tuned_metrics["available_count"] == 3, "tuned 回放可用样本数应为 3", failures)
-    _assert(
-        float(tuned_metrics["mae_change_pct"]) < float(base_metrics["mae_change_pct"]),
-        "调参后涨幅 MAE 应优于 baseline",
+    _assert(legacy_metrics["available_count"] == 3, "legacy 回放可用样本数应为 3", failures)
+    _assert_close(base_metrics["mae_change_pct"], 5.25, "方法二 YTD 同二级行业 fixture MAE 应稳定", failures)
+    _assert_close(
+        legacy_metrics["mae_change_pct"],
+        float(base_metrics["mae_change_pct"]),
+        "方法二不应再受 small_cap_premium 影响",
         failures,
     )
-    _assert_close(tuned_metrics["mae_change_pct"], 0.0, "tuned MAE 应命中 fixture", failures)
-    _assert_close(tuned_metrics["rmse_change_pct"], 0.0, "tuned RMSE 应命中 fixture", failures)
-    _assert_close(tuned_metrics["direction_hit_rate"], 1.0, "tuned 方向命中率应为 1", failures)
-
+    _assert_close(legacy_metrics["direction_hit_rate"], 1.0, "方法二方向命中率应为 1", failures)
 
 def ranking_case(failures: list[str]) -> None:
-    dataset = _make_method2_dataset()
+    dataset = _make_sentiment_dataset()
     ranking = param_tuning.rank_param_candidates(
         dataset,
         _base_params(),
-        candidates=[{"small_cap_premium": 0.10}],
+        candidates=[{"sentiment_post_listing_scale": 0.15}],
         train_ratio=0.5,
         min_train_samples=3,
         top_n=2,
     )
     best = ranking.get("best") or {}
-    _assert(best.get("label") != "baseline", "ranking 不应继续推荐 baseline", failures)
-    _assert(
-        dict(best.get("overrides") or {}).get("small_cap_premium") == 0.10,
-        "ranking 推荐参数应命中 small_cap_premium=0.10",
+    overrides = dict(best.get("overrides") or {})
+    _assert(best.get("label") != "baseline", "ranking 应能推荐情绪溢价参数", failures)
+    _assert_close(
+        overrides.get("sentiment_post_listing_scale"),
+        0.15,
+        "ranking 推荐参数应命中 sentiment_post_listing_scale=0.15",
         failures,
     )
-
+    validation_metrics = best.get("validation_metrics") or {}
+    _assert_close(validation_metrics.get("mae_change_pct"), 0.0, "情绪溢价 ranking 验证集 MAE 应命中 fixture", failures)
 
 def auto_score_case(failures: list[str]) -> None:
     reference_date = date(2026, 2, 20)
@@ -733,8 +795,8 @@ def auto_score_case(failures: list[str]) -> None:
 
 
 def auto_tune_case(failures: list[str]) -> None:
-    dataset = _make_method2_dataset()
-    params = _base_params(small_cap_premium=0.0, price_range_width=0.10)
+    dataset = _make_sentiment_dataset()
+    params = _base_params(price_range_width=0.10)
     result = param_tuning.auto_tune_params(
         dataset,
         params,
@@ -745,15 +807,15 @@ def auto_tune_case(failures: list[str]) -> None:
     overrides = dict(result.get("changed_overrides") or {})
     baseline_score = (((result.get("baseline") or {}).get("auto_score") or {}).get("auto_score"))
     best_score = (((result.get("best") or {}).get("auto_score") or {}).get("auto_score"))
-    _assert(overrides, "自动调参应给出优于 fixture baseline 的参数修改", failures)
+    _assert(overrides, "自动调参应给出优于 fixture baseline 的情绪参数修改", failures)
     _assert(float(best_score) > float(baseline_score), "自动调参组合分应优于 baseline", failures)
-    _assert(
-        "small_cap_premium" in overrides,
-        "自动调参应能识别 fixture 中的小盘溢价参数",
+    _assert_close(
+        overrides.get("sentiment_post_listing_scale"),
+        0.15,
+        "自动调参应能识别二三日赚钱效应溢价 scale",
         failures,
     )
     _assert("price_range_width" not in overrides, "自动调参不应建议修改 price_range_width", failures)
-
 
 def replay_recent_days_window_case(failures: list[str]) -> None:
     dataset = _make_method2_dataset()
@@ -771,20 +833,26 @@ def replay_recent_days_window_case(failures: list[str]) -> None:
     narrow_result = (narrow_metrics.get("available_results") or [{}])[0]
     _assert(
         wide_result.get("historical_sample_count") == 5,
-        "replay 宽窗口应纳入目标上市日前全部历史样本",
+        "方法二应纳入目标上市日前本年内全部历史样本",
         failures,
     )
     _assert(
-        narrow_result.get("historical_sample_count") == 2,
-        "replay 窄窗口应只纳入 recent_days 天内历史样本",
+        narrow_result.get("historical_sample_count") == 5,
+        "方法二不应再受 recent_days 窄窗口影响",
         failures,
     )
     _assert(
-        narrow_result.get("sample_codes") == ["000005", "000004"],
-        "replay 窄窗口样本代码应按目标上市日前 recent_days 截取",
+        narrow_result.get("sample_codes") == ["000005", "000004", "000003", "000002", "000001"],
+        "方法二样本代码应按目标上市日前本年同二级行业截取",
         failures,
     )
-
+    _assert(wide_result.get("method3_sample_count") == 5, "方法三宽窗口应纳入全部近期情绪样本", failures)
+    _assert(narrow_result.get("method3_sample_count") == 2, "方法三窄窗口应只纳入 recent_days 天内样本", failures)
+    _assert(
+        narrow_result.get("method3_sample_codes") == ["000005", "000004"],
+        "方法三窄窗口样本代码应按 target 前 recent_days 截取",
+        failures,
+    )
 
 def interval_hit_uses_average_price_case(failures: list[str]) -> None:
     item1 = _make_item("000001", "2026-01-01", 0.0, 3000.0)
@@ -946,6 +1014,14 @@ def auto_candidate_groups_exclude_width_case(failures: list[str]) -> None:
         "trend_strong_threshold",
         "trend_weak_threshold",
     }
+    sentiment_keys = {
+        "sentiment_decay_half_life_days",
+        "sentiment_first_day_baseline_pct",
+        "sentiment_first_day_scale",
+        "sentiment_post_listing_scale",
+        "sentiment_premium_cap_pct",
+        "sentiment_premium_floor_pct",
+    }
     all_candidate_keys = {
         key
         for _, candidates in groups
@@ -954,15 +1030,28 @@ def auto_candidate_groups_exclude_width_case(failures: list[str]) -> None:
     }
     _assert(
         trend_keys.issubset(all_candidate_keys),
-        "自动调参应覆盖强弱加成和强弱阈值四项",
+        "自动调参应继续覆盖旧趋势兼容参数",
+        failures,
+    )
+    _assert(
+        sentiment_keys.issubset(all_candidate_keys),
+        "自动调参应覆盖方法三情绪溢价参数",
         failures,
     )
     for expected_group in ["强势走势加成", "弱势走势折价", "强势走势阈值", "弱势走势阈值"]:
-        _assert(expected_group in group_names, f"自动调参应拆出模块：{expected_group}", failures)
-
+        _assert(expected_group in group_names, f"自动调参应保留兼容模块：{expected_group}", failures)
+    for expected_group in [
+        "sentiment_half_life",
+        "sentiment_first_day_baseline",
+        "sentiment_first_day_scale",
+        "sentiment_post_listing_scale",
+        "sentiment_premium_cap",
+        "sentiment_premium_floor",
+    ]:
+        _assert(expected_group in group_names, f"自动调参应拆出方法三模块：{expected_group}", failures)
 
 def review_case(failures: list[str]) -> None:
-    dataset = _make_method2_dataset()
+    dataset = _make_sentiment_dataset()
     candidate_payload = {
         "name": "fixture_review",
         "description": "fixture candidate review",
@@ -970,17 +1059,17 @@ def review_case(failures: list[str]) -> None:
             {
                 "name": "keep_baseline_like",
                 "description": "保留 baseline",
-                "overrides": {"small_cap_premium": 0.0},
+                "overrides": {"sentiment_post_listing_scale": 0.0},
             },
             {
-                "name": "lift_small_cap",
-                "description": "提高小盘溢价",
-                "overrides": {"small_cap_premium": 0.10},
+                "name": "apply_sentiment",
+                "description": "接入二三日赚钱效应溢价",
+                "overrides": {"sentiment_post_listing_scale": 0.15},
             },
             {
-                "name": "lift_small_cap_extra",
+                "name": "apply_sentiment_extra",
                 "description": "同样命中但改动更多",
-                "overrides": {"small_cap_premium": 0.10, "price_range_width": 0.10},
+                "overrides": {"sentiment_post_listing_scale": 0.15, "price_range_width": 0.10},
             },
         ],
     }
@@ -992,12 +1081,11 @@ def review_case(failures: list[str]) -> None:
         min_train_samples=3,
     )
     best_candidate = review.get("best_candidate") or {}
-    _assert(best_candidate.get("name") == "lift_small_cap", "review 最佳候选应优先命中更精简的 lift_small_cap", failures)
+    _assert(best_candidate.get("name") == "apply_sentiment", "review 最佳候选应优先命中更精简的情绪溢价参数", failures)
     validation_metrics = best_candidate.get("validation_metrics") or {}
     _assert_close(validation_metrics.get("mae_change_pct"), 0.0, "review 验证集 MAE 应为 0", failures)
     full_metrics = best_candidate.get("full_metrics") or {}
     _assert(float(full_metrics.get("mae_change_pct")) < float((review.get("baseline") or {}).get("full_metrics", {}).get("mae_change_pct")), "review 全样本 MAE 应优于 baseline", failures)
-
 
 def cli_case(failures: list[str]) -> None:
     _reset_dir(TEMP_ROOT)
@@ -1509,7 +1597,7 @@ def manual_observe_no_change_cli_case(failures: list[str]) -> None:
 
 def auto_cli_accept_case(failures: list[str]) -> None:
     _reset_dir(TEMP_ROOT)
-    dataset = _make_method2_dataset()
+    dataset = _make_sentiment_dataset()
     dataset_path = TEMP_ROOT / "auto_replay_dataset.json"
     params_path = TEMP_ROOT / "auto_params.txt"
     record_path = TEMP_ROOT / "auto_record.txt"
@@ -1518,7 +1606,8 @@ def auto_cli_accept_case(failures: list[str]) -> None:
     _write_temp_params_file(
         params_path,
         {
-            "small_cap_premium": 0.0,
+            "sentiment_first_day_scale": 0.0,
+            "sentiment_post_listing_scale": 0.0,
             "price_range_width": 0.10,
             "recent_days": 365,
             "tuning_top_n": 3,
@@ -1567,13 +1656,12 @@ def auto_cli_accept_case(failures: list[str]) -> None:
         record_text = record_path.read_text(encoding="utf-8")
         _assert("自动调参（已接受）" in record_text, "auto 调参记录应包含接受标题", failures)
         _assert("修改参数：" in record_text and "->" in record_text, "auto 调参记录应包含修改参数", failures)
-        _assert("方法二样本池截取窗口" in record_text, "auto 调参记录应说明 recent_days 样本池窗口", failures)
+        _assert("方法三情绪样本窗口" in record_text, "auto 调参记录应说明 recent_days 情绪样本窗口", failures)
         _assert("评分权重衰减窗口" in record_text, "auto 调参记录应区分评分权重衰减窗口", failures)
-
 
 def auto_cli_continue_then_accept_case(failures: list[str]) -> None:
     _reset_dir(TEMP_ROOT)
-    dataset = _make_method2_dataset()
+    dataset = _make_sentiment_dataset()
     dataset_path = TEMP_ROOT / "auto_replay_dataset.json"
     params_path = TEMP_ROOT / "auto_params.txt"
     record_path = TEMP_ROOT / "auto_record.txt"
@@ -1582,7 +1670,8 @@ def auto_cli_continue_then_accept_case(failures: list[str]) -> None:
     _write_temp_params_file(
         params_path,
         {
-            "small_cap_premium": 0.0,
+            "sentiment_first_day_scale": 0.0,
+            "sentiment_post_listing_scale": 0.0,
             "price_range_width": 0.10,
             "recent_days": 365,
             "tuning_top_n": 3,
@@ -1625,7 +1714,6 @@ def auto_cli_continue_then_accept_case(failures: list[str]) -> None:
     _assert("第 2 轮完成" in completed.stdout, "auto CLI 选择继续后应执行第二轮", failures)
     _assert("已写入参数文件" in completed.stdout, "auto CLI 第二轮接受后应写入参数文件", failures)
     _assert(record_path.exists(), "auto CLI 第二轮接受后应写入自动调参记录", failures)
-
 
 def manual_batch_entry_case(failures: list[str]) -> None:
     _reset_dir(TEMP_ROOT)

@@ -2,12 +2,17 @@
 # 北交所新股上市首日估值框架 - 策略参数
 # ================================================
 
-# === 数据源与缓存（已内置到代码，不在此文件中开放）===
+# === 数据源与缓存 ===
 # 当前固定口径：
 # - 方法一可比快照：Tushare 优先
 # - IPO 信息与近期样本：Tushare 优先
 # - Wind 通道：默认 disabled
 # - 缓存目录、请求节流、首日均价缓存：由代码统一维护
+
+
+# === Tushare 本地请求保护 ===
+tushare_intraday_request_quota = 200        # First-day minute APIs only; keep conservative for rt_min_daily/stk_mins
+tushare_non_intraday_daily_request_quota = 50000  # Non-intraday APIs; daily/daily_basic/new_share/sw_daily are not capped by minute quota
 
 # === 快速说明 ===
 # - 自动调参可写回：系统会搜索这些策略参数，用户接受后写入本文件。
@@ -20,27 +25,29 @@ comparable_companies =                # 手动指定可比公司代码，逗号�
 old_shares_transfer = auto            # 首日流通老股数量：auto=自动从 PDF 提取；也可直接填万股数或 0
 
 # === 仅手动可调：正式估值和自动调参都会使用，但自动调参不会修改 ===
-recent_days = 60                      # 方法二回看最近多少天的历史新股样本；正式估值和自动调参均受此约束
+recent_days = 60                      # Method3 recent sentiment lookback days; method2 uses target-year YTD same-secondary samples
 price_range_width = 0.10              # 最终估值区间宽度（±）；自动调参只用于命中判断，不搜索、不放大
-min_industry_samples = 2              # 维持行业口径所需的最少样本数；不足则回退更宽口径
+min_industry_samples = 2              # Legacy compatibility; method2 no longer falls back to primary industry or full market
 pe_method = ttm                       # PE 口径：当前固定使用 TTM
 comparable_pe_stat = median           # 可比公司 PE 聚合方式：median / mean
 trend_score_stocks = 5                # 走势评分最多纳入多少只历史样本
 
 # === 自动调参可写回：综合估值权重与方法一折价 ===
-bse_discount_factor = 0.55            # 北交所相对可比公司估值折价系数
-weight_comparable = 0.225               # 方法一在综合估值中的权重
-weight_industry_momentum = 0.775        # 方法二在综合估值中的权重
+bse_discount_factor = 0.575            # 北交所相对可比公司估值折价系数
+weight_comparable = 0.2               # 方法一在综合估值中的权重
+weight_industry_momentum = 0.8        # 方法二在综合估值中的权重
 
-# === 自动调参可写回：方法二样本修正 ===
-float_size_threshold = 2800           # 首日流通盘阈值（万股）；低于该值视为小盘
-small_cap_premium = 0.25             # 小盘样本给予的额外溢价系数
-pe_low_threshold = 0.1               # 发行 PE / 行业 PE 低估阈值
-pe_discount_boost = 0.2              # 低估阈值命中后的上调幅度
-pe_high_threshold = 0.45              # 发行 PE / 行业 PE 高估阈值
-pe_premium_drag = -0.175                # 高估阈值命中后的下调幅度
-sample_weight_mode = time_decay       # 历史样本加权方式：static / time_decay
-sample_decay_half_life_days = 10      # 时间衰减半衰期（天）
+# === Auto tuning: method2 robust stats and legacy knobs ===
+float_size_threshold = 800           # Legacy compatibility; method2 no longer applies float-size adjustment
+small_cap_premium = 0.25             # Legacy compatibility; method2 no longer applies small-cap premium
+pe_low_threshold = 0.1               # Legacy compatibility; PE valuation is handled by method1
+pe_discount_boost = 0.2              # Legacy compatibility; method2 no longer applies PE boost
+pe_high_threshold = 0.45              # Legacy compatibility; PE valuation is handled by method1
+pe_premium_drag = -0.2                # Legacy compatibility; method2 no longer applies PE drag
+sample_weight_mode = time_decay       # Method2 robust-stat sample weighting: static / time_decay
+sample_decay_half_life_days = 10      # Method2 time-decay half-life days
+robust_median_min_samples = 4         # Method2 MAD outlier filter minimum sample count
+robust_mad_multiplier = 3.0           # Method2 MAD outlier multiplier
 
 # === 申购资金预测：正股/碎股门槛模型 ===
 subscription_prediction_account_pool_prior_min_source_samples = 1      # 账户规模 prior 最少需要多少个可用历史样本；不足则不启用该 prior
@@ -67,17 +74,23 @@ subscription_prediction_similar_top_apply_frozen_enabled = True         # 是否
 subscription_prediction_similar_top_apply_frozen_weight = 0.65         # 相似顶格冻资锚点混合权重；0 只用基础模型，1 完全采用相似顶格冻资锚点
 subscription_prediction_similar_top_apply_frozen_recent_samples = 12    # 相似顶格冻资锚点最多回看最近多少只历史新股
 subscription_prediction_similar_top_apply_frozen_min_samples = 1        # 相似顶格冻资锚点最少需要多少个匹配样本；不足则回退基础模型
-subscription_prediction_similar_top_apply_frozen_half_life_samples = 10  # 相似顶格样本按样本序号衰减的半衰期，越小越偏重最近样本
-subscription_prediction_similar_top_apply_frozen_max_relative_distance = 0.35  # 相似顶格匹配允许的最大相对差距；0.35 表示顶格金额差距超过 35% 的样本剔除
+subscription_prediction_similar_top_apply_frozen_half_life_samples = 8  # 相似顶格样本按样本序号衰减的半衰期，越小越偏重最近样本
+subscription_prediction_similar_top_apply_frozen_max_relative_distance = 0.5  # 相似顶格匹配允许的最大相对差距；0.35 表示顶格金额差距超过 35% 的样本剔除
 subscription_prediction_similar_top_apply_frozen_bandwidth = 0.18       # 相似度权重带宽；越小越只相信顶格金额非常接近的样本
 
-# === 自动调参可写回：行业走势与市场情绪 ===
-industry_trend_weight = 0.85         # 行业走势因子权重
-market_sentiment_weight = 0.15       # 全市场情绪因子权重
-trend_strong_boost = 0.12             # 走势评分强势时的额外加成
-trend_weak_discount = -0.12           # 走势评分偏弱时的额外折减
-trend_strong_threshold = 70           # 走势评分达到该值后视为强势
-trend_weak_threshold = 25             # 走势评分低于该值后视为偏弱
+# === Auto tuning: method3 recent sentiment premium ===
+industry_trend_weight = 0.85         # Legacy compatibility; method2 no longer applies trend factor
+market_sentiment_weight = 0.15       # Fallback default for method3 scales when explicit sentiment_* params are absent
+sentiment_decay_half_life_days = 10   # Method3 time-decay half-life days
+sentiment_first_day_baseline_pct = 100.0  # First-day change baseline; excess part drives premium
+sentiment_first_day_scale = 0.15      # Scale from first-day excess change to valuation premium
+sentiment_post_listing_scale = 0.15   # Scale from day-2/day-3 profit effect to valuation premium
+sentiment_premium_cap_pct = 35.0      # Method3 premium cap as pct of issue price
+sentiment_premium_floor_pct = -20.0   # Method3 premium floor as pct of issue price
+trend_strong_boost = 0.12             # Legacy compatibility; current composite valuation does not read this
+trend_weak_discount = -0.105           # Legacy compatibility; current composite valuation does not read this
+trend_strong_threshold = 70           # Legacy compatibility; current composite valuation does not read this
+trend_weak_threshold = 25             # Legacy compatibility; current composite valuation does not read this
 
 # === 自动调参可写回：WSI 评分权重 ===
 wsi_weight_close_vwap = 0.30          # 收盘相对 VWAP 的强弱权重

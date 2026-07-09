@@ -149,29 +149,28 @@ def _fake_call_tushare_happy(
         return ([{"ts_code": ts_code, **row}] if row else []), ""
     if api_name == "daily":
         mapping = {
-            "920177.BJ": {
-                "trade_date": "20260416",
-                "open": 40.0,
-                "high": 41.01,
-                "low": 36.54,
-                "close": 36.58,
-                "pct_chg": 67.7982,
-                "vol": 1000.0,
-                "amount": 3658.0,
-            },
-            "920181.BJ": {
-                "trade_date": "20260410",
-                "open": 51.0,
-                "high": 55.6,
-                "low": 46.2,
-                "close": 49.8,
-                "pct_chg": 77.8571,
-                "vol": 1000.0,
-                "amount": 4980.0,
-            },
+            "920177.BJ": [
+                {"trade_date": "20260416", "open": 40.0, "high": 41.01, "low": 36.54, "close": 36.58, "pct_chg": 67.7982, "vol": 1000.0, "amount": 3658.0},
+                {"trade_date": "20260417", "open": 37.0, "high": 39.2, "low": 36.8, "close": 38.0, "pct_chg": 3.8819, "vol": 900.0, "amount": 3420.0},
+                {"trade_date": "20260420", "open": 38.2, "high": 38.8, "low": 36.9, "close": 37.5, "pct_chg": -1.3158, "vol": 850.0, "amount": 3187.5},
+            ],
+            "920181.BJ": [
+                {"trade_date": "20260410", "open": 51.0, "high": 55.6, "low": 46.2, "close": 49.8, "pct_chg": 77.8571, "vol": 1000.0, "amount": 4980.0},
+                {"trade_date": "20260413", "open": 50.0, "high": 52.4, "low": 49.1, "close": 52.0, "pct_chg": 4.4177, "vol": 930.0, "amount": 4836.0},
+                {"trade_date": "20260414", "open": 52.2, "high": 53.0, "low": 50.1, "close": 50.5, "pct_chg": -2.8846, "vol": 880.0, "amount": 4444.0},
+            ],
         }
-        row = mapping.get(ts_code)
-        return ([{"ts_code": ts_code, **row}] if row else []), ""
+        start_date = str(params.get("start_date") or "")
+        end_date = str(params.get("end_date") or "")
+        rows = []
+        for row in mapping.get(ts_code, []):
+            trade_date = str(row.get("trade_date") or "")
+            if start_date and trade_date < start_date:
+                continue
+            if end_date and trade_date > end_date:
+                continue
+            rows.append({"ts_code": ts_code, **row})
+        return rows, ""
     if api_name == "daily_basic":
         mapping = {
             "920177.BJ": {"trade_date": "20260416", "close": 36.58, "turnover_rate": 90.2507},
@@ -383,6 +382,14 @@ def _run_merge_case(failures: list[str]) -> None:
         "merge_case: expected average-price first-day change",
         failures,
     )
+    _assert_close(recent_by_code["920177"]["NEXT_DAY_CLOSE"], 38.0, "merge_case: expected next trading-day close", failures)
+    _assert_close(recent_by_code["920177"]["THIRD_DAY_CLOSE"], 37.5, "merge_case: expected third trading-day close", failures)
+    _assert(
+        recent_by_code["920177"]["POST_LISTING_PROFIT_EFFECT_PCT"] is not None,
+        "merge_case: expected post-listing profit effect",
+        failures,
+    )
+    _assert("post_listing:920177.BJ:2026-04-16" in summary["api_fetched_variable"], "merge_case: expected post-listing api fetch marker", failures)
     print("OK merge_case: target IPO fields, industry PE, top apply marketcap and recent samples were built from Tushare with eastmoney display supplement")
 
 
@@ -444,6 +451,8 @@ def _run_cache_reuse_case(failures: list[str]) -> None:
     _assert("index_classify:L3" in second_summary["fixed_cache_hits"], "cache_reuse_case: expected L3 classify cache hit", failures)
     _assert("listing_day:920177.BJ:2026-04-16" in second_summary["variable_cache_hits"], "cache_reuse_case: expected listing day cache hit", failures)
     _assert("listing_day:920181.BJ:2026-04-10" in second_summary["variable_cache_hits"], "cache_reuse_case: expected second listing day cache hit", failures)
+    _assert("post_listing:920177.BJ:2026-04-16" in second_summary["variable_cache_hits"], "cache_reuse_case: expected post-listing cache hit", failures)
+    _assert("post_listing:920181.BJ:2026-04-10" in second_summary["variable_cache_hits"], "cache_reuse_case: expected second post-listing cache hit", failures)
     _assert("sw_daily:850727.SI:20260416" in second_summary["variable_cache_hits"], "cache_reuse_case: expected sw_daily cache hit", failures)
     print("OK cache_reuse_case: second run fully reused new_share/stock_basic/listing_day/sw_daily caches")
 
@@ -503,7 +512,7 @@ def _run_future_recent_skip_case(failures: list[str]) -> None:
     recent_codes = [item["SECURITY_CODE"] for item in result["recent_ipos"]]
 
     _assert(summary["stock_basic_api_calls"] == 2, "future_recent_skip_case: future row should not trigger extra stock_basic fetch", failures)
-    _assert(summary["daily_api_calls"] == 2, "future_recent_skip_case: future row should not trigger extra daily fetch", failures)
+    _assert(summary["daily_api_calls"] == 4, "future_recent_skip_case: future row should only trigger listing-day and post-listing daily fetches for listed rows", failures)
     _assert(summary["daily_basic_api_calls"] == 2, "future_recent_skip_case: future row should not trigger extra daily_basic fetch", failures)
     _assert("920191" not in summary["recent_requested_codes"], "future_recent_skip_case: future row should not enter requested samples", failures)
     _assert("920191" in summary["recent_pending_codes"], "future_recent_skip_case: expected future row to be tracked as pending", failures)

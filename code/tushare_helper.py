@@ -19,6 +19,9 @@ DEFAULT_API_URL = "https://api.tushare.pro"
 DEFAULT_CACHE_ROOT = Path("data") / "tushare_db"
 DEFAULT_INTRADAY_DIR = Path(__file__).resolve().parents[1] / "首日分时走势"
 SUPPORTED_TUSHARE_SUFFIXES = {"SH", "SZ", "BJ"}
+INTRADAY_API_NAMES = {'rt_min_daily', 'stk_mins'}
+DEFAULT_INTRADAY_DAILY_REQUEST_QUOTA = 200
+DEFAULT_NON_INTRADAY_DAILY_REQUEST_QUOTA = 50000
 
 
 def _now() -> datetime:
@@ -208,23 +211,59 @@ def _calc_diff_pct(base_value: Any, compare_value: Any) -> float | None:
 
 def _build_settings(params: dict[str, Any] | None) -> dict[str, Any]:
     source = params or {}
-    token_env = str(source.get("tushare_token_env", "TUSHARE_TOKEN")).strip() or "TUSHARE_TOKEN"
+    token_env = str(source.get('tushare_token_env', 'TUSHARE_TOKEN')).strip() or 'TUSHARE_TOKEN'
+    legacy_intraday_quota = max(
+        int(source.get('tushare_daily_request_quota', DEFAULT_INTRADAY_DAILY_REQUEST_QUOTA)),
+        0,
+    )
+    intraday_daily_quota = max(int(source.get('tushare_intraday_request_quota', legacy_intraday_quota)), 0)
+    non_intraday_daily_quota = max(
+        int(source.get('tushare_non_intraday_daily_request_quota', DEFAULT_NON_INTRADAY_DAILY_REQUEST_QUOTA)),
+        0,
+    )
     return {
-        "provider": "tushare",
-        "channel": "tushare",
-        "api_url": str(source.get("tushare_api_url", DEFAULT_API_URL)).strip() or DEFAULT_API_URL,
-        "cache_root": Path(str(source.get("tushare_cache_root", DEFAULT_CACHE_ROOT))),
-        "daily_quota": max(int(source.get("tushare_daily_request_quota", 200)), 0),
-        "pause_seconds": max(float(source.get("tushare_request_pause_seconds", 0.12)), 0.0),
-        "fixed_ttl": timedelta(days=max(float(source.get("tushare_static_ttl_days", 3650)), 1.0)),
-        "variable_ttl": timedelta(hours=max(float(source.get("tushare_dynamic_ttl_hours", 24)), 1.0)),
-        "recent_trade_days": max(int(source.get("tushare_recent_trade_days", 12)), 3),
-        "token_env": token_env,
-        "token": os.getenv(token_env, "").strip(),
-        "eastmoney_backup_enabled": bool(int(source.get("eastmoney_backup_enabled", 1))),
-        "eastmoney_validation_enabled": bool(int(source.get("eastmoney_validation_enabled", 1))),
+        'provider': 'tushare',
+        'channel': 'tushare',
+        'api_url': str(source.get('tushare_api_url', DEFAULT_API_URL)).strip() or DEFAULT_API_URL,
+        'cache_root': Path(str(source.get('tushare_cache_root', DEFAULT_CACHE_ROOT))),
+        'daily_quota': intraday_daily_quota,
+        'intraday_daily_quota': intraday_daily_quota,
+        'non_intraday_daily_quota': non_intraday_daily_quota,
+        'pause_seconds': max(float(source.get('tushare_request_pause_seconds', 0.12)), 0.0),
+        'fixed_ttl': timedelta(days=max(float(source.get('tushare_static_ttl_days', 3650)), 1.0)),
+        'variable_ttl': timedelta(hours=max(float(source.get('tushare_dynamic_ttl_hours', 24)), 1.0)),
+        'recent_trade_days': max(int(source.get('tushare_recent_trade_days', 12)), 3),
+        'token_env': token_env,
+        'token': os.getenv(token_env, '').strip(),
+        'eastmoney_backup_enabled': bool(int(source.get('eastmoney_backup_enabled', 1))),
+        'eastmoney_validation_enabled': bool(int(source.get('eastmoney_validation_enabled', 1))),
     }
 
+
+def _is_intraday_api(api_name: str) -> bool:
+    return str(api_name or '') in INTRADAY_API_NAMES
+
+
+def _quota_limit_for_api(api_name: str, settings: dict[str, Any]) -> int:
+    if _is_intraday_api(api_name):
+        return int(settings.get('intraday_daily_quota', settings.get('daily_quota', DEFAULT_INTRADAY_DAILY_REQUEST_QUOTA)))
+    return int(settings.get('non_intraday_daily_quota', DEFAULT_NON_INTRADAY_DAILY_REQUEST_QUOTA))
+
+
+def _get_today_api_call_count_for_api(db: LocalFileDB, api_name: str) -> int:
+    if _is_intraday_api(api_name):
+        return db.get_today_api_call_count(source='tushare', request_kinds=INTRADAY_API_NAMES)
+    return db.get_today_api_call_count(source='tushare', exclude_request_kinds=INTRADAY_API_NAMES)
+
+
+def _quota_exhausted(used: int, limit: int) -> bool:
+    return int(limit) > 0 and int(used) >= int(limit)
+
+
+def _quota_remaining_for_api(api_name: str, settings: dict[str, Any], db: LocalFileDB) -> int:
+    limit = _quota_limit_for_api(api_name, settings)
+    used = _get_today_api_call_count_for_api(db, api_name)
+    return max(limit - used, 0)
 
 def fetch_intraday_bars(
     code: str,
@@ -323,35 +362,40 @@ def write_intraday_csv(
 
 
 def _build_summary(codes: list[str], settings: dict[str, Any], db: LocalFileDB) -> dict[str, Any]:
-    quota_used_today = db.get_today_api_call_count(source="tushare")
-    quota_limit = int(settings["daily_quota"])
+    quota_used_today = _get_today_api_call_count_for_api(db, 'daily_basic')
+    quota_limit = _quota_limit_for_api('daily_basic', settings)
+    intraday_quota_used_today = _get_today_api_call_count_for_api(db, 'stk_mins')
+    intraday_quota_limit = _quota_limit_for_api('stk_mins', settings)
     return {
-        "provider": settings["provider"],
-        "channel": settings["channel"],
-        "cache_root": str(settings["cache_root"]),
-        "requested_codes": list(codes),
-        "returned_codes": [],
-        "fixed_cache_hits": [],
-        "variable_cache_hits": [],
-        "api_fetched_fixed": [],
-        "api_fetched_variable": [],
-        "stale_variable_used": [],
-        "skipped_due_quota": [],
-        "skipped_unsupported": [],
-        "api_calls": 0,
-        "quota_limit": quota_limit,
-        "quota_used_today": quota_used_today,
-        "quota_remaining": max(quota_limit - quota_used_today, 0),
-        "local_computed_codes": [],
-        "eastmoney_api_calls": 0,
-        "eastmoney_fetched": [],
-        "eastmoney_cache_hits": [],
-        "eastmoney_fallback_used": [],
-        "cross_validated_codes": [],
-        "cross_validation_warnings": [],
-        "reason": "",
+        'provider': settings['provider'],
+        'channel': settings['channel'],
+        'cache_root': str(settings['cache_root']),
+        'requested_codes': list(codes),
+        'returned_codes': [],
+        'fixed_cache_hits': [],
+        'variable_cache_hits': [],
+        'api_fetched_fixed': [],
+        'api_fetched_variable': [],
+        'stale_variable_used': [],
+        'skipped_due_quota': [],
+        'skipped_unsupported': [],
+        'api_calls': 0,
+        'quota_scope': 'non_intraday',
+        'quota_limit': quota_limit,
+        'quota_used_today': quota_used_today,
+        'quota_remaining': max(quota_limit - quota_used_today, 0),
+        'intraday_quota_limit': intraday_quota_limit,
+        'intraday_quota_used_today': intraday_quota_used_today,
+        'intraday_quota_remaining': max(intraday_quota_limit - intraday_quota_used_today, 0),
+        'local_computed_codes': [],
+        'eastmoney_api_calls': 0,
+        'eastmoney_fetched': [],
+        'eastmoney_cache_hits': [],
+        'eastmoney_fallback_used': [],
+        'cross_validated_codes': [],
+        'cross_validation_warnings': [],
+        'reason': '',
     }
-
 
 def _call_tushare_api(
     api_name: str,
@@ -360,9 +404,10 @@ def _call_tushare_api(
     settings: dict[str, Any],
     db: LocalFileDB,
 ) -> tuple[list[dict[str, Any]], str]:
-    quota_used_today = db.get_today_api_call_count(source="tushare")
-    if quota_used_today >= int(settings["daily_quota"]):
-        return [], "Tushare quota 已达上限，本次不再发起新请求。"
+    quota_used_today = _get_today_api_call_count_for_api(db, api_name)
+    quota_limit = _quota_limit_for_api(api_name, settings)
+    if _quota_exhausted(quota_used_today, quota_limit):
+        return [], 'Tushare quota 已达上限，本次不再发起新请求。'
 
     payload = json.dumps(
         {
@@ -740,9 +785,9 @@ def get_comparable_valuations(
         missing_fixed = []
 
     for code in missing_fixed:
-        current_calls = db.get_today_api_call_count(source="tushare")
-        if current_calls >= int(settings["daily_quota"]):
-            _append_unique(summary["skipped_due_quota"], code)
+        current_calls = _get_today_api_call_count_for_api(db, 'stock_basic')
+        if _quota_exhausted(current_calls, _quota_limit_for_api('stock_basic', settings)):
+            _append_unique(summary['skipped_due_quota'], code)
             break
         name, error_message = _fetch_stock_name(code, settings, db)
         summary["api_calls"] += 1
@@ -756,9 +801,9 @@ def get_comparable_valuations(
             time.sleep(float(settings["pause_seconds"]))
 
     for code in need_tushare_refresh:
-        current_calls = db.get_today_api_call_count(source="tushare")
-        if current_calls >= int(settings["daily_quota"]):
-            _append_unique(summary["skipped_due_quota"], code)
+        current_calls = _get_today_api_call_count_for_api(db, 'daily_basic')
+        if _quota_exhausted(current_calls, _quota_limit_for_api('daily_basic', settings)):
+            _append_unique(summary['skipped_due_quota'], code)
             continue
         snapshot, error_message = _fetch_latest_tushare_snapshot(code, settings, db)
         summary["api_calls"] += 1
@@ -837,6 +882,8 @@ def get_comparable_valuations(
         )
 
     summary["returned_codes"] = [item["code"] for item in items]
-    summary["quota_used_today"] = db.get_today_api_call_count(source="tushare")
-    summary["quota_remaining"] = max(int(settings["daily_quota"]) - summary["quota_used_today"], 0)
+    summary['quota_used_today'] = _get_today_api_call_count_for_api(db, 'daily_basic')
+    summary['quota_remaining'] = _quota_remaining_for_api('daily_basic', settings, db)
+    summary['intraday_quota_used_today'] = _get_today_api_call_count_for_api(db, 'stk_mins')
+    summary['intraday_quota_remaining'] = _quota_remaining_for_api('stk_mins', settings, db)
     return {"items": items, "summary": summary}

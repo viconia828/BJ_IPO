@@ -215,6 +215,56 @@ def _run_unsupported_code_backup_case(failures: list[str]) -> None:
     print("OK unsupported_code_backup: unsupported market skipped Tushare and used eastmoney")
 
 
+
+def _run_quota_bucket_case(failures: list[str]) -> None:
+    cache_root = TEMP_ROOT / 'quota_bucket'
+    _reset_dir(cache_root)
+    db = LocalFileDB(cache_root)
+    for _ in range(50):
+        db.append_request_event(
+            {
+                'event_type': 'api_call',
+                'source': 'tushare',
+                'request_kind': 'stk_mins',
+                'codes': ['920191.BJ'],
+                'fields': [],
+                'error_code': 0,
+            }
+        )
+    for _ in range(200):
+        db.append_request_event(
+            {
+                'event_type': 'api_call',
+                'source': 'tushare',
+                'request_kind': 'daily_basic',
+                'codes': ['688097.SH'],
+                'fields': [],
+                'error_code': 0,
+            }
+        )
+    settings = tushare_helper._build_settings(
+        _make_params(
+            cache_root,
+            tushare_intraday_request_quota=50,
+            tushare_non_intraday_daily_request_quota=50000,
+        )
+    )
+    intraday_used = tushare_helper._get_today_api_call_count_for_api(db, 'stk_mins')
+    non_intraday_used = tushare_helper._get_today_api_call_count_for_api(db, 'daily')
+    _assert(intraday_used == 50, 'quota_bucket: expected minute APIs to keep separate quota count', failures)
+    _assert(non_intraday_used == 200, 'quota_bucket: expected non-intraday APIs to keep separate quota count', failures)
+    _assert(
+        tushare_helper._quota_exhausted(intraday_used, tushare_helper._quota_limit_for_api('stk_mins', settings)),
+        'quota_bucket: expected intraday quota to remain conservative',
+        failures,
+    )
+    _assert(
+        not tushare_helper._quota_exhausted(non_intraday_used, tushare_helper._quota_limit_for_api('daily', settings)),
+        'quota_bucket: expected daily close APIs not to be blocked by legacy 200 cap',
+        failures,
+    )
+    print('OK quota_bucket: minute and non-intraday Tushare quotas are counted separately')
+
 def main() -> int:
     TEMP_ROOT.mkdir(parents=True, exist_ok=True)
     failures: list[str] = []
@@ -223,6 +273,7 @@ def main() -> int:
     try:
         _run_fresh_cache_case(failures)
         _run_refresh_validation_case(failures)
+        _run_quota_bucket_case(failures)
         _run_missing_token_backup_case(failures)
         _run_unsupported_code_backup_case(failures)
     finally:
@@ -236,7 +287,7 @@ def main() -> int:
             print(f"- {item}")
         return 1
 
-    print("\nTushare data pipeline validation passed: 4 cases")
+    print("\nTushare data pipeline validation passed: 5 cases")
     return 0
 
 

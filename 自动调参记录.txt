@@ -1,3 +1,64 @@
+## 2026-07-09 19:36:16 自动调参（已接受）
+
+- 参数文件：D:\BJ_IPO\策略参数.txt
+- 评估范围：composite
+- 最终搜索轮次：第 5 轮
+- 方法二样本池截取窗口：60 天（recent_days）
+- 近期权重基准日：2026-07-09，评分权重衰减窗口：90 天
+- 最近 30 天样本最低总权重：0.5000
+- baseline 排序分：-0.2026
+- 新参数排序分：-0.1936
+- baseline 近期加权命中率：0.1792
+- 新参数近期加权命中率：0.1792
+- 新参数最近样本权重占比：0.7923
+- 新参数加权 MAE(涨幅)：186.3850
+- 当前手动区间宽度诊断扣分：0.0500
+
+修改参数：
+- bse_discount_factor: 0.55 -> 0.575
+- pe_premium_drag: -0.125 -> -0.2
+- trend_weak_discount: -0.085 -> -0.105
+- weight_comparable: 0.225 -> 0.2
+- weight_industry_momentum: 0.775 -> 0.8
+
+## 2026-07-08 19:01:27 自动调参（已接受）
+
+- 参数文件：D:\BJ_IPO\策略参数.txt
+- 评估范围：composite
+- 最终搜索轮次：第 5 轮
+- 方法二样本池截取窗口：60 天（recent_days）
+- 近期权重基准日：2026-07-06，评分权重衰减窗口：90 天
+- 最近 30 天样本最低总权重：0.5000
+- baseline 排序分：-0.2446
+- 新参数排序分：-0.1359
+- baseline 近期加权命中率：0.0992
+- 新参数近期加权命中率：0.2106
+- 新参数最近样本权重占比：0.7940
+- 新参数加权 MAE(涨幅)：173.2427
+- 当前手动区间宽度诊断扣分：0.0500
+
+修改参数：
+- float_size_threshold: 2800 -> 800
+- pe_premium_drag: -0.175 -> -0.125
+- trend_weak_discount: -0.12 -> -0.085
+
+## 2026-07-07 20:28:32 申购资金自动调参（已接受）
+
+- 参数文件：D:\BJ_IPO\策略参数.txt
+- 历史样本：D:\BJ_IPO\data\offline_tuning\subscription_history_sample.csv
+- 主网格候选组数：103 / 计划 166
+- 主网格搜索模式：coarse_fine；细搜轮数 2
+- prior 分支候选组数：8
+- 选中分支：main_grid
+- baseline：MAE=38.8638 万元, MAPE=6.61%, 分档MAPE=17.10%, 漏判=0, 误判=0, 评估=38
+- 主网格最优：MAE=38.2121 万元, MAPE=6.49%, 分档MAPE=16.59%, 漏判=0, 误判=0, 评估=38
+- prior 分支最优：MAE=38.2121 万元, MAPE=6.49%, 分档MAPE=16.59%, 漏判=0, 误判=0, 评估=38
+- 新参数：MAE=38.2121 万元, MAPE=6.49%, 分档MAPE=16.59%, 漏判=0, 误判=0, 评估=38
+
+修改参数：
+- subscription_prediction_similar_top_apply_frozen_half_life_samples: 10 -> 8
+- subscription_prediction_similar_top_apply_frozen_max_relative_distance: 0.35 -> 0.5
+
 ## 2026-07-02 22:59:39 申购资金自动调参（已接受）
 
 - 参数文件：D:\BJ_IPO\策略参数.txt
