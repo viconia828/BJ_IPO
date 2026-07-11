@@ -4,6 +4,7 @@ import csv
 import json
 import math
 import os
+import re
 import time
 import urllib.error
 import urllib.request
@@ -46,6 +47,106 @@ def _dedupe_codes(codes: list[str]) -> list[str]:
         seen.add(normalized_code)
         normalized_codes.append(normalized_code)
     return normalized_codes
+
+
+def _normalize_company_name(name: Any) -> str:
+    text = str(name or "").strip()
+    text = re.sub(r"[（(]?已切换[）)]?", "", text)
+    return re.sub(r"\s+", "", text)
+
+
+def _is_legacy_bse_code(code: str) -> bool:
+    normalized_code = _normalize_code(code)
+    if "." not in normalized_code:
+        return False
+    base_code, suffix = normalized_code.rsplit(".", 1)
+    return suffix == "BJ" and base_code.isdigit() and not base_code.startswith("920")
+
+
+def _load_local_current_bse_name_map(db: LocalFileDB) -> dict[str, str]:
+    name_map: dict[str, str] = {}
+    if not db.fixed_dir.exists():
+        return name_map
+    for path in db.fixed_dir.glob("920*.BJ.json"):
+        code = path.stem.upper()
+        name = _normalize_company_name(_extract_fixed_name(db.load_fixed_record(code)))
+        if name:
+            name_map.setdefault(name, code)
+    return name_map
+
+
+def _resolve_legacy_bse_codes(
+    codes: list[str],
+    settings: dict[str, Any],
+    db: LocalFileDB,
+) -> tuple[list[str], list[dict[str, str]], int, str]:
+    legacy_codes = [code for code in codes if _is_legacy_bse_code(code)]
+    if not legacy_codes:
+        return list(codes), [], 0, ""
+
+    resolved_by_old: dict[str, tuple[str, str, str]] = {}
+    unresolved_names: dict[str, str] = {}
+    local_name_map = _load_local_current_bse_name_map(db)
+
+    for old_code in legacy_codes:
+        fixed_record = db.load_fixed_record(old_code)
+        fields = (fixed_record or {}).get("fields") or {}
+        cached_current_code = _normalize_code(str(fields.get("current_ts_code") or ""))
+        old_name = _normalize_company_name(_extract_fixed_name(fixed_record))
+        if cached_current_code.startswith("920") and cached_current_code.endswith(".BJ"):
+            resolved_by_old[old_code] = (cached_current_code, old_name, "alias_cache")
+        elif old_name and old_name in local_name_map:
+            resolved_by_old[old_code] = (local_name_map[old_name], old_name, "local_name_match")
+        elif old_name:
+            unresolved_names[old_code] = old_name
+
+    api_calls = 0
+    error_message = ""
+    if unresolved_names and settings.get("token"):
+        rows, error_message = _call_tushare_api(
+            "stock_basic",
+            {"exchange": "BSE", "list_status": "L"},
+            "ts_code,name",
+            settings,
+            db,
+        )
+        api_calls = 1
+        current_name_map = {
+            _normalize_company_name(row.get("name")): _normalize_code(str(row.get("ts_code") or ""))
+            for row in rows
+            if _normalize_company_name(row.get("name")) and str(row.get("ts_code") or "").strip()
+        }
+        for old_code, old_name in unresolved_names.items():
+            current_code = current_name_map.get(old_name, "")
+            if current_code.startswith("920") and current_code.endswith(".BJ"):
+                resolved_by_old[old_code] = (current_code, old_name, "tushare_name_match")
+
+    aliases: list[dict[str, str]] = []
+    resolved_codes: list[str] = []
+    for code in codes:
+        resolution = resolved_by_old.get(code)
+        if resolution is None:
+            resolved_codes.append(code)
+            continue
+        current_code, company_name, source = resolution
+        resolved_codes.append(current_code)
+        db.save_fixed_record(
+            code,
+            {"name": company_name, "current_ts_code": current_code},
+            source="tushare_code_alias",
+        )
+        if company_name:
+            db.save_fixed_record(current_code, {"name": company_name}, source="tushare_code_alias")
+        aliases.append(
+            {
+                "old_code": code,
+                "current_code": current_code,
+                "company_name": company_name,
+                "source": source,
+            }
+        )
+
+    return _dedupe_codes(resolved_codes), aliases, api_calls, error_message
 
 
 def _supports_tushare_code(code: str) -> bool:
@@ -371,6 +472,9 @@ def _build_summary(codes: list[str], settings: dict[str, Any], db: LocalFileDB) 
         'channel': settings['channel'],
         'cache_root': str(settings['cache_root']),
         'requested_codes': list(codes),
+        'resolved_codes': list(codes),
+        'legacy_code_aliases': [],
+        'legacy_code_resolution_api_calls': 0,
         'returned_codes': [],
         'fixed_cache_hits': [],
         'variable_cache_hits': [],
@@ -732,11 +836,22 @@ def get_comparable_valuations(
     params: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     settings = _build_settings(params)
-    normalized_codes = _dedupe_codes(codes)
+    requested_codes = _dedupe_codes(codes)
+    db = LocalFileDB(settings["cache_root"])
+    normalized_codes, legacy_aliases, alias_api_calls, alias_error = _resolve_legacy_bse_codes(
+        requested_codes,
+        settings,
+        db,
+    )
     supported_tushare_codes = [code for code in normalized_codes if _supports_tushare_code(code)]
     supported_tushare_code_set = set(supported_tushare_codes)
-    db = LocalFileDB(settings["cache_root"])
-    summary = _build_summary(normalized_codes, settings, db)
+    summary = _build_summary(requested_codes, settings, db)
+    summary["resolved_codes"] = list(normalized_codes)
+    summary["legacy_code_aliases"] = legacy_aliases
+    summary["legacy_code_resolution_api_calls"] = alias_api_calls
+    summary["api_calls"] = alias_api_calls
+    if alias_error:
+        summary["reason"] = alias_error
     summary["skipped_unsupported"] = [code for code in normalized_codes if code not in supported_tushare_code_set]
 
     if not normalized_codes:

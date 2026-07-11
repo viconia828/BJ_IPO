@@ -389,10 +389,18 @@ def _prepare_report_context(all_data: dict[str, Any]) -> dict[str, Any]:
     ]
 
     if method1.get("available"):
+        anchor_label = (
+            "行业 PE 低置信度兜底"
+            if method1.get("anchor_source") == "industry_pe_fallback"
+            else "招股书上市可比公司"
+        )
         method1_lines = [
             f"新股 EPS = {_fmt_number(method1.get('eps'), 4)} 元",
-            f"可比公司 PE 统计值 = {_fmt_number(method1.get('comp_pe'))} 倍",
+            f"PE 锚点 = {_fmt_number(method1.get('comp_pe'))} 倍（{anchor_label}，有效样本 {method1.get('sample_count', 0)} 只）",
             f"北交所折价系数 = {_fmt_number(params.get('bse_discount_factor'))}",
+            f"发行 PE / 行业 PE = {_fmt_number(method1.get('pe_ratio'))}，方法一 PE 修正 = {_fmt_number(method1.get('pe_factor'))}",
+            f"首日流通盘 = {_fmt_number(method1.get('float_shares'))} 万股，流通盘修正 = {_fmt_number(method1.get('float_factor'))}",
+            f"修正后目标 PE = {_fmt_number(method1.get('target_pe'))} 倍",
             f"目标价 = {_fmt_number(method1.get('target_price'))} 元（涨幅 {_fmt_pct(method1.get('change_pct'))}）",
         ]
     else:

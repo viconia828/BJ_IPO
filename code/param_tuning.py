@@ -871,6 +871,8 @@ def _build_replay_item(
         issue_pe=_safe_float(record.get("AFTER_ISSUE_PE")),
         comparable_data=comparable_data,
         params=params,
+        industry_pe=_safe_float(record.get("INDUSTRY_PE_NEW")),
+        float_shares=(total_issue_num or 0.0) + old_shares,
     )
     return {
         "SECURITY_CODE": code,
@@ -1648,6 +1650,8 @@ def _evaluate_replay_prediction(
         issue_pe=_safe_float(item.get("AFTER_ISSUE_PE")),
         comparable_data=comparable_data,
         params=params,
+        industry_pe=_safe_float(item.get("INDUSTRY_PE_NEW")),
+        float_shares=_safe_float(item.get("float_shares")),
     )
     final = valuation_engine.composite_valuation(method1, method2, params, method3=method3)
     return final, method1, method2, method3
@@ -2403,10 +2407,10 @@ def build_auto_tune_candidate_groups(
     groups.append(("流通盘阈值", [{"float_size_threshold": threshold} for threshold in float_threshold_values]))
     groups.append(("小盘溢价", [{"small_cap_premium": premium} for premium in small_cap_values]))
 
-    pe_low_values = _auto_stage_values(params, "pe_low_threshold", 0.10, 0.35, 0.25, (0.05, 0.025), stage_level, decimals=3)
-    pe_boost_values = _auto_stage_values(params, "pe_discount_boost", 0.00, 0.20, 0.10, (0.05, 0.025), stage_level, decimals=3)
-    pe_high_values = _auto_stage_values(params, "pe_high_threshold", 0.45, 0.80, 0.60, (0.05, 0.025), stage_level, decimals=3)
-    pe_drag_values = _auto_stage_values(params, "pe_premium_drag", -0.20, 0.00, -0.10, (0.05, 0.025), stage_level, decimals=3)
+    pe_low_values = _auto_stage_values(params, "pe_low_threshold", 0.20, 0.50, 0.35, (0.05, 0.025), stage_level, decimals=3)
+    pe_boost_values = _auto_stage_values(params, "pe_discount_boost", 0.00, 0.15, 0.05, (0.025, 0.01), stage_level, decimals=3)
+    pe_high_values = _auto_stage_values(params, "pe_high_threshold", 0.55, 0.85, 0.70, (0.05, 0.025), stage_level, decimals=3)
+    pe_drag_values = _auto_stage_values(params, "pe_premium_drag", -0.15, 0.00, -0.05, (0.025, 0.01), stage_level, decimals=3)
     groups.append(
         (
             "PE 低估修正",
@@ -2430,19 +2434,37 @@ def build_auto_tune_candidate_groups(
         )
     )
 
-    half_life_values = _auto_stage_int_values(params, "sample_decay_half_life_days", 10, 60, 30, (10, 5), stage_level)
-    groups.append(("样本权重模式", [{"sample_weight_mode": "static"}, {"sample_weight_mode": "time_decay"}]))
+    half_life_values = _auto_stage_int_values(params, "method2_decay_half_life_days", 30, 180, 90, (30, 15), stage_level)
+    groups.append(("方法二样本权重模式", [{"method2_weight_mode": "static"}, {"method2_weight_mode": "time_decay"}]))
     groups.append(
         (
-            "样本半衰期",
+            "方法二样本半衰期",
             [
-                {"sample_weight_mode": "time_decay", "sample_decay_half_life_days": value}
+                {"method2_weight_mode": "time_decay", "method2_decay_half_life_days": value}
                 for value in half_life_values
             ],
         )
     )
+    groups.append(
+        (
+            "方法一行业 PE 兜底置信度",
+            [
+                {"method1_industry_fallback_confidence": value}
+                for value in _auto_stage_values(
+                    params,
+                    "method1_industry_fallback_confidence",
+                    0.10,
+                    0.60,
+                    0.30,
+                    (0.10, 0.05),
+                    stage_level,
+                    decimals=3,
+                )
+            ],
+        )
+    )
 
-    sentiment_half_life_values = _auto_stage_int_values(params, "sentiment_decay_half_life_days", 5, 40, 15, (5, 2), stage_level)
+    sentiment_half_life_values = _auto_stage_int_values(params, "sentiment_decay_half_life_days", 2, 15, 5, (2, 1), stage_level)
     groups.append(("sentiment_half_life", [{"sentiment_decay_half_life_days": value} for value in sentiment_half_life_values]))
     groups.append(
         (
@@ -2950,6 +2972,15 @@ def prepend_auto_tuning_record(
     overrides = dict(result.get("changed_overrides") or {})
     baseline_score = ((result.get("baseline") or {}).get("auto_score") or {})
     best_score = ((result.get("best") or {}).get("auto_score") or {})
+    local_rerank = result.get("local_learning_rerank") or {}
+    local_selected = local_rerank.get("selected") or {}
+    conservative = local_selected.get("conservative") or {}
+    regime = local_selected.get("regime") or {}
+    rolling = local_selected.get("rolling") or {}
+    def _local_width_text(line: dict[str, Any]) -> str:
+        width = _safe_float(line.get("weighted_avg_width"))
+        return "" if width is None else f"{width * 100:.2f}%"
+
     change_lines = build_auto_tune_change_lines(base_params, overrides) or ["无参数变化"]
     record_lines = [
         f"## {_now_text()} 自动调参（已接受）",
@@ -2967,6 +2998,12 @@ def prepend_auto_tuning_record(
         f"- 新参数最近样本权重占比：{_fmt_metric(best_score.get('recent_weight_share'))}",
         f"- 新参数加权 MAE(涨幅)：{_fmt_metric(best_score.get('weighted_mae_change_pct'))}",
         f"- 当前手动区间宽度诊断扣分：{_fmt_metric(best_score.get('width_diagnostic_penalty'))}",
+        f"- 本地学习重排：{'已执行' if local_rerank.get('applied') else '未执行'}；是否改变核心最优：{'是' if local_rerank.get('selection_changed') else '否'}",
+        f"- 综合学习分：{_fmt_metric(local_selected.get('learning_score'))}",
+        f"- 保守动态区间加权命中率 / MAE / 平均宽度：{_fmt_metric(conservative.get('weighted_interval_hit_rate'))} / {_fmt_metric(conservative.get('weighted_mae_change_pct'))} / {_local_width_text(conservative)}",
+        f"- regime-break 加权命中率 / MAE / 平均宽度：{_fmt_metric(regime.get('weighted_interval_hit_rate'))} / {_fmt_metric(regime.get('weighted_mae_change_pct'))} / {_local_width_text(regime)}",
+        f"- 滚动中枢加权命中率 / MAE / 平均宽度：{_fmt_metric(rolling.get('weighted_interval_hit_rate'))} / {_fmt_metric(rolling.get('weighted_mae_change_pct'))} / {_local_width_text(rolling)}",
+        "- 本地学习重排作者输入：未使用",
         "",
         "修改参数：",
         *[f"- {line}" for line in change_lines],

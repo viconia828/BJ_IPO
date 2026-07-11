@@ -1005,7 +1005,14 @@ def build_analysis_data(
     issue_pe = _safe_float(ipo_info.get("AFTER_ISSUE_PE"))
     industry_pe = _safe_float(ipo_info.get("INDUSTRY_PE_NEW"))
 
-    method1 = valuation_engine.method1_comparable(issue_price, issue_pe, comparable_data, params)
+    method1 = valuation_engine.method1_comparable(
+        issue_price,
+        issue_pe,
+        comparable_data,
+        params,
+        industry_pe=industry_pe,
+        float_shares=float_shares,
+    )
     method2 = valuation_engine.method2_industry_momentum(
         issue_price=issue_price,
         issue_pe=issue_pe,

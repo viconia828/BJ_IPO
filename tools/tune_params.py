@@ -1,9 +1,12 @@
 from __future__ import annotations
 
 import argparse
+from datetime import datetime
+import json
 import os
 from pathlib import Path
 import re
+import subprocess
 import sys
 from typing import Any
 
@@ -18,8 +21,13 @@ if str(CURRENT_DIR) not in sys.path:
 
 import config_loader
 import data_fetcher
+import local_learning_auto_rerank
 import param_tuning
 import sync_offline_tuning_dataset as offline_tuning_sync
+
+
+DEFAULT_AUTO_SHADOW_CONTEXT_PATH = ROOT_DIR / "调参" / "valuation_auto_shadow_context_latest.json"
+VALUATION_SHADOW_PIPELINE_PATH = ROOT_DIR / "tools" / "run_valuation_shadow_pipeline.py"
 
 
 def _parse_csv_codes(raw_value: str | None) -> list[str] | None:
@@ -306,6 +314,27 @@ def build_parser(params_file: str, tuning_settings: dict[str, Any]) -> argparse.
         default=str(param_tuning.DEFAULT_AUTO_TUNING_RECORD_PATH),
         help="自动调参被接受后的记录文件；默认写入根目录 自动调参记录.txt",
     )
+    parser.add_argument(
+        "--auto-shadow-context-path",
+        default=str(DEFAULT_AUTO_SHADOW_CONTEXT_PATH),
+        help="估值自动调参结束后写入的影子学习上下文。",
+    )
+    parser.add_argument(
+        "--no-auto-shadow-refresh",
+        action="store_true",
+        help="估值自动调参结束后不刷新 proxy/regime/盘中指导影子报告。",
+    )
+    parser.add_argument(
+        "--auto-local-rerank-top-n",
+        type=int,
+        default=20,
+        help="每轮核心搜索后进入本地学习重排的候选数，默认 20。",
+    )
+    parser.add_argument(
+        "--no-auto-local-rerank",
+        action="store_true",
+        help="关闭自动调参的本地 proxy/动态宽度/regime 两级重排。",
+    )
     parser.add_argument("--auto-max-passes", type=int, default=1, help="每轮自动调参内的模块循环次数，默认 1。")
     parser.add_argument("--auto-max-refine-stages", type=int, default=5, help="自动调参最多细化轮数，默认 5。")
     parser.add_argument(
@@ -374,6 +403,44 @@ def _score_text(score: dict[str, Any]) -> str:
     )
 
 
+def _local_line_text(line: dict[str, Any]) -> str:
+    width = line.get("weighted_avg_width")
+    width_text = "" if width is None else f"{float(width) * 100:.1f}%"
+    return (
+        "本地分={score}，近期加权命中率={hit}，加权MAE={mae}，平均宽度={width}，可用率={available}".format(
+            score=param_tuning._fmt_metric(line.get("score")),
+            hit=param_tuning._fmt_metric(line.get("weighted_interval_hit_rate")),
+            mae=param_tuning._fmt_metric(line.get("weighted_mae_change_pct")),
+            width=width_text,
+            available=param_tuning._fmt_metric(line.get("weighted_available_rate")),
+        )
+    )
+
+
+def _print_local_learning_rerank(result: dict[str, Any]) -> None:
+    rerank = result.get("local_learning_rerank") or {}
+    if not rerank.get("enabled"):
+        print("本地学习重排：已关闭。")
+        return
+    if not rerank.get("applied"):
+        print(f"本地学习重排：未执行（{rerank.get('reason') or '无可用候选'}）。")
+        return
+    selected = rerank.get("selected") or {}
+    changed = "是" if rerank.get("selection_changed") else "否"
+    print(
+        "本地学习重排：候选 {pool} 组，近期样本 {samples} 只，综合学习分={score}；是否改变核心最优：{changed}。".format(
+            pool=rerank.get("pool_size"),
+            samples=rerank.get("target_code_count"),
+            score=param_tuning._fmt_metric(selected.get("learning_score")),
+            changed=changed,
+        )
+    )
+    print(f"- 保守动态区间：{_local_line_text(selected.get('conservative') or {})}")
+    print(f"- regime-break：{_local_line_text(selected.get('regime') or {})}")
+    print(f"- 滚动中枢：{_local_line_text(selected.get('rolling') or {})}")
+    print("- 作者输入：未使用；雪球语料只用于形成本地代理规则。")
+
+
 def _prompt_auto_stage_action(stage_level: int, next_stage: int, has_next_stage: bool, can_accept: bool) -> str:
     print("")
     print(f"第 {stage_level} 轮后请选择下一步：")
@@ -424,6 +491,7 @@ def _print_auto_result_context(result: dict[str, Any], params: dict[str, Any]) -
     )
     print(f"baseline：{_score_text(baseline_score)}")
     print(f"当前累计最优：{_score_text(best_score)}")
+    _print_local_learning_rerank(result)
 
     if not overrides:
         print("本轮暂未找到优于当前参数的自动修改方案。")
@@ -452,6 +520,125 @@ def _accept_auto_result(args: argparse.Namespace, params: dict[str, Any], result
     print(f"已写入参数文件：{params_path}")
     print(f"已更新自动调参记录：{record_path}")
     return 0
+
+
+def _auto_context_score(entry: dict[str, Any], sample_codes: list[str]) -> dict[str, Any]:
+    sample_set = set(sample_codes)
+    metrics = entry.get("metrics") or {}
+    rows = [
+        row
+        for row in metrics.get("available_results") or []
+        if str(row.get("code") or "") in sample_set
+    ]
+    hit_codes = [str(row.get("code") or "") for row in rows if row.get("interval_hit")]
+    miss_codes = [str(row.get("code") or "") for row in rows if row.get("interval_hit") is False]
+    evaluated_count = len(hit_codes) + len(miss_codes)
+    return {
+        "hit_count": len(hit_codes),
+        "evaluated_count": evaluated_count,
+        "full_hit_rate": len(hit_codes) / len(sample_codes) if sample_codes else None,
+        "available_hit_rate": len(hit_codes) / evaluated_count if evaluated_count else None,
+        "hit_codes": hit_codes,
+        "miss_codes": miss_codes,
+    }
+
+
+def _auto_shadow_sample_codes(dataset: dict[str, Any], result: dict[str, Any]) -> list[str]:
+    reference_date = param_tuning._parse_date(result.get("reference_date"))
+    codes: list[tuple[object, str]] = []
+    for item in dataset.get("items") or []:
+        code = str(item.get("SECURITY_CODE") or "").strip()
+        listing_date = param_tuning._parse_date(item.get("LISTING_DATE"))
+        if not code or listing_date is None or param_tuning._actual_interval_price(item) is None:
+            continue
+        if reference_date is not None:
+            day_gap = (reference_date - listing_date).days
+            if day_gap < 0 or day_gap >= param_tuning.AUTO_TUNE_LOOKBACK_DAYS:
+                continue
+        codes.append((listing_date, code))
+    codes.sort(key=lambda item: (item[0], item[1]))
+    return [code for _, code in codes]
+
+
+def _write_auto_shadow_context(
+    args: argparse.Namespace,
+    dataset: dict[str, Any],
+    result: dict[str, Any],
+    status: str,
+) -> Path:
+    sample_codes = _auto_shadow_sample_codes(dataset, result)
+    overrides = dict(result.get("changed_overrides") or {})
+    baseline_entry = dict(result.get("baseline") or {})
+    best_entry = dict(result.get("best") or {})
+    context = {
+        "schema": "valuation_auto_shadow_context_v1",
+        "generated_at": result.get("generated_at"),
+        "sample_count": len(sample_codes),
+        "sample_codes": sample_codes,
+        "baseline": {
+            "label": "baseline",
+            "overrides": {},
+            "exact_score": _auto_context_score(baseline_entry, sample_codes),
+        },
+        "top_candidates": [
+            {
+                "label": "auto_best",
+                "overrides": overrides,
+                "exact_score": _auto_context_score(best_entry, sample_codes),
+            }
+        ],
+        "auto_tune_status": status,
+        "auto_tune": {
+            "stage_level": result.get("stage_level"),
+            "reference_date": result.get("reference_date"),
+            "changed_overrides": overrides,
+            "best_is_baseline": bool(result.get("best_is_baseline")),
+            "baseline_auto_score": (baseline_entry.get("auto_score") or {}),
+            "best_auto_score": (best_entry.get("auto_score") or {}),
+        },
+        "local_learning_rerank": result.get("local_learning_rerank") or {},
+        "params_file": str(Path(args.params_file)),
+        "dataset_path": str(Path(args.dataset_path)),
+    }
+    latest_path = Path(args.auto_shadow_context_path)
+    latest_path.parent.mkdir(parents=True, exist_ok=True)
+    latest_path.write_text(json.dumps(context, ensure_ascii=False, indent=2), encoding="utf-8")
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
+    archive_path = latest_path.with_name(f"valuation_auto_shadow_context_{timestamp}.json")
+    archive_path.write_text(json.dumps(context, ensure_ascii=False, indent=2), encoding="utf-8")
+    print(f"已生成估值影子学习上下文：{latest_path}")
+    return latest_path
+
+
+def _refresh_auto_shadow_reports(
+    args: argparse.Namespace,
+    dataset: dict[str, Any],
+    result: dict[str, Any],
+    status: str,
+) -> None:
+    context_path = _write_auto_shadow_context(args, dataset, result, status)
+    if args.no_auto_shadow_refresh:
+        print("已按参数跳过估值影子报告刷新。")
+        return
+    command = [
+        sys.executable,
+        "-X",
+        "utf8",
+        str(VALUATION_SHADOW_PIPELINE_PATH),
+        "--scan-report",
+        str(context_path),
+        "--dataset",
+        str(args.dataset_path),
+        "--params",
+        str(args.params_file),
+    ]
+    print("开始刷新 proxy、滚动中枢、regime-break 和盘中指导影子报告...", flush=True)
+    completed = subprocess.run(command, cwd=ROOT_DIR, check=False)
+    if completed.returncode != 0:
+        print(
+            f"提示：估值影子报告刷新失败（退出码 {completed.returncode}），不影响本次自动调参结果和已确认的参数写回。",
+            flush=True,
+        )
 
 
 def _run_auto_stage(
@@ -486,7 +673,7 @@ def _run_auto_stage(
     result = param_tuning.auto_tune_params(
         dataset,
         params,
-        top_n=args.top_n,
+        top_n=max(int(args.top_n), max(int(getattr(args, "auto_local_rerank_top_n", 20)), 0)),
         max_passes=max(int(args.auto_max_passes), 1),
         stage_level=stage_level,
         center_params=center_params,
@@ -494,7 +681,31 @@ def _run_auto_stage(
         time_limit_seconds=float(args.auto_stage_time_limit_seconds),
         progress_callback=_auto_progress,
     )
+    if getattr(args, "no_auto_local_rerank", False):
+        result["local_learning_rerank"] = {
+            "enabled": False,
+            "applied": False,
+            "reason": "disabled by --no-auto-local-rerank",
+            "author_inputs_used": False,
+        }
+    else:
+        try:
+            result = local_learning_auto_rerank.rerank_auto_tune_result(
+                dataset,
+                params,
+                result,
+                pool_size=max(int(getattr(args, "auto_local_rerank_top_n", 20)), 1),
+            )
+        except Exception as exc:
+            result["local_learning_rerank"] = {
+                "enabled": True,
+                "applied": False,
+                "reason": f"{type(exc).__name__}: {exc}",
+                "author_inputs_used": False,
+            }
+            print(f"提示：本地学习重排失败，保留核心评分最优候选：{type(exc).__name__}: {exc}", flush=True)
     stage_start_score = ((result.get("stage_start") or {}).get("auto_score") or {})
+    core_best_score = ((result.get("core_best") or result.get("best") or {}).get("auto_score") or {})
     best_score = ((result.get("best") or {}).get("auto_score") or {})
     print(f"第 {stage_level} 轮完成：评估 {result.get('evaluated_step_count')} 组候选。")
     if result.get("stop_reason"):
@@ -502,7 +713,8 @@ def _run_auto_stage(
     else:
         print("本轮候选已全部评估完成。")
     print(f"本轮起点：{_score_text(stage_start_score)}")
-    print(f"本轮最优：{_score_text(best_score)}")
+    print(f"本轮核心评分最优：{_score_text(core_best_score)}")
+    print(f"本轮两级重排最优：{_score_text(best_score)}")
     return result
 
 
@@ -531,9 +743,14 @@ def _run_auto_mode(
             can_accept=bool(result.get("changed_overrides")),
         )
         if action == "accept":
-            return _accept_auto_result(args, params, result)
+            return_code = _accept_auto_result(args, params, result)
+            if return_code == 0:
+                _refresh_auto_shadow_reports(args, dataset, result, "accepted")
+            return return_code
         if action != "continue":
             print("已退出自动调参，未写入参数。后续可以手动修改 策略参数.txt。")
+            status = "no_change" if not result.get("changed_overrides") else "not_accepted"
+            _refresh_auto_shadow_reports(args, dataset, result, status)
             return 0
 
         center_params = _params_with_overrides(params, dict(result.get("changed_overrides") or {}))
@@ -543,6 +760,8 @@ def _run_auto_mode(
         return 0
 
     print("已达到自动调参最大轮数，未写入参数。后续可以手动修改 策略参数.txt。")
+    status = "no_change" if not result.get("changed_overrides") else "not_accepted"
+    _refresh_auto_shadow_reports(args, dataset, result, status)
     return 0
 
 

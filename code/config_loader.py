@@ -140,8 +140,15 @@ def _validate_params(params: dict[str, Any]) -> None:
 
     if float(params.get("sample_decay_half_life_days", 20)) <= 0:
         raise ValueError("sample_decay_half_life_days 必须大于 0")
-    if float(params.get("sentiment_decay_half_life_days", params.get("sample_decay_half_life_days", 20))) <= 0:
+    method2_weight_mode = str(params.get("method2_weight_mode", sample_weight_mode)).strip().lower() or "static"
+    if method2_weight_mode not in {"static", "time_decay"}:
+        raise ValueError("method2_weight_mode 仅支持 static / time_decay")
+    if float(params.get("method2_decay_half_life_days", params.get("sample_decay_half_life_days", 90))) <= 0:
+        raise ValueError("method2_decay_half_life_days 必须大于 0")
+    if float(params.get("sentiment_decay_half_life_days", 5)) <= 0:
         raise ValueError("sentiment_decay_half_life_days must be greater than 0")
+    if float(params.get("method1_industry_fallback_confidence", 0.5)) < 0:
+        raise ValueError("method1_industry_fallback_confidence cannot be negative")
     if float(params.get("sentiment_first_day_scale", params.get("market_sentiment_weight", 0.15))) < 0:
         raise ValueError("sentiment_first_day_scale cannot be negative")
     if float(params.get("sentiment_post_listing_scale", params.get("market_sentiment_weight", 0.15))) < 0:

@@ -42,9 +42,9 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--document",
-        choices=("prospectus", "issue", "result", "listing", "all"),
+        choices=("prospectus", "intent", "issue", "result", "listing", "all"),
         default="prospectus",
-        help="下载文件类型：招股说明书、发行公告、发行结果公告、上市公告书，或全部下载。",
+        help="下载文件类型：招股说明书、招股意向书、发行公告、发行结果公告、上市公告书，或全部下载。",
     )
     return parser.parse_args()
 
@@ -86,12 +86,21 @@ def main() -> int:
         print(f"已下载到：{downloaded_path}")
         return True
 
-    if args.document in {"prospectus", "all"}:
+    if args.document in {"prospectus", "intent", "all"}:
         try:
-            prospectus = client.resolve_prospectus_by_post_listing_code(args.code)
-            _handle_resolution("招股说明书", prospectus, client.build_prospectus_filename(prospectus))
+            if args.document in {"prospectus", "all"}:
+                prospectus_documents = client.resolve_prospectus_documents_by_post_listing_code(args.code)
+            else:
+                prospectus_documents = [
+                    client.resolve_prospectus_by_post_listing_code(args.code, preferred_kind="intent")
+                ]
+            for prospectus in prospectus_documents:
+                title = prospectus.disclosure.title
+                label = "招股意向书" if "招股意向书" in title else "招股说明书"
+                _handle_resolution(label, prospectus, client.build_prospectus_filename(prospectus))
         except BSEOfficialError as exc:
-            print(f"[招股说明书] 失败：{exc}")
+            label = "招股意向书" if args.document == "intent" else "招股文件"
+            print(f"[{label}] 失败：{exc}")
             has_error = True
 
     if args.document in {"issue", "all"}:

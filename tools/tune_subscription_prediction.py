@@ -1782,6 +1782,26 @@ def _large_account_count_from_row(row: dict[str, Any], threshold_wan: float) -> 
     }
 
 
+def _large_account_count_from_pool_row(
+    row: dict[str, Any],
+    threshold_wan: float,
+    pool_thresholds: list[float],
+) -> dict[str, Any] | None:
+    estimate = subscription_predictor._row_estimate_accounts_ge(row, threshold_wan, pool_thresholds)
+    if estimate is None:
+        return None
+    return {
+        "security_code": row.get("security_code"),
+        "apply_date": row.get("apply_date"),
+        "threshold_wan": threshold_wan,
+        "estimated_accounts": estimate,
+        "confidence": _safe_float(row.get("fit_confidence")) or 0.85,
+        "basis": "announcement_constrained_account_pool_snapshot",
+        "is_lower_bound": False,
+        "manual_ladder_override_count": int(_safe_float(row.get("manual_point_count")) or 0),
+    }
+
+
 def _median(values: list[float]) -> float | None:
     if not values:
         return None
@@ -1798,9 +1818,21 @@ def evaluate_large_account_pool(
     thresholds_wan: list[float] | None = None,
     recent_samples: int = 12,
     half_life_samples: float = 4.0,
+    account_pool_rows: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     thresholds = thresholds_wan or DEFAULT_ACCOUNT_POOL_THRESHOLDS_WAN
-    eligible_rows = [row for row in sorted(rows, key=_row_sort_key) if _is_eligible_row(row)]
+    use_account_pool = isinstance(account_pool_rows, list) and bool(account_pool_rows)
+    if use_account_pool:
+        pool_thresholds = subscription_predictor._account_pool_thresholds(account_pool_rows or [])
+        eligible_rows = [
+            row
+            for row in sorted(account_pool_rows or [], key=_row_sort_key)
+            if subscription_predictor._row_is_account_pool_snapshot(row)
+            and subscription_predictor._row_has_account_pool_values(row, pool_thresholds)
+        ]
+    else:
+        pool_thresholds = []
+        eligible_rows = [row for row in sorted(rows, key=_row_sort_key) if _is_eligible_row(row)]
     recent_rows = eligible_rows[-recent_samples:] if recent_samples > 0 else eligible_rows
     summaries: list[dict[str, Any]] = []
     for threshold in thresholds:
@@ -1809,7 +1841,11 @@ def evaluate_large_account_pool(
         weighted_total = 0.0
         lower_bound_count = 0
         for age, row in enumerate(reversed(recent_rows)):
-            sample = _large_account_count_from_row(row, threshold)
+            sample = (
+                _large_account_count_from_pool_row(row, threshold, pool_thresholds)
+                if use_account_pool
+                else _large_account_count_from_row(row, threshold)
+            )
             if sample is None:
                 continue
             recency_weight = 0.5 ** (age / max(half_life_samples, 1.0))
@@ -1843,6 +1879,7 @@ def evaluate_large_account_pool(
         "recent_sample_codes": [row.get("security_code") for row in recent_rows],
         "thresholds_wan": thresholds,
         "half_life_samples": half_life_samples,
+        "source": "announcement_constrained_account_pool" if use_account_pool else "legacy_allocation_fit_fallback",
         "summaries": summaries,
     }
 
@@ -2120,6 +2157,7 @@ def format_robustness_summary(result: dict[str, Any]) -> str:
 def format_large_account_pool_summary(result: dict[str, Any]) -> str:
     lines = [
         "打新大户资金池参考",
+        f"- 数据口径: {result.get('source') or '-'}",
         f"- 可用样本: {result.get('eligible_rows', 0)}",
         f"- 近期样本: {result.get('recent_rows', 0)}",
         f"- 近期样本代码: {', '.join(str(code) for code in result.get('recent_sample_codes') or [])}",
@@ -2397,13 +2435,16 @@ def main() -> int:
         )
         summary["history_path"] = str(args.history_path)
     elif args.mode == "account-pool":
+        account_pool_rows, account_pool_source = subscription_predictor._load_account_pool_rows(strategy_params)
         summary = evaluate_large_account_pool(
             rows,
             thresholds_wan=_parse_float_values(args.account_pool_thresholds),
             recent_samples=max(args.account_pool_recent_samples, 1),
             half_life_samples=max(args.account_pool_half_life, 1.0),
+            account_pool_rows=account_pool_rows,
         )
         summary["history_path"] = str(args.history_path)
+        summary["account_pool_source"] = account_pool_source
     elif args.mode == "account-pool-prior":
         summary = evaluate_account_pool_prior(
             rows,

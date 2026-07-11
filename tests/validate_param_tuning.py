@@ -817,6 +817,52 @@ def auto_tune_case(failures: list[str]) -> None:
     )
     _assert("price_range_width" not in overrides, "自动调参不应建议修改 price_range_width", failures)
 
+
+def auto_local_learning_rerank_case(failures: list[str]) -> None:
+    dataset = _make_sentiment_dataset()
+    params = _base_params(price_range_width=0.10)
+    result = param_tuning.auto_tune_params(
+        dataset,
+        params,
+        top_n=20,
+        max_passes=1,
+        candidate_limit=120,
+    )
+    reranked = tune_params_cli.local_learning_auto_rerank.rerank_auto_tune_result(
+        dataset,
+        params,
+        result,
+        pool_size=20,
+    )
+    local = reranked.get("local_learning_rerank") or {}
+    selected = local.get("selected") or {}
+    _assert(local.get("applied") is True, "自动调参应执行本地学习两级重排", failures)
+    _assert(local.get("author_inputs_used") is False, "本地学习重排不得使用作者预测输入", failures)
+    _assert(local.get("walk_forward_proxy") is True, "proxy 分层应按上市日 walk-forward", failures)
+    _assert(int(local.get("target_code_count") or 0) > 0, "本地学习重排应包含近期目标样本", failures)
+    _assert(bool(selected.get("conservative")), "本地学习重排应输出保守动态区间评分", failures)
+    _assert(bool(selected.get("regime")), "本地学习重排应输出 regime-break 评分", failures)
+    _assert(bool(selected.get("rolling")), "本地学习重排应输出滚动中枢评分", failures)
+    _assert(
+        dict(reranked.get("changed_overrides") or {}) == dict(local.get("selected_overrides") or {}),
+        "自动调参最终 overrides 应来自本地学习重排胜者",
+        failures,
+    )
+    walk_rows = [
+        {"code": "A", "listing_date": "2026-01-01", "actual_change_pct": 10.0, "current_available": False},
+        {"code": "B", "listing_date": "2026-01-02", "actual_change_pct": 20.0, "current_available": False},
+        {"code": "C", "listing_date": "2026-01-02", "actual_change_pct": 30.0, "current_available": False},
+        {"code": "D", "listing_date": "2026-01-03", "actual_change_pct": 40.0, "current_available": False},
+    ]
+    tune_params_cli.local_learning_auto_rerank._attach_walk_forward_proxy_features(walk_rows, params)
+    by_code = {row["code"]: row for row in walk_rows}
+    _assert(
+        by_code["B"].get("rolling_proxy_history_count") == by_code["C"].get("rolling_proxy_history_count") == 1,
+        "同日样本的滚动 proxy 不得读取彼此实际结果",
+        failures,
+    )
+    _assert(by_code["D"].get("rolling_proxy_history_count") == 3, "下一交易日应读取此前已完成样本", failures)
+
 def replay_recent_days_window_case(failures: list[str]) -> None:
     dataset = _make_method2_dataset()
     wide_metrics = param_tuning.evaluate_replay_targets(
@@ -1625,6 +1671,9 @@ def auto_cli_accept_case(failures: list[str]) -> None:
         str(dataset_path),
         "--auto-record-path",
         str(record_path),
+        "--auto-shadow-context-path",
+        str(TEMP_ROOT / "auto_shadow_context_latest.json"),
+        "--no-auto-shadow-refresh",
         "--top-n",
         "3",
         "--auto-max-refine-stages",
@@ -1658,6 +1707,8 @@ def auto_cli_accept_case(failures: list[str]) -> None:
         _assert("修改参数：" in record_text and "->" in record_text, "auto 调参记录应包含修改参数", failures)
         _assert("方法三情绪样本窗口" in record_text, "auto 调参记录应说明 recent_days 情绪样本窗口", failures)
         _assert("评分权重衰减窗口" in record_text, "auto 调参记录应区分评分权重衰减窗口", failures)
+        _assert("本地学习重排" in record_text, "auto 调参记录应保存本地学习重排摘要", failures)
+        _assert("本地学习重排作者输入：未使用" in record_text, "auto 调参记录应声明未使用作者预测输入", failures)
 
 def auto_cli_continue_then_accept_case(failures: list[str]) -> None:
     _reset_dir(TEMP_ROOT)
@@ -1689,6 +1740,9 @@ def auto_cli_continue_then_accept_case(failures: list[str]) -> None:
         str(dataset_path),
         "--auto-record-path",
         str(record_path),
+        "--auto-shadow-context-path",
+        str(TEMP_ROOT / "auto_shadow_context_latest.json"),
+        "--no-auto-shadow-refresh",
         "--top-n",
         "3",
         "--auto-max-refine-stages",
@@ -1938,6 +1992,7 @@ def main() -> int:
     ranking_case(failures)
     auto_score_case(failures)
     auto_tune_case(failures)
+    auto_local_learning_rerank_case(failures)
     replay_recent_days_window_case(failures)
     interval_hit_uses_average_price_case(failures)
     method2_uses_average_change_case(failures)

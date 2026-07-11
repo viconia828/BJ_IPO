@@ -49,6 +49,12 @@ def _safe_float(value: Any) -> float | None:
         return None
 
 
+def _is_enabled(value: Any, default: bool = False) -> bool:
+    if value in (None, ""):
+        return default
+    return str(value).strip().lower() not in {"0", "false", "no", "off", "否", "关闭"}
+
+
 def _parse_date(value: Any) -> date | None:
     if value in (None, "", "--"):
         return None
@@ -63,15 +69,15 @@ def _parse_date(value: Any) -> date | None:
 
 
 def _get_sample_weight_mode(params: dict[str, Any]) -> str:
-    return str(params.get("sample_weight_mode", "static")).strip().lower() or "static"
+    return str(params.get("method2_weight_mode", params.get("sample_weight_mode", "static"))).strip().lower() or "static"
 
 
 def _get_sample_half_life_days(params: dict[str, Any]) -> float:
-    return max(float(params.get("sample_decay_half_life_days", 20)), 1.0)
+    return max(float(params.get("method2_decay_half_life_days", params.get("sample_decay_half_life_days", 90))), 1.0)
 
 
 def _get_sentiment_half_life_days(params: dict[str, Any]) -> float:
-    return max(float(params.get("sentiment_decay_half_life_days", params.get("sample_decay_half_life_days", 20))), 1.0)
+    return max(float(params.get("sentiment_decay_half_life_days", 5)), 1.0)
 
 
 def _get_recent_window_days(params: dict[str, Any]) -> int:
@@ -274,6 +280,8 @@ def method1_comparable(
     issue_pe: float | None,
     comparable_data: list[dict[str, Any]],
     params: dict[str, Any],
+    industry_pe: float | None = None,
+    float_shares: float | None = None,
 ) -> dict[str, Any]:
     if not issue_price or not issue_pe:
         return {"available": False, "reason": "发行价或发行 PE 缺失，无法计算方法一。"}
@@ -284,12 +292,52 @@ def method1_comparable(
         if pe_value and pe_value > 0:
             clean_pe_values.append(pe_value)
 
-    if not clean_pe_values:
-        return {"available": False, "reason": "当前未获取到有效可比公司 PE 数据，方法一已跳过。"}
+    anchor_source = "prospectus_comparables"
+    confidence_multiplier = 1.0
+    if clean_pe_values:
+        comp_pe = _median_or_mean(clean_pe_values, str(params.get("comparable_pe_stat", "median")))
+    else:
+        valid_industry_pe = _safe_float(industry_pe)
+        fallback_enabled = _is_enabled(params.get("method1_industry_fallback_enabled"), False)
+        if not fallback_enabled or valid_industry_pe is None or valid_industry_pe <= 0:
+            return {"available": False, "reason": "当前未获取到有效可比公司 PE 或行业 PE 数据，方法一已跳过。"}
+        comp_pe = valid_industry_pe
+        anchor_source = "industry_pe_fallback"
+        confidence_multiplier = max(float(params.get("method1_industry_fallback_confidence", 0.5)), 0.0)
 
     eps = issue_price / issue_pe
-    comp_pe = _median_or_mean(clean_pe_values, str(params.get("comparable_pe_stat", "median")))
-    target_pe = comp_pe * float(params.get("bse_discount_factor", 0.75))
+    base_target_pe = comp_pe * float(params.get("bse_discount_factor", 0.75))
+
+    pe_ratio = None
+    pe_factor = 1.0
+    valid_industry_pe = _safe_float(industry_pe)
+    factors_enabled = _is_enabled(params.get("method1_pe_float_factors_enabled"), False)
+    if factors_enabled and valid_industry_pe is not None and valid_industry_pe > 0:
+        pe_ratio = issue_pe / valid_industry_pe
+        low_threshold = float(params.get("pe_low_threshold", 0.30))
+        high_threshold = float(params.get("pe_high_threshold", 0.65))
+        if high_threshold <= low_threshold:
+            high_threshold = low_threshold + 0.01
+        low_factor = 1 + float(params.get("pe_discount_boost", 0.10))
+        high_factor = 1 + float(params.get("pe_premium_drag", -0.10))
+        if pe_ratio <= low_threshold:
+            pe_factor = low_factor
+        elif pe_ratio >= high_threshold:
+            pe_factor = high_factor
+        else:
+            position = (pe_ratio - low_threshold) / (high_threshold - low_threshold)
+            pe_factor = low_factor + (high_factor - low_factor) * position
+        pe_factor = max(pe_factor, 0.1)
+
+    float_factor = 1.0
+    valid_float_shares = _safe_float(float_shares)
+    float_threshold = float(params.get("float_size_threshold", 2000))
+    if factors_enabled and valid_float_shares is not None and valid_float_shares >= 0 and float_threshold > 0:
+        if valid_float_shares < float_threshold:
+            size_gap = 1 - valid_float_shares / float_threshold
+            float_factor += max(float(params.get("small_cap_premium", 0.10)), 0.0) * size_gap
+
+    target_pe = base_target_pe * pe_factor * float_factor
     target_price = eps * target_pe
     change_pct = (target_price / issue_price - 1) * 100
 
@@ -297,6 +345,13 @@ def method1_comparable(
         "available": True,
         "eps": eps,
         "comp_pe": comp_pe,
+        "anchor_source": anchor_source,
+        "confidence_multiplier": confidence_multiplier,
+        "base_target_pe": base_target_pe,
+        "pe_ratio": pe_ratio,
+        "pe_factor": pe_factor,
+        "float_shares": valid_float_shares,
+        "float_factor": float_factor,
         "target_pe": target_pe,
         "target_price": target_price,
         "change_pct": change_pct,
@@ -525,7 +580,7 @@ def method3_recent_sentiment(
         "raw_sample_codes": [item.get("SECURITY_CODE", "") for item in recent_records],
         "historical_sample_count": len(historical_ipos),
         "recent_days": recent_days,
-        "base_stat_label": f"time-decay mean (half-life {half_life_days:.0f} days)",
+        "base_stat_label": f"时间衰减均值（半衰期 {half_life_days:.0f} 天）",
         "decay_half_life_days": half_life_days,
         "sentiment_first_day_scale": first_day_scale,
         "sentiment_post_listing_scale": post_listing_scale,
@@ -557,10 +612,20 @@ def composite_valuation(
     candidates: list[tuple[str, dict[str, Any], float]] = []
     for key, result in (("method1", method1), ("method2", method2)):
         if result and result.get("available"):
-            candidates.append((key, result, raw_weights.get(key, 0.0)))
+            confidence = max(float(result.get("confidence_multiplier", 1.0)), 0.0)
+            candidates.append((key, result, raw_weights.get(key, 0.0) * confidence))
 
     if not candidates:
         return {"available": False, "reason": "No available base valuation result; composite valuation cannot be calculated."}
+    if (
+        len(candidates) == 1
+        and candidates[0][0] == "method1"
+        and candidates[0][1].get("anchor_source") == "industry_pe_fallback"
+    ):
+        return {
+            "available": False,
+            "reason": "Industry PE fallback cannot support the final valuation without an independent industry-new-share anchor.",
+        }
 
     normalized = _normalize_available_method_weights(candidates)
     base_target_price = sum(float(result["target_price"]) * normalized[key] for key, result, _ in candidates)
@@ -615,7 +680,10 @@ def generate_notes(data_dict: dict[str, Any], params: dict[str, Any]) -> list[st
             notes.append("发行 PE 相对行业偏高，需关注上市首日估值兑现压力。")
 
     if float_shares is not None and float_shares < float(params.get("float_size_threshold", 2000)):
-        notes.append("首日流通盘偏小，历史上这类新股更容易获得情绪溢价。")
+        notes.append("首日流通盘偏小，方法一已按流通盘差距连续计入交易结构溢价。")
+
+    if method1.get("anchor_source") == "industry_pe_fallback":
+        notes.append("有效上市可比 PE 缺失，方法一改用行业 PE 低置信度兜底。")
 
     if not method1.get("available"):
         if str(wind_summary.get("channel", "disabled")).strip().lower() == "disabled":

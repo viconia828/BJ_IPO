@@ -131,15 +131,15 @@ def _run_manual_ladder_merge_case(failures: list[str]) -> None:
     _assert(summary.get("thresholds_wan") == [447.0, 631.0], "summary: observed thresholds mismatch", failures)
     _assert(points_by_lot.get("1", {}).get("manual_ladder_item") == "1+0=447", "point: lot 1 manual item mismatch", failures)
     _assert_close(points_by_lot.get("1", {}).get("threshold_amount_wan"), 447.0, "point: lot 1 threshold mismatch", failures)
-    _assert_close(points_by_lot.get("1", {}).get("accounts_ge_threshold"), 103200.0, "point: lot 1 accounts mismatch", failures)
+    _assert_close(points_by_lot.get("1", {}).get("accounts_ge_threshold"), 103206.0, "point: lot 1 accounts mismatch", failures)
     _assert_close(points_by_lot.get("2", {}).get("threshold_amount_wan"), 631.0, "point: lot 2 threshold mismatch", failures)
-    _assert_close(points_by_lot.get("2", {}).get("accounts_ge_threshold"), 87700.0, "point: lot 2 accounts mismatch", failures)
+    _assert_close(points_by_lot.get("2", {}).get("accounts_ge_threshold"), 87684.0, "point: lot 2 accounts mismatch", failures)
 
     threshold_row = thresholds[0] if thresholds else {}
     _assert("accounts_ge_500w_estimate" not in threshold_row, "threshold: 500w should not be materialized", failures)
-    _assert_close(threshold_row.get("accounts_ge_447w_estimate"), 103200.0, "threshold: 447w estimate mismatch", failures)
+    _assert_close(threshold_row.get("accounts_ge_447w_estimate"), 103206.0, "threshold: 447w estimate mismatch", failures)
     _assert(threshold_row.get("accounts_ge_447w_basis") == "observed_threshold", "threshold: 447w basis mismatch", failures)
-    _assert_close(threshold_row.get("accounts_ge_631w_estimate"), 87700.0, "threshold: 631w estimate mismatch", failures)
+    _assert_close(threshold_row.get("accounts_ge_631w_estimate"), 87684.0, "threshold: 631w estimate mismatch", failures)
     _assert(threshold_row.get("accounts_ge_631w_basis") == "observed_threshold", "threshold: 631w basis mismatch", failures)
 
 
@@ -162,7 +162,7 @@ def _run_sequential_refinement_case(failures: list[str]) -> None:
                 "apply_date": "2026-01-01",
                 "listing_date": "2026-01-10",
                 "issue_price": "10",
-                "online_issue_shares": "10000000",
+                "online_issue_shares": "14000",
                 "online_valid_accounts": "1000",
                 "online_allocated_accounts": "100",
                 "top_apply_amount_wan": "1000",
@@ -184,7 +184,7 @@ def _run_sequential_refinement_case(failures: list[str]) -> None:
                 "apply_date": "2026-01-02",
                 "listing_date": "2026-01-11",
                 "issue_price": "10",
-                "online_issue_shares": "10000000",
+                "online_issue_shares": "18000",
                 "online_valid_accounts": "1000",
                 "online_allocated_accounts": "120",
                 "top_apply_amount_wan": "1000",
@@ -250,8 +250,8 @@ def _run_sequential_refinement_case(failures: list[str]) -> None:
     _assert_close(second_row.get("accounts_ge_300w_estimate"), 120.0, "refinement: second 300w covered mismatch", failures)
     _assert(second_row.get("accounts_ge_300w_basis") == "covered_by_newer_observation", "refinement: second 300w basis mismatch", failures)
     _assert_close(second_row.get("accounts_ge_400w_estimate"), 120.0, "refinement: second 400w mismatch", failures)
-    _assert_close(second_row.get("accounts_ge_600w_estimate"), 60.0, "refinement: second 600w covered mismatch", failures)
-    _assert(second_row.get("accounts_ge_600w_basis") == "covered_by_newer_observation", "refinement: second 600w basis mismatch", failures)
+    _assert_close(second_row.get("accounts_ge_600w_estimate"), 80.0, "refinement: second 600w interpolated mismatch", failures)
+    _assert(second_row.get("accounts_ge_600w_basis") == "interpolated_by_newer_observations", "refinement: second 600w basis mismatch", failures)
     _assert_close(second_row.get("accounts_ge_700w_estimate"), 60.0, "refinement: second 700w mismatch", failures)
 
 
@@ -355,11 +355,54 @@ def _run_new_point_caps_conflicting_old_point_case(failures: list[str]) -> None:
     )
 
 
+def _run_announcement_constraints_with_history_prior_case(failures: list[str]) -> None:
+    thresholds = {
+        1: 293.0,
+        2: 586.0,
+        3: 879.0,
+        4: 949.91,
+        5: 1172.0,
+        6: 1465.0,
+        7: 1758.0,
+        8: 2051.0,
+        9: 2344.0,
+        10: 2637.0,
+        11: 2930.0,
+        12: 3231.0,
+    }
+    prior_state = {
+        "500": {"threshold_amount_wan": 500.0, "estimate": 87684.0},
+        "597": {"threshold_amount_wan": 597.0, "estimate": 86029.0},
+        "881.74": {"threshold_amount_wan": 881.74, "estimate": 73209.0},
+        "1194": {"threshold_amount_wan": 1194.0, "estimate": 38704.0},
+        "1800": {"threshold_amount_wan": 1800.0, "estimate": 24448.0},
+        "3231": {"threshold_amount_wan": 3231.0, "estimate": 2000.0},
+    }
+    cumulative, basis = build_account_pool_history._announcement_constrained_cumulative(
+        allocated_accounts=105233.0,
+        total_lots=450000.0,
+        thresholds_by_lot=thresholds,
+        prior_state=prior_state,
+    )
+
+    values = [cumulative[level] for level in range(1, 13)]
+    bucket_counts = [values[index] - (values[index + 1] if index + 1 < len(values) else 0.0) for index in range(len(values))]
+    weighted_lots = sum((index + 1) * count for index, count in enumerate(bucket_counts))
+    _assert(basis == "history_prior", "announcement constraints: history prior not used", failures)
+    _assert_close(values[0], 105233.0, "announcement constraints: allocated account anchor mismatch", failures)
+    _assert_close(sum(values), 450000.0, "announcement constraints: cumulative lot area mismatch", failures, tolerance=1e-4)
+    _assert_close(sum(bucket_counts), 105233.0, "announcement constraints: bucket account equation mismatch", failures, tolerance=1e-4)
+    _assert_close(weighted_lots, 450000.0, "announcement constraints: weighted lot equation mismatch", failures, tolerance=1e-4)
+    _assert(all(values[index] >= values[index + 1] for index in range(len(values) - 1)), "announcement constraints: curve is not monotone", failures)
+    _assert(values[1] > 50000.0, "announcement constraints: compressed 31343-account cliff leaked into result", failures)
+
+
 def main() -> int:
     failures: list[str] = []
     _run_manual_ladder_merge_case(failures)
     _run_sequential_refinement_case(failures)
     _run_new_point_caps_conflicting_old_point_case(failures)
+    _run_announcement_constraints_with_history_prior_case(failures)
     if failures:
         for failure in failures:
             print(f"FAIL: {failure}")

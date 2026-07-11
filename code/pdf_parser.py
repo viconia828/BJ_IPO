@@ -14,9 +14,15 @@ CODE_ONLY_PATTERN = re.compile(r"\b\d{6}\b")
 SPECIFIC_SECTION_PATTERNS = (
     "可比公司选取标准及基本情况",
     "可比公司基本情况",
+    "可比上市公司基本情况",
     "发行人与同行业可比公司",
+    "发行人与同行业可比上市公司",
+    "发行人与同行业可比公众公司",
     "与同行业可比公司的对比分析",
     "发行人与同行业可比公司的对比分析",
+    "与同行业可比上市公司的对比分析",
+    "发行人与同行业可比上市公司的对比分析",
+    "与同行业可比公众公司的比较",
 )
 PROSPECTUS_BUSINESS_CHAPTER_PATTERNS = (
     "第五节业务和技术",
@@ -244,6 +250,84 @@ COMPARABLE_NAME_CODE_FALLBACKS = {
     "天马新材": "920971.BJ",
     "联瑞新材": "688300.SH",
     "百图股份": "875029.NQ",
+    "祥源新材": "300980.SZ",
+    "润阳科技": "300920.SZ",
+    "海兴电力": "603556.SH",
+    "林洋能源": "601222.SH",
+    "西力科技": "688616.SH",
+    "炬华科技": "300360.SZ",
+    "振德医疗": "603301.SH",
+    "奥美医疗": "002950.SZ",
+    "健尔康": "603205.SH",
+    "南微医学": "688029.SH",
+    "春立医疗": "688236.SH",
+    "康拓医疗": "688314.SH",
+    "惠泰医疗": "688617.SH",
+    "北京利尔": "002392.SZ",
+    "濮耐股份": "002225.SZ",
+    "中钢洛耐": "688119.SH",
+    "瑞泰科技": "002066.SZ",
+    "科创新材": "833580.NQ",
+    "坤彩科技": "603826.SH",
+    "新威凌": "920634.BJ",
+    "有研粉材": "688456.SH",
+    "旭阳新材": "874421.NQ",
+    "金麒麟": "603586.SH",
+    "博云新材": "002297.SZ",
+    "天宜新材": "688033.SH",
+    "北摩高科": "002985.SZ",
+    "林泰新材": "920106.BJ",
+    "立万精工": "874389.NQ",
+    "华纬科技": "001380.SZ",
+    "凯众股份": "603037.SH",
+    "铜峰电子": "600237.SH",
+    "安徽铜峰电子": "600237.SH",
+    "大东南": "002263.SZ",
+    "浙江大东南": "002263.SZ",
+    "嘉德利": "603435.SH",
+    "维力医疗": "603309.SH",
+    "三鑫医疗": "300453.SZ",
+    "天益医疗": "301097.SZ",
+    "华域汽车": "600741.SH",
+    "星宇股份": "601799.SH",
+    "科博达": "603786.SH",
+    "锦波生物": "920982.BJ",
+    "芭薇股份": "920123.BJ",
+    "漫步者": "002351.SZ",
+    "惠威科技": "002888.SZ",
+    "先歌国际": "872824.NQ",
+    "利通科技": "920225.BJ",
+    "中裕科技": "920694.BJ",
+    "派特尔": "920871.BJ",
+    "三孚新科": "688359.SH",
+    "领湃科技": "300530.SZ",
+    "华盛锂电": "688353.SH",
+    "皇马科技": "603181.SH",
+    "松石科技": "870303.NQ",
+    "华成工控": "873553.NQ",
+    "固高科技": "301510.SZ",
+    "信捷电气": "603416.SH",
+    "雷赛智能": "002979.SZ",
+    "禾川科技": "688320.SH",
+    "步科股份": "688160.SH",
+    "家联科技": "301193.SZ",
+    "富岭股份": "001356.SZ",
+    "恒鑫生活": "301501.SZ",
+    "海普锐": "837408.NQ",
+    "科新机电": "300092.SZ",
+    "蓝科高新": "601798.SH",
+    "兰石重装": "603169.SH",
+    "锡装股份": "001332.SZ",
+    "广厦环能": "920703.BJ",
+    "德邦科技": "688035.SH",
+}
+COMPARABLE_CODE_ALIASES = {
+    "832522.BJ": "920522.BJ",
+    "833284.BJ": "920284.BJ",
+    "832982.BJ": "920982.BJ",
+    "837023.BJ": "920123.BJ",
+    "871694.BJ": "920694.BJ",
+    "873703.BJ": "920703.BJ",
 }
 FULLWIDTH_TRANSLATION = str.maketrans(
     {
@@ -399,7 +483,7 @@ PARSE_CACHE_KIND_VERSIONS = {
     "prospectus_issue_info": 8,
     "issue_announcement_info": 5,
     "issue_result_info": 4,
-    "comparable_companies": 9,
+    "comparable_companies": 22,
     "business_desc": 3,
 }
 PARSE_CACHE_DIR = Path(__file__).resolve().parents[1] / "data" / "pdf_parse_cache"
@@ -1494,15 +1578,15 @@ def extract_old_shares(pdf_path: str | Path) -> float | None:
 def _extract_named_comparables(text: str) -> list[str]:
     names: list[str] = []
     sentence_patterns = [
-        re.compile(r"(?:因此|故|基于上述标准[，,]?)?公司选取(?:了)?(?P<names>[\u4e00-\u9fffA-Za-z、，,\s及和与]{2,100}?)作为(?:同行业)?可比公司"),
-        re.compile(r"基于上述标准，公司选取了(?P<names>[^。；\n]+?)作为(?:同行业)?可比公司"),
-        re.compile(r"选取(?!可比公司时)(?:了)?(?P<names>[^。；\n]+?)作为(?:同行业)?可比公司"),
-        re.compile(r"(?:基于上述标准，公司|公司)?选取(?:了)?(?:国内)?上市公司(?P<names>[^。；\n]+?)作为(?:同行业)?可比公司"),
+        re.compile(r"(?:因此|故|基于上述标准[，,]?)?公司(?:选取|选择)(?:了)?(?P<names>[\u4e00-\u9fffA-Za-z、，,\s及和与]{2,180}?)作为(?:发行人的?|公司的?|同行业)?可比(?:上市|公众)?公司"),
+        re.compile(r"基于上述标准，公司(?:选取|选择)了(?P<names>[^。；\n]+?)作为(?:发行人的?|公司的?|同行业)?可比(?:上市|公众)?公司"),
+        re.compile(r"(?:选取|选择)(?!可比公司时)(?:了)?(?P<names>[^。；\n]+?)作为(?:发行人的?|公司的?|同行业)?可比(?:上市|公众)?公司"),
+        re.compile(r"(?:基于上述标准，公司|公司)?(?:选取|选择)(?:了)?(?:国内)?上市公司(?P<names>[^。；\n]+?)作为(?:发行人的?|公司的?|同行业)?可比(?:上市|公众)?公司"),
     ]
     for pattern in sentence_patterns:
         for match in pattern.finditer(text):
             raw_names = re.sub(r"\s+", "", match.group("names"))
-            for part in re.split(r"[、，,及和与]", raw_names):
+            for part in re.split(r"(?:以及|[、，,及和与])", raw_names):
                 name = part.strip()
                 name = re.sub(r"^(?:国内)?上市公司", "", name).strip()
                 name = re.sub(r"(?:等|等公司|股份有限公司)$", "", name).strip()
@@ -1511,9 +1595,102 @@ def _extract_named_comparables(text: str) -> list[str]:
                     candidate = name.rsplit("的", 1)[-1].strip()
                     if 1 < len(candidate) <= 24:
                         name = candidate
-                if 1 < len(name) <= 24 and "可比公司" not in name and name not in names:
+                if (
+                    1 < len(name) <= 24
+                    and "可比公司" not in name
+                    and name not in {"公司", "上市公司", "公众公司", "同行业公司"}
+                    and name not in names
+                ):
                     names.append(name)
     return names
+
+
+def _extract_explicit_selection_codes(text: str) -> list[str]:
+    """Extract peers from sentences/tables that explicitly describe peer selection."""
+    codes: list[str] = []
+    selection_marker = re.compile(r"选取|选择|选为")
+    for match in selection_marker.finditer(text):
+        left = max(
+            text.rfind("。", max(0, match.start() - 900), match.start()),
+            text.rfind("；", max(0, match.start() - 900), match.start()),
+        )
+        left = max(left + 1, match.start() - 700)
+        right_periods = [
+            index
+            for index in (
+                text.find("。", match.end()),
+                text.find("；", match.end()),
+            )
+            if index >= 0
+        ]
+        right = min(right_periods) + 1 if right_periods else min(len(text), match.end() + 900)
+        sentence = text[left:right]
+        if "可比公司" not in sentence and "可比上市公司" not in sentence and "可比公众公司" not in sentence:
+            continue
+
+        direct_codes = list(CODE_PATTERN.findall(sentence))
+        if len(_dedupe_codes(direct_codes)) < 2:
+            direct_codes = []
+            for pattern in (NAME_CODE_PATTERN, GLOSSARY_PATTERN, PLAIN_NAME_CODE_PATTERN):
+                direct_codes.extend(_normalize_code(item.group("code")) for item in pattern.finditer(sentence))
+        if len(_dedupe_codes(direct_codes)) >= 2:
+            corrections: dict[str, str] = {}
+            for name, canonical_code in COMPARABLE_NAME_CODE_FALLBACKS.items():
+                match_with_code = re.search(
+                    rf"{re.escape(name)}\s*[（(]\s*(?P<code>\d{{6}}(?:\.(?:SH|SZ|BJ|NQ))?)\s*[）)]",
+                    sentence,
+                    re.IGNORECASE,
+                )
+                if match_with_code:
+                    corrections[_normalize_code(match_with_code.group("code"))] = canonical_code
+            direct_codes = [corrections.get(code, code) for code in direct_codes]
+            codes.extend(direct_codes)
+            continue
+
+        sentence_names = _extract_named_comparables(sentence)
+        sentence_names.extend(_extract_known_comparable_names(sentence))
+        sentence_names = sorted(
+            dict.fromkeys(sentence_names),
+            key=lambda name: sentence.find(name) if sentence.find(name) >= 0 else len(sentence),
+        )
+        sentence_codes: list[str] = []
+        for name in sentence_names:
+            code = _search_direct_or_known_code_for_name(text, name)
+            if code:
+                sentence_codes.append(code)
+        if sentence_codes:
+            codes.extend(sentence_codes)
+            continue
+
+        # "选择如下公司" leaves the names to a multi-row table after the sentence.
+        evidence = text[left : min(len(text), right + 2400)]
+        for name in _extract_known_comparable_names(evidence):
+            code = _search_direct_or_known_code_for_name(text, name)
+            if code:
+                codes.append(code)
+    return _dedupe_codes(codes)
+
+
+def _extract_best_known_comparable_table_codes(text: str) -> list[str]:
+    """Choose the peer table/window containing the strongest known-name evidence."""
+    best_codes: list[str] = []
+    for anchor in ("可比上市公司", "可比公众公司", "同行业可比公司"):
+        cursor = 0
+        while True:
+            index = text.find(anchor, cursor)
+            if index < 0:
+                break
+            window = text[index : min(len(text), index + 4200)]
+            current_codes: list[str] = []
+            for name in _extract_known_comparable_names(window):
+                code = _lookup_comparable_code_by_name(name) or _search_direct_or_known_code_for_name(text, name)
+                if code:
+                    current_codes.append(code)
+            current_codes = _dedupe_codes(current_codes)
+            if len(current_codes) > len(best_codes):
+                best_codes = current_codes
+            cursor = index + len(anchor)
+    return best_codes
 
 
 def _extract_known_comparable_names(text: str) -> list[str]:
@@ -1623,9 +1800,14 @@ def _extract_comparable_companies_legacy(text: str) -> list[str]:
 
 
 def _filter_target_code(codes: list[str], target_code: str) -> list[str]:
+    valid_codes = _dedupe_codes(
+        COMPARABLE_CODE_ALIASES.get(code.upper().strip(), code.upper().strip())
+        for code in codes
+        if CODE_PATTERN.fullmatch(code)
+    )
     if not target_code:
-        return codes
-    return [code for code in codes if code.split(".", 1)[0] != target_code]
+        return valid_codes
+    return [code for code in valid_codes if code.split(".", 1)[0] != target_code]
 
 
 def _extract_comparable_companies_from_text(text: str, target_code: str = "") -> list[str]:
@@ -1633,6 +1815,18 @@ def _extract_comparable_companies_from_text(text: str, target_code: str = "") ->
         return []
 
     normalized_text = _normalize_text(text)
+    explicit_selection_codes = _extract_explicit_selection_codes(normalized_text)
+    if explicit_selection_codes:
+        filtered_codes = _filter_target_code(explicit_selection_codes, target_code)
+        if filtered_codes:
+            return filtered_codes
+
+    table_codes = _extract_best_known_comparable_table_codes(normalized_text)
+    if len(table_codes) >= 3:
+        filtered_codes = _filter_target_code(table_codes, target_code)
+        if filtered_codes:
+            return filtered_codes
+
     glossary_codes = _extract_glossary_labeled_comparable_codes(text, normalized_text)
     rejected_broad_generic_section = False
     specific_section_text, _ = _extract_compact_section(

@@ -202,20 +202,6 @@ def _bucket_rows(fit: dict[str, Any]) -> list[dict[str, Any]]:
     return clean
 
 
-def _cumulative_accounts_by_lot(buckets: list[dict[str, Any]]) -> dict[int, float]:
-    if not buckets:
-        return {}
-    max_lots = max(int(bucket.get("allocated_lots") or 0) for bucket in buckets)
-    result: dict[int, float] = {}
-    for lot_level in range(1, max_lots + 1):
-        result[lot_level] = sum(
-            float(bucket.get("accounts") or 0.0)
-            for bucket in buckets
-            if int(bucket.get("allocated_lots") or 0) >= lot_level
-        )
-    return result
-
-
 def _manual_points(row: dict[str, Any]) -> dict[int, dict[str, Any]]:
     points: dict[int, dict[str, Any]] = {}
     top_apply = _safe_float(row.get("top_apply_amount_wan"))
@@ -255,11 +241,229 @@ def _fit_points_by_lot(buckets: list[dict[str, Any]]) -> dict[int, dict[str, Any
     return points
 
 
+def _state_curve_points(state: dict[str, dict[str, Any]]) -> list[tuple[float, float]]:
+    points: list[tuple[float, float]] = []
+    for item in state.values():
+        threshold = _safe_float(item.get("threshold_amount_wan"))
+        estimate = _safe_float(item.get("estimate"))
+        if threshold is None or threshold <= 0 or estimate is None:
+            continue
+        points.append((float(threshold), max(float(estimate), 0.0)))
+    return sorted(points)
+
+
+def _estimate_state_accounts_ge(state: dict[str, dict[str, Any]], amount_wan: float) -> float | None:
+    points = _state_curve_points(state)
+    if not points:
+        return None
+    if amount_wan <= points[0][0]:
+        return points[0][1]
+    if amount_wan >= points[-1][0]:
+        return points[-1][1]
+    for (lower_amount, lower_accounts), (upper_amount, upper_accounts) in zip(points, points[1:]):
+        if lower_amount <= amount_wan <= upper_amount:
+            if abs(upper_amount - lower_amount) < 1e-9:
+                return min(lower_accounts, upper_accounts)
+            ratio = (amount_wan - lower_amount) / (upper_amount - lower_amount)
+            return lower_accounts + ratio * (upper_accounts - lower_accounts)
+    return None
+
+
+def _estimate_state_prior_stats(
+    state: dict[str, dict[str, Any]],
+    amount_wan: float,
+) -> tuple[float | None, float | None]:
+    points: list[tuple[float, float, float]] = []
+    for item in state.values():
+        threshold = _safe_float(item.get("threshold_amount_wan"))
+        estimate = _safe_float(item.get("estimate"))
+        if threshold is None or threshold <= 0 or estimate is None:
+            continue
+        deviation = _safe_float(item.get("deviation"))
+        if deviation is None:
+            deviation = max(float(estimate) * 0.03, 1000.0)
+        points.append((float(threshold), max(float(estimate), 0.0), max(float(deviation), 1000.0)))
+    points.sort()
+    if not points:
+        return None, None
+    if amount_wan <= points[0][0]:
+        return points[0][1], points[0][2]
+    if amount_wan >= points[-1][0]:
+        return points[-1][1], points[-1][2]
+    for lower, upper in zip(points, points[1:]):
+        if lower[0] <= amount_wan <= upper[0]:
+            ratio = (amount_wan - lower[0]) / max(upper[0] - lower[0], 1e-9)
+            estimate = lower[1] + ratio * (upper[1] - lower[1])
+            deviation = lower[2] + ratio * (upper[2] - lower[2])
+            return estimate, deviation
+    return None, None
+
+
+def _complete_lot_thresholds(
+    *,
+    manual_by_lot: dict[int, dict[str, Any]],
+    fit_by_lot: dict[int, dict[str, Any]],
+    max_lots: int,
+    top_apply_amount_wan: float | None,
+) -> dict[int, float]:
+    anchors: dict[int, float] = {}
+    for lot_level, point in fit_by_lot.items():
+        amount = _safe_float(point.get("threshold_amount_wan"))
+        if amount is not None and amount > 0:
+            anchors[lot_level] = float(amount)
+    for lot_level, point in manual_by_lot.items():
+        amount = _safe_float(point.get("threshold_amount_wan"))
+        if amount is not None and amount > 0:
+            anchors[lot_level] = float(amount)
+    if top_apply_amount_wan is not None and top_apply_amount_wan > 0:
+        anchors.setdefault(max_lots, float(top_apply_amount_wan))
+    if not anchors:
+        return {}
+
+    levels = sorted(anchors)
+    completed: dict[int, float] = {}
+    for lot_level in range(1, max_lots + 1):
+        if lot_level in anchors:
+            completed[lot_level] = anchors[lot_level]
+            continue
+        lower_levels = [level for level in levels if level < lot_level]
+        upper_levels = [level for level in levels if level > lot_level]
+        lower = max(lower_levels) if lower_levels else None
+        upper = min(upper_levels) if upper_levels else None
+        if lower is not None and upper is not None:
+            ratio = (lot_level - lower) / (upper - lower)
+            completed[lot_level] = anchors[lower] + ratio * (anchors[upper] - anchors[lower])
+        elif lower is not None:
+            previous = max((level for level in levels if level < lower), default=None)
+            step = (anchors[lower] - anchors[previous]) / (lower - previous) if previous is not None else anchors[lower]
+            completed[lot_level] = anchors[lower] + max(step, 0.01) * (lot_level - lower)
+        elif upper is not None:
+            following = min((level for level in levels if level > upper), default=None)
+            step = (anchors[following] - anchors[upper]) / (following - upper) if following is not None else anchors[upper]
+            completed[lot_level] = max(0.01, anchors[upper] - max(step, 0.01) * (upper - lot_level))
+
+    previous_amount = 0.0
+    for lot_level in range(1, max_lots + 1):
+        amount = max(float(completed.get(lot_level) or 0.0), previous_amount + 0.01)
+        if top_apply_amount_wan is not None and lot_level == max_lots:
+            amount = max(float(top_apply_amount_wan), previous_amount + 0.01)
+        completed[lot_level] = amount
+        previous_amount = amount
+    return completed
+
+
+def _announcement_constrained_cumulative(
+    *,
+    allocated_accounts: float,
+    total_lots: float,
+    thresholds_by_lot: dict[int, float],
+    prior_state: dict[str, dict[str, Any]],
+) -> tuple[dict[int, float], str]:
+    max_lots = max(thresholds_by_lot, default=0)
+    if max_lots <= 0 or allocated_accounts <= 0 or total_lots < allocated_accounts:
+        return {}, "unavailable"
+
+    first_accounts = float(allocated_accounts)
+    target_extra = min(max(float(total_lots) - first_accounts, 0.0), first_accounts * max(max_lots - 1, 0))
+    if max_lots == 1:
+        return {1: first_accounts}, "announcement_exact"
+
+    raw: list[float] = []
+    deviations: list[float] = []
+    used_history_prior = False
+    first_amount = thresholds_by_lot.get(1, min(thresholds_by_lot.values()))
+    top_amount = thresholds_by_lot.get(max_lots, max(thresholds_by_lot.values()))
+    span = max(top_amount - first_amount, 0.01)
+    for lot_level in range(2, max_lots + 1):
+        amount = thresholds_by_lot[lot_level]
+        prior, deviation = _estimate_state_prior_stats(prior_state, amount)
+        if prior is not None:
+            used_history_prior = True
+            value = min(max(float(prior), 0.0), first_accounts)
+            tail_flex = 1.0 + 0.75 * (lot_level - 2) / max(max_lots - 2, 1)
+            deviations.append(min(max(float(deviation or 0.0) * tail_flex, 1000.0), first_accounts))
+        else:
+            progress = min(max((amount - first_amount) / span, 0.0), 1.0)
+            value = first_accounts * max((1.0 - progress) ** 0.75, 0.01)
+            deviations.append(max(value * 0.2, 1000.0))
+        raw.append(max(value, first_accounts * 0.0001))
+
+    previous = first_accounts
+    for index, value in enumerate(raw):
+        raw[index] = min(value, previous)
+        previous = raw[index]
+
+    if target_extra <= 0:
+        scaled = [0.0 for _ in raw]
+    elif used_history_prior and raw:
+        def shifted_values(shift: float, expansion: float) -> list[float]:
+            values = [
+                min(
+                    max(
+                        center
+                        + shift
+                        * deviation
+                        * (1.0 + (expansion - 1.0) * index / max(len(raw) - 1, 1)),
+                        0.0,
+                    ),
+                    first_accounts,
+                )
+                for index, (center, deviation) in enumerate(zip(raw, deviations))
+            ]
+            previous_value = first_accounts
+            for index, value in enumerate(values):
+                values[index] = min(value, previous_value)
+                previous_value = values[index]
+            return values
+
+        expansion = 1.0
+        for _ in range(20):
+            lower_total = sum(shifted_values(-1.0, expansion))
+            upper_total = sum(shifted_values(1.0, expansion))
+            if lower_total - 1e-6 <= target_extra <= upper_total + 1e-6:
+                break
+            expansion *= 2.0
+        lower_shift = -1.0
+        upper_shift = 1.0
+        for _ in range(80):
+            shift = (lower_shift + upper_shift) / 2.0
+            current = sum(shifted_values(shift, expansion))
+            if current < target_extra:
+                lower_shift = shift
+            else:
+                upper_shift = shift
+        scaled = shifted_values(upper_shift, expansion)
+    else:
+        upper_scale = 1.0
+        while sum(min(first_accounts, value * upper_scale) for value in raw) < target_extra:
+            upper_scale *= 2.0
+            if upper_scale > 1e9:
+                break
+        lower_scale = 0.0
+        for _ in range(80):
+            scale = (lower_scale + upper_scale) / 2.0
+            current = sum(min(first_accounts, value * scale) for value in raw)
+            if current < target_extra:
+                lower_scale = scale
+            else:
+                upper_scale = scale
+        scaled = [min(first_accounts, value * upper_scale) for value in raw]
+
+    result = {1: first_accounts}
+    previous = first_accounts
+    for lot_level, value in enumerate(scaled, start=2):
+        result[lot_level] = min(max(value, 0.0), previous)
+        previous = result[lot_level]
+    return result, "history_prior" if used_history_prior else "cold_start"
+
+
 def _point_quality(fit: dict[str, Any], source: str, accounts: float | None) -> str:
     fit_quality = str(fit.get("fit_quality") or fit.get("method") or "")
     confidence = _safe_float(fit.get("fit_confidence"))
     if accounts is None:
         return "threshold_only"
+    if "announcement_aggregate" in source and "manual_ladder" in source:
+        return "announcement_constrained_manual"
     if "manual_ladder" in source and confidence is not None and confidence >= 0.75:
         return "strong_manual_fit"
     if fit_quality.startswith("time_priority"):
@@ -269,56 +473,56 @@ def _point_quality(fit: dict[str, Any], source: str, accounts: float | None) -> 
     return "low_confidence_fit"
 
 
-def _build_points_for_row(row: dict[str, Any]) -> list[dict[str, Any]]:
+def _build_points_for_row(
+    row: dict[str, Any],
+    prior_state: dict[str, dict[str, Any]] | None = None,
+) -> list[dict[str, Any]]:
     code = _row_code(row)
     fit = _parse_json_object(row.get("allocation_fit_json"))
     buckets = _bucket_rows(fit)
-    cumulative = _cumulative_accounts_by_lot(buckets)
     manual_by_lot = _manual_points(row)
     fit_by_lot = _fit_points_by_lot(buckets)
-    lot_levels = sorted(set(manual_by_lot) | set(fit_by_lot))
+    if not manual_by_lot:
+        return []
 
     online_issue_shares = _safe_float(row.get("online_issue_shares"))
     online_lots_total = online_issue_shares / 100.0 if online_issue_shares is not None else None
-    top_apply_below = _truthy(row.get("top_apply_below_guaranteed"))
-    if not lot_levels and top_apply_below and online_lots_total:
-        allocated_accounts = _safe_float(row.get("online_allocated_accounts"))
-        if allocated_accounts is None or abs(allocated_accounts - online_lots_total) <= max(2.0, online_lots_total * 0.02):
-            lot_levels = [1]
-            cumulative[1] = online_lots_total
-            fit_by_lot[1] = {
-                "lot_level": 1,
-                "threshold_amount_wan": _safe_float(row.get("top_apply_amount_wan")),
-                "basis": "top_apply_time_priority_fallback",
-            }
+    allocated_accounts = _safe_float(row.get("online_allocated_accounts"))
+    if online_lots_total is None or allocated_accounts is None or allocated_accounts <= 0:
+        return []
+
+    average_lots = online_lots_total / allocated_accounts
+    max_lots = max(
+        max(manual_by_lot, default=1),
+        max(fit_by_lot, default=1),
+        int(math.ceil(average_lots)),
+    )
+    thresholds_by_lot = _complete_lot_thresholds(
+        manual_by_lot=manual_by_lot,
+        fit_by_lot=fit_by_lot,
+        max_lots=max_lots,
+        top_apply_amount_wan=_safe_float(row.get("top_apply_amount_wan")),
+    )
+    cumulative, prior_basis = _announcement_constrained_cumulative(
+        allocated_accounts=allocated_accounts,
+        total_lots=online_lots_total,
+        thresholds_by_lot=thresholds_by_lot,
+        prior_state=prior_state or {},
+    )
 
     points: list[dict[str, Any]] = []
-    for lot_level in lot_levels:
+    for lot_level in sorted(manual_by_lot):
         manual = manual_by_lot.get(lot_level)
-        fit_point = fit_by_lot.get(lot_level)
-        threshold_amount = (
-            _safe_float(manual.get("threshold_amount_wan")) if manual else _safe_float((fit_point or {}).get("threshold_amount_wan"))
-        )
+        threshold_amount = _safe_float((manual or {}).get("threshold_amount_wan"))
         if threshold_amount is None or threshold_amount <= 0:
             continue
         accounts = cumulative.get(lot_level)
-        source_parts = []
-        if manual:
-            source_parts.append("manual_ladder")
-        if accounts is not None:
-            source_parts.append("allocation_fit")
-        else:
-            source_parts.append("manual_only")
-        source = "+".join(source_parts)
-        notes: list[str] = []
-        if not buckets and accounts is None:
-            notes.append("missing_allocation_fit_counts")
-        elif fit.get("fit_quality") == "rough_lot_account_fit":
-            notes.append("allocation_counts_are_model_fit")
-        if manual and fit_point:
-            fit_amount = _safe_float(fit_point.get("threshold_amount_wan"))
-            if fit_amount is not None and abs(fit_amount - threshold_amount) > 1.0:
-                notes.append(f"manual_threshold_overrides_fit:{_format_value(fit_amount)}")
+        source = "manual_ladder+announcement_aggregate"
+        notes = [
+            "announcement_accounts_and_lots_hard_constraints",
+            f"shape_prior:{prior_basis}",
+            "compressed_extra_lots_counts_excluded",
+        ]
         point = {
             "security_code": code,
             "security_name_abbr": row.get("security_name_abbr") or "",
@@ -332,15 +536,15 @@ def _build_points_for_row(row: dict[str, Any]) -> list[dict[str, Any]]:
             "top_apply_amount_wan": _safe_float(row.get("top_apply_amount_wan")),
             "threshold_amount_wan": threshold_amount,
             "accounts_ge_threshold": accounts,
-            "account_count_basis": "cumulative_allocated_lots" if accounts is not None else "",
+            "account_count_basis": "announcement_constrained_cumulative_lots" if accounts is not None else "",
             "lot_level": lot_level,
             "manual_ladder_item": (manual or {}).get("manual_ladder_item", ""),
             "manual_threshold_kind": (manual or {}).get("manual_threshold_kind", ""),
             "time_priority_required": bool((manual or {}).get("time_priority_required")),
-            "fit_quality": fit.get("fit_quality") or fit.get("method") or "",
-            "fit_confidence": _safe_float(fit.get("fit_confidence")),
+            "fit_quality": "announcement_constrained_ladder",
+            "fit_confidence": 0.85 if prior_basis == "history_prior" else 0.75,
             "source": source,
-            "basis": (fit_point or {}).get("basis", ""),
+            "basis": f"announcement_constrained_{prior_basis}",
             "notes": "|".join(notes),
         }
         point["point_quality"] = _point_quality(fit, source, accounts)
@@ -384,6 +588,7 @@ def _cover_state_item(
     code: str,
 ) -> None:
     item["estimate"] = max(float(observation["estimate"]), 0.0)
+    item["deviation"] = max(float(observation.get("deviation") or 1000.0), 1000.0)
     item["basis"] = "covered_by_newer_observation"
     item["covered_by_threshold_wan"] = observation.get("threshold_amount_wan")
     item["last_update_code"] = code
@@ -427,15 +632,51 @@ def _update_threshold_state(
     for observation in observations:
         key = str(observation["key"])
         current = state.get(key) or {}
+        old_estimate = _safe_float(current.get("estimate"))
+        old_deviation = _safe_float(current.get("deviation")) or 0.0
+        new_estimate = float(observation["estimate"])
+        deviation = max(new_estimate * 0.03, old_deviation * 0.8, 1000.0)
+        if old_estimate is not None:
+            deviation = max(deviation, abs(new_estimate - old_estimate) * 0.5)
         state[key] = {
             "threshold_amount_wan": observation["threshold_amount_wan"],
-            "estimate": observation["estimate"],
+            "estimate": new_estimate,
+            "deviation": deviation,
             "basis": "observed_threshold",
             "source": observation.get("source", ""),
             "observation_count": int(_safe_float(current.get("observation_count")) or 0) + 1,
             "last_update_code": code,
         }
+        observation["deviation"] = deviation
         touched_keys.add(key)
+
+    for lower_observation, upper_observation in zip(observations, observations[1:]):
+        lower_threshold = float(lower_observation["threshold_amount_wan"])
+        upper_threshold = float(upper_observation["threshold_amount_wan"])
+        lower_estimate = float(lower_observation["estimate"])
+        upper_estimate = float(upper_observation["estimate"])
+        if upper_threshold <= lower_threshold + 1e-9:
+            continue
+        for key, item in state.items():
+            if key in {str(lower_observation["key"]), str(upper_observation["key"])}:
+                continue
+            threshold = _safe_float(item.get("threshold_amount_wan"))
+            if threshold is None or not (lower_threshold < threshold < upper_threshold):
+                continue
+            ratio = (threshold - lower_threshold) / (upper_threshold - lower_threshold)
+            old_estimate = _safe_float(item.get("estimate"))
+            interpolated = max(lower_estimate + ratio * (upper_estimate - lower_estimate), 0.0)
+            lower_deviation = float(lower_observation.get("deviation") or 1000.0)
+            upper_deviation = float(upper_observation.get("deviation") or 1000.0)
+            deviation = lower_deviation + ratio * (upper_deviation - lower_deviation)
+            if old_estimate is not None:
+                deviation = max(deviation, abs(interpolated - old_estimate) * 0.5)
+            item["estimate"] = interpolated
+            item["deviation"] = max(deviation, interpolated * 0.03, 1000.0)
+            item["basis"] = "interpolated_by_newer_observations"
+            item["covered_by_threshold_wan"] = upper_threshold
+            item["last_update_code"] = code
+            touched_keys.add(key)
 
     for observation in observations:
         obs_threshold = float(observation["threshold_amount_wan"])
@@ -463,6 +704,7 @@ def _build_threshold_base_row(row: dict[str, Any], points: list[dict[str, Any]])
     fit = _parse_json_object(row.get("allocation_fit_json"))
     usable_points = [point for point in points if _safe_float(point.get("accounts_ge_threshold")) is not None]
     max_point = max(usable_points, key=lambda item: _safe_float(item.get("threshold_amount_wan")) or 0.0) if usable_points else {}
+    representative_point = usable_points[0] if usable_points else {}
     top_apply_amount = _safe_float(row.get("top_apply_amount_wan"))
     online_issue_shares = _safe_float(row.get("online_issue_shares"))
     return {
@@ -476,15 +718,15 @@ def _build_threshold_base_row(row: dict[str, Any], points: list[dict[str, Any]])
         "online_valid_accounts": _safe_float(row.get("online_valid_accounts")),
         "online_allocated_accounts": _safe_float(row.get("online_allocated_accounts")),
         "top_apply_amount_wan": top_apply_amount,
-        "fit_quality": fit.get("fit_quality") or fit.get("method") or "",
-        "fit_confidence": _safe_float(fit.get("fit_confidence")),
+        "fit_quality": representative_point.get("fit_quality") or fit.get("fit_quality") or fit.get("method") or "",
+        "fit_confidence": _safe_float(representative_point.get("fit_confidence")) or _safe_float(fit.get("fit_confidence")),
         "point_count": len(points),
         "manual_point_count": sum(1 for point in points if "manual_ladder" in str(point.get("source") or "")),
         "usable_point_count": len(usable_points),
         "max_observed_threshold_wan": _safe_float(max_point.get("threshold_amount_wan")),
         "max_observed_accounts": _safe_float(max_point.get("accounts_ge_threshold")),
-        "source": "manual_ladder+allocation_fit" if any("manual_ladder" in str(point.get("source") or "") for point in points) else ("allocation_fit" if points else ""),
-        "notes": "snapshot uses observed cutpoints only; runtime callers interpolate between cutpoints",
+        "source": "manual_ladder+announcement_aggregate" if any("announcement_aggregate" in str(point.get("source") or "") for point in points) else "",
+        "notes": "snapshot uses announcement-constrained manual cutpoints only; runtime callers interpolate between cutpoints",
     }
 
 
@@ -507,9 +749,10 @@ def _build_threshold_snapshot_row(
         basis = str(item.get("basis") or "observed_threshold")
         if key not in touched_keys:
             basis = "carry_forward"
+        deviation = _safe_float(item.get("deviation")) or max(estimate * 0.03, 1000.0)
         output[f"{prefix}_estimate"] = estimate
-        output[f"{prefix}_lb"] = estimate
-        output[f"{prefix}_ub"] = estimate
+        output[f"{prefix}_lb"] = max(estimate - deviation, 0.0)
+        output[f"{prefix}_ub"] = estimate + deviation
         output[f"{prefix}_basis"] = basis
     return output
 
@@ -550,7 +793,7 @@ def build_account_pool_history(
     all_thresholds_seen: set[float] = set()
     for row in merged_rows:
         code = _row_code(row)
-        points = _build_points_for_row(row)
+        points = _build_points_for_row(row, threshold_state)
         points_by_code[code] = points
         point_rows.extend(points)
         touched_keys = _update_threshold_state(threshold_state, points, code)

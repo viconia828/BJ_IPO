@@ -124,6 +124,11 @@ def _fake_call_tushare_api(
     )
     code = str(params.get("ts_code") or "")
     if api_name == "stock_basic":
+        if params.get("exchange") == "BSE":
+            return [
+                {"ts_code": "920982.BJ", "name": "锦波生物"},
+                {"ts_code": "920123.BJ", "name": "芭薇股份"},
+            ], ""
         return [{"ts_code": code, "name": {"688097.SH": "博众精工"}.get(code, code)}], ""
     if api_name == "daily_basic":
         return [
@@ -215,6 +220,27 @@ def _run_unsupported_code_backup_case(failures: list[str]) -> None:
     print("OK unsupported_code_backup: unsupported market skipped Tushare and used eastmoney")
 
 
+def _run_legacy_bse_alias_case(failures: list[str]) -> None:
+    cache_root = TEMP_ROOT / "legacy_bse_alias"
+    _reset_dir(cache_root)
+    db = LocalFileDB(cache_root)
+    db.save_fixed_record("832982.BJ", {"name": "锦波生物(已切换)"}, source="seed")
+    os.environ[TOKEN_ENV] = "dummy"
+    result = tushare_helper.get_comparable_valuations(["832982.BJ"], params=_make_params(cache_root))
+    summary = result["summary"]
+    aliases = summary.get("legacy_code_aliases") or []
+    _assert(summary.get("requested_codes") == ["832982.BJ"], "legacy_alias: original code should remain auditable", failures)
+    _assert(summary.get("resolved_codes") == ["920982.BJ"], "legacy_alias: expected current BSE code", failures)
+    _assert(bool(aliases) and aliases[0].get("current_code") == "920982.BJ", "legacy_alias: missing alias detail", failures)
+    _assert(bool(result.get("items")) and result["items"][0].get("code") == "920982.BJ", "legacy_alias: valuation should query current code", failures)
+    _assert(
+        ((db.load_fixed_record("832982.BJ") or {}).get("fields") or {}).get("current_ts_code") == "920982.BJ",
+        "legacy_alias: alias should be cached for future offline reuse",
+        failures,
+    )
+    print("OK legacy_bse_alias: resolved old BSE code by exact company name")
+
+
 
 def _run_quota_bucket_case(failures: list[str]) -> None:
     cache_root = TEMP_ROOT / 'quota_bucket'
@@ -276,6 +302,7 @@ def main() -> int:
         _run_quota_bucket_case(failures)
         _run_missing_token_backup_case(failures)
         _run_unsupported_code_backup_case(failures)
+        _run_legacy_bse_alias_case(failures)
     finally:
         data_fetcher.fetch_equity_snapshot = _ORIGINAL_FETCH_EQUITY_SNAPSHOT
         tushare_helper._call_tushare_api = _ORIGINAL_CALL_TUSHARE_API
@@ -287,7 +314,7 @@ def main() -> int:
             print(f"- {item}")
         return 1
 
-    print("\nTushare data pipeline validation passed: 5 cases")
+    print("\nTushare data pipeline validation passed: 6 cases")
     return 0
 
 

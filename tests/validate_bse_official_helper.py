@@ -241,6 +241,39 @@ def _run_prospectus_resolution_case(failures: list[str]) -> None:
     print("OK prospectus: picked BHG prospectus and built stable filename")
 
 
+def _run_prospectus_stage_sync_case(failures: list[str]) -> None:
+    client = FakeBSEOfficialClient()
+    files = [
+        bse_official_helper.DisclosureFile(
+            title="科莱瑞迪:招股说明书",
+            publish_date="2026-06-17",
+            relative_path="/prospectus.pdf",
+            full_url="https://www.bse.cn/prospectus.pdf",
+            bucket="NEW",
+            bucket_label="newshare_detail",
+            document_type="prospectus",
+            file_ext=".pdf",
+        ),
+        bse_official_helper.DisclosureFile(
+            title="科莱瑞迪:招股意向书",
+            publish_date="2026-06-04",
+            relative_path="/intent.pdf",
+            full_url="https://www.bse.cn/intent.pdf",
+            bucket="NEW",
+            bucket_label="newshare_detail",
+            document_type="prospectus",
+            file_ext=".pdf",
+        ),
+    ]
+    selected = client.pick_prospectus_files_by_kind(files)
+    _assert(
+        [item.title for item in selected] == ["科莱瑞迪:招股意向书", "科莱瑞迪:招股说明书"],
+        "prospectus stage sync: intent and final prospectus should both be selected",
+        failures,
+    )
+    print("OK prospectus stage sync: selected both intent and final prospectus")
+
+
 def _run_prospectus_download_case(failures: list[str]) -> None:
     messages: list[str] = []
     client = FakeBSEOfficialClient(status_callback=messages.append)
@@ -375,6 +408,7 @@ def main() -> int:
     _run_network_timeout_wrapping_case(failures)
     _run_mapping_case(failures)
     _run_prospectus_resolution_case(failures)
+    _run_prospectus_stage_sync_case(failures)
     _run_prospectus_download_case(failures)
     _run_official_listing_case(failures)
     _run_eastmoney_listing_fallback_case(failures)
@@ -386,7 +420,7 @@ def main() -> int:
             print(f"- {item}")
         return 1
 
-    print("\nBSE official helper validation passed: 8 cases")
+    print("\nBSE official helper validation passed: 9 cases")
     return 0
 
 

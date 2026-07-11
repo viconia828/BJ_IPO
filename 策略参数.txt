@@ -33,19 +33,26 @@ comparable_pe_stat = median           # 可比公司 PE 聚合方式：median / 
 trend_score_stocks = 5                # 走势评分最多纳入多少只历史样本
 
 # === 自动调参可写回：综合估值权重与方法一折价 ===
-bse_discount_factor = 0.575            # 北交所相对可比公司估值折价系数
+bse_discount_factor = 0.625            # 北交所相对可比公司估值折价系数
 weight_comparable = 0.2               # 方法一在综合估值中的权重
 weight_industry_momentum = 0.8        # 方法二在综合估值中的权重
 
-# === Auto tuning: method2 robust stats and legacy knobs ===
-float_size_threshold = 800           # Legacy compatibility; method2 no longer applies float-size adjustment
-small_cap_premium = 0.25             # Legacy compatibility; method2 no longer applies small-cap premium
-pe_low_threshold = 0.1               # Legacy compatibility; PE valuation is handled by method1
-pe_discount_boost = 0.2              # Legacy compatibility; method2 no longer applies PE boost
-pe_high_threshold = 0.45              # Legacy compatibility; PE valuation is handled by method1
-pe_premium_drag = -0.2                # Legacy compatibility; method2 no longer applies PE drag
-sample_weight_mode = time_decay       # Method2 robust-stat sample weighting: static / time_decay
-sample_decay_half_life_days = 10      # Method2 time-decay half-life days
+# === Auto tuning: method1 valuation factors ===
+method1_pe_float_factors_enabled = True    # 方法一启用发行 PE 与首日流通盘连续修正
+method1_industry_fallback_enabled = True   # 无有效上市可比 PE 时允许行业 PE 低置信度兜底
+method1_industry_fallback_confidence = 0.50  # 行业 PE 兜底时的方法一权重置信度
+float_size_threshold = 1000          # 方法一首日流通盘参考阈值（万股）
+small_cap_premium = 0.10             # 方法一小流通盘最大连续溢价
+pe_low_threshold = 0.40              # 发行 PE / 行业 PE 低估阈值
+pe_discount_boost = 0.05             # 方法一低 PE 最大上修
+pe_high_threshold = 0.80             # 发行 PE / 行业 PE 高估阈值
+pe_premium_drag = 0.00                # EPS 已含发行 PE 影响，当前不重复施加高 PE 惩罚
+
+# === Auto tuning: method2 industry premium/discount ===
+method2_weight_mode = static          # 方法二使用当年同行业稳健统计，不跟随短期市场情绪
+method2_decay_half_life_days = 90     # 仅在 method2_weight_mode=time_decay 时生效
+sample_weight_mode = static           # 旧参数兼容，不再作为方法二正式入口
+sample_decay_half_life_days = 90       # 旧参数兼容
 robust_median_min_samples = 4         # Method2 MAD outlier filter minimum sample count
 robust_mad_multiplier = 3.0           # Method2 MAD outlier multiplier
 
@@ -81,11 +88,11 @@ subscription_prediction_similar_top_apply_frozen_bandwidth = 0.18       # 相似
 # === Auto tuning: method3 recent sentiment premium ===
 industry_trend_weight = 0.85         # Legacy compatibility; method2 no longer applies trend factor
 market_sentiment_weight = 0.15       # Fallback default for method3 scales when explicit sentiment_* params are absent
-sentiment_decay_half_life_days = 10   # Method3 time-decay half-life days
-sentiment_first_day_baseline_pct = 100.0  # First-day change baseline; excess part drives premium
-sentiment_first_day_scale = 0.15      # Scale from first-day excess change to valuation premium
-sentiment_post_listing_scale = 0.15   # Scale from day-2/day-3 profit effect to valuation premium
-sentiment_premium_cap_pct = 35.0      # Method3 premium cap as pct of issue price
+sentiment_decay_half_life_days = 3    # 方法三短期市场情绪半衰期（天）
+sentiment_first_day_baseline_pct = 60  # First-day change baseline; excess part drives premium
+sentiment_first_day_scale = 0.35      # Scale from first-day excess change to valuation premium
+sentiment_post_listing_scale = 0   # Scale from day-2/day-3 profit effect to valuation premium
+sentiment_premium_cap_pct = 50      # Method3 premium cap as pct of issue price
 sentiment_premium_floor_pct = -20.0   # Method3 premium floor as pct of issue price
 trend_strong_boost = 0.12             # Legacy compatibility; current composite valuation does not read this
 trend_weak_discount = -0.105           # Legacy compatibility; current composite valuation does not read this

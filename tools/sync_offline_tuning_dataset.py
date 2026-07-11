@@ -25,6 +25,7 @@ import build_subscription_history
 import config_loader
 import param_tuning
 import subscription_ladder_labels
+from bse_official_helper import BSEOfficialClient, BSEOfficialError
 
 
 MANIFEST_SCHEMA = "offline_tuning_sample_manifest_v1"
@@ -77,6 +78,61 @@ def _truthy(value: Any) -> bool:
 def _safe_float(value: Any) -> float | None:
     if value in (None, "", "--"):
         return None
+
+
+def _sync_prospectus_documents(
+    codes: list[str],
+    *,
+    output_dir: Path,
+    verbose: bool,
+) -> dict[str, Any]:
+    summary: dict[str, Any] = {
+        "enabled": True,
+        "scanned_count": len(codes),
+        "existing_count": 0,
+        "downloaded": [],
+        "failed": [],
+        "document_kinds": ["intent", "prospectus"],
+    }
+    client = BSEOfficialClient(status_callback=print if verbose else None)
+    for code in codes:
+        if verbose:
+            print(f"同步扫描 {code} 的招股意向书与招股说明书。", flush=True)
+        try:
+            resolutions = client.resolve_prospectus_documents_by_post_listing_code(code)
+        except BSEOfficialError as exc:
+            summary["failed"].append({"code": code, "reason": str(exc)})
+            if verbose:
+                print(f"{code} 招股文件下载失败：{exc}", flush=True)
+            continue
+        for resolution in resolutions:
+            target_path = output_dir / client.build_prospectus_filename(resolution)
+            target_existed = target_path.exists()
+            try:
+                downloaded_path = client.download_disclosure_file(
+                    resolution.disclosure,
+                    target_path,
+                    overwrite=False,
+                )
+            except BSEOfficialError as exc:
+                summary["failed"].append(
+                    {"code": code, "title": resolution.disclosure.title, "reason": str(exc)}
+                )
+                if verbose:
+                    print(f"{code} {resolution.disclosure.title} 下载失败：{exc}", flush=True)
+                continue
+            entry = {
+                "code": code,
+                "path": str(downloaded_path),
+                "title": resolution.disclosure.title,
+            }
+            if target_existed:
+                summary["existing_count"] += 1
+            else:
+                summary["downloaded"].append(entry)
+    summary["downloaded_count"] = len(summary["downloaded"])
+    summary["failed_count"] = len(summary["failed"])
+    return summary
     try:
         return float(str(value).replace(",", ""))
     except (TypeError, ValueError):
@@ -794,6 +850,17 @@ def sync_offline_tuning_dataset(
     pending_before = list(retry_marker_before.get("pending_codes") or [])
     same_day_download_cooldown = set(_same_day_download_cooldown_codes(retry_marker_before))
     download_missing = not bool(getattr(args, "no_download_missing_announcements", False))
+    sync_prospectus_documents = bool(getattr(args, "sync_prospectus_documents", False)) and download_missing
+    prospectus_download_summary: dict[str, Any] = {
+        "enabled": sync_prospectus_documents,
+        "scanned_count": 0,
+        "existing_count": 0,
+        "downloaded": [],
+        "downloaded_count": 0,
+        "failed": [],
+        "failed_count": 0,
+        "document_kinds": ["intent", "prospectus"],
+    }
     if verbose:
         print(
             "选项 2 刷新范围：估值 replay 数据集、申购 history、手工阶梯标签上下文、样本 manifest。",
@@ -813,6 +880,15 @@ def sync_offline_tuning_dataset(
                     f"检测到 {len(pending_before)} 只公告/字段待重试样本；本次关闭缺失公告下载，仅解析本地已有公告。",
                     flush=True,
                 )
+
+    if sync_prospectus_documents:
+        requested_codes = _parse_csv_codes(getattr(args, "sample_codes", None))
+        prospectus_codes = requested_codes if requested_codes is not None else param_tuning.discover_replay_sample_codes()
+        prospectus_download_summary = _sync_prospectus_documents(
+            prospectus_codes,
+            output_dir=ROOT_DIR / "公告文件",
+            verbose=verbose,
+        )
 
     if verbose:
         print("开始同步估值 replay 数据集...", flush=True)
@@ -925,6 +1001,7 @@ def sync_offline_tuning_dataset(
         },
         "subscription_history": history_summary,
         "account_pool_history": account_pool_summary,
+        "prospectus_download": prospectus_download_summary,
         "listing_data_retry": {
             "marker_path": str(retry_marker_path),
             "pending_before": pending_before,
@@ -960,6 +1037,7 @@ def sync_offline_tuning_dataset(
         "manifest_path": saved_manifest_path,
         "retry_marker_path": retry_marker_path,
         "retry_reasons_by_code": retry_reasons_by_code,
+        "prospectus_download_summary": prospectus_download_summary,
     }
 
 
@@ -984,7 +1062,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--no-download-missing-announcements",
         action="store_true",
-        help="不下载缺失的发行公告/发行结果公告，仅解析本地已有 PDF。",
+        help="不下载缺失的招股文件/发行公告/发行结果公告，仅解析本地已有 PDF。",
+    )
+    parser.add_argument(
+        "--sync-prospectus-documents",
+        action="store_true",
+        help="构建 replay 前同步扫描并下载招股意向书与招股说明书，本地已有文件自动复用。",
     )
     parser.add_argument("--download-retries", type=int, default=1)
     parser.add_argument("--download-delay-seconds", type=float, default=0.0)

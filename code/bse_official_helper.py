@@ -365,6 +365,15 @@ def _prospectus_bucket_from_title(title: str) -> str:
     return ""
 
 
+def _prospectus_kind_from_title(title: str) -> str:
+    normalized = _normalize_title_text(title)
+    if "鎷涜偂鎰忓悜涔" in normalized or "招股意向书" in normalized:
+        return "intent"
+    if "鎷涜偂璇存槑涔" in normalized or "招股说明书" in normalized:
+        return "prospectus"
+    return ""
+
+
 def _is_prospectus_title(title: str) -> bool:
     return bool(_prospectus_bucket_from_title(title))
 
@@ -1153,11 +1162,23 @@ class BSEOfficialClient:
             ),
         )
 
-    def pick_best_prospectus_file(self, files: list[DisclosureFile]) -> DisclosureFile:
+    def pick_best_prospectus_file(
+        self,
+        files: list[DisclosureFile],
+        preferred_kind: str = "",
+    ) -> DisclosureFile:
         if not files:
             raise BSEOfficialError("北交所项目详情中未找到招股说明书 PDF")
+        normalized_preference = str(preferred_kind or "").strip().lower()
+        candidates = list(files)
+        if normalized_preference in {"intent", "prospectus"}:
+            preferred_files = [
+                item for item in candidates if _prospectus_kind_from_title(item.title) == normalized_preference
+            ]
+            if preferred_files:
+                candidates = preferred_files
         return sorted(
-            files,
+            candidates,
             key=lambda item: (
                 PROSPECTUS_STAGE_PRIORITY.get(item.bucket, 99),
                 -_date_sort_key(item.publish_date),
@@ -1165,18 +1186,28 @@ class BSEOfficialClient:
             ),
         )[0]
 
-    def resolve_prospectus_by_post_listing_code(self, code: str) -> ProspectusResolution:
+    def pick_prospectus_files_by_kind(self, files: list[DisclosureFile]) -> list[DisclosureFile]:
+        if not files:
+            return []
+        selected: list[DisclosureFile] = []
+        for kind in ("intent", "prospectus"):
+            kind_files = [item for item in files if _prospectus_kind_from_title(item.title) == kind]
+            if kind_files:
+                selected.append(self.pick_best_prospectus_file(kind_files))
+        if selected:
+            return selected
+        return [self.pick_best_prospectus_file(files)]
+
+    def resolve_prospectus_documents_by_post_listing_code(self, code: str) -> list[ProspectusResolution]:
         newshare_error = ""
         try:
             issue = self.resolve_newshare_issue_by_post_listing_code(code)
             issue_detail = self.get_newshare_issue_detail(issue.issue_id)
             files = self.list_newshare_prospectus_files(issue_detail, issue)
-            if files:
-                disclosure = self.pick_best_prospectus_file(files)
-                return ProspectusResolution(
-                    mapping=self._mapping_from_newshare_issue(issue),
-                    disclosure=disclosure,
-                )
+            selected_files = self.pick_prospectus_files_by_kind(files)
+            if selected_files:
+                mapping = self._mapping_from_newshare_issue(issue)
+                return [ProspectusResolution(mapping=mapping, disclosure=item) for item in selected_files]
         except BSEOfficialError as exc:
             newshare_error = str(exc)
 
@@ -1185,12 +1216,9 @@ class BSEOfficialClient:
             mapping = self.resolve_project_from_post_listing_code(code)
             project_detail = self.get_project_detail(mapping.project.project_id)
             files = self.list_prospectus_files(project_detail=project_detail)
-            if files:
-                disclosure = self.pick_best_prospectus_file(files)
-                return ProspectusResolution(
-                    mapping=mapping,
-                    disclosure=disclosure,
-                )
+            selected_files = self.pick_prospectus_files_by_kind(files)
+            if selected_files:
+                return [ProspectusResolution(mapping=mapping, disclosure=item) for item in selected_files]
         except BSEOfficialError as exc:
             project_error = str(exc)
 
@@ -1202,7 +1230,39 @@ class BSEOfficialClient:
             raise BSEOfficialError(newshare_error)
         if project_error:
             raise BSEOfficialError(project_error)
-        raise BSEOfficialError("瀹樼綉鏈壘鍒版嫑鑲¤鏄庝功 PDF")
+        raise BSEOfficialError("官网未找到招股意向书或招股说明书 PDF")
+
+    def resolve_prospectus_by_post_listing_code(
+        self,
+        code: str,
+        preferred_kind: str = "",
+    ) -> ProspectusResolution:
+        resolutions = self.resolve_prospectus_documents_by_post_listing_code(code)
+        normalized_preference = str(preferred_kind or "").strip().lower()
+        if normalized_preference in {"intent", "prospectus"}:
+            preferred = [
+                item
+                for item in resolutions
+                if _prospectus_kind_from_title(item.disclosure.title) == normalized_preference
+            ]
+            if preferred:
+                return preferred[0]
+        return self.pick_best_prospectus_resolution(resolutions)
+
+    def pick_best_prospectus_resolution(
+        self,
+        resolutions: list[ProspectusResolution],
+    ) -> ProspectusResolution:
+        if not resolutions:
+            raise BSEOfficialError("北交所项目详情中未找到招股文件 PDF")
+        return sorted(
+            resolutions,
+            key=lambda item: (
+                PROSPECTUS_STAGE_PRIORITY.get(item.disclosure.bucket, 99),
+                -_date_sort_key(item.disclosure.publish_date),
+                item.disclosure.title,
+            ),
+        )[0]
 
     @staticmethod
     def _coerce_company_announcement_records(payload: Any) -> list[dict[str, Any]]:
@@ -1652,10 +1712,12 @@ class BSEOfficialClient:
         code: str,
         output_dir: str | Path,
         overwrite: bool = False,
+        preferred_kind: str = "",
     ) -> tuple[ProspectusResolution, Path]:
-        resolution = self.resolve_prospectus_by_post_listing_code(code)
+        resolution = self.resolve_prospectus_by_post_listing_code(code, preferred_kind=preferred_kind)
+        document_label = "招股意向书" if _prospectus_kind_from_title(resolution.disclosure.title) == "intent" else "招股说明书"
         self._notify_status(
-            f"已定位招股说明书：{resolution.mapping.listed_company.post_listing_code} "
+            f"已定位{document_label}：{resolution.mapping.listed_company.post_listing_code} "
             f"{resolution.mapping.listed_company.short_name} / {resolution.disclosure.title}"
         )
         output_path = Path(output_dir) / self.build_prospectus_filename(resolution)
@@ -1665,6 +1727,32 @@ class BSEOfficialClient:
             overwrite=overwrite,
         )
         return resolution, downloaded_path
+
+    def download_prospectus_documents_by_post_listing_code(
+        self,
+        code: str,
+        output_dir: str | Path,
+        overwrite: bool = False,
+    ) -> list[tuple[ProspectusResolution, Path]]:
+        results: list[tuple[ProspectusResolution, Path]] = []
+        for resolution in self.resolve_prospectus_documents_by_post_listing_code(code):
+            document_label = (
+                "招股意向书"
+                if _prospectus_kind_from_title(resolution.disclosure.title) == "intent"
+                else "招股说明书"
+            )
+            self._notify_status(
+                f"已定位{document_label}：{resolution.mapping.listed_company.post_listing_code} "
+                f"{resolution.mapping.listed_company.short_name} / {resolution.disclosure.title}"
+            )
+            output_path = Path(output_dir) / self.build_prospectus_filename(resolution)
+            downloaded_path = self.download_disclosure_file(
+                resolution.disclosure,
+                output_path,
+                overwrite=overwrite,
+            )
+            results.append((resolution, downloaded_path))
+        return results
 
     def download_listing_announcement_by_post_listing_code(
         self,
