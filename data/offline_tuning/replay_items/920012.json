@@ -1,7 +1,7 @@
 {
   "schema": "offline_tuning_replay_item_v1",
-  "cache_version": 7,
-  "generated_at": "2026-07-09 23:33:13",
+  "cache_version": 8,
+  "generated_at": "2026-07-12 21:21:36",
   "code": "920012",
   "listing_date": "2026-04-13 00:00:00",
   "record_signature": {
@@ -29,23 +29,35 @@
     "TURNOVERRATE": 88.1704,
     "SW_INDUSTRY": null,
     "INDUSTRY": null,
-    "INDUSTRY_CODE": null
+    "INDUSTRY_CODE": null,
+    "industry_primary": "信息技术",
+    "industry_secondary": "半导体制造",
+    "industry_source": "built_in_sample_map"
   },
   "pdf_signature": {
-    "listing": {
-      "name": "920012_创达新材_上市公告书.pdf",
-      "size": 993928,
-      "mtime_ns": 1779805017219314500
+    "files": {
+      "listing": {
+        "name": "920012_创达新材_上市公告书.pdf",
+        "size": 993928,
+        "mtime_ns": 1779805017219314500
+      },
+      "old_shares": {
+        "name": "920012_创达新材_招股说明书.pdf",
+        "size": 5980521,
+        "mtime_ns": 1779805015358641400
+      },
+      "comparables": {
+        "name": "920012_创达新材_招股说明书.pdf",
+        "size": 5980521,
+        "mtime_ns": 1779805015358641400
+      }
     },
-    "old_shares": {
-      "name": "920012_创达新材_招股说明书.pdf",
-      "size": 5980521,
-      "mtime_ns": 1779805015358641400
-    },
-    "comparables": {
-      "name": "920012_创达新材_招股说明书.pdf",
-      "size": 5980521,
-      "mtime_ns": 1779805015358641400
+    "pdf_parser_versions": {
+      "prospectus_issue_info": 8,
+      "issue_announcement_info": 5,
+      "issue_result_info": 4,
+      "comparable_companies": 22,
+      "business_desc": 3
     }
   },
   "item": {

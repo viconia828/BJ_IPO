@@ -1,7 +1,7 @@
 {
   "schema": "offline_tuning_replay_item_v1",
-  "cache_version": 7,
-  "generated_at": "2026-07-09 23:33:23",
+  "cache_version": 8,
+  "generated_at": "2026-07-12 21:21:37",
   "code": "920117",
   "listing_date": "2026-07-06",
   "record_signature": {
@@ -29,19 +29,31 @@
     "TURNOVERRATE": null,
     "SW_INDUSTRY": "专用设备制造业",
     "INDUSTRY": "专用设备制造业",
-    "INDUSTRY_CODE": "C35"
+    "INDUSTRY_CODE": "C35",
+    "industry_primary": "高端装备",
+    "industry_secondary": "机械设备",
+    "industry_source": "record_mapping"
   },
   "pdf_signature": {
-    "listing": null,
-    "old_shares": {
-      "name": "920117_龙鑫智能_招股说明书.pdf",
-      "size": 6103353,
-      "mtime_ns": 1782996705483933800
+    "files": {
+      "listing": null,
+      "old_shares": {
+        "name": "920117_龙鑫智能_招股说明书.pdf",
+        "size": 6103353,
+        "mtime_ns": 1782996705483933800
+      },
+      "comparables": {
+        "name": "920117_龙鑫智能_招股说明书.pdf",
+        "size": 6103353,
+        "mtime_ns": 1782996705483933800
+      }
     },
-    "comparables": {
-      "name": "920117_龙鑫智能_招股说明书.pdf",
-      "size": 6103353,
-      "mtime_ns": 1782996705483933800
+    "pdf_parser_versions": {
+      "prospectus_issue_info": 8,
+      "issue_announcement_info": 5,
+      "issue_result_info": 4,
+      "comparable_companies": 22,
+      "business_desc": 3
     }
   },
   "item": {
@@ -96,8 +108,8 @@
     "has_intraday_file": false,
     "comparable_codes": [
       "301662.SZ",
-      "832522.BJ",
-      "833284.BJ",
+      "920522.BJ",
+      "920284.BJ",
       "300619.SZ",
       "874378.NQ",
       "874312.NQ"
@@ -107,8 +119,8 @@
       "provider": "tushare_historical",
       "requested_codes": [
         "301662.SZ",
-        "832522.BJ",
-        "833284.BJ",
+        "920522.BJ",
+        "920284.BJ",
         "300619.SZ",
         "874378.NQ",
         "874312.NQ"
@@ -120,7 +132,7 @@
       "reference_trade_date": null,
       "reason": "上市日期缺失，无法构建方法一历史快照。"
     },
-    "method1_replay_available": false,
+    "method1_replay_available": true,
     "average_price_source": "",
     "average_price_reason": "本地首日分时 CSV 不存在",
     "average_price_calc_version": 3,

@@ -1,7 +1,7 @@
 {
   "schema": "offline_tuning_replay_item_v1",
-  "cache_version": 7,
-  "generated_at": "2026-07-09 23:33:29",
+  "cache_version": 8,
+  "generated_at": "2026-07-12 21:55:34",
   "code": "920186",
   "listing_date": "2026-04-29 00:00:00",
   "record_signature": {
@@ -11,7 +11,7 @@
     "LISTING_DATE": "2026-04-29 00:00:00",
     "ISSUE_PRICE": 16.21,
     "AFTER_ISSUE_PE": 35.23,
-    "INDUSTRY_PE_NEW": 30.48,
+    "INDUSTRY_PE_NEW": 47.71,
     "TOTAL_ISSUE_NUM": 5200.0,
     "ISSUE_NUM": 5200.0,
     "ONLINE_ISSUE_NUM": 23400000.0,
@@ -29,23 +29,35 @@
     "TURNOVERRATE": 55.8226,
     "SW_INDUSTRY": null,
     "INDUSTRY": null,
-    "INDUSTRY_CODE": null
+    "INDUSTRY_CODE": null,
+    "industry_primary": "信息技术",
+    "industry_secondary": "半导体制造",
+    "industry_source": "built_in_sample_map"
   },
   "pdf_signature": {
-    "listing": {
-      "name": "920186_中科仪_上市公告书.pdf",
-      "size": 889830,
-      "mtime_ns": 1779809097014173500
+    "files": {
+      "listing": {
+        "name": "920186_中科仪_上市公告书.pdf",
+        "size": 889830,
+        "mtime_ns": 1779809097014173500
+      },
+      "old_shares": {
+        "name": "920186_中科仪_招股说明书.pdf",
+        "size": 7040672,
+        "mtime_ns": 1779809096069718600
+      },
+      "comparables": {
+        "name": "920186_中科仪_招股说明书.pdf",
+        "size": 7040672,
+        "mtime_ns": 1779809096069718600
+      }
     },
-    "old_shares": {
-      "name": "920186_中科仪_招股说明书.pdf",
-      "size": 7040672,
-      "mtime_ns": 1779809096069718600
-    },
-    "comparables": {
-      "name": "920186_中科仪_招股说明书.pdf",
-      "size": 7040672,
-      "mtime_ns": 1779809096069718600
+    "pdf_parser_versions": {
+      "prospectus_issue_info": 8,
+      "issue_announcement_info": 5,
+      "issue_result_info": 4,
+      "comparable_companies": 22,
+      "business_desc": 3
     }
   },
   "item": {
@@ -55,7 +67,7 @@
     "LISTING_DATE": "2026-04-29 00:00:00",
     "ISSUE_PRICE": 16.21,
     "AFTER_ISSUE_PE": 35.23,
-    "INDUSTRY_PE_NEW": 30.48,
+    "INDUSTRY_PE_NEW": 47.71,
     "TOTAL_ISSUE_NUM": 5200.0,
     "ONLINE_ISSUE_NUM": 23400000.0,
     "TOP_APPLY_MARKETCAP": 1517.256,
@@ -64,22 +76,22 @@
     "AVERAGE_PRICE": 64.70373673609356,
     "LD_CLOSE_CHANGE": 344.0469,
     "LD_AVERAGE_CHANGE": 299.1593876378381,
-    "NEXT_DAY_CLOSE": null,
-    "THIRD_DAY_CLOSE": null,
-    "NEXT_DAY_CLOSE_CHANGE": null,
-    "THIRD_DAY_CLOSE_CHANGE": null,
-    "NEXT_DAY_FROM_LISTING_CLOSE_PCT": null,
-    "THIRD_DAY_FROM_LISTING_CLOSE_PCT": null,
-    "POST_LISTING_PROFIT_EFFECT_PCT": null,
-    "post_listing_performance_source": "",
-    "post_listing_performance_reason": "Tushare quota 已达上限，本次不再发起新请求。",
+    "NEXT_DAY_CLOSE": 76.4,
+    "THIRD_DAY_CLOSE": 77.0,
+    "NEXT_DAY_CLOSE_CHANGE": 371.3140037014189,
+    "THIRD_DAY_CLOSE_CHANGE": 375.01542257865515,
+    "NEXT_DAY_FROM_LISTING_CLOSE_PCT": 6.140594609613781,
+    "THIRD_DAY_FROM_LISTING_CLOSE_PCT": 6.974159488746867,
+    "POST_LISTING_PROFIT_EFFECT_PCT": 6.5573770491803245,
+    "post_listing_performance_source": "tushare_daily",
+    "post_listing_performance_reason": "",
     "TURNOVERRATE": 55.8226,
     "SW_INDUSTRY": "",
     "INDUSTRY": "",
     "INDUSTRY_CODE": "",
-    "industry_primary": "未分类",
-    "industry_secondary": "未分类",
-    "industry_source": "unclassified",
+    "industry_primary": "信息技术",
+    "industry_secondary": "半导体制造",
+    "industry_source": "built_in_sample_map",
     "old_shares": 4873.0478,
     "old_shares_desc": "4873.05 万股（PDF 提取：上市公告书）",
     "old_shares_meta": {
@@ -110,7 +122,7 @@
       "reference_trade_date": "20260428",
       "reason": "未提取到可比公司代码。"
     },
-    "method1_replay_available": false,
+    "method1_replay_available": true,
     "average_price_source": "intraday_csv",
     "average_price_reason": "",
     "average_price_calc_version": 3,

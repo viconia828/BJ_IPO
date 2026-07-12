@@ -1,7 +1,7 @@
 {
   "schema": "offline_tuning_replay_item_v1",
-  "cache_version": 7,
-  "generated_at": "2026-07-09 23:33:30",
+  "cache_version": 8,
+  "generated_at": "2026-07-12 21:59:51",
   "code": "920200",
   "listing_date": "2026-05-07 00:00:00",
   "record_signature": {
@@ -29,23 +29,35 @@
     "TURNOVERRATE": 94.2249,
     "SW_INDUSTRY": null,
     "INDUSTRY": null,
-    "INDUSTRY_CODE": null
+    "INDUSTRY_CODE": null,
+    "industry_primary": "高端装备",
+    "industry_secondary": "机械设备",
+    "industry_source": "built_in_sample_map"
   },
   "pdf_signature": {
-    "listing": {
-      "name": "920200_振宏股份_上市公告书.pdf",
-      "size": 782339,
-      "mtime_ns": 1779809633539430400
+    "files": {
+      "listing": {
+        "name": "920200_振宏股份_上市公告书.pdf",
+        "size": 782339,
+        "mtime_ns": 1779809633539430400
+      },
+      "old_shares": {
+        "name": "920200_振宏股份_招股说明书.pdf",
+        "size": 5455758,
+        "mtime_ns": 1779809632434914700
+      },
+      "comparables": {
+        "name": "920200_振宏股份_招股说明书.pdf",
+        "size": 5455758,
+        "mtime_ns": 1779809632434914700
+      }
     },
-    "old_shares": {
-      "name": "920200_振宏股份_招股说明书.pdf",
-      "size": 5455758,
-      "mtime_ns": 1779809632434914700
-    },
-    "comparables": {
-      "name": "920200_振宏股份_招股说明书.pdf",
-      "size": 5455758,
-      "mtime_ns": 1779809632434914700
+    "pdf_parser_versions": {
+      "prospectus_issue_info": 8,
+      "issue_announcement_info": 5,
+      "issue_result_info": 4,
+      "comparable_companies": 22,
+      "business_desc": 3
     }
   },
   "item": {
@@ -64,22 +76,22 @@
     "AVERAGE_PRICE": 53.693813233118554,
     "LD_CLOSE_CHANGE": 356.8513,
     "LD_AVERAGE_CHANGE": 160.90288257103285,
-    "NEXT_DAY_CLOSE": null,
-    "THIRD_DAY_CLOSE": null,
-    "NEXT_DAY_CLOSE_CHANGE": null,
-    "THIRD_DAY_CLOSE_CHANGE": null,
-    "NEXT_DAY_FROM_LISTING_CLOSE_PCT": null,
-    "THIRD_DAY_FROM_LISTING_CLOSE_PCT": null,
-    "POST_LISTING_PROFIT_EFFECT_PCT": null,
-    "post_listing_performance_source": "",
-    "post_listing_performance_reason": "Tushare quota 已达上限，本次不再发起新请求。",
+    "NEXT_DAY_CLOSE": 65.82,
+    "THIRD_DAY_CLOSE": 70.27,
+    "NEXT_DAY_CLOSE_CHANGE": 219.8250728862974,
+    "THIRD_DAY_CLOSE_CHANGE": 241.4480077745384,
+    "NEXT_DAY_FROM_LISTING_CLOSE_PCT": -29.993618379068288,
+    "THIRD_DAY_FROM_LISTING_CLOSE_PCT": -25.260582854711767,
+    "POST_LISTING_PROFIT_EFFECT_PCT": -27.627100616890026,
+    "post_listing_performance_source": "tushare_daily",
+    "post_listing_performance_reason": "",
     "TURNOVERRATE": 94.2249,
     "SW_INDUSTRY": "",
     "INDUSTRY": "",
     "INDUSTRY_CODE": "",
-    "industry_primary": "未分类",
-    "industry_secondary": "未分类",
-    "industry_source": "unclassified",
+    "industry_primary": "高端装备",
+    "industry_secondary": "机械设备",
+    "industry_source": "built_in_sample_map",
     "old_shares": 360.0,
     "old_shares_desc": "360.00 万股（PDF 提取：上市公告书）",
     "old_shares_meta": {
@@ -101,28 +113,75 @@
     "comparable_codes": [
       "300443.SZ",
       "300185.SZ",
-      "605123.SH",
-      "301063.SZ",
-      "301040.SZ"
+      "605123.SH"
     ],
-    "comparable_data": [],
+    "comparable_data": [
+      {
+        "code": "300443.SZ",
+        "name": "300443.SZ",
+        "close": 30.67,
+        "pe_ttm": 30.0496,
+        "pb_lf": 1.5441,
+        "mkt_cap": 98.18528121,
+        "trade_date": "20260506",
+        "source": "tushare_historical",
+        "close_source": "tushare_historical",
+        "pe_source": "tushare_historical",
+        "pb_source": "tushare_historical",
+        "mkt_cap_source": "tushare_historical"
+      },
+      {
+        "code": "300185.SZ",
+        "name": "300185.SZ",
+        "close": 3.23,
+        "pe_ttm": 191.9649,
+        "pb_lf": 1.8444,
+        "mkt_cap": 130.36880296,
+        "trade_date": "20260506",
+        "source": "tushare_historical",
+        "close_source": "tushare_historical",
+        "pe_source": "tushare_historical",
+        "pb_source": "tushare_historical",
+        "mkt_cap_source": "tushare_historical"
+      },
+      {
+        "code": "605123.SH",
+        "name": "605123.SH",
+        "close": 110.5,
+        "pe_ttm": 51.2155,
+        "pb_lf": 2.8945,
+        "mkt_cap": 133.89383566,
+        "trade_date": "20260506",
+        "source": "tushare_historical",
+        "close_source": "tushare_historical",
+        "pe_source": "tushare_historical",
+        "pb_source": "tushare_historical",
+        "mkt_cap_source": "tushare_historical"
+      }
+    ],
     "comparable_summary": {
       "provider": "tushare_historical",
       "requested_codes": [
         "300443.SZ",
         "300185.SZ",
-        "605123.SH",
-        "301063.SZ",
-        "301040.SZ"
+        "605123.SH"
       ],
-      "returned_codes": [],
+      "returned_codes": [
+        "300443.SZ",
+        "300185.SZ",
+        "605123.SH"
+      ],
       "cache_hits": [],
-      "api_fetched": [],
+      "api_fetched": [
+        "300443.SZ",
+        "300185.SZ",
+        "605123.SH"
+      ],
       "skipped_unsupported": [],
       "reference_trade_date": "20260506",
-      "reason": "Tushare quota 已达上限，本次不再发起新请求。"
+      "reason": ""
     },
-    "method1_replay_available": false,
+    "method1_replay_available": true,
     "average_price_source": "intraday_csv",
     "average_price_reason": "",
     "average_price_calc_version": 3,

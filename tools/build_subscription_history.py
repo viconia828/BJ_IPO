@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import hashlib
 import json
 from pathlib import Path
 import sys
@@ -31,6 +32,12 @@ ISSUE_ANNOUNCEMENT = "\u53d1\u884c\u516c\u544a"
 ISSUE_RESULT_ANNOUNCEMENT = "\u53d1\u884c\u7ed3\u679c\u516c\u544a"
 
 HistoryProgressCallback = Callable[[dict[str, Any]], None]
+SUBSCRIPTION_HISTORY_BUILD_VERSION = 2
+SUBSCRIPTION_HISTORY_PARSER_KINDS = (
+    "prospectus_issue_info",
+    "issue_announcement_info",
+    "issue_result_info",
+)
 
 TRACKED_FIELDS = (
     "APPLY_DATE",
@@ -112,7 +119,22 @@ CSV_COLUMNS = (
     "listing_pdf_file",
     "parse_errors",
     "download_errors",
+    "history_build_version",
+    "history_input_signature",
+    "replay_input_signature",
+    "pdf_input_signature",
+    "parser_input_versions_json",
+    "parse_prospectus_enabled",
 )
+
+HISTORY_METADATA_COLUMNS = {
+    "history_build_version",
+    "history_input_signature",
+    "replay_input_signature",
+    "pdf_input_signature",
+    "parser_input_versions_json",
+    "parse_prospectus_enabled",
+}
 
 def _safe_float(value: Any) -> float | None:
     if value in (None, "", "--"):
@@ -149,6 +171,107 @@ def _format_value(value: Any) -> str:
     if isinstance(value, (list, dict)):
         return json.dumps(value, ensure_ascii=False, separators=(",", ":"))
     return str(value)
+
+
+def _canonical_signature(value: Any) -> str:
+    payload = json.dumps(
+        value,
+        ensure_ascii=False,
+        sort_keys=True,
+        separators=(",", ":"),
+        default=str,
+    )
+    return hashlib.sha256(payload.encode("utf-8")).hexdigest()
+
+
+def _file_signature(path: Path | None) -> dict[str, Any] | None:
+    if path is None or not path.exists():
+        return None
+    stat = path.stat()
+    return {
+        "name": path.name,
+        "size": int(stat.st_size),
+        "mtime_ns": int(stat.st_mtime_ns),
+    }
+
+
+def _history_input_metadata(
+    item: dict[str, Any],
+    pdfs: dict[str, Path | None],
+    *,
+    parse_prospectus: bool,
+) -> dict[str, Any]:
+    replay_signature = _canonical_signature(item)
+    pdf_payload = {key: _file_signature(path) for key, path in sorted(pdfs.items())}
+    pdf_signature = _canonical_signature(pdf_payload)
+    parser_versions = {
+        kind: pdf_parser.PARSE_CACHE_KIND_VERSIONS.get(kind)
+        for kind in SUBSCRIPTION_HISTORY_PARSER_KINDS
+    }
+    input_payload = {
+        "history_build_version": SUBSCRIPTION_HISTORY_BUILD_VERSION,
+        "replay_input_signature": replay_signature,
+        "pdf_input_signature": pdf_signature,
+        "parser_versions": parser_versions,
+        "parse_prospectus": bool(parse_prospectus),
+    }
+    return {
+        "history_build_version": SUBSCRIPTION_HISTORY_BUILD_VERSION,
+        "history_input_signature": _canonical_signature(input_payload),
+        "replay_input_signature": replay_signature,
+        "pdf_input_signature": pdf_signature,
+        "parser_input_versions_json": parser_versions,
+        "parse_prospectus_enabled": bool(parse_prospectus),
+    }
+
+
+def _attach_history_input_metadata(
+    row: dict[str, Any],
+    item: dict[str, Any],
+    pdf_dir: Path,
+    *,
+    parse_prospectus: bool,
+) -> dict[str, Any]:
+    output = dict(row)
+    output.update(
+        _history_input_metadata(
+            item,
+            _find_local_pdfs(pdf_dir, _item_code(item)),
+            parse_prospectus=parse_prospectus,
+        )
+    )
+    return output
+
+
+def _normalized_history_row(row: dict[str, Any], *, include_metadata: bool) -> dict[str, str]:
+    columns = CSV_COLUMNS if include_metadata else tuple(
+        column for column in CSV_COLUMNS if column not in HISTORY_METADATA_COLUMNS
+    )
+    return {column: _format_value(row.get(column)) for column in columns}
+
+
+def _earliest_changed_sample(
+    changed_codes: list[str],
+    rows: list[dict[str, Any]],
+    existing_rows: list[dict[str, Any]],
+) -> tuple[str, str]:
+    row_by_code = {
+        str(row.get("security_code") or "").strip(): row
+        for row in [*rows, *existing_rows]
+        if str(row.get("security_code") or "").strip()
+    }
+    dated = [
+        (
+            _clean_date(row_by_code.get(code, {}).get("apply_date"))
+            or _clean_date(row_by_code.get(code, {}).get("listing_date")),
+            code,
+        )
+        for code in changed_codes
+    ]
+    dated = [item for item in dated if item[0]]
+    if not dated:
+        return "", ""
+    return min(dated)
 
 
 def _emit_history_progress(progress_callback: HistoryProgressCallback | None, **event: Any) -> None:
@@ -953,12 +1076,54 @@ def build_subscription_history_table(
     download_delay_seconds: float = 0.0,
     ladder_label_path: Path = DEFAULT_LADDER_LABEL_PATH,
     progress_callback: HistoryProgressCallback | None = None,
+    force_rebuild: bool = False,
 ) -> dict[str, Any]:
     items = _load_replay_dataset_items(dataset_path)
     label_rows = subscription_ladder_labels.load_label_rows(ladder_label_path)
     items, label_only_history_item_count = _augment_items_with_ladder_labels(items, label_rows)
-    rows = build_subscription_history_rows(
-        items,
+    sorted_items = [item for item in sorted(items, key=_row_sort_key) if _item_code(item)]
+    item_by_code = {_item_code(item): item for item in sorted_items}
+    existing_rows = _load_existing_subscription_history_csv(output_path)
+    existing_by_code = {
+        str(row.get("security_code") or "").strip(): dict(row)
+        for row in existing_rows
+        if str(row.get("security_code") or "").strip()
+    }
+    skipped_download_codes = {
+        str(code or "").strip()
+        for code in (download_skip_codes or [])
+        if str(code or "").strip()
+    }
+    dirty_items: list[dict[str, Any]] = []
+    reused_by_code: dict[str, dict[str, Any]] = {}
+    for item in sorted_items:
+        code = _item_code(item)
+        existing = existing_by_code.get(code)
+        pdfs = _find_local_pdfs(pdf_dir, code)
+        metadata = _history_input_metadata(
+            item,
+            pdfs,
+            parse_prospectus=parse_prospectus,
+        )
+        missing_requested_document = (
+            code not in skipped_download_codes
+            and (
+                (download_missing_issue and pdfs.get("issue") is None)
+                or (download_missing_result and pdfs.get("result") is None)
+            )
+        )
+        signature_matches = bool(
+            existing
+            and str(existing.get("history_input_signature") or "").strip()
+            == metadata["history_input_signature"]
+        )
+        if force_rebuild or not signature_matches or missing_requested_document:
+            dirty_items.append(item)
+        elif existing is not None:
+            reused_by_code[code] = existing
+
+    rebuilt_rows = build_subscription_history_rows(
+        dirty_items,
         pdf_dir=pdf_dir,
         download_missing_issue=download_missing_issue,
         download_missing_result=download_missing_result,
@@ -968,8 +1133,25 @@ def build_subscription_history_table(
         download_delay_seconds=download_delay_seconds,
         progress_callback=progress_callback,
     )
-    existing_rows = _load_existing_subscription_history_csv(output_path)
-    rows = _merge_existing_history_rows(rows, existing_rows)
+    rebuilt_rows = _merge_existing_history_rows(rebuilt_rows, existing_rows)
+    rebuilt_by_code: dict[str, dict[str, Any]] = {}
+    for row in rebuilt_rows:
+        code = str(row.get("security_code") or "").strip()
+        item = item_by_code.get(code)
+        if not code or item is None:
+            continue
+        rebuilt_by_code[code] = _attach_history_input_metadata(
+            row,
+            item,
+            pdf_dir,
+            parse_prospectus=parse_prospectus,
+        )
+
+    rows = [
+        dict(rebuilt_by_code.get(_item_code(item)) or reused_by_code.get(_item_code(item)) or {})
+        for item in sorted_items
+        if rebuilt_by_code.get(_item_code(item)) or reused_by_code.get(_item_code(item))
+    ]
     ladder_summary = subscription_ladder_labels.sync_label_rows(rows, ladder_label_path)
     label_rows = subscription_ladder_labels.load_label_rows(ladder_label_path)
     active_codes = {str(row.get("security_code") or "").strip() for row in rows}
@@ -979,14 +1161,43 @@ def build_subscription_history_table(
         if str(row.get("security_code") or "").strip() in active_codes
     ]
     rows = subscription_ladder_labels.apply_labels_to_history_rows(rows, active_label_rows)
+    final_by_code = {
+        str(row.get("security_code") or "").strip(): row
+        for row in rows
+        if str(row.get("security_code") or "").strip()
+    }
+    active_codes = set(final_by_code)
+    changed_codes = sorted(
+        code
+        for code in active_codes | set(existing_by_code)
+        if code not in active_codes
+        or code not in existing_by_code
+        or _normalized_history_row(final_by_code.get(code, {}), include_metadata=False)
+        != _normalized_history_row(existing_by_code.get(code, {}), include_metadata=False)
+    )
+    earliest_changed_date, earliest_changed_code = _earliest_changed_sample(
+        changed_codes,
+        rows,
+        existing_rows,
+    )
     write_subscription_history_csv(rows, output_path)
     return {
         "output_path": str(output_path),
         "row_count": len(rows),
-        "model_ready_count": sum(1 for row in rows if row.get("model_ready")),
-        "fractional_label_ready_count": sum(1 for row in rows if row.get("fractional_label_ready")),
-        "result_pdf_count": sum(1 for row in rows if row.get("result_pdf_found")),
-        "issue_pdf_count": sum(1 for row in rows if row.get("issue_pdf_found")),
+        "model_ready_count": sum(1 for row in rows if _truthy(row.get("model_ready"))),
+        "fractional_label_ready_count": sum(1 for row in rows if _truthy(row.get("fractional_label_ready"))),
+        "result_pdf_count": sum(1 for row in rows if _truthy(row.get("result_pdf_found"))),
+        "issue_pdf_count": sum(1 for row in rows if _truthy(row.get("issue_pdf_found"))),
+        "incremental": not force_rebuild,
+        "force_rebuild": bool(force_rebuild),
+        "rebuilt_count": len(rebuilt_by_code),
+        "reused_count": len(reused_by_code),
+        "rebuilt_codes": sorted(rebuilt_by_code),
+        "reused_codes": sorted(reused_by_code),
+        "changed_count": len(changed_codes),
+        "changed_codes": changed_codes,
+        "earliest_changed_date": earliest_changed_date,
+        "earliest_changed_code": earliest_changed_code,
         "label_only_history_item_count": label_only_history_item_count,
         "ladder_label_path": ladder_summary.get("path"),
         "ladder_label_rows": ladder_summary.get("row_count"),
@@ -1005,6 +1216,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--download-retries", type=int, default=1)
     parser.add_argument("--download-delay-seconds", type=float, default=0.0)
     parser.add_argument("--parse-prospectus", action="store_true")
+    parser.add_argument("--force-rebuild", action="store_true", help="忽略逐代码输入签名，强制重建全部申购 history 行。")
     parser.add_argument("--ladder-label-path", type=Path, default=DEFAULT_LADDER_LABEL_PATH)
     return parser.parse_args()
 
@@ -1021,6 +1233,7 @@ def main() -> int:
         download_retries=args.download_retries,
         download_delay_seconds=args.download_delay_seconds,
         ladder_label_path=args.ladder_label_path,
+        force_rebuild=args.force_rebuild,
     )
     print(
         "subscription history rows={row_count}, model_ready={model_ready_count}, "

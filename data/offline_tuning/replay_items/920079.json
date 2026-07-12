@@ -1,7 +1,7 @@
 {
   "schema": "offline_tuning_replay_item_v1",
-  "cache_version": 7,
-  "generated_at": "2026-07-09 23:33:19",
+  "cache_version": 8,
+  "generated_at": "2026-07-12 21:21:37",
   "code": "920079",
   "listing_date": "2026-07-08",
   "record_signature": {
@@ -29,19 +29,31 @@
     "TURNOVERRATE": null,
     "SW_INDUSTRY": "汽车制造业",
     "INDUSTRY": "汽车制造业",
-    "INDUSTRY_CODE": "C36"
+    "INDUSTRY_CODE": "C36",
+    "industry_primary": "高端装备",
+    "industry_secondary": "汽车零部件",
+    "industry_source": "industry_code_mapping"
   },
   "pdf_signature": {
-    "listing": null,
-    "old_shares": {
-      "name": "920079_乔路铭_招股说明书.pdf",
-      "size": 5946528,
-      "mtime_ns": 1783333165262670400
+    "files": {
+      "listing": null,
+      "old_shares": {
+        "name": "920079_乔路铭_招股说明书.pdf",
+        "size": 5946528,
+        "mtime_ns": 1783333165262670400
+      },
+      "comparables": {
+        "name": "920079_乔路铭_招股说明书.pdf",
+        "size": 5946528,
+        "mtime_ns": 1783333165262670400
+      }
     },
-    "comparables": {
-      "name": "920079_乔路铭_招股说明书.pdf",
-      "size": 5946528,
-      "mtime_ns": 1783333165262670400
+    "pdf_parser_versions": {
+      "prospectus_issue_info": 8,
+      "issue_announcement_info": 5,
+      "issue_result_info": 4,
+      "comparable_companies": 22,
+      "business_desc": 3
     }
   },
   "item": {
@@ -102,8 +114,7 @@
       "002662.SZ",
       "603035.SH",
       "605228.SH",
-      "001278.SZ",
-      "600741.SH"
+      "001278.SZ"
     ],
     "comparable_data": [],
     "comparable_summary": {
@@ -115,8 +126,7 @@
         "002662.SZ",
         "603035.SH",
         "605228.SH",
-        "001278.SZ",
-        "600741.SH"
+        "001278.SZ"
       ],
       "returned_codes": [],
       "cache_hits": [],
@@ -125,7 +135,7 @@
       "reference_trade_date": null,
       "reason": "上市日期缺失，无法构建方法一历史快照。"
     },
-    "method1_replay_available": false,
+    "method1_replay_available": true,
     "average_price_source": "",
     "average_price_reason": "本地首日分时 CSV 不存在",
     "average_price_calc_version": 3,
@@ -145,13 +155,17 @@
       "INDUSTRY_PE_NEW": "issue_announcement:全文",
       "TOP_APPLY_MARKETCAP": "issue_announcement:全文",
       "SUBSCRIPTION_LIMIT_WAN_SHARES": "issue_announcement:全文",
-      "ONLINE_ISSUE_NUM": "issue_announcement:全文"
+      "ONLINE_ISSUE_NUM": "issue_announcement:全文",
+      "ONLINE_VA_NUM": "issue_result:result",
+      "ONLINE_ALLOCATED_ACCOUNTS": "issue_result:result",
+      "ONLINE_VA_SHARES": "issue_result:result",
+      "ONLINE_ES_MULTIPLE": "issue_result:result"
     },
     "announcement_fallback_parse_errors": [],
     "announcement_fallback_pdf_files": {
       "prospectus": "920079_乔路铭_招股说明书.pdf",
       "issue": "920079_乔路铭_发行公告.pdf",
-      "result": "",
+      "result": "920079_乔路铭_发行结果公告.pdf",
       "listing": ""
     }
   }

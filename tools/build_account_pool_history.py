@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import hashlib
 import json
 import math
 from pathlib import Path
@@ -24,6 +25,7 @@ DEFAULT_POINTS_PATH = ROOT_DIR / "data" / "offline_tuning" / "account_pool_histo
 DEFAULT_THRESHOLDS_PATH = ROOT_DIR / "data" / "offline_tuning" / "account_pool_history_thresholds.csv"
 DEFAULT_SUMMARY_PATH = ROOT_DIR / "data" / "offline_tuning" / "account_pool_history_summary.json"
 DEFAULT_THRESHOLDS_WAN: tuple[float, ...] = ()
+ACCOUNT_POOL_BUILD_VERSION = 2
 UNINFORMATIVE_THRESHOLD_BASES = {
     "",
     "no_observed_points",
@@ -80,6 +82,9 @@ BASE_THRESHOLD_COLUMNS = (
     "max_observed_accounts",
     "source",
     "notes",
+    "account_pool_build_version",
+    "account_pool_input_signature",
+    "account_pool_snapshot_json",
 )
 
 
@@ -118,6 +123,66 @@ def _format_value(value: Any) -> str:
     if isinstance(value, (list, dict)):
         return json.dumps(value, ensure_ascii=False, separators=(",", ":"))
     return str(value)
+
+
+def _canonical_signature(value: Any) -> str:
+    payload = json.dumps(
+        value,
+        ensure_ascii=False,
+        sort_keys=True,
+        separators=(",", ":"),
+        default=str,
+    )
+    return hashlib.sha256(payload.encode("utf-8")).hexdigest()
+
+
+def _account_pool_input_signature(row: dict[str, Any]) -> str:
+    return _canonical_signature(
+        {
+            "account_pool_build_version": ACCOUNT_POOL_BUILD_VERSION,
+            "row": dict(row),
+        }
+    )
+
+
+def _copy_threshold_state(state: dict[str, dict[str, Any]]) -> dict[str, dict[str, Any]]:
+    return json.loads(json.dumps(state, ensure_ascii=False)) if state else {}
+
+
+def _threshold_state_from_row(row: dict[str, Any]) -> dict[str, dict[str, Any]]:
+    parsed = _parse_json_object(row.get("account_pool_snapshot_json"))
+    return {
+        str(key): dict(value)
+        for key, value in parsed.items()
+        if isinstance(value, dict)
+    }
+
+
+def _incremental_rebuild_index(
+    merged_rows: list[dict[str, Any]],
+    existing_threshold_rows: list[dict[str, Any]],
+    *,
+    force_rebuild: bool,
+) -> int | None:
+    if force_rebuild or not existing_threshold_rows:
+        return 0
+    shared_count = min(len(merged_rows), len(existing_threshold_rows))
+    for index in range(shared_count):
+        row = merged_rows[index]
+        existing = existing_threshold_rows[index]
+        if _row_code(row) != _row_code(existing):
+            return index
+        try:
+            existing_version = int(existing.get("account_pool_build_version") or 0)
+        except (TypeError, ValueError):
+            existing_version = 0
+        if existing_version != ACCOUNT_POOL_BUILD_VERSION:
+            return index
+        if str(existing.get("account_pool_input_signature") or "") != _account_pool_input_signature(row):
+            return index
+    if len(merged_rows) != len(existing_threshold_rows):
+        return shared_count
+    return None
 
 
 def _clean_date(value: Any) -> str:
@@ -727,6 +792,8 @@ def _build_threshold_base_row(row: dict[str, Any], points: list[dict[str, Any]])
         "max_observed_accounts": _safe_float(max_point.get("accounts_ge_threshold")),
         "source": "manual_ladder+announcement_aggregate" if any("announcement_aggregate" in str(point.get("source") or "") for point in points) else "",
         "notes": "snapshot uses announcement-constrained manual cutpoints only; runtime callers interpolate between cutpoints",
+        "account_pool_build_version": ACCOUNT_POOL_BUILD_VERSION,
+        "account_pool_input_signature": _account_pool_input_signature(row),
     }
 
 
@@ -740,6 +807,7 @@ def _build_threshold_snapshot_row(
     output["account_pool_snapshot_state"] = bool(state)
     output["snapshot_cutpoint_count"] = len(state)
     output["updated_cutpoint_count"] = len(touched_keys)
+    output["account_pool_snapshot_json"] = _copy_threshold_state(state)
     for key, item in sorted(state.items(), key=lambda entry: float(entry[1].get("threshold_amount_wan") or 0.0)):
         threshold = _safe_float(item.get("threshold_amount_wan"))
         estimate = _safe_float(item.get("estimate"))
@@ -782,16 +850,50 @@ def build_account_pool_history(
     thresholds_path: Path = DEFAULT_THRESHOLDS_PATH,
     summary_path: Path = DEFAULT_SUMMARY_PATH,
     thresholds: tuple[float, ...] = DEFAULT_THRESHOLDS_WAN,
+    force_rebuild: bool = False,
 ) -> dict[str, Any]:
     history_rows = _load_csv_rows(history_path)
     label_rows = subscription_ladder_labels.load_label_rows(ladder_label_path)
     merged_rows = _merge_rows(history_rows, label_rows)
+    existing_point_rows = _load_csv_rows(points_path)
+    existing_threshold_rows = _load_csv_rows(thresholds_path)
+    rebuild_index = _incremental_rebuild_index(
+        merged_rows,
+        existing_threshold_rows,
+        force_rebuild=force_rebuild,
+    )
+    if rebuild_index is None:
+        rebuild_index = len(merged_rows)
+        rebuild_mode = "no_change"
+    elif rebuild_index == 0:
+        rebuild_mode = "full"
+    else:
+        rebuild_mode = "suffix"
+
+    if rebuild_index > 0:
+        threshold_state = _threshold_state_from_row(existing_threshold_rows[rebuild_index - 1])
+        if not threshold_state:
+            rebuild_index = 0
+            rebuild_mode = "full"
+    else:
+        threshold_state = {}
+
+    prefix_codes = {_row_code(row) for row in merged_rows[:rebuild_index]}
+    point_rows: list[dict[str, Any]] = [
+        dict(row) for row in existing_point_rows if _row_code(row) in prefix_codes
+    ]
+    threshold_rows: list[dict[str, Any]] = [
+        dict(row) for row in existing_threshold_rows[:rebuild_index]
+    ]
     points_by_code: dict[str, list[dict[str, Any]]] = {}
-    point_rows: list[dict[str, Any]] = []
-    threshold_rows: list[dict[str, Any]] = []
-    threshold_state: dict[str, dict[str, Any]] = {}
-    all_thresholds_seen: set[float] = set()
-    for row in merged_rows:
+    for row in point_rows:
+        points_by_code.setdefault(_row_code(row), []).append(row)
+    all_thresholds_seen: set[float] = {
+        float(item["threshold_amount_wan"])
+        for item in threshold_state.values()
+        if _safe_float(item.get("threshold_amount_wan")) is not None
+    }
+    for row in merged_rows[rebuild_index:]:
         code = _row_code(row)
         points = _build_points_for_row(row, threshold_state)
         points_by_code[code] = points
@@ -849,6 +951,23 @@ def build_account_pool_history(
         "calibrated_threshold_count": len(threshold_state),
         "recent_snapshot_window": len(recent_rows),
         "recent_snapshot": recent_snapshot,
+        "incremental": not force_rebuild,
+        "force_rebuild": bool(force_rebuild),
+        "rebuild_mode": rebuild_mode,
+        "reused_prefix_count": rebuild_index,
+        "rebuilt_suffix_count": max(len(merged_rows) - rebuild_index, 0),
+        "rebuild_from_index": rebuild_index if rebuild_index < len(merged_rows) else None,
+        "rebuild_from_code": (
+            _row_code(merged_rows[rebuild_index])
+            if rebuild_index < len(merged_rows)
+            else ""
+        ),
+        "rebuild_from_date": (
+            _clean_date(merged_rows[rebuild_index].get("apply_date"))
+            or _clean_date(merged_rows[rebuild_index].get("listing_date"))
+            if rebuild_index < len(merged_rows)
+            else ""
+        ),
     }
     summary_path.parent.mkdir(parents=True, exist_ok=True)
     summary_path.write_text(json.dumps(summary, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
@@ -875,6 +994,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--thresholds-path", type=Path, default=DEFAULT_THRESHOLDS_PATH)
     parser.add_argument("--summary-path", type=Path, default=DEFAULT_SUMMARY_PATH)
     parser.add_argument("--thresholds", default="", help="Deprecated: account-pool snapshots now use observed cutpoints only.")
+    parser.add_argument("--force-rebuild", action="store_true", help="忽略快照签名，从第一只样本开始全量重建。")
     parser.add_argument("--json", action="store_true")
     return parser.parse_args()
 
@@ -888,6 +1008,7 @@ def main() -> int:
         thresholds_path=args.thresholds_path,
         summary_path=args.summary_path,
         thresholds=_parse_thresholds(args.thresholds),
+        force_rebuild=args.force_rebuild,
     )
     if args.json:
         print(json.dumps(summary, ensure_ascii=False, indent=2))

@@ -1,7 +1,7 @@
 {
   "schema": "offline_tuning_replay_item_v1",
-  "cache_version": 7,
-  "generated_at": "2026-07-09 23:33:27",
+  "cache_version": 8,
+  "generated_at": "2026-07-12 21:59:43",
   "code": "920126",
   "listing_date": "2026-06-15 00:00:00",
   "record_signature": {
@@ -29,23 +29,35 @@
     "TURNOVERRATE": 85.0051,
     "SW_INDUSTRY": null,
     "INDUSTRY": null,
-    "INDUSTRY_CODE": null
+    "INDUSTRY_CODE": null,
+    "industry_primary": "高端装备",
+    "industry_secondary": "机械设备",
+    "industry_source": "built_in_sample_map"
   },
   "pdf_signature": {
-    "listing": {
-      "name": "920126_永大股份_上市公告书.pdf",
-      "size": 1006246,
-      "mtime_ns": 1781263129346099300
+    "files": {
+      "listing": {
+        "name": "920126_永大股份_上市公告书.pdf",
+        "size": 1006246,
+        "mtime_ns": 1781263129346099300
+      },
+      "old_shares": {
+        "name": "920126_永大股份_招股说明书.pdf",
+        "size": 6320968,
+        "mtime_ns": 1780320207456535000
+      },
+      "comparables": {
+        "name": "920126_永大股份_招股说明书.pdf",
+        "size": 6320968,
+        "mtime_ns": 1780320207456535000
+      }
     },
-    "old_shares": {
-      "name": "920126_永大股份_招股说明书.pdf",
-      "size": 6320968,
-      "mtime_ns": 1780320207456535000
-    },
-    "comparables": {
-      "name": "920126_永大股份_招股说明书.pdf",
-      "size": 6320968,
-      "mtime_ns": 1780320207456535000
+    "pdf_parser_versions": {
+      "prospectus_issue_info": 8,
+      "issue_announcement_info": 5,
+      "issue_result_info": 4,
+      "comparable_companies": 22,
+      "business_desc": 3
     }
   },
   "item": {
@@ -77,9 +89,9 @@
     "SW_INDUSTRY": "",
     "INDUSTRY": "",
     "INDUSTRY_CODE": "",
-    "industry_primary": "未分类",
-    "industry_secondary": "未分类",
-    "industry_source": "unclassified",
+    "industry_primary": "高端装备",
+    "industry_secondary": "机械设备",
+    "industry_source": "built_in_sample_map",
     "old_shares": 280.0,
     "old_shares_desc": "280.00 万股（PDF 提取：上市公告书）",
     "old_shares_meta": {
@@ -100,8 +112,10 @@
     "has_intraday_file": true,
     "comparable_codes": [
       "300092.SZ",
-      "873703.BJ",
-      "002140.SZ"
+      "601798.SH",
+      "603169.SH",
+      "001332.SZ",
+      "920703.BJ"
     ],
     "comparable_data": [
       {
@@ -119,12 +133,54 @@
         "mkt_cap_source": "tushare_historical"
       },
       {
-        "code": "002140.SZ",
-        "name": "002140.SZ",
-        "close": 9.98,
-        "pe_ttm": 12.7422,
-        "pb_lf": 1.4483,
-        "mkt_cap": 70.65978722,
+        "code": "601798.SH",
+        "name": "601798.SH",
+        "close": 7.32,
+        "pe_ttm": 47.6579,
+        "pb_lf": 2.0053,
+        "mkt_cap": 25.95146424,
+        "trade_date": "20260612",
+        "source": "tushare_historical",
+        "close_source": "tushare_historical",
+        "pe_source": "tushare_historical",
+        "pb_source": "tushare_historical",
+        "mkt_cap_source": "tushare_historical"
+      },
+      {
+        "code": "603169.SH",
+        "name": "603169.SH",
+        "close": 7.37,
+        "pe_ttm": null,
+        "pb_lf": 3.6205,
+        "mkt_cap": 96.27370566,
+        "trade_date": "20260612",
+        "source": "tushare_historical",
+        "close_source": "tushare_historical",
+        "pe_source": "tushare_historical",
+        "pb_source": "tushare_historical",
+        "mkt_cap_source": "tushare_historical"
+      },
+      {
+        "code": "001332.SZ",
+        "name": "001332.SZ",
+        "close": 45.28,
+        "pe_ttm": 25.7306,
+        "pb_lf": 2.6344,
+        "mkt_cap": 70.0418208,
+        "trade_date": "20260612",
+        "source": "tushare_historical",
+        "close_source": "tushare_historical",
+        "pe_source": "tushare_historical",
+        "pb_source": "tushare_historical",
+        "mkt_cap_source": "tushare_historical"
+      },
+      {
+        "code": "920703.BJ",
+        "name": "920703.BJ",
+        "close": 10.2,
+        "pe_ttm": 19.7878,
+        "pb_lf": 1.3588,
+        "mkt_cap": 15.373848,
         "trade_date": "20260612",
         "source": "tushare_historical",
         "close_source": "tushare_historical",
@@ -137,17 +193,25 @@
       "provider": "tushare_historical",
       "requested_codes": [
         "300092.SZ",
-        "873703.BJ",
-        "002140.SZ"
+        "601798.SH",
+        "603169.SH",
+        "001332.SZ",
+        "920703.BJ"
       ],
       "returned_codes": [
         "300092.SZ",
-        "002140.SZ"
+        "601798.SH",
+        "603169.SH",
+        "001332.SZ",
+        "920703.BJ"
       ],
       "cache_hits": [],
       "api_fetched": [
         "300092.SZ",
-        "002140.SZ"
+        "601798.SH",
+        "603169.SH",
+        "001332.SZ",
+        "920703.BJ"
       ],
       "skipped_unsupported": [],
       "reference_trade_date": "20260614",

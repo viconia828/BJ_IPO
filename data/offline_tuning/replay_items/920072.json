@@ -1,7 +1,7 @@
 {
   "schema": "offline_tuning_replay_item_v1",
-  "cache_version": 7,
-  "generated_at": "2026-07-09 23:33:18",
+  "cache_version": 8,
+  "generated_at": "2026-07-12 21:59:36",
   "code": "920072",
   "listing_date": "2026-06-29 00:00:00",
   "record_signature": {
@@ -29,12 +29,32 @@
     "TURNOVERRATE": 88.6815,
     "SW_INDUSTRY": null,
     "INDUSTRY": null,
-    "INDUSTRY_CODE": null
+    "INDUSTRY_CODE": null,
+    "industry_primary": "医药生物",
+    "industry_secondary": "医疗器械",
+    "industry_source": "built_in_sample_map"
   },
   "pdf_signature": {
-    "listing": null,
-    "old_shares": null,
-    "comparables": null
+    "files": {
+      "listing": null,
+      "old_shares": {
+        "name": "920072_科莱瑞迪_招股说明书.pdf",
+        "size": 8548904,
+        "mtime_ns": 1783780125690453500
+      },
+      "comparables": {
+        "name": "920072_科莱瑞迪_招股说明书.pdf",
+        "size": 8548904,
+        "mtime_ns": 1783780125690453500
+      }
+    },
+    "pdf_parser_versions": {
+      "prospectus_issue_info": 8,
+      "issue_announcement_info": 5,
+      "issue_result_info": 4,
+      "comparable_companies": 22,
+      "business_desc": 3
+    }
   },
   "item": {
     "SECURITY_CODE": "920072",
@@ -65,9 +85,9 @@
     "SW_INDUSTRY": "",
     "INDUSTRY": "",
     "INDUSTRY_CODE": "",
-    "industry_primary": "未分类",
-    "industry_secondary": "未分类",
-    "industry_source": "unclassified",
+    "industry_primary": "医药生物",
+    "industry_secondary": "医疗器械",
+    "industry_source": "built_in_sample_map",
     "old_shares": 0.0,
     "old_shares_desc": "待确认（当前按 0 万股计）",
     "old_shares_meta": {
@@ -80,26 +100,103 @@
       "unit": "万股",
       "pre_unrestricted_wan_shares": null,
       "listing_pdf_found": false,
-      "prospectus_pdf_found": false,
+      "prospectus_pdf_found": true,
       "selected_source_label": "",
       "fallback_used": false,
-      "pending_reason": "未找到上市公告书，且未找到可用招股文件"
+      "pending_reason": "未找到上市公告书，且招股文件未提取到有效老股数据"
     },
     "float_shares": 1480.0,
     "has_intraday_file": true,
-    "comparable_codes": [],
-    "comparable_data": [],
+    "comparable_codes": [
+      "688029.SH",
+      "688236.SH",
+      "688314.SH",
+      "688617.SH"
+    ],
+    "comparable_data": [
+      {
+        "code": "688029.SH",
+        "name": "688029.SH",
+        "close": 69.84,
+        "pe_ttm": 23.602,
+        "pb_lf": 3.0926,
+        "mkt_cap": 131.19262416,
+        "trade_date": "20260626",
+        "source": "tushare_historical",
+        "close_source": "tushare_historical",
+        "pe_source": "tushare_historical",
+        "pb_source": "tushare_historical",
+        "mkt_cap_source": "tushare_historical"
+      },
+      {
+        "code": "688236.SH",
+        "name": "688236.SH",
+        "close": 13.9,
+        "pe_ttm": 19.3047,
+        "pb_lf": 1.7497,
+        "mkt_cap": 53.3160215,
+        "trade_date": "20260626",
+        "source": "tushare_historical",
+        "close_source": "tushare_historical",
+        "pe_source": "tushare_historical",
+        "pb_source": "tushare_historical",
+        "mkt_cap_source": "tushare_historical"
+      },
+      {
+        "code": "688314.SH",
+        "name": "688314.SH",
+        "close": 35.66,
+        "pe_ttm": 32.99,
+        "pb_lf": 3.9405,
+        "mkt_cap": 28.969898719999996,
+        "trade_date": "20260626",
+        "source": "tushare_historical",
+        "close_source": "tushare_historical",
+        "pe_source": "tushare_historical",
+        "pb_source": "tushare_historical",
+        "mkt_cap_source": "tushare_historical"
+      },
+      {
+        "code": "688617.SH",
+        "name": "688617.SH",
+        "close": 181.27,
+        "pe_ttm": 29.5931,
+        "pb_lf": 8.6407,
+        "mkt_cap": 256.54998084,
+        "trade_date": "20260626",
+        "source": "tushare_historical",
+        "close_source": "tushare_historical",
+        "pe_source": "tushare_historical",
+        "pb_source": "tushare_historical",
+        "mkt_cap_source": "tushare_historical"
+      }
+    ],
     "comparable_summary": {
       "provider": "tushare_historical",
-      "requested_codes": [],
-      "returned_codes": [],
+      "requested_codes": [
+        "688029.SH",
+        "688236.SH",
+        "688314.SH",
+        "688617.SH"
+      ],
+      "returned_codes": [
+        "688029.SH",
+        "688236.SH",
+        "688314.SH",
+        "688617.SH"
+      ],
       "cache_hits": [],
-      "api_fetched": [],
+      "api_fetched": [
+        "688029.SH",
+        "688236.SH",
+        "688314.SH",
+        "688617.SH"
+      ],
       "skipped_unsupported": [],
       "reference_trade_date": "20260628",
-      "reason": "未提取到可比公司代码。"
+      "reason": ""
     },
-    "method1_replay_available": false,
+    "method1_replay_available": true,
     "average_price_source": "intraday_csv",
     "average_price_reason": "",
     "average_price_calc_version": 3,

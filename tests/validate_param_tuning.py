@@ -94,6 +94,7 @@ def _base_params(**overrides: Any) -> dict[str, Any]:
         "price_range_width": 0.10,
         "weight_comparable": 0.50,
         "weight_industry_momentum": 0.50,
+        "method2_sample_confidence_enabled": False,
         "wsi_weight_close_vwap": 0.30,
         "wsi_weight_price_retention": 0.25,
         "wsi_weight_high_timing": 0.20,
@@ -212,6 +213,7 @@ def _make_method2_dataset() -> dict[str, Any]:
     return {
         "schema": param_tuning.DATASET_SCHEMA,
         "replay_item_cache_version": param_tuning.REPLAY_ITEM_CACHE_VERSION,
+        "replay_refresh_contract": param_tuning._build_replay_refresh_contract(),
         "evaluation_scope": param_tuning.METHOD2_ONLY_SCOPE,
         "generated_at": "2026-04-18 18:00:00",
         "source_months": 12,
@@ -348,6 +350,23 @@ def replay_dataset_sync_inspection_case(failures: list[str]) -> None:
     _assert(months_status["needs_refresh"], "回放月份参数变化时应要求刷新", failures)
 
 
+    stale_contract_dataset = dict(dataset)
+    stale_contract_dataset["replay_refresh_contract"] = {
+        **param_tuning._build_replay_refresh_contract(),
+        "record_signature_version": 1,
+    }
+    contract_status = param_tuning.inspect_replay_dataset_sync(
+        stale_contract_dataset,
+        local_sample_codes=same_codes,
+        months=12,
+    )
+    _assert(
+        contract_status["needs_refresh"],
+        "replay refresh contract changes must trigger an incremental refresh",
+        failures,
+    )
+
+
 def manual_dataset_auto_refresh_gate_case(failures: list[str]) -> None:
     default_dataset_path = Path(param_tuning.DEFAULT_DATASET_PATH)
     custom_dataset_path = TEMP_ROOT / "custom_replay_dataset.json"
@@ -481,7 +500,15 @@ def replay_item_cache_incremental_case(failures: list[str]) -> None:
             self.params = params
 
         def enrich_recent_ipos(self, raw_records: list[dict[str, Any]]) -> list[dict[str, Any]]:
-            return list(raw_records)
+            return [
+                {
+                    **record,
+                    "industry_primary": "信息技术",
+                    "industry_secondary": "电子",
+                    "industry_source": "fixture",
+                }
+                for record in raw_records
+            ]
 
         def resolve_stock_industry(self, code: str, record: dict[str, Any]) -> SimpleNamespace:
             _ = (code, record)
@@ -503,7 +530,9 @@ def replay_item_cache_incremental_case(failures: list[str]) -> None:
         }
         invalid_cached_item = dict(existing_dataset["items"][0])
         invalid_record_signature = param_tuning._build_replay_record_signature(records[0])
-        invalid_pdf_signature = {"listing": None, "old_shares": None, "comparables": None}
+        invalid_pdf_signature = param_tuning._build_replay_pdf_signature(
+            {"listing": None, "old_shares": None, "comparables": None}
+        )
         param_tuning.save_replay_item_cache(
             invalid_cached_item,
             invalid_record_signature,
@@ -559,6 +588,76 @@ def replay_item_cache_incremental_case(failures: list[str]) -> None:
         param_tuning._resolve_replay_pdf_paths = original_pdf_paths
         param_tuning._build_pdf_inputs_from_paths = original_pdf_inputs
         param_tuning._resolve_listing_average_price = original_resolve_average
+
+
+def replay_pdf_signature_tracks_parser_versions_case(failures: list[str]) -> None:
+    cache_dir = TEMP_ROOT / "parser_version_signature_replay_items"
+    _reset_dir(cache_dir)
+    signature = param_tuning._build_replay_pdf_signature(
+        {"listing": None, "old_shares": None, "comparables": None}
+    )
+    parser_versions = signature.get("pdf_parser_versions") or {}
+    _assert(
+        parser_versions.get("comparable_companies")
+        == param_tuning.pdf_parser.PARSE_CACHE_KIND_VERSIONS.get("comparable_companies"),
+        "replay PDF 签名必须跟踪可比公司解析器版本",
+        failures,
+    )
+    _assert(
+        set((signature.get("files") or {}).keys()) == {"listing", "old_shares", "comparables"},
+        "replay PDF 签名必须保留三类源文件签名",
+        failures,
+    )
+    mapped_record_signature = param_tuning._build_replay_record_signature(
+        {
+            "SECURITY_CODE": "920220",
+            "industry_primary": "高端装备",
+            "industry_secondary": "汽车零部件",
+            "industry_source": "builtin_code_mapping",
+        }
+    )
+    _assert(
+        mapped_record_signature.get("industry_secondary") == "汽车零部件",
+        "replay record signature should track the derived industry mapping",
+        failures,
+    )
+    record_signature = {"fixture": "parser-version"}
+    item = {
+        "SECURITY_CODE": "000008",
+        "AVERAGE_PRICE": 10.0,
+        "average_price_source": "fixture",
+        "average_price_calc_version": param_tuning.REPLAY_AVERAGE_PRICE_CALC_VERSION,
+    }
+    param_tuning.save_replay_item_cache(
+        item,
+        record_signature,
+        signature,
+        cache_dir,
+    )
+    _assert(
+        param_tuning.load_replay_item_cache(
+            "000008",
+            record_signature,
+            signature,
+            cache_dir,
+        )
+        is not None,
+        "解析器版本未变化时 replay 单样本缓存应可复用",
+        failures,
+    )
+    bumped_signature = json.loads(json.dumps(signature))
+    bumped_signature["pdf_parser_versions"]["comparable_companies"] += 1
+    _assert(
+        param_tuning.load_replay_item_cache(
+            "000008",
+            record_signature,
+            bumped_signature,
+            cache_dir,
+        )
+        is None,
+        "可比公司解析器版本变化时 replay 单样本缓存必须失效",
+        failures,
+    )
 
 
 def replay_item_announcement_fallback_case(failures: list[str]) -> None:
@@ -648,7 +747,7 @@ def replay_metrics_case(failures: list[str]) -> None:
     dataset = _make_method2_dataset()
     base_metrics = param_tuning.evaluate_replay_targets(
         dataset,
-        _base_params(),
+        _base_params(method2_sample_confidence_enabled=False),
         target_codes=["000004", "000005", "000006"],
     )
     legacy_metrics = param_tuning.evaluate_replay_targets(
@@ -816,6 +915,10 @@ def auto_tune_case(failures: list[str]) -> None:
         failures,
     )
     _assert("price_range_width" not in overrides, "自动调参不应建议修改 price_range_width", failures)
+    contract = result.get("model_contract") or {}
+    _assert(contract.get("version") == param_tuning.AUTO_TUNE_MODEL_CONTRACT_VERSION, "自动调参应记录模型契约版本", failures)
+    _assert(contract.get("latest_model_compatible") is True, "自动调参应确认兼容最新估值模型", failures)
+    _assert(not contract.get("missing_latest_model_keys"), "自动调参模型契约不应缺少最新参数", failures)
 
 
 def auto_local_learning_rerank_case(failures: list[str]) -> None:
@@ -1044,7 +1147,8 @@ def intraday_average_price_hands_unit_case(failures: list[str]) -> None:
 
 
 def auto_candidate_groups_exclude_width_case(failures: list[str]) -> None:
-    groups = param_tuning.build_auto_tune_candidate_groups(_base_params(price_range_width=0.10), _make_method2_dataset())
+    params = _base_params(price_range_width=0.10)
+    groups = param_tuning.build_auto_tune_candidate_groups(params, _make_method2_dataset())
     group_names = [name for name, _ in groups]
     _assert("估值区间宽度" not in group_names, "自动调参不应包含估值区间宽度候选组", failures)
     width_candidates = [
@@ -1054,13 +1158,23 @@ def auto_candidate_groups_exclude_width_case(failures: list[str]) -> None:
         if "price_range_width" in candidate
     ]
     _assert(not width_candidates, "自动调参候选不应修改 price_range_width", failures)
-    trend_keys = {
+    no_effect_valuation_keys = {
         "trend_strong_boost",
         "trend_weak_discount",
         "trend_strong_threshold",
         "trend_weak_threshold",
+        "industry_trend_weight",
+        "market_sentiment_weight",
+        "wsi_weight_close_vwap",
+        "wsi_weight_price_retention",
+        "wsi_weight_high_timing",
+        "wsi_weight_closing_momentum",
+        "wsi_weight_volume_rhythm",
+        "wsi_weight_turnover",
     }
-    sentiment_keys = {
+    non_method2_keys = set(param_tuning.LATEST_METHOD1_AUTO_TUNABLE_KEYS) | set(
+        param_tuning.LATEST_METHOD3_AUTO_TUNABLE_KEYS
+    ) | set(param_tuning.LATEST_LOCAL_CENTER_AUTO_TUNABLE_KEYS) | {
         "sentiment_decay_half_life_days",
         "sentiment_first_day_baseline_pct",
         "sentiment_first_day_scale",
@@ -1075,26 +1189,68 @@ def auto_candidate_groups_exclude_width_case(failures: list[str]) -> None:
         for key in candidate
     }
     _assert(
-        trend_keys.issubset(all_candidate_keys),
-        "自动调参应继续覆盖旧趋势兼容参数",
+        set(param_tuning.LATEST_METHOD2_AUTO_TUNABLE_KEYS).issubset(all_candidate_keys),
+        "method2_only 回放应完整覆盖方法二参数",
         failures,
     )
     _assert(
-        sentiment_keys.issubset(all_candidate_keys),
-        "自动调参应覆盖方法三情绪溢价参数",
+        not (no_effect_valuation_keys & all_candidate_keys),
+        "估值回放不应搜索不影响估值结果的走势/WSI 参数",
         failures,
     )
-    for expected_group in ["强势走势加成", "弱势走势折价", "强势走势阈值", "弱势走势阈值"]:
-        _assert(expected_group in group_names, f"自动调参应保留兼容模块：{expected_group}", failures)
+    _assert(
+        not (non_method2_keys & all_candidate_keys),
+        "method2_only 回放不应浪费预算搜索其他方法参数",
+        failures,
+    )
+    composite_params = _base_params(
+        price_range_width=0.10,
+        local_center_overlay_enabled=True,
+        local_center_alpha=0.50,
+        local_center_min_history=8,
+        local_center_history_window=0,
+        local_center_actual_cap_pct=80.0,
+        local_center_slope_cap=1.50,
+    )
+    composite_groups = param_tuning.build_auto_tune_candidate_groups(
+        composite_params,
+        _make_composite_dataset(),
+    )
+    composite_group_names = [name for name, _ in composite_groups]
+    composite_candidate_keys = {
+        key
+        for _, candidates in composite_groups
+        for candidate in candidates
+        for key in candidate
+    }
+    latest_required = (
+        set(param_tuning.LATEST_METHOD1_AUTO_TUNABLE_KEYS)
+        | set(param_tuning.LATEST_METHOD2_AUTO_TUNABLE_KEYS)
+        | set(param_tuning.LATEST_METHOD2_CONFIDENCE_AUTO_TUNABLE_KEYS)
+        | set(param_tuning.LATEST_METHOD3_AUTO_TUNABLE_KEYS)
+        | set(param_tuning.LATEST_LOCAL_CENTER_AUTO_TUNABLE_KEYS)
+    )
+    _assert(
+        latest_required.issubset(composite_candidate_keys),
+        "composite 自动调参候选应完整覆盖最新三方法模型参数",
+        failures,
+    )
+    for removed_group in ["走势权重", "强势走势加成", "弱势走势折价", "强势走势阈值", "弱势走势阈值", "WSI 权重组合"]:
+        _assert(removed_group not in composite_group_names, f"估值调参应移除无效模块：{removed_group}", failures)
     for expected_group in [
+        "方法二稳健过滤",
+        "可比 PE 统计方式",
+        "方法三情绪窗口",
         "sentiment_half_life",
         "sentiment_first_day_baseline",
         "sentiment_first_day_scale",
         "sentiment_post_listing_scale",
         "sentiment_premium_cap",
         "sentiment_premium_floor",
+        "本地滚动中枢混合",
+        "本地滚动中枢稳健性",
     ]:
-        _assert(expected_group in group_names, f"自动调参应拆出方法三模块：{expected_group}", failures)
+        _assert(expected_group in composite_group_names, f"自动调参应包含最新模型模块：{expected_group}", failures)
 
 def review_case(failures: list[str]) -> None:
     dataset = _make_sentiment_dataset()
@@ -1674,6 +1830,7 @@ def auto_cli_accept_case(failures: list[str]) -> None:
         "--auto-shadow-context-path",
         str(TEMP_ROOT / "auto_shadow_context_latest.json"),
         "--no-auto-shadow-refresh",
+        "--no-auto-time-slice-gate",
         "--top-n",
         "3",
         "--auto-max-refine-stages",
@@ -1743,6 +1900,7 @@ def auto_cli_continue_then_accept_case(failures: list[str]) -> None:
         "--auto-shadow-context-path",
         str(TEMP_ROOT / "auto_shadow_context_latest.json"),
         "--no-auto-shadow-refresh",
+        "--no-auto-time-slice-gate",
         "--top-n",
         "3",
         "--auto-max-refine-stages",
@@ -1898,7 +2056,11 @@ def composite_replay_metrics_case(failures: list[str]) -> None:
     )
     tuned_metrics = param_tuning.evaluate_replay_targets(
         dataset,
-        _base_params(weight_comparable=0.80, weight_industry_momentum=0.20),
+        _base_params(
+            weight_comparable=0.80,
+            weight_industry_momentum=0.20,
+            method2_sample_confidence_enabled=False,
+        ),
         target_codes=["100004", "100005", "100006"],
     )
     _assert(base_metrics["evaluation_scope"] == param_tuning.COMPOSITE_EVALUATION_SCOPE, "composite 回放应标记为 composite", failures)
@@ -1979,6 +2141,171 @@ def composite_cli_case(failures: list[str]) -> None:
     _assert("最佳候选" in completed.stdout, "composite CLI 应打印最佳候选", failures)
 
 
+def formal_acceptance_guard_case(failures: list[str]) -> None:
+    baseline = {
+        "interval_hit_rate": 0.30,
+        "mae_change_pct": 100.0,
+        "p90_change_abs_error_pct": 180.0,
+        "available_rate": 1.0,
+    }
+    safe_candidate = {
+        "interval_hit_rate": 0.31,
+        "mae_change_pct": 99.0,
+        "p90_change_abs_error_pct": 179.0,
+        "available_rate": 1.0,
+    }
+    unsafe_candidate = {
+        "interval_hit_rate": 0.35,
+        "mae_change_pct": 101.0,
+        "p90_change_abs_error_pct": 170.0,
+        "available_rate": 1.0,
+    }
+    _assert(
+        param_tuning._formal_acceptance_guard(safe_candidate, baseline).get("passed") is True,
+        "正式写回安全门槛应接受命中率提高且 MAE/P90 不退化的候选",
+        failures,
+    )
+    unsafe_guard = param_tuning._formal_acceptance_guard(unsafe_candidate, baseline)
+    _assert(
+        unsafe_guard.get("passed") is False
+        and (unsafe_guard.get("checks") or {}).get("full_mae_not_higher") is False,
+        "正式写回安全门槛应拒绝全样本 MAE 退化的候选",
+        failures,
+    )
+    safe_entry = {
+        "name": "safe",
+        "overrides": {"bse_discount_factor": 0.9},
+        "metrics": safe_candidate,
+        "formal_acceptance_guard": param_tuning._formal_acceptance_guard(safe_candidate, baseline),
+    }
+    unsafe_entry = {
+        "name": "unsafe",
+        "overrides": {"bse_discount_factor": 0.8},
+        "metrics": unsafe_candidate,
+        "formal_acceptance_guard": unsafe_guard,
+    }
+    rerank_pool = tune_params_cli.local_learning_auto_rerank._candidate_pool(
+        {"baseline": safe_entry, "stage_start": unsafe_entry, "best": safe_entry},
+        10,
+    )
+    _assert(
+        all(entry.get("name") != "unsafe" for entry in rerank_pool),
+        "雪球学习二次排序不应重新纳入未通过正式安全门槛的候选",
+        failures,
+    )
+
+
+def auto_time_slice_write_gate_case(failures: list[str]) -> None:
+    args = SimpleNamespace(
+        no_auto_time_slice_gate=False,
+        dataset_path="fixture_dataset.json",
+        params_file="fixture_params.txt",
+        auto_time_slice_initial_train_size=20,
+        auto_time_slice_fold_size=7,
+        auto_time_slice_fold_count=3,
+        auto_stage_candidate_limit=650,
+        auto_stage_time_limit_seconds=180.0,
+        auto_local_rerank_top_n=20,
+    )
+    result = {
+        "stage_level": 3,
+        "changed_overrides": {"bse_discount_factor": 0.65},
+        "local_learning_rerank": {"applied": True},
+    }
+    original_run = tune_params_cli.subprocess.run
+    try:
+        tune_params_cli.subprocess.run = lambda *unused_args, **unused_kwargs: SimpleNamespace(
+            returncode=0,
+            stdout=json.dumps(
+                {
+                    "core_passed": True,
+                    "two_level_passed": False,
+                    "core_parameter_stability_warning": False,
+                    "two_level_parameter_stability_warning": False,
+                    "outputs": {"markdown": "fixture.md", "json": "fixture.json"},
+                }
+            ),
+            stderr="",
+        )
+        gate = tune_params_cli._run_auto_time_slice_gate(args, result)
+    finally:
+        tune_params_cli.subprocess.run = original_run
+    _assert(gate.get("required_path") == "two_level", "执行雪球二级排序后应校验 two_level 时间切片路径", failures)
+    _assert(gate.get("passed") is False, "two_level 时间切片失败时必须拒绝正式写回", failures)
+
+    args.no_auto_time_slice_gate = True
+    bypassed = tune_params_cli._run_auto_time_slice_gate(args, result)
+    _assert(
+        bypassed.get("passed") is True and bypassed.get("bypassed") is True,
+        "显式应急参数应留下时间切片门槛绕过记录",
+        failures,
+    )
+
+
+def auto_shadow_context_v2_case(failures: list[str]) -> None:
+    _reset_dir(TEMP_ROOT)
+    dataset_path = TEMP_ROOT / "shadow_dataset.json"
+    params_path = TEMP_ROOT / "shadow_params.txt"
+    context_path = TEMP_ROOT / "valuation_auto_shadow_context_latest.json"
+    dataset = {
+        "items": [
+            {
+                "SECURITY_CODE": "000001",
+                "LISTING_DATE": "2026-07-01",
+                "AVERAGE_PRICE": 11.0,
+            }
+        ]
+    }
+    dataset_path.write_text(json.dumps(dataset), encoding="utf-8")
+    params_path.write_text("bse_discount_factor = 0.625\n", encoding="utf-8")
+    metrics = {
+        "available_results": [
+            {
+                "code": "000001",
+                "actual_interval_price": 11.0,
+                "range_low": 10.0,
+                "range_high": 12.0,
+            }
+        ]
+    }
+    result = {
+        "generated_at": "2026-07-12 20:00:00",
+        "reference_date": "2026-07-12",
+        "stage_level": 3,
+        "changed_overrides": {"bse_discount_factor": 0.65},
+        "baseline": {"metrics": metrics, "auto_score": {}},
+        "best": {"metrics": metrics, "auto_score": {}},
+        "formal_acceptance_guard": {"passed": True},
+        "time_slice_gate": {"passed": False, "status": "rejected"},
+        "model_contract": {"version": 3},
+    }
+    args = SimpleNamespace(
+        params_file=str(params_path),
+        dataset_path=str(dataset_path),
+        auto_shadow_context_path=str(context_path),
+    )
+    tune_params_cli._write_auto_shadow_context(args, dataset, result, "rejected_time_slice")
+    context = json.loads(context_path.read_text(encoding="utf-8"))
+    _assert(context.get("schema") == "valuation_auto_shadow_context_v2", "影子上下文应升级为 v2", failures)
+    _assert(context.get("auto_tune_status") == "rejected_time_slice", "影子上下文应记录时间切片拒绝状态", failures)
+    _assert(
+        ((context.get("top_candidates") or [{}])[0]).get("overrides") == {},
+        "时间切片拒绝后影子流水线必须回退正式参数",
+        failures,
+    )
+    _assert(
+        (context.get("candidate") or {}).get("overrides") == {"bse_discount_factor": 0.65},
+        "影子上下文应保留被拒候选供审计",
+        failures,
+    )
+    _assert(
+        ((context.get("baseline") or {}).get("exact_score") or {}).get("evaluated_count") == 1,
+        "影子上下文区间命中统计不应继续输出 0/0",
+        failures,
+    )
+    _assert(bool((context.get("input_signatures") or {}).get("dataset_sha256")), "影子上下文应记录数据签名", failures)
+
+
 def main() -> int:
     failures: list[str] = []
     time_split_case(failures)
@@ -1987,6 +2314,7 @@ def main() -> int:
     manual_dataset_auto_refresh_gate_case(failures)
     manual_dataset_auto_refresh_failure_fallback_case(failures)
     replay_item_cache_incremental_case(failures)
+    replay_pdf_signature_tracks_parser_versions_case(failures)
     replay_item_announcement_fallback_case(failures)
     replay_metrics_case(failures)
     ranking_case(failures)
@@ -2018,6 +2346,9 @@ def main() -> int:
     composite_replay_metrics_case(failures)
     composite_weight_ranking_case(failures)
     composite_cli_case(failures)
+    formal_acceptance_guard_case(failures)
+    auto_time_slice_write_gate_case(failures)
+    auto_shadow_context_v2_case(failures)
 
     if failures:
         raise AssertionError("\n".join(failures))

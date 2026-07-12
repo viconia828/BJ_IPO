@@ -81,8 +81,10 @@ FALLBACK_POLICIES = (
 CENTER_POLICIES = (
     {"name": "model", "condition": "never", "alpha": 0.0, "research_only": False},
     {"name": "uncertain_rolling50", "condition": "uncertain", "alpha": 0.50, "research_only": False},
+    {"name": "single_method_rolling50", "condition": "single_method", "alpha": 0.50, "research_only": False},
     {"name": "high_proxy_rolling50", "condition": "high_proxy", "alpha": 0.50, "research_only": False},
     {"name": "high_or_uncertain_rolling50", "condition": "high_or_uncertain", "alpha": 0.50, "research_only": False},
+    {"name": "high_or_single_method_rolling50", "condition": "high_or_single_method", "alpha": 0.50, "research_only": False},
     {"name": "all_rolling50", "condition": "all", "alpha": 0.50, "research_only": True},
     {"name": "all_rolling75", "condition": "all", "alpha": 0.75, "research_only": True},
 )
@@ -283,6 +285,7 @@ def _dynamic_width(row: dict[str, Any], strategy: dict[str, Any], fallback_used:
     reasons = [f"proxy_{tier}_tier"]
     cap = float(policy["cap"])
     uncertainty = _safe_float(row.get("model_uncertainty_score")) or 0.0
+    single_method = 0 < int(row.get("current_method_count") or 0) <= 1
     recent5 = _safe_float(row.get("recent5_median_change"))
     if fallback_used or not _model_available(row, model):
         width = max(width, float(policy["fallback_min"]))
@@ -290,6 +293,9 @@ def _dynamic_width(row: dict[str, Any], strategy: dict[str, Any], fallback_used:
     if uncertainty >= 2:
         width = max(width, float(policy["uncertain_min"]))
         reasons.append("high_model_uncertainty")
+    if single_method:
+        width = max(width, float(policy["uncertain_min"]))
+        reasons.append("single_method_anchor")
     if recent5 is not None and recent5 >= 180:
         width = max(width, float(policy["strong_mood_min"]))
         reasons.append("very_strong_recent_mood")
@@ -340,6 +346,7 @@ def _center_override_change(row: dict[str, Any], strategy: dict[str, Any], base_
     if rolling is None:
         return None, "rolling proxy unavailable"
     uncertainty = _safe_float(row.get("model_uncertainty_score")) or 0.0
+    single_method = 0 < int(row.get("current_method_count") or 0) <= 1
     recent5 = _safe_float(row.get("recent5_median_change"))
     proxy_score = _safe_float(row.get("proxy_score")) or 0.0
     high_proxy = row.get("proxy_tier") == "high" and ((recent5 is not None and recent5 >= 150) or proxy_score >= 8)
@@ -347,8 +354,10 @@ def _center_override_change(row: dict[str, Any], strategy: dict[str, Any], base_
     should_override = (
         policy == "all"
         or (policy == "uncertain" and uncertain)
+        or (policy == "single_method" and single_method)
         or (policy == "high_proxy" and high_proxy)
         or (policy == "high_or_uncertain" and (high_proxy or uncertain))
+        or (policy == "high_or_single_method" and (high_proxy or single_method))
     )
     if not should_override:
         return None, ""
@@ -838,6 +847,8 @@ def _build_markdown(payload: dict[str, Any]) -> str:
 def run(args: argparse.Namespace) -> dict[str, Any]:
     _dataset, params, _scan_report, author_report_path, target_codes, teacher_rows, by_code, model_predictions = _load_context(args)
     strategies = _build_strategy_candidates()
+    if str(params.get("local_center_overlay_enabled", "")).strip().lower() not in {"", "0", "false", "no", "off", "否", "关闭"}:
+        strategies = [strategy for strategy in strategies if strategy.get("center_condition") == "never"]
     evaluated = [_evaluate_strategy(strategy, teacher_rows, params) for strategy in strategies]
     evaluated.sort(key=_strategy_sort_key)
     recommended = _best_from(evaluated, lambda item: not (item.get("strategy") or {}).get("research_only"))

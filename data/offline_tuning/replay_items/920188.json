@@ -1,7 +1,7 @@
 {
   "schema": "offline_tuning_replay_item_v1",
-  "cache_version": 7,
-  "generated_at": "2026-07-09 23:33:30",
+  "cache_version": 8,
+  "generated_at": "2026-07-12 21:59:46",
   "code": "920188",
   "listing_date": "2026-03-30 00:00:00",
   "record_signature": {
@@ -29,23 +29,35 @@
     "TURNOVERRATE": 87.4507,
     "SW_INDUSTRY": null,
     "INDUSTRY": null,
-    "INDUSTRY_CODE": null
+    "INDUSTRY_CODE": null,
+    "industry_primary": "化工新材",
+    "industry_secondary": "橡胶和塑料制品业",
+    "industry_source": "built_in_sample_map"
   },
   "pdf_signature": {
-    "listing": {
-      "name": "920188_悦龙科技_上市公告书.pdf",
-      "size": 839444,
-      "mtime_ns": 1779809317650553500
+    "files": {
+      "listing": {
+        "name": "920188_悦龙科技_上市公告书.pdf",
+        "size": 839444,
+        "mtime_ns": 1779809317650553500
+      },
+      "old_shares": {
+        "name": "920188_悦龙科技_招股说明书.pdf",
+        "size": 8404539,
+        "mtime_ns": 1779809316788321300
+      },
+      "comparables": {
+        "name": "920188_悦龙科技_招股说明书.pdf",
+        "size": 8404539,
+        "mtime_ns": 1779809316788321300
+      }
     },
-    "old_shares": {
-      "name": "920188_悦龙科技_招股说明书.pdf",
-      "size": 8404539,
-      "mtime_ns": 1779809316788321300
-    },
-    "comparables": {
-      "name": "920188_悦龙科技_招股说明书.pdf",
-      "size": 8404539,
-      "mtime_ns": 1779809316788321300
+    "pdf_parser_versions": {
+      "prospectus_issue_info": 8,
+      "issue_announcement_info": 5,
+      "issue_result_info": 4,
+      "comparable_companies": 22,
+      "business_desc": 3
     }
   },
   "item": {
@@ -64,21 +76,21 @@
     "AVERAGE_PRICE": 33.940438585337475,
     "LD_CLOSE_CHANGE": 115.0997,
     "LD_AVERAGE_CHANGE": 141.74101556508174,
-    "NEXT_DAY_CLOSE": null,
-    "THIRD_DAY_CLOSE": null,
-    "NEXT_DAY_CLOSE_CHANGE": null,
-    "THIRD_DAY_CLOSE_CHANGE": null,
-    "NEXT_DAY_FROM_LISTING_CLOSE_PCT": null,
-    "THIRD_DAY_FROM_LISTING_CLOSE_PCT": null,
-    "POST_LISTING_PROFIT_EFFECT_PCT": null,
-    "post_listing_performance_source": "",
-    "post_listing_performance_reason": "Tushare quota 已达上限，本次不再发起新请求。",
+    "NEXT_DAY_CLOSE": 25.29,
+    "THIRD_DAY_CLOSE": 24.58,
+    "NEXT_DAY_CLOSE_CHANGE": 80.12820512820514,
+    "THIRD_DAY_CLOSE_CHANGE": 75.07122507122507,
+    "NEXT_DAY_FROM_LISTING_CLOSE_PCT": -16.25827814569536,
+    "THIRD_DAY_FROM_LISTING_CLOSE_PCT": -18.609271523178815,
+    "POST_LISTING_PROFIT_EFFECT_PCT": -17.433774834437088,
+    "post_listing_performance_source": "tushare_daily",
+    "post_listing_performance_reason": "",
     "TURNOVERRATE": 87.4507,
     "SW_INDUSTRY": "",
     "INDUSTRY": "",
     "INDUSTRY_CODE": "",
-    "industry_primary": "高端装备",
-    "industry_secondary": "机械设备",
+    "industry_primary": "化工新材",
+    "industry_secondary": "橡胶和塑料制品业",
     "industry_source": "built_in_sample_map",
     "old_shares": 0.0,
     "old_shares_desc": "0.00 万股（PDF 提取：上市公告书）",
@@ -99,22 +111,77 @@
     "float_shares": 2199.3198,
     "has_intraday_file": true,
     "comparable_codes": [
-      "871694.BJ"
+      "920225.BJ",
+      "920694.BJ",
+      "920871.BJ"
     ],
-    "comparable_data": [],
+    "comparable_data": [
+      {
+        "code": "920225.BJ",
+        "name": "920225.BJ",
+        "close": 21.93,
+        "pe_ttm": 33.7677,
+        "pb_lf": 3.8094,
+        "mkt_cap": 27.83331345,
+        "trade_date": "20260327",
+        "source": "tushare_historical",
+        "close_source": "tushare_historical",
+        "pe_source": "tushare_historical",
+        "pb_source": "tushare_historical",
+        "mkt_cap_source": "tushare_historical"
+      },
+      {
+        "code": "920694.BJ",
+        "name": "920694.BJ",
+        "close": 17.19,
+        "pe_ttm": 25.5754,
+        "pb_lf": 2.5636,
+        "mkt_cap": 22.70600902,
+        "trade_date": "20260327",
+        "source": "tushare_historical",
+        "close_source": "tushare_historical",
+        "pe_source": "tushare_historical",
+        "pb_source": "tushare_historical",
+        "mkt_cap_source": "tushare_historical"
+      },
+      {
+        "code": "920871.BJ",
+        "name": "920871.BJ",
+        "close": 14.43,
+        "pe_ttm": 112.1888,
+        "pb_lf": 4.6495,
+        "mkt_cap": 12.267757000000001,
+        "trade_date": "20260327",
+        "source": "tushare_historical",
+        "close_source": "tushare_historical",
+        "pe_source": "tushare_historical",
+        "pb_source": "tushare_historical",
+        "mkt_cap_source": "tushare_historical"
+      }
+    ],
     "comparable_summary": {
       "provider": "tushare_historical",
       "requested_codes": [
-        "871694.BJ"
+        "920225.BJ",
+        "920694.BJ",
+        "920871.BJ"
       ],
-      "returned_codes": [],
+      "returned_codes": [
+        "920225.BJ",
+        "920694.BJ",
+        "920871.BJ"
+      ],
       "cache_hits": [],
-      "api_fetched": [],
+      "api_fetched": [
+        "920225.BJ",
+        "920694.BJ",
+        "920871.BJ"
+      ],
       "skipped_unsupported": [],
       "reference_trade_date": "20260329",
-      "reason": "Tushare quota 已达上限，本次不再发起新请求。"
+      "reason": ""
     },
-    "method1_replay_available": false,
+    "method1_replay_available": true,
     "average_price_source": "intraday_csv",
     "average_price_reason": "",
     "average_price_calc_version": 3,

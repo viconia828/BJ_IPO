@@ -1,7 +1,7 @@
 {
   "schema": "offline_tuning_replay_item_v1",
-  "cache_version": 7,
-  "generated_at": "2026-07-09 23:33:29",
+  "cache_version": 8,
+  "generated_at": "2026-07-12 21:21:38",
   "code": "920180",
   "listing_date": "2026-02-10 00:00:00",
   "record_signature": {
@@ -29,23 +29,35 @@
     "TURNOVERRATE": 89.6132,
     "SW_INDUSTRY": null,
     "INDUSTRY": null,
-    "INDUSTRY_CODE": null
+    "INDUSTRY_CODE": null,
+    "industry_primary": "医药生物",
+    "industry_secondary": "医疗器械",
+    "industry_source": "built_in_sample_map"
   },
   "pdf_signature": {
-    "listing": {
-      "name": "920180_爱得科技_上市公告书.pdf",
-      "size": 1646740,
-      "mtime_ns": 1779209828501118400
+    "files": {
+      "listing": {
+        "name": "920180_爱得科技_上市公告书.pdf",
+        "size": 1646740,
+        "mtime_ns": 1779209828501118400
+      },
+      "old_shares": {
+        "name": "920180_爱得科技_招股说明书.pdf",
+        "size": 7904717,
+        "mtime_ns": 1779209827560464300
+      },
+      "comparables": {
+        "name": "920180_爱得科技_招股说明书.pdf",
+        "size": 7904717,
+        "mtime_ns": 1779209827560464300
+      }
     },
-    "old_shares": {
-      "name": "920180_爱得科技_招股说明书.pdf",
-      "size": 7904717,
-      "mtime_ns": 1779209827560464300
-    },
-    "comparables": {
-      "name": "920180_爱得科技_招股说明书.pdf",
-      "size": 7904717,
-      "mtime_ns": 1779209827560464300
+    "pdf_parser_versions": {
+      "prospectus_issue_info": 8,
+      "issue_announcement_info": 5,
+      "issue_result_info": 4,
+      "comparable_companies": 22,
+      "business_desc": 3
     }
   },
   "item": {
@@ -64,15 +76,15 @@
     "AVERAGE_PRICE": 23.23710907830547,
     "LD_CLOSE_CHANGE": 176.7927,
     "LD_AVERAGE_CHANGE": 202.9610049322747,
-    "NEXT_DAY_CLOSE": null,
-    "THIRD_DAY_CLOSE": null,
-    "NEXT_DAY_CLOSE_CHANGE": null,
-    "THIRD_DAY_CLOSE_CHANGE": null,
-    "NEXT_DAY_FROM_LISTING_CLOSE_PCT": null,
-    "THIRD_DAY_FROM_LISTING_CLOSE_PCT": null,
-    "POST_LISTING_PROFIT_EFFECT_PCT": null,
-    "post_listing_performance_source": "",
-    "post_listing_performance_reason": "Tushare quota 已达上限，本次不再发起新请求。",
+    "NEXT_DAY_CLOSE": 20.01,
+    "THIRD_DAY_CLOSE": 19.26,
+    "NEXT_DAY_CLOSE_CHANGE": 160.88657105606262,
+    "THIRD_DAY_CLOSE_CHANGE": 151.10821382007825,
+    "NEXT_DAY_FROM_LISTING_CLOSE_PCT": -5.746585021196415,
+    "THIRD_DAY_FROM_LISTING_CLOSE_PCT": -9.279321714554866,
+    "POST_LISTING_PROFIT_EFFECT_PCT": -7.512953367875641,
+    "post_listing_performance_source": "tushare_daily",
+    "post_listing_performance_reason": "",
     "TURNOVERRATE": 89.6132,
     "SW_INDUSTRY": "",
     "INDUSTRY": "",
@@ -99,30 +111,113 @@
     "float_shares": 2953.0762,
     "has_intraday_file": true,
     "comparable_codes": [
+      "688236.SH",
       "688161.SH",
       "002901.SZ",
       "300326.SZ",
-      "688085.SH",
-      "688236.SH"
+      "688085.SH"
     ],
-    "comparable_data": [],
+    "comparable_data": [
+      {
+        "code": "688236.SH",
+        "name": "688236.SH",
+        "close": 23.0,
+        "pe_ttm": 34.5465,
+        "pb_lf": 3.0374,
+        "mkt_cap": 88.22075500000001,
+        "trade_date": "20260209",
+        "source": "tushare_historical",
+        "close_source": "tushare_historical",
+        "pe_source": "tushare_historical",
+        "pb_source": "tushare_historical",
+        "mkt_cap_source": "tushare_historical"
+      },
+      {
+        "code": "688161.SH",
+        "name": "688161.SH",
+        "close": 29.85,
+        "pe_ttm": 44.7418,
+        "pb_lf": 2.9601,
+        "mkt_cap": 119.4,
+        "trade_date": "20260209",
+        "source": "tushare_historical",
+        "close_source": "tushare_historical",
+        "pe_source": "tushare_historical",
+        "pb_source": "tushare_historical",
+        "mkt_cap_source": "tushare_historical"
+      },
+      {
+        "code": "002901.SZ",
+        "name": "002901.SZ",
+        "close": 49.11,
+        "pe_ttm": 37.5434,
+        "pb_lf": 6.0938,
+        "mkt_cap": 203.3249794,
+        "trade_date": "20260209",
+        "source": "tushare_historical",
+        "close_source": "tushare_historical",
+        "pe_source": "tushare_historical",
+        "pb_source": "tushare_historical",
+        "mkt_cap_source": "tushare_historical"
+      },
+      {
+        "code": "300326.SZ",
+        "name": "300326.SZ",
+        "close": 6.24,
+        "pe_ttm": null,
+        "pb_lf": 1.6056,
+        "mkt_cap": 44.74159136,
+        "trade_date": "20260209",
+        "source": "tushare_historical",
+        "close_source": "tushare_historical",
+        "pe_source": "tushare_historical",
+        "pb_source": "tushare_historical",
+        "mkt_cap_source": "tushare_historical"
+      },
+      {
+        "code": "688085.SH",
+        "name": "688085.SH",
+        "close": 21.67,
+        "pe_ttm": 111.3781,
+        "pb_lf": 3.4823,
+        "mkt_cap": 72.26132332,
+        "trade_date": "20260209",
+        "source": "tushare_historical",
+        "close_source": "tushare_historical",
+        "pe_source": "tushare_historical",
+        "pb_source": "tushare_historical",
+        "mkt_cap_source": "tushare_historical"
+      }
+    ],
     "comparable_summary": {
       "provider": "tushare_historical",
       "requested_codes": [
+        "688236.SH",
         "688161.SH",
         "002901.SZ",
         "300326.SZ",
-        "688085.SH",
-        "688236.SH"
+        "688085.SH"
       ],
-      "returned_codes": [],
+      "returned_codes": [
+        "688236.SH",
+        "688161.SH",
+        "002901.SZ",
+        "300326.SZ",
+        "688085.SH"
+      ],
       "cache_hits": [],
-      "api_fetched": [],
+      "api_fetched": [
+        "688236.SH",
+        "688161.SH",
+        "002901.SZ",
+        "300326.SZ",
+        "688085.SH"
+      ],
       "skipped_unsupported": [],
       "reference_trade_date": "20260209",
-      "reason": "Tushare quota 已达上限，本次不再发起新请求。"
+      "reason": ""
     },
-    "method1_replay_available": false,
+    "method1_replay_available": true,
     "average_price_source": "intraday_csv",
     "average_price_reason": "",
     "average_price_calc_version": 3,

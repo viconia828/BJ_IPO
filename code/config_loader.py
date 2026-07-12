@@ -145,6 +145,16 @@ def _validate_params(params: dict[str, Any]) -> None:
         raise ValueError("method2_weight_mode 仅支持 static / time_decay")
     if float(params.get("method2_decay_half_life_days", params.get("sample_decay_half_life_days", 90))) <= 0:
         raise ValueError("method2_decay_half_life_days 必须大于 0")
+    method2_confidences = [
+        float(params.get("method2_confidence_1_sample", 0.25)),
+        float(params.get("method2_confidence_2_samples", 0.50)),
+        float(params.get("method2_confidence_3_samples", 0.75)),
+        float(params.get("method2_confidence_4plus_samples", 1.00)),
+    ]
+    if any(value < 0.0 or value > 1.0 for value in method2_confidences):
+        raise ValueError("方法二样本置信度必须位于 0 到 1 之间")
+    if method2_confidences != sorted(method2_confidences):
+        raise ValueError("方法二样本置信度必须随原始样本数单调不降")
     if float(params.get("sentiment_decay_half_life_days", 5)) <= 0:
         raise ValueError("sentiment_decay_half_life_days must be greater than 0")
     if float(params.get("method1_industry_fallback_confidence", 0.5)) < 0:
@@ -155,6 +165,17 @@ def _validate_params(params: dict[str, Any]) -> None:
         raise ValueError("sentiment_post_listing_scale cannot be negative")
     if float(params.get("sentiment_premium_floor_pct", -20.0)) > float(params.get("sentiment_premium_cap_pct", 35.0)):
         raise ValueError("sentiment_premium_floor_pct must be <= sentiment_premium_cap_pct")
+    local_center_alpha = float(params.get("local_center_alpha", 0.50))
+    if not 0.0 <= local_center_alpha <= 1.0:
+        raise ValueError("local_center_alpha must be between 0 and 1")
+    if int(float(params.get("local_center_min_history", 8))) <= 0:
+        raise ValueError("local_center_min_history must be greater than 0")
+    if int(float(params.get("local_center_history_window", 20))) < 0:
+        raise ValueError("local_center_history_window cannot be negative")
+    if float(params.get("local_center_actual_cap_pct", 900.0)) <= 0:
+        raise ValueError("local_center_actual_cap_pct must be greater than 0")
+    if float(params.get("local_center_slope_cap", 25.0)) < 0:
+        raise ValueError("local_center_slope_cap cannot be negative")
     if float(params.get("robust_median_min_samples", 4)) <= 0:
         raise ValueError("robust_median_min_samples must be greater than 0")
     if float(params.get("robust_mad_multiplier", 3.0)) <= 0:

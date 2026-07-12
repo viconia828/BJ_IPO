@@ -168,7 +168,7 @@
 启动后可以选择：
 
 - `1. 刷新新股首日走势`：只补首日分时 CSV。
-- `2. 刷新新上市新股数据（估值 replay / 申购 history / 缺公告重试）`：补估值回放样本、申购资金历史样本、手工阶梯标签上下文和样本 manifest；缺失的发行公告/发行结果公告也会自动重试下载。
+- `2. 刷新新上市新股数据（估值 replay / 申购 history / 缺公告重试）`：补估值回放样本、申购资金历史样本、手工阶梯标签上下文和样本 manifest；缺失的发行公告/发行结果公告也会自动重试下载。申购 history 按 replay、PDF 和解析器版本签名逐代码增量刷新；account-pool 只从最早变化样本日期向后续算。排障时可分别使用 `--force-rebuild-subscription-history` 和 `--force-rebuild-account-pool` 强制全量重建。
 - `3. Refresh Xueqiu reference from manual files in xueqiu folder`：读取根目录 `xueqiu/` 中手工保存的 `.mhtml` 和 `.txt`，自动完成语料导入、区间抽取、覆盖审计、author-rule score、作者/模型融合、本地规则蒸馏和影子报告刷新。该功能不访问雪球，也不自动下载文章。
 
 雪球参考的日常用法：

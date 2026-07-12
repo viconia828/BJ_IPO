@@ -1032,6 +1032,21 @@ def build_analysis_data(
         target_listing_date=ipo_info.get("LISTING_DATE"),
     )
     final = valuation_engine.composite_valuation(method1, method2, params, method3=method3)
+    final = valuation_engine.apply_local_center_overlay(
+        final,
+        issue_price=issue_price,
+        issue_pe=issue_pe,
+        industry_pe=industry_pe,
+        float_shares=float_shares,
+        old_shares=old_shares,
+        industry={"primary": industry.primary, "secondary": industry.secondary},
+        recent_ipos=recent_ipos,
+        params=params,
+        target_code=code,
+        target_listing_date=ipo_info.get("LISTING_DATE"),
+        online_issue_num=_safe_float(ipo_info.get("ONLINE_ISSUE_NUM")),
+        top_apply_marketcap=_safe_float(ipo_info.get("TOP_APPLY_MARKETCAP")),
+    )
 
     final_change_pct = _calc_change_pct(issue_price, final.get("target_price"))
     range_change_low = _calc_change_pct(issue_price, final.get("range_low"))

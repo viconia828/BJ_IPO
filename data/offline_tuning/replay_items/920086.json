@@ -1,7 +1,7 @@
 {
   "schema": "offline_tuning_replay_item_v1",
-  "cache_version": 7,
-  "generated_at": "2026-07-09 23:33:21",
+  "cache_version": 8,
+  "generated_at": "2026-07-12 21:21:37",
   "code": "920086",
   "listing_date": "2026-01-16 00:00:00",
   "record_signature": {
@@ -29,23 +29,35 @@
     "TURNOVERRATE": 96.1425,
     "SW_INDUSTRY": null,
     "INDUSTRY": null,
-    "INDUSTRY_CODE": null
+    "INDUSTRY_CODE": null,
+    "industry_primary": "高端装备",
+    "industry_secondary": "汽车零部件",
+    "industry_source": "built_in_sample_map"
   },
   "pdf_signature": {
-    "listing": {
-      "name": "920086_科马材料_上市公告书.pdf",
-      "size": 932311,
-      "mtime_ns": 1779807998826204600
+    "files": {
+      "listing": {
+        "name": "920086_科马材料_上市公告书.pdf",
+        "size": 932311,
+        "mtime_ns": 1779807998826204600
+      },
+      "old_shares": {
+        "name": "920086_科马材料_招股说明书.pdf",
+        "size": 8896360,
+        "mtime_ns": 1779807997878114400
+      },
+      "comparables": {
+        "name": "920086_科马材料_招股说明书.pdf",
+        "size": 8896360,
+        "mtime_ns": 1779807997878114400
+      }
     },
-    "old_shares": {
-      "name": "920086_科马材料_招股说明书.pdf",
-      "size": 8896360,
-      "mtime_ns": 1779807997878114400
-    },
-    "comparables": {
-      "name": "920086_科马材料_招股说明书.pdf",
-      "size": 8896360,
-      "mtime_ns": 1779807997878114400
+    "pdf_parser_versions": {
+      "prospectus_issue_info": 8,
+      "issue_announcement_info": 5,
+      "issue_result_info": 4,
+      "comparable_companies": 22,
+      "business_desc": 3
     }
   },
   "item": {
@@ -99,7 +111,11 @@
     "float_shares": 2092.0,
     "has_intraday_file": true,
     "comparable_codes": [
-      "603586.SH"
+      "603586.SH",
+      "002297.SZ",
+      "688033.SH",
+      "002985.SZ",
+      "920106.BJ"
     ],
     "comparable_data": [
       {
@@ -115,19 +131,87 @@
         "pe_source": "tushare_historical",
         "pb_source": "tushare_historical",
         "mkt_cap_source": "tushare_historical"
+      },
+      {
+        "code": "002297.SZ",
+        "name": "002297.SZ",
+        "close": 11.54,
+        "pe_ttm": null,
+        "pb_lf": 3.1432,
+        "mkt_cap": 66.13629610999999,
+        "trade_date": "20260115",
+        "source": "tushare_historical",
+        "close_source": "tushare_historical",
+        "pe_source": "tushare_historical",
+        "pb_source": "tushare_historical",
+        "mkt_cap_source": "tushare_historical"
+      },
+      {
+        "code": "688033.SH",
+        "name": "688033.SH",
+        "close": 8.14,
+        "pe_ttm": null,
+        "pb_lf": 1.3878,
+        "mkt_cap": 45.76296571,
+        "trade_date": "20260115",
+        "source": "tushare_historical",
+        "close_source": "tushare_historical",
+        "pe_source": "tushare_historical",
+        "pb_source": "tushare_historical",
+        "mkt_cap_source": "tushare_historical"
+      },
+      {
+        "code": "002985.SZ",
+        "name": "002985.SZ",
+        "close": 33.45,
+        "pe_ttm": 183.6505,
+        "pb_lf": 4.2425,
+        "mkt_cap": 111.0050292,
+        "trade_date": "20260115",
+        "source": "tushare_historical",
+        "close_source": "tushare_historical",
+        "pe_source": "tushare_historical",
+        "pb_source": "tushare_historical",
+        "mkt_cap_source": "tushare_historical"
+      },
+      {
+        "code": "920106.BJ",
+        "name": "920106.BJ",
+        "close": 82.76,
+        "pe_ttm": 33.0853,
+        "pb_lf": 8.0967,
+        "mkt_cap": 46.8367806,
+        "trade_date": "20260115",
+        "source": "tushare_historical",
+        "close_source": "tushare_historical",
+        "pe_source": "tushare_historical",
+        "pb_source": "tushare_historical",
+        "mkt_cap_source": "tushare_historical"
       }
     ],
     "comparable_summary": {
       "provider": "tushare_historical",
       "requested_codes": [
-        "603586.SH"
+        "603586.SH",
+        "002297.SZ",
+        "688033.SH",
+        "002985.SZ",
+        "920106.BJ"
       ],
       "returned_codes": [
-        "603586.SH"
+        "603586.SH",
+        "002297.SZ",
+        "688033.SH",
+        "002985.SZ",
+        "920106.BJ"
       ],
       "cache_hits": [],
       "api_fetched": [
-        "603586.SH"
+        "603586.SH",
+        "002297.SZ",
+        "688033.SH",
+        "002985.SZ",
+        "920106.BJ"
       ],
       "skipped_unsupported": [],
       "reference_trade_date": "20260115",

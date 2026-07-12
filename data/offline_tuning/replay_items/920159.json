@@ -1,7 +1,7 @@
 {
   "schema": "offline_tuning_replay_item_v1",
-  "cache_version": 7,
-  "generated_at": "2026-07-09 23:33:29",
+  "cache_version": 8,
+  "generated_at": "2026-07-12 21:55:34",
   "code": "920159",
   "listing_date": "2026-01-28 00:00:00",
   "record_signature": {
@@ -29,23 +29,35 @@
     "TURNOVERRATE": 95.0296,
     "SW_INDUSTRY": null,
     "INDUSTRY": null,
-    "INDUSTRY_CODE": null
+    "INDUSTRY_CODE": null,
+    "industry_primary": "化工新材",
+    "industry_secondary": "化学制品",
+    "industry_source": "built_in_sample_map"
   },
   "pdf_signature": {
-    "listing": {
-      "name": "920159_农大科技_上市公告书.pdf",
-      "size": 782571,
-      "mtime_ns": 1779808298083025900
+    "files": {
+      "listing": {
+        "name": "920159_农大科技_上市公告书.pdf",
+        "size": 782571,
+        "mtime_ns": 1779808298083025900
+      },
+      "old_shares": {
+        "name": "920159_农大科技_招股说明书.pdf",
+        "size": 6850156,
+        "mtime_ns": 1779808297229068400
+      },
+      "comparables": {
+        "name": "920159_农大科技_招股说明书.pdf",
+        "size": 6850156,
+        "mtime_ns": 1779808297229068400
+      }
     },
-    "old_shares": {
-      "name": "920159_农大科技_招股说明书.pdf",
-      "size": 6850156,
-      "mtime_ns": 1779808297229068400
-    },
-    "comparables": {
-      "name": "920159_农大科技_招股说明书.pdf",
-      "size": 6850156,
-      "mtime_ns": 1779808297229068400
+    "pdf_parser_versions": {
+      "prospectus_issue_info": 8,
+      "issue_announcement_info": 5,
+      "issue_result_info": 4,
+      "comparable_companies": 22,
+      "business_desc": 3
     }
   },
   "item": {
@@ -77,8 +89,8 @@
     "SW_INDUSTRY": "",
     "INDUSTRY": "",
     "INDUSTRY_CODE": "",
-    "industry_primary": "消费服务",
-    "industry_secondary": "农林牧渔",
+    "industry_primary": "化工新材",
+    "industry_secondary": "化学制品",
     "industry_source": "built_in_sample_map",
     "old_shares": 0.0,
     "old_shares_desc": "0.00 万股（PDF 提取：上市公告书）",
@@ -133,6 +145,34 @@
         "pe_source": "tushare_historical",
         "pb_source": "tushare_historical",
         "mkt_cap_source": "tushare_historical"
+      },
+      {
+        "code": "603395.SH",
+        "name": "603395.SH",
+        "close": 30.6,
+        "pe_ttm": 292.9631,
+        "pb_lf": 5.6875,
+        "mkt_cap": 79.56,
+        "trade_date": "20260127",
+        "source": "tushare_historical",
+        "close_source": "tushare_historical",
+        "pe_source": "tushare_historical",
+        "pb_source": "tushare_historical",
+        "mkt_cap_source": "tushare_historical"
+      },
+      {
+        "code": "002170.SZ",
+        "name": "002170.SZ",
+        "close": 13.54,
+        "pe_ttm": 14.6937,
+        "pb_lf": 3.7304,
+        "mkt_cap": 131.02251218,
+        "trade_date": "20260127",
+        "source": "tushare_historical",
+        "close_source": "tushare_historical",
+        "pe_source": "tushare_historical",
+        "pb_source": "tushare_historical",
+        "mkt_cap_source": "tushare_historical"
       }
     ],
     "comparable_summary": {
@@ -146,18 +186,22 @@
       ],
       "returned_codes": [
         "002588.SZ",
-        "000902.SZ"
+        "000902.SZ",
+        "603395.SH",
+        "002170.SZ"
       ],
       "cache_hits": [],
       "api_fetched": [
         "002588.SZ",
-        "000902.SZ"
+        "000902.SZ",
+        "603395.SH",
+        "002170.SZ"
       ],
       "skipped_unsupported": [
         "873757.NQ"
       ],
       "reference_trade_date": "20260127",
-      "reason": "Tushare quota 已达上限，本次不再发起新请求。"
+      "reason": ""
     },
     "method1_replay_available": true,
     "average_price_source": "intraday_csv",

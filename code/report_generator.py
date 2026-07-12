@@ -237,12 +237,50 @@ def _build_recent_items(recent_ipos: list[dict[str, Any]]) -> list[list[str]]:
     return rows
 
 
-def _build_overview_interval(final: dict[str, Any]) -> str:
-    low_text = _fmt_number(final.get("range_low"), fallback="")
-    high_text = _fmt_number(final.get("range_high"), fallback="")
+def _format_interval(low: Any, high: Any, *, fallback: str = "") -> str:
+    low_text = _fmt_number(low, fallback="")
+    high_text = _fmt_number(high, fallback="")
     if not low_text or not high_text:
-        return ""
+        return fallback
     return f"{low_text} - {high_text}"
+
+
+def _center_interval(center: Any, width: float) -> tuple[float | None, float | None]:
+    value = _safe_float(center)
+    if value is None:
+        return None, None
+    return value * (1 - width), value * (1 + width)
+
+
+def _build_user_valuation_ranges(
+    final: dict[str, Any],
+    issue_price: float | None,
+    width: float,
+) -> dict[str, Any]:
+    pre_local_center = _safe_float(final.get("pre_local_center_target_price"))
+    if pre_local_center is not None:
+        baseline_low, baseline_high = _center_interval(pre_local_center, width)
+    else:
+        baseline_low = _safe_float(final.get("range_low"))
+        baseline_high = _safe_float(final.get("range_high"))
+
+    rolling_change = _safe_float(final.get("local_center_rolling_change_pct"))
+    rolling_center = (
+        issue_price * (1 + rolling_change / 100)
+        if final.get("local_center_overlay_applied") and issue_price and rolling_change is not None
+        else None
+    )
+    rolling_low, rolling_high = _center_interval(rolling_center, width)
+    return {
+        "baseline_center": pre_local_center if pre_local_center is not None else _safe_float(final.get("target_price")),
+        "baseline_low": baseline_low,
+        "baseline_high": baseline_high,
+        "rolling_center": rolling_center,
+        "rolling_low": rolling_low,
+        "rolling_high": rolling_high,
+        "formal_low": _safe_float(final.get("range_low")),
+        "formal_high": _safe_float(final.get("range_high")),
+    }
 
 
 def _build_time_priority_text(prediction: dict[str, Any], key: str, *, overview: bool = False) -> str:
@@ -321,6 +359,8 @@ def _build_composite_lines(all_data: dict[str, Any]) -> list[str]:
     premium_price = _safe_float(final.get("sentiment_premium_price")) or 0.0
     premium_pct = _safe_float(final.get("sentiment_premium_pct")) or 0.0
     base_text = _fmt_number(base_target if base_target is not None else final.get("target_price"))
+    pre_local_target = _safe_float(final.get("pre_local_center_target_price"))
+    composite_target = pre_local_target if pre_local_target is not None else _safe_float(final.get("target_price"))
 
     lines: list[str] = []
     if method1.get("available") and method2.get("available"):
@@ -341,9 +381,27 @@ def _build_composite_lines(all_data: dict[str, Any]) -> list[str]:
 
     if method3.get("available"):
         lines.append(f"方法三情绪溢价 = {_fmt_signed_number(premium_price)} 元（{_fmt_signed_pct(premium_pct)} 发行价）")
-        lines.append(f"综合估值 = 基础估值 {base_text} + 情绪溢价 {_fmt_signed_number(premium_price)} = {_fmt_number(final.get('target_price'))}")
+        lines.append(f"三方法综合中枢 = 基础估值 {base_text} + 情绪溢价 {_fmt_signed_number(premium_price)} = {_fmt_number(composite_target)}")
     else:
-        lines.append(f"综合估值 = 基础估值 {base_text}（方法三未启用：{method3.get('reason', '无可用近期情绪样本')}）")
+        lines.append(f"三方法综合中枢 = 基础估值 {base_text}（方法三未启用：{method3.get('reason', '无可用近期情绪样本')}）")
+    if final.get("local_center_overlay_applied"):
+        lines.append(
+            "本地滚动中枢 = 涨幅 {rolling}（历史 {count} 只，proxy {score}）".format(
+                rolling=_fmt_pct(final.get("local_center_rolling_change_pct")),
+                count=final.get("local_center_history_count", 0),
+                score=_fmt_number(final.get("local_center_proxy_score")),
+            )
+        )
+        lines.append(
+            "正式输出中枢 = 三方法中枢 {base} x {base_weight} + 本地滚动中枢 x {local_weight} = {target}".format(
+                base=_fmt_number(composite_target),
+                base_weight=_fmt_weight(1 - float(final.get("local_center_alpha") or 0.0)),
+                local_weight=_fmt_weight(float(final.get("local_center_alpha") or 0.0)),
+                target=_fmt_number(final.get("target_price")),
+            )
+        )
+    else:
+        lines.append(f"正式输出中枢 = {_fmt_number(final.get('target_price'))}")
     lines.append(f"区间宽度 = +/-{width_text}")
     return lines
 
@@ -418,6 +476,7 @@ def _prepare_report_context(all_data: dict[str, Any]) -> dict[str, Any]:
                 f"{_fmt_pct(method2.get('base_chg'))}（样本 {method2.get('sample_count', 0)} 只，{method2.get('sample_scope')}）"
             ),
             f"方法二样本范围 = 历史候选 {method2.get('historical_sample_count', 0)} 只，同二级行业原始 {method2.get('raw_sample_count', 0)} 只，实际纳入 {method2.get('sample_count', 0)} 只",
+            f"方法二样本置信度 = {_fmt_pct(method2.get('confidence_multiplier'))}（按去极值前原始样本数，档位 {method2.get('confidence_tier', '-')}）",
             f"方法二实际样本代码 = {sample_codes_text}",
             f"MAD去极值剔除样本 = {removed_codes_text}",
             f"目标价 = {_fmt_number(method2.get('target_price'))} 元（涨幅 {_fmt_pct(method2.get('change_pct'))}）",
@@ -463,14 +522,26 @@ def _prepare_report_context(all_data: dict[str, Any]) -> dict[str, Any]:
         ["所属行业", _display_text(industry.get("display_name"), fallback="-")],
     ]
 
+    user_ranges = _build_user_valuation_ranges(final, issue_price, float(params.get("price_range_width", 0.15)))
     valuation_rows = [
         ["可比公司估值法", _fmt_number(method1.get("target_price")), _fmt_pct(method1.get("change_pct"))],
         ["行业新股首日涨幅法", _fmt_number(method2.get("target_price")), _fmt_pct(method2.get("change_pct"))],
         ["近期情绪溢价", _fmt_signed_number(final.get("sentiment_premium_price")), _fmt_signed_pct(final.get("sentiment_premium_pct"))],
+        *(
+            [[
+                "本地滚动中枢",
+                _fmt_number(issue_price * (1 + float(final.get("local_center_rolling_change_pct") or 0.0) / 100)) if issue_price else "-",
+                _fmt_pct(final.get("local_center_rolling_change_pct")),
+            ]]
+            if final.get("local_center_overlay_applied")
+            else []
+        ),
         ["综合估值", _fmt_number(final.get("target_price")), _fmt_pct(all_data.get("final_change_pct"))],
+        ["偏PE估值区间", _format_interval(user_ranges.get("baseline_low"), user_ranges.get("baseline_high"), fallback="-"), "三方法原始中枢"],
+        ["偏情绪估值区间", _format_interval(user_ranges.get("rolling_low"), user_ranges.get("rolling_high"), fallback="-"), "本地历史滚动中枢"],
         [
-            "估值区间",
-            f"{_fmt_number(final.get('range_low'))} - {_fmt_number(final.get('range_high'))}",
+            "正式综合区间",
+            _format_interval(user_ranges.get("formal_low"), user_ranges.get("formal_high"), fallback="-"),
             f"{_fmt_pct(all_data.get('range_change_low'))} ~ {_fmt_pct(all_data.get('range_change_high'))}",
         ],
     ]
@@ -491,7 +562,8 @@ def _prepare_report_context(all_data: dict[str, Any]) -> dict[str, Any]:
         "正股抢时间",
         "碎股抢时间",
         "上市日期",
-        "估价区间（元）",
+        "偏PE估值区间（元）",
+        "偏情绪估值区间（元）",
     ]
     overview_row = [
         str(ipo.get("SECURITY_CODE", "") or ""),
@@ -504,7 +576,8 @@ def _prepare_report_context(all_data: dict[str, Any]) -> dict[str, Any]:
         _build_time_priority_text(subscription_prediction, "top_apply_time_priority_required", overview=True),
         _build_time_priority_text(subscription_prediction, "fractional_time_priority_required", overview=True),
         overview_listing_date,
-        _build_overview_interval(final),
+        _format_interval(user_ranges.get("baseline_low"), user_ranges.get("baseline_high")),
+        _format_interval(user_ranges.get("rolling_low"), user_ranges.get("rolling_high")),
     ]
 
     return {

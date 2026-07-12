@@ -24,6 +24,14 @@ _ORIGINAL_CALL_TUSHARE = tushare_ipo_helper._call_tushare
 _ORIGINAL_FETCH_IPO_INFO = data_fetcher.fetch_ipo_info
 _ORIGINAL_FETCH_RECENT_IPOS = data_fetcher.fetch_recent_ipos
 _ORIGINAL_FETCH_RECENT_IPOS_BY_DAYS = data_fetcher.fetch_recent_ipos_by_days
+_ORIGINAL_TUSHARE_DATE = tushare_ipo_helper.date
+FIXED_TODAY = date(2026, 4, 30)
+
+
+class _FrozenDate(date):
+    @classmethod
+    def today(cls) -> "_FrozenDate":
+        return cls(FIXED_TODAY.year, FIXED_TODAY.month, FIXED_TODAY.day)
 
 
 def _reset_dir(path: Path) -> None:
@@ -241,12 +249,12 @@ def _fake_call_tushare_with_future_recent(
     rows, error_message = _fake_call_tushare_happy(api_name, params, fields, settings, db, summary)
     if api_name != "new_share":
         return rows, error_message
-    future_issue_date = (date.today() + timedelta(days=2)).strftime("%Y%m%d")
+    future_issue_date = (FIXED_TODAY + timedelta(days=2)).strftime("%Y%m%d")
     return rows + [
         {
             "ts_code": "920191.BJ",
             "name": "未上市样本",
-            "ipo_date": date.today().strftime("%Y%m%d"),
+            "ipo_date": FIXED_TODAY.strftime("%Y%m%d"),
             "issue_date": future_issue_date,
             "amount": 980.0,
             "market_amount": 882.0,
@@ -550,6 +558,7 @@ def main() -> int:
     data_fetcher.fetch_ipo_info = _fake_fetch_ipo_info
     data_fetcher.fetch_recent_ipos = _fake_fetch_recent_ipos
     data_fetcher.fetch_recent_ipos_by_days = _fake_fetch_recent_ipos_by_days
+    tushare_ipo_helper.date = _FrozenDate
     try:
         _run_merge_case(failures)
         _run_missing_token_case(failures)
@@ -563,6 +572,7 @@ def main() -> int:
         data_fetcher.fetch_ipo_info = _ORIGINAL_FETCH_IPO_INFO
         data_fetcher.fetch_recent_ipos = _ORIGINAL_FETCH_RECENT_IPOS
         data_fetcher.fetch_recent_ipos_by_days = _ORIGINAL_FETCH_RECENT_IPOS_BY_DAYS
+        tushare_ipo_helper.date = _ORIGINAL_TUSHARE_DATE
         os.environ.pop(TOKEN_ENV, None)
 
     if failures:

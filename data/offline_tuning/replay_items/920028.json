@@ -1,7 +1,7 @@
 {
   "schema": "offline_tuning_replay_item_v1",
-  "cache_version": 7,
-  "generated_at": "2026-07-09 23:33:14",
+  "cache_version": 8,
+  "generated_at": "2026-07-12 21:21:36",
   "code": "920028",
   "listing_date": "2026-03-20 00:00:00",
   "record_signature": {
@@ -29,23 +29,35 @@
     "TURNOVERRATE": 84.8896,
     "SW_INDUSTRY": null,
     "INDUSTRY": null,
-    "INDUSTRY_CODE": null
+    "INDUSTRY_CODE": null,
+    "industry_primary": "化工新材",
+    "industry_secondary": "橡胶和塑料制品业",
+    "industry_source": "built_in_sample_map"
   },
   "pdf_signature": {
-    "listing": {
-      "name": "920028_新恒泰_上市公告书.pdf",
-      "size": 906408,
-      "mtime_ns": 1779805254895100500
+    "files": {
+      "listing": {
+        "name": "920028_新恒泰_上市公告书.pdf",
+        "size": 906408,
+        "mtime_ns": 1779805254895100500
+      },
+      "old_shares": {
+        "name": "920028_新恒泰_招股说明书.pdf",
+        "size": 5672247,
+        "mtime_ns": 1779805253373440300
+      },
+      "comparables": {
+        "name": "920028_新恒泰_招股说明书.pdf",
+        "size": 5672247,
+        "mtime_ns": 1779805253373440300
+      }
     },
-    "old_shares": {
-      "name": "920028_新恒泰_招股说明书.pdf",
-      "size": 5672247,
-      "mtime_ns": 1779805253373440300
-    },
-    "comparables": {
-      "name": "920028_新恒泰_招股说明书.pdf",
-      "size": 5672247,
-      "mtime_ns": 1779805253373440300
+    "pdf_parser_versions": {
+      "prospectus_issue_info": 8,
+      "issue_announcement_info": 5,
+      "issue_result_info": 4,
+      "comparable_companies": 22,
+      "business_desc": 3
     }
   },
   "item": {
@@ -99,16 +111,31 @@
     "float_shares": 4666.8099999999995,
     "has_intraday_file": true,
     "comparable_codes": [
-      "002130.SZ"
+      "300980.SZ",
+      "300920.SZ"
     ],
     "comparable_data": [
       {
-        "code": "002130.SZ",
-        "name": "002130.SZ",
-        "close": 25.2,
-        "pe_ttm": 31.0732,
-        "pb_lf": 4.1015,
-        "mkt_cap": 352.77161522,
+        "code": "300980.SZ",
+        "name": "300980.SZ",
+        "close": 33.76,
+        "pe_ttm": 102.8359,
+        "pb_lf": 3.3088,
+        "mkt_cap": 46.61081084,
+        "trade_date": "20260319",
+        "source": "tushare_historical",
+        "close_source": "tushare_historical",
+        "pe_source": "tushare_historical",
+        "pb_source": "tushare_historical",
+        "mkt_cap_source": "tushare_historical"
+      },
+      {
+        "code": "300920.SZ",
+        "name": "300920.SZ",
+        "close": 39.4,
+        "pe_ttm": 112.7295,
+        "pb_lf": 3.3233,
+        "mkt_cap": 39.4,
         "trade_date": "20260319",
         "source": "tushare_historical",
         "close_source": "tushare_historical",
@@ -120,14 +147,17 @@
     "comparable_summary": {
       "provider": "tushare_historical",
       "requested_codes": [
-        "002130.SZ"
+        "300980.SZ",
+        "300920.SZ"
       ],
       "returned_codes": [
-        "002130.SZ"
+        "300980.SZ",
+        "300920.SZ"
       ],
       "cache_hits": [],
       "api_fetched": [
-        "002130.SZ"
+        "300980.SZ",
+        "300920.SZ"
       ],
       "skipped_unsupported": [],
       "reference_trade_date": "20260319",

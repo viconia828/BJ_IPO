@@ -1,7 +1,7 @@
 {
   "schema": "offline_tuning_replay_item_v1",
-  "cache_version": 7,
-  "generated_at": "2026-07-09 23:33:12",
+  "cache_version": 8,
+  "generated_at": "2026-07-12 21:21:36",
   "code": "920011",
   "listing_date": "2026-04-08 00:00:00",
   "record_signature": {
@@ -29,23 +29,35 @@
     "TURNOVERRATE": 92.7668,
     "SW_INDUSTRY": null,
     "INDUSTRY": null,
-    "INDUSTRY_CODE": null
+    "INDUSTRY_CODE": null,
+    "industry_primary": "高端装备",
+    "industry_secondary": "机械设备",
+    "industry_source": "built_in_sample_map"
   },
   "pdf_signature": {
-    "listing": {
-      "name": "920011_晨光电机_上市公告书.pdf",
-      "size": 762951,
-      "mtime_ns": 1779804939108395300
+    "files": {
+      "listing": {
+        "name": "920011_晨光电机_上市公告书.pdf",
+        "size": 762951,
+        "mtime_ns": 1779804939108395300
+      },
+      "old_shares": {
+        "name": "920011_晨光电机_招股说明书.pdf",
+        "size": 6295826,
+        "mtime_ns": 1779804937979489000
+      },
+      "comparables": {
+        "name": "920011_晨光电机_招股说明书.pdf",
+        "size": 6295826,
+        "mtime_ns": 1779804937979489000
+      }
     },
-    "old_shares": {
-      "name": "920011_晨光电机_招股说明书.pdf",
-      "size": 6295826,
-      "mtime_ns": 1779804937979489000
-    },
-    "comparables": {
-      "name": "920011_晨光电机_招股说明书.pdf",
-      "size": 6295826,
-      "mtime_ns": 1779804937979489000
+    "pdf_parser_versions": {
+      "prospectus_issue_info": 8,
+      "issue_announcement_info": 5,
+      "issue_result_info": 4,
+      "comparable_companies": 22,
+      "business_desc": 3
     }
   },
   "item": {

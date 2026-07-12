@@ -1,7 +1,7 @@
 {
   "schema": "offline_tuning_replay_item_v1",
-  "cache_version": 7,
-  "generated_at": "2026-07-09 23:33:29",
+  "cache_version": 8,
+  "generated_at": "2026-07-12 21:21:38",
   "code": "920183",
   "listing_date": "2026-03-04 00:00:00",
   "record_signature": {
@@ -29,23 +29,35 @@
     "TURNOVERRATE": 81.0568,
     "SW_INDUSTRY": null,
     "INDUSTRY": null,
-    "INDUSTRY_CODE": null
+    "INDUSTRY_CODE": null,
+    "industry_primary": "消费服务",
+    "industry_secondary": "消费电子",
+    "industry_source": "built_in_sample_map"
   },
   "pdf_signature": {
-    "listing": {
-      "name": "920183_海菲曼_上市公告书.pdf",
-      "size": 909816,
-      "mtime_ns": 1779809013718136200
+    "files": {
+      "listing": {
+        "name": "920183_海菲曼_上市公告书.pdf",
+        "size": 909816,
+        "mtime_ns": 1779809013718136200
+      },
+      "old_shares": {
+        "name": "920183_海菲曼_招股说明书.pdf",
+        "size": 6527624,
+        "mtime_ns": 1779809012599251500
+      },
+      "comparables": {
+        "name": "920183_海菲曼_招股说明书.pdf",
+        "size": 6527624,
+        "mtime_ns": 1779809012599251500
+      }
     },
-    "old_shares": {
-      "name": "920183_海菲曼_招股说明书.pdf",
-      "size": 6527624,
-      "mtime_ns": 1779809012599251500
-    },
-    "comparables": {
-      "name": "920183_海菲曼_招股说明书.pdf",
-      "size": 6527624,
-      "mtime_ns": 1779809012599251500
+    "pdf_parser_versions": {
+      "prospectus_issue_info": 8,
+      "issue_announcement_info": 5,
+      "issue_result_info": 4,
+      "comparable_companies": 22,
+      "business_desc": 3
     }
   },
   "item": {
@@ -64,15 +76,15 @@
     "AVERAGE_PRICE": 54.68884135068119,
     "LD_CLOSE_CHANGE": 170.4211,
     "LD_AVERAGE_CHANGE": 177.46748529011253,
-    "NEXT_DAY_CLOSE": null,
-    "THIRD_DAY_CLOSE": null,
-    "NEXT_DAY_CLOSE_CHANGE": null,
-    "THIRD_DAY_CLOSE_CHANGE": null,
-    "NEXT_DAY_FROM_LISTING_CLOSE_PCT": null,
-    "THIRD_DAY_FROM_LISTING_CLOSE_PCT": null,
-    "POST_LISTING_PROFIT_EFFECT_PCT": null,
-    "post_listing_performance_source": "",
-    "post_listing_performance_reason": "Tushare quota 已达上限，本次不再发起新请求。",
+    "NEXT_DAY_CLOSE": 45.18,
+    "THIRD_DAY_CLOSE": 45.3,
+    "NEXT_DAY_CLOSE_CHANGE": 129.22374429223743,
+    "THIRD_DAY_CLOSE_CHANGE": 129.8325722983257,
+    "NEXT_DAY_FROM_LISTING_CLOSE_PCT": -15.234521575984983,
+    "THIRD_DAY_FROM_LISTING_CLOSE_PCT": -15.0093808630394,
+    "POST_LISTING_PROFIT_EFFECT_PCT": -15.12195121951219,
+    "post_listing_performance_source": "tushare_daily",
+    "post_listing_performance_reason": "",
     "TURNOVERRATE": 81.0568,
     "SW_INDUSTRY": "",
     "INDUSTRY": "",
@@ -98,19 +110,64 @@
     },
     "float_shares": 1230.2529,
     "has_intraday_file": true,
-    "comparable_codes": [],
-    "comparable_data": [],
+    "comparable_codes": [
+      "002351.SZ",
+      "002888.SZ",
+      "872824.NQ"
+    ],
+    "comparable_data": [
+      {
+        "code": "002351.SZ",
+        "name": "002351.SZ",
+        "close": 11.74,
+        "pe_ttm": 25.4056,
+        "pb_lf": 3.6293,
+        "mkt_cap": 104.3811618,
+        "trade_date": "20260303",
+        "source": "tushare_historical",
+        "close_source": "tushare_historical",
+        "pe_source": "tushare_historical",
+        "pb_source": "tushare_historical",
+        "mkt_cap_source": "tushare_historical"
+      },
+      {
+        "code": "002888.SZ",
+        "name": "002888.SZ",
+        "close": 20.16,
+        "pe_ttm": 176.4443,
+        "pb_lf": 7.8267,
+        "mkt_cap": 29.764911859999998,
+        "trade_date": "20260303",
+        "source": "tushare_historical",
+        "close_source": "tushare_historical",
+        "pe_source": "tushare_historical",
+        "pb_source": "tushare_historical",
+        "mkt_cap_source": "tushare_historical"
+      }
+    ],
     "comparable_summary": {
       "provider": "tushare_historical",
-      "requested_codes": [],
-      "returned_codes": [],
+      "requested_codes": [
+        "002351.SZ",
+        "002888.SZ",
+        "872824.NQ"
+      ],
+      "returned_codes": [
+        "002351.SZ",
+        "002888.SZ"
+      ],
       "cache_hits": [],
-      "api_fetched": [],
-      "skipped_unsupported": [],
+      "api_fetched": [
+        "002351.SZ",
+        "002888.SZ"
+      ],
+      "skipped_unsupported": [
+        "872824.NQ"
+      ],
       "reference_trade_date": "20260303",
-      "reason": "未提取到可比公司代码。"
+      "reason": ""
     },
-    "method1_replay_available": false,
+    "method1_replay_available": true,
     "average_price_source": "intraday_csv",
     "average_price_reason": "",
     "average_price_calc_version": 3,

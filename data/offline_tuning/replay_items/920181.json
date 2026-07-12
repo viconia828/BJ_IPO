@@ -1,7 +1,7 @@
 {
   "schema": "offline_tuning_replay_item_v1",
-  "cache_version": 7,
-  "generated_at": "2026-07-09 23:33:29",
+  "cache_version": 8,
+  "generated_at": "2026-07-12 21:21:38",
   "code": "920181",
   "listing_date": "2026-04-10 00:00:00",
   "record_signature": {
@@ -29,23 +29,35 @@
     "TURNOVERRATE": 91.4467,
     "SW_INDUSTRY": null,
     "INDUSTRY": null,
-    "INDUSTRY_CODE": null
+    "INDUSTRY_CODE": null,
+    "industry_primary": "信息技术",
+    "industry_secondary": "半导体制造",
+    "industry_source": "built_in_sample_map"
   },
   "pdf_signature": {
-    "listing": {
-      "name": "920181_赛英电子_上市公告书.pdf",
-      "size": 1464595,
-      "mtime_ns": 1779808803535350200
+    "files": {
+      "listing": {
+        "name": "920181_赛英电子_上市公告书.pdf",
+        "size": 1464595,
+        "mtime_ns": 1779808803535350200
+      },
+      "old_shares": {
+        "name": "920181_赛英电子_招股说明书.pdf",
+        "size": 6638741,
+        "mtime_ns": 1779808802628534500
+      },
+      "comparables": {
+        "name": "920181_赛英电子_招股说明书.pdf",
+        "size": 6638741,
+        "mtime_ns": 1779808802628534500
+      }
     },
-    "old_shares": {
-      "name": "920181_赛英电子_招股说明书.pdf",
-      "size": 6638741,
-      "mtime_ns": 1779808802628534500
-    },
-    "comparables": {
-      "name": "920181_赛英电子_招股说明书.pdf",
-      "size": 6638741,
-      "mtime_ns": 1779808802628534500
+    "pdf_parser_versions": {
+      "prospectus_issue_info": 8,
+      "issue_announcement_info": 5,
+      "issue_result_info": 4,
+      "comparable_companies": 22,
+      "business_desc": 3
     }
   },
   "item": {
@@ -64,15 +76,15 @@
     "AVERAGE_PRICE": 62.999635707198955,
     "LD_CLOSE_CHANGE": 120.7143,
     "LD_AVERAGE_CHANGE": 124.99869895428199,
-    "NEXT_DAY_CLOSE": null,
-    "THIRD_DAY_CLOSE": null,
-    "NEXT_DAY_CLOSE_CHANGE": null,
-    "THIRD_DAY_CLOSE_CHANGE": null,
-    "NEXT_DAY_FROM_LISTING_CLOSE_PCT": null,
-    "THIRD_DAY_FROM_LISTING_CLOSE_PCT": null,
-    "POST_LISTING_PROFIT_EFFECT_PCT": null,
-    "post_listing_performance_source": "",
-    "post_listing_performance_reason": "Tushare quota 已达上限，本次不再发起新请求。",
+    "NEXT_DAY_CLOSE": 60.95,
+    "THIRD_DAY_CLOSE": 66.2,
+    "NEXT_DAY_CLOSE_CHANGE": 117.67857142857143,
+    "THIRD_DAY_CLOSE_CHANGE": 136.42857142857144,
+    "NEXT_DAY_FROM_LISTING_CLOSE_PCT": -1.3754045307443286,
+    "THIRD_DAY_FROM_LISTING_CLOSE_PCT": 7.119741100323629,
+    "POST_LISTING_PROFIT_EFFECT_PCT": 2.87216828478965,
+    "post_listing_performance_source": "tushare_daily",
+    "post_listing_performance_reason": "",
     "TURNOVERRATE": 91.4467,
     "SW_INDUSTRY": "",
     "INDUSTRY": "",
@@ -103,7 +115,36 @@
       "688103.SH",
       "873913.NQ"
     ],
-    "comparable_data": [],
+    "comparable_data": [
+      {
+        "code": "301581.SZ",
+        "name": "301581.SZ",
+        "close": 45.14,
+        "pe_ttm": 50.4117,
+        "pb_lf": 3.5951,
+        "mkt_cap": 36.112,
+        "trade_date": "20260409",
+        "source": "tushare_historical",
+        "close_source": "tushare_historical",
+        "pe_source": "tushare_historical",
+        "pb_source": "tushare_historical",
+        "mkt_cap_source": "tushare_historical"
+      },
+      {
+        "code": "688103.SH",
+        "name": "688103.SH",
+        "close": 55.0,
+        "pe_ttm": 74.245,
+        "pb_lf": 4.6682,
+        "mkt_cap": 52.4235613,
+        "trade_date": "20260409",
+        "source": "tushare_historical",
+        "close_source": "tushare_historical",
+        "pe_source": "tushare_historical",
+        "pb_source": "tushare_historical",
+        "mkt_cap_source": "tushare_historical"
+      }
+    ],
     "comparable_summary": {
       "provider": "tushare_historical",
       "requested_codes": [
@@ -111,16 +152,22 @@
         "688103.SH",
         "873913.NQ"
       ],
-      "returned_codes": [],
+      "returned_codes": [
+        "301581.SZ",
+        "688103.SH"
+      ],
       "cache_hits": [],
-      "api_fetched": [],
+      "api_fetched": [
+        "301581.SZ",
+        "688103.SH"
+      ],
       "skipped_unsupported": [
         "873913.NQ"
       ],
       "reference_trade_date": "20260409",
-      "reason": "Tushare quota 已达上限，本次不再发起新请求。"
+      "reason": ""
     },
-    "method1_replay_available": false,
+    "method1_replay_available": true,
     "average_price_source": "intraday_csv",
     "average_price_reason": "",
     "average_price_calc_version": 3,

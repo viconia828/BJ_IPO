@@ -527,6 +527,191 @@ def _valuation_exit(
     }
 
 
+_ACTION_NODE_ORDER = {
+    "09:30": 0,
+    "09:35": 1,
+    "09:45": 2,
+    "10:00": 3,
+    "10:30": 4,
+    "13:30": 5,
+    "14:00": 6,
+    "14:30": 7,
+    "15:00": 8,
+}
+
+
+def _latest_action_node(action: dict[str, Any]) -> str:
+    nodes = str(action.get("nodes") or "")
+    matched = [node for node in _ACTION_NODE_ORDER if node in nodes]
+    return max(matched, key=lambda node: _ACTION_NODE_ORDER[node]) if matched else "15:00"
+
+
+def _dual_reference_levels(strict: dict[str, Any], rolling: dict[str, Any]) -> dict[str, float | None]:
+    lows = [value for value in (_safe_float(strict.get("range_low")), _safe_float(rolling.get("range_low"))) if value is not None]
+    highs = [value for value in (_safe_float(strict.get("range_high")), _safe_float(rolling.get("range_high"))) if value is not None]
+    centers = [
+        (low + high) / 2
+        for low, high in (
+            (_safe_float(strict.get("range_low")), _safe_float(strict.get("range_high"))),
+            (_safe_float(rolling.get("range_low")), _safe_float(rolling.get("range_high"))),
+        )
+        if low is not None and high is not None
+    ]
+    return {
+        "lower_consensus": min(lows) if len(lows) == 2 else (lows[0] if lows else None),
+        "center_consensus": max(centers) if len(centers) == 2 else (centers[0] if centers else None),
+        "upper_consensus": max(highs) if len(highs) == 2 else (highs[0] if highs else None),
+    }
+
+
+def _runner_exit_after_1000(intraday: dict[str, Any]) -> dict[str, Any]:
+    s1000 = intraday["snapshots"].get("10:00")
+    s1030 = intraday["snapshots"].get("10:30")
+    s1330 = intraday["snapshots"].get("13:30")
+    s1400 = intraday["snapshots"].get("14:00")
+    s1430 = intraday["snapshots"].get("14:30")
+    if s1030 and s1000 and s1030.get("vwap") is not None and (
+        s1030["price"] < s1030["vwap"] or s1030["price"] < s1000["price"] * 0.97
+    ):
+        return {"node": "10:30", "price": s1030["price"], "reason": "保留仓位在10:30跌破均价或弱于10:00"}
+    if s1330 and s1030 and s1330.get("vwap") is not None and (
+        s1330["price"] < s1330["vwap"] or s1330["price"] < s1030["price"] * 0.97
+    ):
+        return {"node": "13:30", "price": s1330["price"], "reason": "保留仓位下午转弱"}
+    if s1400 and s1030 and (s1400["high"] <= intraday["morning_high"] * 1.001 or s1400["price"] <= s1030["price"] * 1.01):
+        return {"node": "14:00", "price": s1400["price"], "reason": "14:00未突破上午高点"}
+    if s1430 and s1430["high"] <= intraday["morning_high"] * 1.001:
+        return {"node": "14:30", "price": s1430["price"], "reason": "14:30仍未突破上午高点"}
+    return {"node": "15:00", "price": intraday["close"], "reason": "保留仓位强势至收盘"}
+
+
+def _regret_observation_table(
+    intraday: dict[str, Any],
+    strict: dict[str, Any],
+    rolling: dict[str, Any],
+) -> list[dict[str, Any]]:
+    levels = _dual_reference_levels(strict, rolling)
+    lower = _safe_float(levels.get("lower_consensus"))
+    center = _safe_float(levels.get("center_consensus"))
+    table: list[dict[str, Any]] = []
+    for node in NODE_TIMES:
+        snapshot = intraday["snapshots"].get(node)
+        if not snapshot:
+            continue
+        below_expectation = lower is not None and snapshot["high"] < lower
+        center_reached = center is not None and snapshot["high"] >= center
+        weak = bool(
+            snapshot.get("vwap") is not None
+            and snapshot["price"] < snapshot["vwap"]
+            and snapshot["high_time"] <= node
+            and snapshot["max_drawdown_pct"] <= (-4.0 if node <= "09:45" else -6.0)
+        )
+        turnover_floor = 25.0 if node == "09:35" else 35.0 if node == "09:45" else 45.0
+        strong = bool(
+            snapshot.get("vwap") is not None
+            and snapshot.get("cumulative_turnover") is not None
+            and snapshot["price"] >= snapshot["vwap"]
+            and snapshot["cumulative_turnover"] >= turnover_floor
+            and snapshot["max_drawdown_pct"] >= -10.0
+        )
+        if below_expectation and weak:
+            bias = "等待后悔风险"
+            if node == "09:35":
+                action = "降低心理价；弱势未修复则卖出大部，最多留30%观察9:45"
+            elif node == "09:45":
+                action = "退出剩余仓位，不再等待10点主升"
+            else:
+                action = "估值未达且量价已弱，退出剩余仓位"
+        elif center_reached and strong:
+            bias = "早卖后悔风险"
+            if node in {"09:35", "09:45"}:
+                action = "可以兑现，但不要卖光；保留30%进入下一节点"
+            elif node == "10:00":
+                action = "保留30%观察10:30强势确认"
+            elif node == "10:30":
+                action = "保留30%进入下午，转弱再退出"
+            else:
+                action = "保留仓位按下午突破/转弱规则退出"
+        else:
+            bias = "中性"
+            action = "沿用原量价观察表动作"
+        table.append(
+            {
+                "node": node,
+                "price": snapshot.get("price"),
+                "vwap": snapshot.get("vwap"),
+                "cumulative_turnover": snapshot.get("cumulative_turnover"),
+                "max_drawdown_pct": snapshot.get("max_drawdown_pct"),
+                "range_lower": lower,
+                "range_center": center,
+                "below_expectation": below_expectation,
+                "center_reached": center_reached,
+                "weak": weak,
+                "strong": strong,
+                "regret_bias": bias,
+                "action": action,
+            }
+        )
+    return table
+
+
+def _regret_aware_exit(
+    intraday: dict[str, Any],
+    strict: dict[str, Any],
+    rolling: dict[str, Any],
+    dual_action: dict[str, Any],
+) -> dict[str, Any]:
+    table = _regret_observation_table(intraday, strict, rolling)
+    by_node = {row["node"]: row for row in table}
+    latest_dual_node = _latest_action_node(dual_action)
+    wait_trigger = next(
+        (
+            by_node[node]
+            for node in ("09:35", "09:45", "10:00")
+            if node in by_node and by_node[node]["regret_bias"] == "等待后悔风险"
+        ),
+        None,
+    )
+    if wait_trigger and _ACTION_NODE_ORDER[latest_dual_node] > _ACTION_NODE_ORDER[wait_trigger["node"]]:
+        guard_node = str(wait_trigger["node"])
+        guard_price = _price_at(intraday, guard_node)
+        price = guard_price * 0.70 + float(dual_action["price"]) * 0.30
+        return {
+            "price": price,
+            "nodes": f"{guard_node}(70%)+{latest_dual_node}(30%)",
+            "reason": f"{guard_node}估值未达且量价转弱，防止高预期继续等待；剩余30%沿用双线动作",
+            "trigger": "wait_regret_guard",
+            "observation_table": table,
+        }
+
+    early_trigger = next(
+        (
+            by_node[node]
+            for node in ("09:35", "09:45", "10:00")
+            if node in by_node and by_node[node]["regret_bias"] == "早卖后悔风险"
+        ),
+        None,
+    )
+    if early_trigger and _ACTION_NODE_ORDER[latest_dual_node] <= _ACTION_NODE_ORDER["10:00"]:
+        runner = _runner_exit_after_1000(intraday)
+        price = float(dual_action["price"]) * 0.70 + float(runner["price"]) * 0.30
+        return {
+            "price": price,
+            "nodes": f"{latest_dual_node}(70%)+{runner['node']}(30%)",
+            "reason": f"{early_trigger['node']}已达估值中枢且量价仍强，防止过早卖光；保留30%至{runner['node']}",
+            "trigger": "early_exit_runner",
+            "observation_table": table,
+        }
+
+    return {
+        "price": float(dual_action["price"]),
+        "nodes": str(dual_action.get("nodes") or ""),
+        "reason": "未触发两类后悔修正，沿用双线共识动作",
+        "trigger": "unchanged",
+        "observation_table": table,
+    }
+
+
 def _strategy_summary(rows: list[dict[str, Any]], key: str) -> dict[str, Any]:
     valid = [row for row in rows if _safe_float((row.get("exits") or {}).get(key)) is not None]
     vs_open = [((row["exits"][key] / row["open"]) - 1) * 100 for row in valid]
@@ -660,6 +845,7 @@ def _build_rows(
             feedback_dual["weak"],
             escalate_double_below_weight=True,
         )
+        regret_action = _regret_aware_exit(intraday, strict, rolling, dual_exit)
         exits = {
             "open": intraday["open"],
             "09:35": _price_at(intraday, "09:35"),
@@ -672,6 +858,7 @@ def _build_rows(
             "dual_guidance": dual_exit["price"],
             "dual_without_previous": dual_no_previous["price"],
             "dual_previous_weight50": dual_previous_weight50["price"],
+            "regret_guidance": regret_action["price"],
         }
         rows.append(
             {
@@ -703,6 +890,8 @@ def _build_rows(
                 "dual_action": dual_exit,
                 "dual_no_previous_action": dual_no_previous,
                 "dual_previous_weight50_action": dual_previous_weight50,
+                "regret_action": regret_action,
+                "regret_observation_table": regret_action["observation_table"],
                 "exits": exits,
                 "snapshots": intraday["snapshots"],
             }
@@ -731,6 +920,35 @@ def _trigger_summary(rows: list[dict[str, Any]]) -> dict[str, Any]:
         "positive_increment_rate": sum(value > 0 for value in increments) / len(increments) if increments else None,
         "avg_exit_vs_open_pct": _mean(vs_open),
         "median_exit_vs_open_pct": _median(vs_open),
+        "observation_only": len(triggered) < 5,
+    }
+
+
+def _regret_trigger_summary(rows: list[dict[str, Any]]) -> dict[str, Any]:
+    triggered = [row for row in rows if row["regret_action"]["trigger"] != "unchanged"]
+    wait_rows = [row for row in triggered if row["regret_action"]["trigger"] == "wait_regret_guard"]
+    early_rows = [row for row in triggered if row["regret_action"]["trigger"] == "early_exit_runner"]
+    increments = [
+        (row["exits"]["regret_guidance"] / row["exits"]["dual_guidance"] - 1) * 100
+        for row in triggered
+        if row["exits"]["dual_guidance"] > 0
+    ]
+    opportunity_changes = [
+        ((row["high"] - row["exits"]["regret_guidance"]) - (row["high"] - row["exits"]["dual_guidance"])) / row["high"] * 100
+        for row in triggered
+        if row["high"] > 0
+    ]
+    return {
+        "count": len(triggered),
+        "codes": [row["code"] for row in triggered],
+        "wait_guard_count": len(wait_rows),
+        "wait_guard_codes": [row["code"] for row in wait_rows],
+        "early_runner_count": len(early_rows),
+        "early_runner_codes": [row["code"] for row in early_rows],
+        "avg_exit_increment_vs_dual_pct": _mean(increments),
+        "median_exit_increment_vs_dual_pct": _median(increments),
+        "positive_increment_rate": sum(value > 0 for value in increments) / len(increments) if increments else None,
+        "avg_opportunity_gap_change_pct": _mean(opportunity_changes),
         "observation_only": len(triggered) < 5,
     }
 
@@ -782,6 +1000,7 @@ def _build_markdown(payload: dict[str, Any]) -> str:
         "dual_guidance": "双线共识+前序反馈",
         "dual_without_previous": "双线共识（无前序反馈）",
         "dual_previous_weight50": "双线共识（前序弱时开盘50%）",
+        "regret_guidance": "原观察表+两类后悔修正",
     }
     for item in payload["strategy_summaries"]:
         lines.append(
@@ -800,8 +1019,16 @@ def _build_markdown(payload: dict[str, Any]) -> str:
 
     trigger = payload["previous_feedback_trigger"]
     double_below = payload["double_below_previous_test"]
+    regret_trigger = payload["regret_trigger"]
     lines.extend(
         [
+            "",
+            "## 两类后悔接入原观察表",
+            "",
+            f"- 触发样本：{regret_trigger['count']} 只；等待后悔防护 {regret_trigger['wait_guard_count']} 只（{'、'.join(regret_trigger['wait_guard_codes']) or '无'}）；早卖后悔保留仓 {regret_trigger['early_runner_count']} 只（{'、'.join(regret_trigger['early_runner_codes']) or '无'}）。",
+            f"- 相对原双线动作，触发样本卖出价平均变化 {_fmt_pct(regret_trigger['avg_exit_increment_vs_dual_pct'])}，中位 {_fmt_pct(regret_trigger['median_exit_increment_vs_dual_pct'])}，改善比例 {_fmt_pct((regret_trigger['positive_increment_rate'] or 0) * 100)}。",
+            f"- 全天高点机会差变化 {_fmt_pct(regret_trigger['avg_opportunity_gap_change_pct'])}；负数表示更接近全天高点。",
+            f"- 结论标签：{'样本少于5只，只作观察' if regret_trigger['observation_only'] else '达到第一版观察样本数，仍需样本外跟踪'}。",
             "",
             "## 前序弱反馈检验",
             "",
@@ -828,6 +1055,7 @@ def _build_markdown(payload: dict[str, Any]) -> str:
         "strict_guidance": "保守联动",
         "rolling_guidance": "滚动联动",
         "dual_guidance": "双线联动",
+        "regret_guidance": "后悔修正",
     }
     for period in payload["period_summaries"]:
         for item in period["strategies"]:
@@ -878,34 +1106,49 @@ def _build_markdown(payload: dict[str, Any]) -> str:
                 f"- 极保守 50% 分支：{latest['dual_previous_weight50_action']['nodes']}；回放卖出均价：{_fmt_num(latest['exits']['dual_previous_weight50'])}。",
                 f"- 开盘/9:35/9:45/收盘：{_fmt_num(latest['open'])}/{_fmt_num(latest['exits']['09:35'])}/{_fmt_num(latest['exits']['09:45'])}/{_fmt_num(latest['close'])}。",
                 f"- 动作原因：{latest['dual_action']['reason']}。",
+                f"- 两类后悔修正：{latest['regret_action']['nodes']}；回放卖出均价：{_fmt_num(latest['exits']['regret_guidance'])}；原因：{latest['regret_action']['reason']}。",
+                "",
+                "### 原观察表接入结果",
+                "",
+                "| 节点 | 价格 | VWAP | 累计换手 | 最大回撤 | 后悔偏向 | 行动 |",
+                "|---|---:|---:|---:|---:|---|---|",
             ]
         )
+        for item in latest.get("regret_observation_table") or []:
+            lines.append(
+                "| {node} | {price} | {vwap} | {turnover} | {drawdown} | {bias} | {action} |".format(
+                    node=item["node"],
+                    price=_fmt_num(item.get("price")),
+                    vwap=_fmt_num(item.get("vwap")),
+                    turnover=_fmt_pct(item.get("cumulative_turnover")),
+                    drawdown=_fmt_pct(item.get("max_drawdown_pct")),
+                    bias=item.get("regret_bias"),
+                    action=item.get("action"),
+                )
+            )
 
     lines.extend(
         [
             "",
             "## 逐样本动作",
             "",
-            "| 代码 | 日期 | 前序 | 双线状态 | 可靠性 | 保守区间 | 滚动区间 | 开盘 | 双线卖价 | 动作 | 相对开盘 |",
-            "|---|---|---|---|---|---:|---:|---:|---:|---|---:|",
+            "| 代码 | 日期 | 前序 | 双线状态 | 可靠性 | 开盘 | 双线卖价 | 后悔修正卖价 | 修正动作 | 相对开盘 |",
+            "|---|---|---|---|---|---:|---:|---:|---|---:|",
         ]
     )
     for row in payload["rows"]:
         lines.append(
-            "| {code} | {date} | {previous} | {state} | {reliability} | {strict_low}-{strict_high} | {rolling_low}-{rolling_high} | {open} | {exit} | {nodes} | {delta} |".format(
+            "| {code} | {date} | {previous} | {state} | {reliability} | {open} | {dual_exit} | {regret_exit} | {nodes} | {delta} |".format(
                 code=row["code"],
                 date=row["listing_date"],
                 previous=row.get("previous_code") or "",
                 state=row["dual_state"],
                 reliability=row["range_reliability"]["level"],
-                strict_low=_fmt_num(row["strict_range_low"]),
-                strict_high=_fmt_num(row["strict_range_high"]),
-                rolling_low=_fmt_num(row["rolling_range_low"]),
-                rolling_high=_fmt_num(row["rolling_range_high"]),
                 open=_fmt_num(row["open"]),
-                exit=_fmt_num(row["exits"]["dual_guidance"]),
-                nodes=row["dual_action"]["nodes"],
-                delta=_fmt_pct((row["exits"]["dual_guidance"] / row["open"] - 1) * 100),
+                dual_exit=_fmt_num(row["exits"]["dual_guidance"]),
+                regret_exit=_fmt_num(row["exits"]["regret_guidance"]),
+                nodes=row["regret_action"]["nodes"],
+                delta=_fmt_pct((row["exits"]["regret_guidance"] / row["open"] - 1) * 100),
             )
         )
     lines.extend(
@@ -952,9 +1195,10 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         "dual_guidance",
         "dual_without_previous",
         "dual_previous_weight50",
+        "regret_guidance",
     )
     summaries = [_strategy_summary(rows, key) for key in strategy_keys]
-    period_strategy_keys = ("intraday_only", "strict_guidance", "rolling_guidance", "dual_guidance")
+    period_strategy_keys = ("intraday_only", "strict_guidance", "rolling_guidance", "dual_guidance", "regret_guidance")
     latest_case = rows[-1] if rows else None
     payload = {
         "schema": "intraday_valuation_guidance_v1",
@@ -976,6 +1220,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         "strategy_summaries": summaries,
         "period_summaries": _period_summaries(rows, period_strategy_keys),
         "previous_feedback_trigger": _trigger_summary(rows),
+        "regret_trigger": _regret_trigger_summary(rows),
         "double_below_previous_test": _double_below_previous_summary(rows),
         "dual_state_summary": _group_summary(rows, "dual_state", "dual_guidance"),
         "latest_case": latest_case,

@@ -1,7 +1,7 @@
 {
   "schema": "offline_tuning_replay_item_v1",
-  "cache_version": 7,
-  "generated_at": "2026-07-09 23:33:30",
+  "cache_version": 8,
+  "generated_at": "2026-07-12 21:59:49",
   "code": "920191",
   "listing_date": "2026-04-20 00:00:00",
   "record_signature": {
@@ -29,23 +29,35 @@
     "TURNOVERRATE": 92.1221,
     "SW_INDUSTRY": null,
     "INDUSTRY": null,
-    "INDUSTRY_CODE": null
+    "INDUSTRY_CODE": null,
+    "industry_primary": "化工新材",
+    "industry_secondary": "非金属材料",
+    "industry_source": "built_in_sample_map"
   },
   "pdf_signature": {
-    "listing": {
-      "name": "920191_瑞尔竞达_上市公告书.pdf",
-      "size": 845283,
-      "mtime_ns": 1779809404154256700
+    "files": {
+      "listing": {
+        "name": "920191_瑞尔竞达_上市公告书.pdf",
+        "size": 845283,
+        "mtime_ns": 1779809404154256700
+      },
+      "old_shares": {
+        "name": "920191_瑞尔竞达_招股说明书.pdf",
+        "size": 5884437,
+        "mtime_ns": 1779809402905676200
+      },
+      "comparables": {
+        "name": "920191_瑞尔竞达_招股说明书.pdf",
+        "size": 5884437,
+        "mtime_ns": 1779809402905676200
+      }
     },
-    "old_shares": {
-      "name": "920191_瑞尔竞达_招股说明书.pdf",
-      "size": 5884437,
-      "mtime_ns": 1779809402905676200
-    },
-    "comparables": {
-      "name": "920191_瑞尔竞达_招股说明书.pdf",
-      "size": 5884437,
-      "mtime_ns": 1779809402905676200
+    "pdf_parser_versions": {
+      "prospectus_issue_info": 8,
+      "issue_announcement_info": 5,
+      "issue_result_info": 4,
+      "comparable_companies": 22,
+      "business_desc": 3
     }
   },
   "item": {
@@ -64,22 +76,22 @@
     "AVERAGE_PRICE": 15.187777375895397,
     "LD_CLOSE_CHANGE": 92.9961,
     "LD_AVERAGE_CHANGE": 96.98803340979762,
-    "NEXT_DAY_CLOSE": null,
-    "THIRD_DAY_CLOSE": null,
-    "NEXT_DAY_CLOSE_CHANGE": null,
-    "THIRD_DAY_CLOSE_CHANGE": null,
-    "NEXT_DAY_FROM_LISTING_CLOSE_PCT": null,
-    "THIRD_DAY_FROM_LISTING_CLOSE_PCT": null,
-    "POST_LISTING_PROFIT_EFFECT_PCT": null,
-    "post_listing_performance_source": "",
-    "post_listing_performance_reason": "Tushare quota 已达上限，本次不再发起新请求。",
+    "NEXT_DAY_CLOSE": 13.18,
+    "THIRD_DAY_CLOSE": 13.19,
+    "NEXT_DAY_CLOSE_CHANGE": 70.94682230869,
+    "THIRD_DAY_CLOSE_CHANGE": 71.07652399481192,
+    "NEXT_DAY_FROM_LISTING_CLOSE_PCT": -11.42473118279571,
+    "THIRD_DAY_FROM_LISTING_CLOSE_PCT": -11.357526881720437,
+    "POST_LISTING_PROFIT_EFFECT_PCT": -11.391129032258075,
+    "post_listing_performance_source": "tushare_daily",
+    "post_listing_performance_reason": "",
     "TURNOVERRATE": 92.1221,
     "SW_INDUSTRY": "",
     "INDUSTRY": "",
     "INDUSTRY_CODE": "",
-    "industry_primary": "未分类",
-    "industry_secondary": "未分类",
-    "industry_source": "unclassified",
+    "industry_primary": "化工新材",
+    "industry_secondary": "非金属材料",
+    "industry_source": "built_in_sample_map",
     "old_shares": 0.0,
     "old_shares_desc": "0.00 万股（PDF 提取：上市公告书）",
     "old_shares_meta": {
@@ -104,7 +116,64 @@
       "002392.SZ",
       "002066.SZ"
     ],
-    "comparable_data": [],
+    "comparable_data": [
+      {
+        "code": "688119.SH",
+        "name": "688119.SH",
+        "close": 5.22,
+        "pe_ttm": null,
+        "pb_lf": 2.0867,
+        "mkt_cap": 58.725,
+        "trade_date": "20260417",
+        "source": "tushare_historical",
+        "close_source": "tushare_historical",
+        "pe_source": "tushare_historical",
+        "pb_source": "tushare_historical",
+        "mkt_cap_source": "tushare_historical"
+      },
+      {
+        "code": "002225.SZ",
+        "name": "002225.SZ",
+        "close": 5.66,
+        "pe_ttm": 61.3094,
+        "pb_lf": 1.5918,
+        "mkt_cap": 65.61293572,
+        "trade_date": "20260417",
+        "source": "tushare_historical",
+        "close_source": "tushare_historical",
+        "pe_source": "tushare_historical",
+        "pb_source": "tushare_historical",
+        "mkt_cap_source": "tushare_historical"
+      },
+      {
+        "code": "002392.SZ",
+        "name": "002392.SZ",
+        "close": 7.15,
+        "pe_ttm": 21.2283,
+        "pb_lf": 1.461,
+        "mkt_cap": 85.12009499,
+        "trade_date": "20260417",
+        "source": "tushare_historical",
+        "close_source": "tushare_historical",
+        "pe_source": "tushare_historical",
+        "pb_source": "tushare_historical",
+        "mkt_cap_source": "tushare_historical"
+      },
+      {
+        "code": "002066.SZ",
+        "name": "002066.SZ",
+        "close": 23.41,
+        "pe_ttm": null,
+        "pb_lf": 8.755,
+        "mkt_cap": 54.9917287,
+        "trade_date": "20260417",
+        "source": "tushare_historical",
+        "close_source": "tushare_historical",
+        "pe_source": "tushare_historical",
+        "pb_source": "tushare_historical",
+        "mkt_cap_source": "tushare_historical"
+      }
+    ],
     "comparable_summary": {
       "provider": "tushare_historical",
       "requested_codes": [
@@ -113,14 +182,24 @@
         "002392.SZ",
         "002066.SZ"
       ],
-      "returned_codes": [],
+      "returned_codes": [
+        "688119.SH",
+        "002225.SZ",
+        "002392.SZ",
+        "002066.SZ"
+      ],
       "cache_hits": [],
-      "api_fetched": [],
+      "api_fetched": [
+        "688119.SH",
+        "002225.SZ",
+        "002392.SZ",
+        "002066.SZ"
+      ],
       "skipped_unsupported": [],
       "reference_trade_date": "20260419",
-      "reason": "Tushare quota 已达上限，本次不再发起新请求。"
+      "reason": ""
     },
-    "method1_replay_available": false,
+    "method1_replay_available": true,
     "average_price_source": "intraday_csv",
     "average_price_reason": "",
     "average_price_calc_version": 3,

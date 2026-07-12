@@ -1,7 +1,7 @@
 {
   "schema": "offline_tuning_replay_item_v1",
-  "cache_version": 7,
-  "generated_at": "2026-07-09 23:33:17",
+  "cache_version": 8,
+  "generated_at": "2026-07-12 21:21:37",
   "code": "920055",
   "listing_date": "2026-03-31 00:00:00",
   "record_signature": {
@@ -29,23 +29,35 @@
     "TURNOVERRATE": 93.3504,
     "SW_INDUSTRY": null,
     "INDUSTRY": null,
-    "INDUSTRY_CODE": null
+    "INDUSTRY_CODE": null,
+    "industry_primary": "高端装备",
+    "industry_secondary": "汽车零部件",
+    "industry_source": "built_in_sample_map"
   },
   "pdf_signature": {
-    "listing": {
-      "name": "920055_隆源股份_上市公告书.pdf",
-      "size": 707427,
-      "mtime_ns": 1779807646949321200
+    "files": {
+      "listing": {
+        "name": "920055_隆源股份_上市公告书.pdf",
+        "size": 707427,
+        "mtime_ns": 1779807646949321200
+      },
+      "old_shares": {
+        "name": "920055_隆源股份_招股说明书.pdf",
+        "size": 6752371,
+        "mtime_ns": 1779807646026143700
+      },
+      "comparables": {
+        "name": "920055_隆源股份_招股说明书.pdf",
+        "size": 6752371,
+        "mtime_ns": 1779807646026143700
+      }
     },
-    "old_shares": {
-      "name": "920055_隆源股份_招股说明书.pdf",
-      "size": 6752371,
-      "mtime_ns": 1779807646026143700
-    },
-    "comparables": {
-      "name": "920055_隆源股份_招股说明书.pdf",
-      "size": 6752371,
-      "mtime_ns": 1779807646026143700
+    "pdf_parser_versions": {
+      "prospectus_issue_info": 8,
+      "issue_announcement_info": 5,
+      "issue_result_info": 4,
+      "comparable_companies": 22,
+      "business_desc": 3
     }
   },
   "item": {

@@ -203,6 +203,8 @@ def _evidence_from_articles(
             if not coverage._is_readable_body(article):
                 continue
             price_range, all_ranges, single_prices = validation._select_range_for_match(article, match, matches, dataset_item)
+            forecast_kind = str((price_range or {}).get("kind") or "")
+            range_weight_multiplier = 1.0
             target_pe = validation._extract_target_pe(str(article.get("text") or ""))
             window = _article_text_window(article, match, matches)
             positive_count = _count_terms(window, POSITIVE_TERMS)
@@ -218,8 +220,11 @@ def _evidence_from_articles(
                     "created_at_iso": article.get("created_at_iso"),
                     "listing_date": listing_date.strftime("%Y-%m-%d") if listing_date else "",
                     "listing_date_source": listing_date_source,
-                    "weight": AUTHOR_WEIGHTS.get(str(article.get("author_name") or ""), 0.5),
+                    "weight": AUTHOR_WEIGHTS.get(str(article.get("author_name") or ""), 0.5) * range_weight_multiplier,
+                    "author_base_weight": AUTHOR_WEIGHTS.get(str(article.get("author_name") or ""), 0.5),
+                    "range_weight_multiplier": range_weight_multiplier,
                     "has_explicit_range": price_range is not None,
+                    "forecast_kind": forecast_kind,
                     "forecast_low": price_range.get("low") if price_range else None,
                     "forecast_high": price_range.get("high") if price_range else None,
                     "forecast_mid": price_range.get("mid") if price_range else None,

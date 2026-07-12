@@ -1,7 +1,7 @@
 {
   "schema": "offline_tuning_replay_item_v1",
-  "cache_version": 7,
-  "generated_at": "2026-07-09 23:33:26",
+  "cache_version": 8,
+  "generated_at": "2026-07-12 21:59:42",
   "code": "920125",
   "listing_date": "2026-04-24 00:00:00",
   "record_signature": {
@@ -29,23 +29,35 @@
     "TURNOVERRATE": 81.0871,
     "SW_INDUSTRY": null,
     "INDUSTRY": null,
-    "INDUSTRY_CODE": null
+    "INDUSTRY_CODE": null,
+    "industry_primary": "信息技术",
+    "industry_secondary": "半导体制造",
+    "industry_source": "built_in_sample_map"
   },
   "pdf_signature": {
-    "listing": {
-      "name": "920125_鸿仕达_上市公告书.pdf",
-      "size": 878782,
-      "mtime_ns": 1779808164951802700
+    "files": {
+      "listing": {
+        "name": "920125_鸿仕达_上市公告书.pdf",
+        "size": 878782,
+        "mtime_ns": 1779808164951802700
+      },
+      "old_shares": {
+        "name": "920125_鸿仕达_招股说明书.pdf",
+        "size": 5957414,
+        "mtime_ns": 1779808163977164000
+      },
+      "comparables": {
+        "name": "920125_鸿仕达_招股说明书.pdf",
+        "size": 5957414,
+        "mtime_ns": 1779808163977164000
+      }
     },
-    "old_shares": {
-      "name": "920125_鸿仕达_招股说明书.pdf",
-      "size": 5957414,
-      "mtime_ns": 1779808163977164000
-    },
-    "comparables": {
-      "name": "920125_鸿仕达_招股说明书.pdf",
-      "size": 5957414,
-      "mtime_ns": 1779808163977164000
+    "pdf_parser_versions": {
+      "prospectus_issue_info": 8,
+      "issue_announcement_info": 5,
+      "issue_result_info": 4,
+      "comparable_companies": 22,
+      "business_desc": 3
     }
   },
   "item": {
@@ -77,9 +89,9 @@
     "SW_INDUSTRY": "",
     "INDUSTRY": "",
     "INDUSTRY_CODE": "",
-    "industry_primary": "未分类",
-    "industry_secondary": "未分类",
-    "industry_source": "unclassified",
+    "industry_primary": "信息技术",
+    "industry_secondary": "半导体制造",
+    "industry_source": "built_in_sample_map",
     "old_shares": 433.1539,
     "old_shares_desc": "433.15 万股（PDF 提取：上市公告书）",
     "old_shares_meta": {
@@ -102,7 +114,6 @@
       "688097.SH",
       "603283.SH",
       "300836.SZ",
-      "002475.SZ",
       "301128.SZ"
     ],
     "comparable_data": [
@@ -149,20 +160,6 @@
         "mkt_cap_source": "tushare_historical"
       },
       {
-        "code": "002475.SZ",
-        "name": "002475.SZ",
-        "close": 67.77,
-        "pe_ttm": 29.7457,
-        "pb_lf": 5.9327,
-        "mkt_cap": 4937.71194233,
-        "trade_date": "20260423",
-        "source": "tushare_historical",
-        "close_source": "tushare_historical",
-        "pe_source": "tushare_historical",
-        "pb_source": "tushare_historical",
-        "mkt_cap_source": "tushare_historical"
-      },
-      {
         "code": "301128.SZ",
         "name": "301128.SZ",
         "close": 181.5,
@@ -183,14 +180,12 @@
         "688097.SH",
         "603283.SH",
         "300836.SZ",
-        "002475.SZ",
         "301128.SZ"
       ],
       "returned_codes": [
         "688097.SH",
         "603283.SH",
         "300836.SZ",
-        "002475.SZ",
         "301128.SZ"
       ],
       "cache_hits": [],
@@ -198,7 +193,6 @@
         "688097.SH",
         "603283.SH",
         "300836.SZ",
-        "002475.SZ",
         "301128.SZ"
       ],
       "skipped_unsupported": [],

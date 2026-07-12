@@ -1,7 +1,7 @@
 {
   "schema": "offline_tuning_replay_item_v1",
-  "cache_version": 7,
-  "generated_at": "2026-07-09 23:33:19",
+  "cache_version": 8,
+  "generated_at": "2026-07-12 21:21:37",
   "code": "920078",
   "listing_date": "2026-03-18 00:00:00",
   "record_signature": {
@@ -29,23 +29,35 @@
     "TURNOVERRATE": 96.391,
     "SW_INDUSTRY": null,
     "INDUSTRY": null,
-    "INDUSTRY_CODE": null
+    "INDUSTRY_CODE": null,
+    "industry_primary": "化工新材",
+    "industry_secondary": "金属新材料",
+    "industry_source": "built_in_sample_map"
   },
   "pdf_signature": {
-    "listing": {
-      "name": "920078_族兴新材_上市公告书.pdf",
-      "size": 885663,
-      "mtime_ns": 1779807897376145400
+    "files": {
+      "listing": {
+        "name": "920078_族兴新材_上市公告书.pdf",
+        "size": 885663,
+        "mtime_ns": 1779807897376145400
+      },
+      "old_shares": {
+        "name": "920078_族兴新材_招股说明书.pdf",
+        "size": 7167071,
+        "mtime_ns": 1779807896399026900
+      },
+      "comparables": {
+        "name": "920078_族兴新材_招股说明书.pdf",
+        "size": 7167071,
+        "mtime_ns": 1779807896399026900
+      }
     },
-    "old_shares": {
-      "name": "920078_族兴新材_招股说明书.pdf",
-      "size": 7167071,
-      "mtime_ns": 1779807896399026900
-    },
-    "comparables": {
-      "name": "920078_族兴新材_招股说明书.pdf",
-      "size": 7167071,
-      "mtime_ns": 1779807896399026900
+    "pdf_parser_versions": {
+      "prospectus_issue_info": 8,
+      "issue_announcement_info": 5,
+      "issue_result_info": 4,
+      "comparable_companies": 22,
+      "business_desc": 3
     }
   },
   "item": {
@@ -99,17 +111,19 @@
     "float_shares": 2300.0,
     "has_intraday_file": true,
     "comparable_codes": [
-      "688157.SH",
-      "300665.SZ"
+      "874421.NQ",
+      "688456.SH",
+      "920634.BJ",
+      "603826.SH"
     ],
     "comparable_data": [
       {
-        "code": "688157.SH",
-        "name": "688157.SH",
-        "close": 37.58,
-        "pe_ttm": 269.0234,
-        "pb_lf": 4.3516,
-        "mkt_cap": 58.78679986,
+        "code": "688456.SH",
+        "name": "688456.SH",
+        "close": 57.38,
+        "pe_ttm": 83.8794,
+        "pb_lf": 4.6922,
+        "mkt_cap": 59.480107999999994,
         "trade_date": "20260317",
         "source": "tushare_historical",
         "close_source": "tushare_historical",
@@ -118,12 +132,26 @@
         "mkt_cap_source": "tushare_historical"
       },
       {
-        "code": "300665.SZ",
-        "name": "300665.SZ",
-        "close": 7.89,
-        "pe_ttm": null,
-        "pb_lf": 3.1278,
-        "mkt_cap": 17.2748181,
+        "code": "920634.BJ",
+        "name": "920634.BJ",
+        "close": 23.23,
+        "pe_ttm": 86.1885,
+        "pb_lf": 5.127,
+        "mkt_cap": 14.84600634,
+        "trade_date": "20260317",
+        "source": "tushare_historical",
+        "close_source": "tushare_historical",
+        "pe_source": "tushare_historical",
+        "pb_source": "tushare_historical",
+        "mkt_cap_source": "tushare_historical"
+      },
+      {
+        "code": "603826.SH",
+        "name": "603826.SH",
+        "close": 23.31,
+        "pe_ttm": 426.2771,
+        "pb_lf": 7.8289,
+        "mkt_cap": 152.72711999999999,
         "trade_date": "20260317",
         "source": "tushare_historical",
         "close_source": "tushare_historical",
@@ -135,19 +163,25 @@
     "comparable_summary": {
       "provider": "tushare_historical",
       "requested_codes": [
-        "688157.SH",
-        "300665.SZ"
+        "874421.NQ",
+        "688456.SH",
+        "920634.BJ",
+        "603826.SH"
       ],
       "returned_codes": [
-        "688157.SH",
-        "300665.SZ"
+        "688456.SH",
+        "920634.BJ",
+        "603826.SH"
       ],
       "cache_hits": [],
       "api_fetched": [
-        "688157.SH",
-        "300665.SZ"
+        "688456.SH",
+        "920634.BJ",
+        "603826.SH"
       ],
-      "skipped_unsupported": [],
+      "skipped_unsupported": [
+        "874421.NQ"
+      ],
       "reference_trade_date": "20260317",
       "reason": ""
     },

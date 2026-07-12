@@ -1,7 +1,7 @@
 {
   "schema": "offline_tuning_replay_item_v1",
-  "cache_version": 7,
-  "generated_at": "2026-07-09 23:33:30",
+  "cache_version": 8,
+  "generated_at": "2026-07-12 21:59:52",
   "code": "920211",
   "listing_date": "2026-06-05 00:00:00",
   "record_signature": {
@@ -29,19 +29,31 @@
     "TURNOVERRATE": 94.7296,
     "SW_INDUSTRY": null,
     "INDUSTRY": null,
-    "INDUSTRY_CODE": null
+    "INDUSTRY_CODE": null,
+    "industry_primary": "高端装备",
+    "industry_secondary": "机械设备",
+    "industry_source": "built_in_sample_map"
   },
   "pdf_signature": {
-    "listing": null,
-    "old_shares": {
-      "name": "920211_新睿电子_招股说明书.pdf",
-      "size": 6617851,
-      "mtime_ns": 1779809842462576200
+    "files": {
+      "listing": null,
+      "old_shares": {
+        "name": "920211_新睿电子_招股说明书.pdf",
+        "size": 6617851,
+        "mtime_ns": 1779809842462576200
+      },
+      "comparables": {
+        "name": "920211_新睿电子_招股说明书.pdf",
+        "size": 6617851,
+        "mtime_ns": 1779809842462576200
+      }
     },
-    "comparables": {
-      "name": "920211_新睿电子_招股说明书.pdf",
-      "size": 6617851,
-      "mtime_ns": 1779809842462576200
+    "pdf_parser_versions": {
+      "prospectus_issue_info": 8,
+      "issue_announcement_info": 5,
+      "issue_result_info": 4,
+      "comparable_companies": 22,
+      "business_desc": 3
     }
   },
   "item": {
@@ -60,22 +72,22 @@
     "AVERAGE_PRICE": 253.43207992886204,
     "LD_CLOSE_CHANGE": 800.6749,
     "LD_AVERAGE_CHANGE": 906.0820957874635,
-    "NEXT_DAY_CLOSE": null,
-    "THIRD_DAY_CLOSE": null,
-    "NEXT_DAY_CLOSE_CHANGE": null,
-    "THIRD_DAY_CLOSE_CHANGE": null,
-    "NEXT_DAY_FROM_LISTING_CLOSE_PCT": null,
-    "THIRD_DAY_FROM_LISTING_CLOSE_PCT": null,
-    "POST_LISTING_PROFIT_EFFECT_PCT": null,
-    "post_listing_performance_source": "",
-    "post_listing_performance_reason": "Tushare quota 已达上限，本次不再发起新请求。",
+    "NEXT_DAY_CLOSE": 208.9,
+    "THIRD_DAY_CLOSE": 181.06,
+    "NEXT_DAY_CLOSE_CHANGE": 729.2973402143708,
+    "THIRD_DAY_CLOSE_CHANGE": 618.7772925764192,
+    "NEXT_DAY_FROM_LISTING_CLOSE_PCT": -7.924894217207335,
+    "THIRD_DAY_FROM_LISTING_CLOSE_PCT": -20.195698166431587,
+    "POST_LISTING_PROFIT_EFFECT_PCT": -14.06029619181946,
+    "post_listing_performance_source": "tushare_daily",
+    "post_listing_performance_reason": "",
     "TURNOVERRATE": 94.7296,
     "SW_INDUSTRY": "",
     "INDUSTRY": "",
     "INDUSTRY_CODE": "",
-    "industry_primary": "未分类",
-    "industry_secondary": "未分类",
-    "industry_source": "unclassified",
+    "industry_primary": "高端装备",
+    "industry_secondary": "机械设备",
+    "industry_source": "built_in_sample_map",
     "old_shares": 0.0,
     "old_shares_desc": "待确认（当前按 0 万股计）",
     "old_shares_meta": {
@@ -96,24 +108,117 @@
     "float_shares": 640.0,
     "has_intraday_file": true,
     "comparable_codes": [
-      "873553.NQ"
+      "873553.NQ",
+      "301510.SZ",
+      "603416.SH",
+      "002979.SZ",
+      "688320.SH",
+      "688160.SH"
     ],
-    "comparable_data": [],
+    "comparable_data": [
+      {
+        "code": "301510.SZ",
+        "name": "301510.SZ",
+        "close": 33.8,
+        "pe_ttm": 175.0808,
+        "pb_lf": 9.3173,
+        "mkt_cap": 135.20338,
+        "trade_date": "20260604",
+        "source": "tushare_historical",
+        "close_source": "tushare_historical",
+        "pe_source": "tushare_historical",
+        "pb_source": "tushare_historical",
+        "mkt_cap_source": "tushare_historical"
+      },
+      {
+        "code": "603416.SH",
+        "name": "603416.SH",
+        "close": 57.96,
+        "pe_ttm": 34.693,
+        "pb_lf": 3.305,
+        "mkt_cap": 91.07755169,
+        "trade_date": "20260604",
+        "source": "tushare_historical",
+        "close_source": "tushare_historical",
+        "pe_source": "tushare_historical",
+        "pb_source": "tushare_historical",
+        "mkt_cap_source": "tushare_historical"
+      },
+      {
+        "code": "002979.SZ",
+        "name": "002979.SZ",
+        "close": 53.16,
+        "pe_ttm": 69.282,
+        "pb_lf": 8.9054,
+        "mkt_cap": 167.43605691,
+        "trade_date": "20260604",
+        "source": "tushare_historical",
+        "close_source": "tushare_historical",
+        "pe_source": "tushare_historical",
+        "pb_source": "tushare_historical",
+        "mkt_cap_source": "tushare_historical"
+      },
+      {
+        "code": "688320.SH",
+        "name": "688320.SH",
+        "close": 37.05,
+        "pe_ttm": null,
+        "pb_lf": 4.6108,
+        "mkt_cap": 55.95056398999999,
+        "trade_date": "20260604",
+        "source": "tushare_historical",
+        "close_source": "tushare_historical",
+        "pe_source": "tushare_historical",
+        "pb_source": "tushare_historical",
+        "mkt_cap_source": "tushare_historical"
+      },
+      {
+        "code": "688160.SH",
+        "name": "688160.SH",
+        "close": 109.56,
+        "pe_ttm": 133.2708,
+        "pb_lf": 7.7366,
+        "mkt_cap": 99.51576489,
+        "trade_date": "20260604",
+        "source": "tushare_historical",
+        "close_source": "tushare_historical",
+        "pe_source": "tushare_historical",
+        "pb_source": "tushare_historical",
+        "mkt_cap_source": "tushare_historical"
+      }
+    ],
     "comparable_summary": {
       "provider": "tushare_historical",
       "requested_codes": [
-        "873553.NQ"
+        "873553.NQ",
+        "301510.SZ",
+        "603416.SH",
+        "002979.SZ",
+        "688320.SH",
+        "688160.SH"
       ],
-      "returned_codes": [],
+      "returned_codes": [
+        "301510.SZ",
+        "603416.SH",
+        "002979.SZ",
+        "688320.SH",
+        "688160.SH"
+      ],
       "cache_hits": [],
-      "api_fetched": [],
+      "api_fetched": [
+        "301510.SZ",
+        "603416.SH",
+        "002979.SZ",
+        "688320.SH",
+        "688160.SH"
+      ],
       "skipped_unsupported": [
         "873553.NQ"
       ],
       "reference_trade_date": "20260604",
-      "reason": "未取到可用的历史可比快照。"
+      "reason": ""
     },
-    "method1_replay_available": false,
+    "method1_replay_available": true,
     "average_price_source": "intraday_csv",
     "average_price_reason": "",
     "average_price_calc_version": 3,

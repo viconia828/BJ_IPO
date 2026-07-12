@@ -1,7 +1,7 @@
 {
   "schema": "offline_tuning_replay_item_v1",
-  "cache_version": 7,
-  "generated_at": "2026-07-09 23:33:21",
+  "cache_version": 8,
+  "generated_at": "2026-07-12 21:59:38",
   "code": "920083",
   "listing_date": "2026-06-11 00:00:00",
   "record_signature": {
@@ -29,23 +29,35 @@
     "TURNOVERRATE": 96.1645,
     "SW_INDUSTRY": null,
     "INDUSTRY": null,
-    "INDUSTRY_CODE": null
+    "INDUSTRY_CODE": null,
+    "industry_primary": "化工新材",
+    "industry_secondary": "非金属材料",
+    "industry_source": "built_in_sample_map"
   },
   "pdf_signature": {
-    "listing": {
-      "name": "920083_金戈新材_上市公告书.pdf",
-      "size": 837787,
-      "mtime_ns": 1781013369561745100
+    "files": {
+      "listing": {
+        "name": "920083_金戈新材_上市公告书.pdf",
+        "size": 837787,
+        "mtime_ns": 1781013369561745100
+      },
+      "old_shares": {
+        "name": "920083_金戈新材_招股说明书.pdf",
+        "size": 5247761,
+        "mtime_ns": 1779973373519881200
+      },
+      "comparables": {
+        "name": "920083_金戈新材_招股说明书.pdf",
+        "size": 5247761,
+        "mtime_ns": 1779973373519881200
+      }
     },
-    "old_shares": {
-      "name": "920083_金戈新材_招股说明书.pdf",
-      "size": 5247761,
-      "mtime_ns": 1779973373519881200
-    },
-    "comparables": {
-      "name": "920083_金戈新材_招股说明书.pdf",
-      "size": 5247761,
-      "mtime_ns": 1779973373519881200
+    "pdf_parser_versions": {
+      "prospectus_issue_info": 8,
+      "issue_announcement_info": 5,
+      "issue_result_info": 4,
+      "comparable_companies": 22,
+      "business_desc": 3
     }
   },
   "item": {
@@ -77,9 +89,9 @@
     "SW_INDUSTRY": "",
     "INDUSTRY": "",
     "INDUSTRY_CODE": "",
-    "industry_primary": "未分类",
-    "industry_secondary": "未分类",
-    "industry_source": "unclassified",
+    "industry_primary": "化工新材",
+    "industry_secondary": "非金属材料",
+    "industry_source": "built_in_sample_map",
     "old_shares": 0.0,
     "old_shares_desc": "0.00 万股（PDF 提取：上市公告书）",
     "old_shares_meta": {

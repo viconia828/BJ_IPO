@@ -1,7 +1,7 @@
 {
   "schema": "offline_tuning_replay_item_v1",
-  "cache_version": 7,
-  "generated_at": "2026-07-09 23:33:27",
+  "cache_version": 8,
+  "generated_at": "2026-07-12 21:21:38",
   "code": "920136",
   "listing_date": "2026-07-09 00:00:00",
   "record_signature": {
@@ -29,23 +29,35 @@
     "TURNOVERRATE": 84.5858,
     "SW_INDUSTRY": null,
     "INDUSTRY": null,
-    "INDUSTRY_CODE": null
+    "INDUSTRY_CODE": null,
+    "industry_primary": "高端装备",
+    "industry_secondary": "汽车零部件",
+    "industry_source": "built_in_sample_map"
   },
   "pdf_signature": {
-    "listing": {
-      "name": "920136_永励精密_上市公告书.pdf",
-      "size": 924285,
-      "mtime_ns": 1783508505293028500
+    "files": {
+      "listing": {
+        "name": "920136_永励精密_上市公告书.pdf",
+        "size": 924285,
+        "mtime_ns": 1783508505293028500
+      },
+      "old_shares": {
+        "name": "920136_永励精密_招股说明书.pdf",
+        "size": 5566524,
+        "mtime_ns": 1782232681853498000
+      },
+      "comparables": {
+        "name": "920136_永励精密_招股说明书.pdf",
+        "size": 5566524,
+        "mtime_ns": 1782232681853498000
+      }
     },
-    "old_shares": {
-      "name": "920136_永励精密_招股说明书.pdf",
-      "size": 5566524,
-      "mtime_ns": 1782232681853498000
-    },
-    "comparables": {
-      "name": "920136_永励精密_招股说明书.pdf",
-      "size": 5566524,
-      "mtime_ns": 1782232681853498000
+    "pdf_parser_versions": {
+      "prospectus_issue_info": 8,
+      "issue_announcement_info": 5,
+      "issue_result_info": 4,
+      "comparable_companies": 22,
+      "business_desc": 3
     }
   },
   "item": {
@@ -64,22 +76,22 @@
     "AVERAGE_PRICE": 35.78526789114711,
     "LD_CLOSE_CHANGE": 76.3485,
     "LD_AVERAGE_CHANGE": 85.60823594993312,
-    "NEXT_DAY_CLOSE": null,
+    "NEXT_DAY_CLOSE": 25.53,
     "THIRD_DAY_CLOSE": null,
-    "NEXT_DAY_CLOSE_CHANGE": null,
+    "NEXT_DAY_CLOSE_CHANGE": 32.41701244813277,
     "THIRD_DAY_CLOSE_CHANGE": null,
-    "NEXT_DAY_FROM_LISTING_CLOSE_PCT": null,
+    "NEXT_DAY_FROM_LISTING_CLOSE_PCT": -24.911764705882344,
     "THIRD_DAY_FROM_LISTING_CLOSE_PCT": null,
-    "POST_LISTING_PROFIT_EFFECT_PCT": null,
+    "POST_LISTING_PROFIT_EFFECT_PCT": -24.911764705882344,
     "post_listing_performance_source": "tushare_daily",
     "post_listing_performance_reason": "",
     "TURNOVERRATE": 84.5858,
     "SW_INDUSTRY": "",
     "INDUSTRY": "",
     "INDUSTRY_CODE": "",
-    "industry_primary": "未分类",
-    "industry_secondary": "未分类",
-    "industry_source": "unclassified",
+    "industry_primary": "高端装备",
+    "industry_secondary": "汽车零部件",
+    "industry_source": "built_in_sample_map",
     "old_shares": 300.0,
     "old_shares_desc": "300.00 万股（PDF 提取：上市公告书）",
     "old_shares_meta": {
@@ -98,19 +110,64 @@
     },
     "float_shares": 2300.0,
     "has_intraday_file": true,
-    "comparable_codes": [],
-    "comparable_data": [],
+    "comparable_codes": [
+      "874389.NQ",
+      "001380.SZ",
+      "603037.SH"
+    ],
+    "comparable_data": [
+      {
+        "code": "001380.SZ",
+        "name": "001380.SZ",
+        "close": 15.84,
+        "pe_ttm": 16.9619,
+        "pb_lf": 2.1821,
+        "mkt_cap": 42.90330655,
+        "trade_date": "20260708",
+        "source": "tushare_historical",
+        "close_source": "tushare_historical",
+        "pe_source": "tushare_historical",
+        "pb_source": "tushare_historical",
+        "mkt_cap_source": "tushare_historical"
+      },
+      {
+        "code": "603037.SH",
+        "name": "603037.SH",
+        "close": 9.85,
+        "pe_ttm": 37.194,
+        "pb_lf": 2.6427,
+        "mkt_cap": 26.253992999999998,
+        "trade_date": "20260708",
+        "source": "tushare_historical",
+        "close_source": "tushare_historical",
+        "pe_source": "tushare_historical",
+        "pb_source": "tushare_historical",
+        "mkt_cap_source": "tushare_historical"
+      }
+    ],
     "comparable_summary": {
       "provider": "tushare_historical",
-      "requested_codes": [],
-      "returned_codes": [],
+      "requested_codes": [
+        "874389.NQ",
+        "001380.SZ",
+        "603037.SH"
+      ],
+      "returned_codes": [
+        "001380.SZ",
+        "603037.SH"
+      ],
       "cache_hits": [],
-      "api_fetched": [],
-      "skipped_unsupported": [],
+      "api_fetched": [
+        "001380.SZ",
+        "603037.SH"
+      ],
+      "skipped_unsupported": [
+        "874389.NQ"
+      ],
       "reference_trade_date": "20260708",
-      "reason": "未提取到可比公司代码。"
+      "reason": ""
     },
-    "method1_replay_available": false,
+    "method1_replay_available": true,
     "average_price_source": "intraday_csv",
     "average_price_reason": "",
     "average_price_calc_version": 3,

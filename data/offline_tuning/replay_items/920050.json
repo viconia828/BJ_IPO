@@ -1,7 +1,7 @@
 {
   "schema": "offline_tuning_replay_item_v1",
-  "cache_version": 7,
-  "generated_at": "2026-07-09 23:33:16",
+  "cache_version": 8,
+  "generated_at": "2026-07-12 21:21:36",
   "code": "920050",
   "listing_date": "2026-01-21 00:00:00",
   "record_signature": {
@@ -29,23 +29,35 @@
     "TURNOVERRATE": 78.2307,
     "SW_INDUSTRY": null,
     "INDUSTRY": null,
-    "INDUSTRY_CODE": null
+    "INDUSTRY_CODE": null,
+    "industry_primary": "医药生物",
+    "industry_secondary": "医疗器械",
+    "industry_source": "built_in_sample_map"
   },
   "pdf_signature": {
-    "listing": {
-      "name": "920050_爱舍伦_上市公告书.pdf",
-      "size": 911772,
-      "mtime_ns": 1779805946122201500
+    "files": {
+      "listing": {
+        "name": "920050_爱舍伦_上市公告书.pdf",
+        "size": 911772,
+        "mtime_ns": 1779805946122201500
+      },
+      "old_shares": {
+        "name": "920050_爱舍伦_招股说明书.pdf",
+        "size": 6007092,
+        "mtime_ns": 1779805945109754200
+      },
+      "comparables": {
+        "name": "920050_爱舍伦_招股说明书.pdf",
+        "size": 6007092,
+        "mtime_ns": 1779805945109754200
+      }
     },
-    "old_shares": {
-      "name": "920050_爱舍伦_招股说明书.pdf",
-      "size": 6007092,
-      "mtime_ns": 1779805945109754200
-    },
-    "comparables": {
-      "name": "920050_爱舍伦_招股说明书.pdf",
-      "size": 6007092,
-      "mtime_ns": 1779805945109754200
+    "pdf_parser_versions": {
+      "prospectus_issue_info": 8,
+      "issue_announcement_info": 5,
+      "issue_result_info": 4,
+      "comparable_companies": 22,
+      "business_desc": 3
     }
   },
   "item": {
@@ -99,9 +111,25 @@
     "float_shares": 1979.4634,
     "has_intraday_file": true,
     "comparable_codes": [
-      "002950.SZ"
+      "603301.SH",
+      "002950.SZ",
+      "603205.SH"
     ],
     "comparable_data": [
+      {
+        "code": "603301.SH",
+        "name": "603301.SH",
+        "close": 69.21,
+        "pe_ttm": 65.4991,
+        "pb_lf": 3.2349,
+        "mkt_cap": 183.98477377,
+        "trade_date": "20260120",
+        "source": "tushare_historical",
+        "close_source": "tushare_historical",
+        "pe_source": "tushare_historical",
+        "pb_source": "tushare_historical",
+        "mkt_cap_source": "tushare_historical"
+      },
       {
         "code": "002950.SZ",
         "name": "002950.SZ",
@@ -115,19 +143,39 @@
         "pe_source": "tushare_historical",
         "pb_source": "tushare_historical",
         "mkt_cap_source": "tushare_historical"
+      },
+      {
+        "code": "603205.SH",
+        "name": "603205.SH",
+        "close": 28.6,
+        "pe_ttm": 43.2441,
+        "pb_lf": 3.0594,
+        "mkt_cap": 44.616,
+        "trade_date": "20260120",
+        "source": "tushare_historical",
+        "close_source": "tushare_historical",
+        "pe_source": "tushare_historical",
+        "pb_source": "tushare_historical",
+        "mkt_cap_source": "tushare_historical"
       }
     ],
     "comparable_summary": {
       "provider": "tushare_historical",
       "requested_codes": [
-        "002950.SZ"
+        "603301.SH",
+        "002950.SZ",
+        "603205.SH"
       ],
       "returned_codes": [
-        "002950.SZ"
+        "603301.SH",
+        "002950.SZ",
+        "603205.SH"
       ],
       "cache_hits": [],
       "api_fetched": [
-        "002950.SZ"
+        "603301.SH",
+        "002950.SZ",
+        "603205.SH"
       ],
       "skipped_unsupported": [],
       "reference_trade_date": "20260120",

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 from datetime import datetime
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -28,6 +29,7 @@ import sync_offline_tuning_dataset as offline_tuning_sync
 
 DEFAULT_AUTO_SHADOW_CONTEXT_PATH = ROOT_DIR / "调参" / "valuation_auto_shadow_context_latest.json"
 VALUATION_SHADOW_PIPELINE_PATH = ROOT_DIR / "tools" / "run_valuation_shadow_pipeline.py"
+VALUATION_TIME_SLICE_RECHECK_PATH = ROOT_DIR / "tools" / "revalidate_valuation_time_slices.py"
 
 
 def _parse_csv_codes(raw_value: str | None) -> list[str] | None:
@@ -239,6 +241,8 @@ def _validate_args(parser: argparse.ArgumentParser, args: argparse.Namespace) ->
             parser.error("--grid-file 仅用于 --mode search")
         if args.codes:
             parser.error("--codes 仅用于 --mode observe")
+        if args.auto_time_slice_initial_train_size < 1 or args.auto_time_slice_fold_size < 1 or args.auto_time_slice_fold_count < 1:
+            parser.error("时间切片训练数、折大小和折数必须为正整数")
         return
 
     if args.grid_file:
@@ -335,6 +339,14 @@ def build_parser(params_file: str, tuning_settings: dict[str, Any]) -> argparse.
         action="store_true",
         help="关闭自动调参的本地 proxy/动态宽度/regime 两级重排。",
     )
+    parser.add_argument(
+        "--no-auto-time-slice-gate",
+        action="store_true",
+        help="显式绕过正式写回前的三折时间切片门槛；只用于测试或人工应急。",
+    )
+    parser.add_argument("--auto-time-slice-initial-train-size", type=int, default=20)
+    parser.add_argument("--auto-time-slice-fold-size", type=int, default=7)
+    parser.add_argument("--auto-time-slice-fold-count", type=int, default=3)
     parser.add_argument("--auto-max-passes", type=int, default=1, help="每轮自动调参内的模块循环次数，默认 1。")
     parser.add_argument("--auto-max-refine-stages", type=int, default=5, help="自动调参最多细化轮数，默认 5。")
     parser.add_argument(
@@ -491,7 +503,17 @@ def _print_auto_result_context(result: dict[str, Any], params: dict[str, Any]) -
     )
     print(f"baseline：{_score_text(baseline_score)}")
     print(f"当前累计最优：{_score_text(best_score)}")
+    guard = result.get("formal_acceptance_guard") or {}
+    passed_text = "通过" if guard.get("passed") else "未通过"
+    print(
+        "正式写回安全门槛：{passed}（全样本命中率、MAE、P90 与可用率均不得退化；合格 {eligible}/{evaluated}）".format(
+            passed=passed_text,
+            eligible=guard.get("eligible_candidate_count", 0),
+            evaluated=guard.get("evaluated_candidate_count", 0),
+        )
+    )
     _print_local_learning_rerank(result)
+    print("提示：接受写入前还必须通过三折时间切片门槛；未通过将自动拒绝写入。")
 
     if not overrides:
         print("本轮暂未找到优于当前参数的自动修改方案。")
@@ -503,11 +525,120 @@ def _print_auto_result_context(result: dict[str, Any], params: dict[str, Any]) -
         print(f"- {line}")
 
 
+def _run_auto_time_slice_gate(
+    args: argparse.Namespace,
+    result: dict[str, Any],
+) -> dict[str, Any]:
+    if getattr(args, "no_auto_time_slice_gate", False):
+        gate = {
+            "passed": True,
+            "bypassed": True,
+            "status": "bypassed_by_explicit_flag",
+            "required_path": "two_level" if (result.get("local_learning_rerank") or {}).get("applied") else "core",
+        }
+        result["time_slice_gate"] = gate
+        print("警告：已按显式参数绕过时间切片写回门槛。")
+        return gate
+
+    required_path = "two_level" if (result.get("local_learning_rerank") or {}).get("applied") else "core"
+    overrides = dict(result.get("changed_overrides") or {})
+    command = [
+        sys.executable,
+        "-X",
+        "utf8",
+        str(VALUATION_TIME_SLICE_RECHECK_PATH),
+        "--dataset",
+        str(args.dataset_path),
+        "--params",
+        str(args.params_file),
+        "--initial-train-size",
+        str(int(getattr(args, "auto_time_slice_initial_train_size", 20))),
+        "--fold-size",
+        str(int(getattr(args, "auto_time_slice_fold_size", 7))),
+        "--fold-count",
+        str(int(getattr(args, "auto_time_slice_fold_count", 3))),
+        "--stages",
+        str(max(int(result.get("stage_level") or 1), 1)),
+        "--candidate-limit",
+        str(max(int(args.auto_stage_candidate_limit), 0)),
+        "--time-limit-seconds",
+        str(float(args.auto_stage_time_limit_seconds)),
+        "--pool-size",
+        str(max(int(getattr(args, "auto_local_rerank_top_n", 20)), 1)),
+        "--candidate-overrides-json",
+        json.dumps(overrides, ensure_ascii=False, separators=(",", ":")),
+    ]
+    print("开始执行正式写回前的三折时间切片复核...", flush=True)
+    completed = subprocess.run(
+        command,
+        cwd=ROOT_DIR,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+        check=False,
+    )
+    if completed.returncode != 0:
+        gate = {
+            "passed": False,
+            "bypassed": False,
+            "status": "execution_failed",
+            "required_path": required_path,
+            "returncode": completed.returncode,
+            "stdout": completed.stdout[-4000:],
+            "stderr": completed.stderr[-4000:],
+        }
+        result["time_slice_gate"] = gate
+        return gate
+    try:
+        payload = json.loads(completed.stdout)
+    except json.JSONDecodeError as exc:
+        gate = {
+            "passed": False,
+            "bypassed": False,
+            "status": "invalid_output",
+            "required_path": required_path,
+            "reason": str(exc),
+            "stdout": completed.stdout[-4000:],
+        }
+        result["time_slice_gate"] = gate
+        return gate
+
+    path_passed = payload.get(f"{required_path}_passed") is True
+    stability_warning = payload.get(f"{required_path}_parameter_stability_warning") is True
+    gate = {
+        **payload,
+        "passed": path_passed and not stability_warning,
+        "bypassed": False,
+        "status": "passed" if path_passed and not stability_warning else "rejected",
+        "required_path": required_path,
+        "path_passed": path_passed,
+        "parameter_stability_warning": stability_warning,
+        "candidate_overrides": overrides,
+    }
+    result["time_slice_gate"] = gate
+    return gate
+
+
 def _accept_auto_result(args: argparse.Namespace, params: dict[str, Any], result: dict[str, Any]) -> int:
+    guard = result.get("formal_acceptance_guard") or {}
+    if guard.get("passed") is not True:
+        print("自动调参候选未通过正式写回安全门槛，拒绝写入参数文件。")
+        result["acceptance_status"] = "rejected_formal_guard"
+        return 2
     overrides = dict(result.get("changed_overrides") or {})
     if not overrides:
         print("当前没有可写入的自动调参修改。后续可以手动修改 策略参数.txt。")
+        result["acceptance_status"] = "no_change"
         return 0
+
+    time_slice_gate = _run_auto_time_slice_gate(args, result)
+    if time_slice_gate.get("passed") is not True:
+        print("自动调参候选未通过三折时间切片门槛，拒绝写入参数文件。")
+        if (time_slice_gate.get("outputs") or {}).get("markdown"):
+            print(f"时间切片报告：{time_slice_gate['outputs']['markdown']}")
+        result["acceptance_status"] = "rejected_time_slice"
+        return 3
 
     params_path = _write_param_updates(args.params_file, overrides)
     config_loader.load_params(params_path)
@@ -519,6 +650,7 @@ def _accept_auto_result(args: argparse.Namespace, params: dict[str, Any], result
     )
     print(f"已写入参数文件：{params_path}")
     print(f"已更新自动调参记录：{record_path}")
+    result["acceptance_status"] = "accepted"
     return 0
 
 
@@ -530,8 +662,16 @@ def _auto_context_score(entry: dict[str, Any], sample_codes: list[str]) -> dict[
         for row in metrics.get("available_results") or []
         if str(row.get("code") or "") in sample_set
     ]
-    hit_codes = [str(row.get("code") or "") for row in rows if row.get("interval_hit")]
-    miss_codes = [str(row.get("code") or "") for row in rows if row.get("interval_hit") is False]
+    def _interval_hit(row: dict[str, Any]) -> bool | None:
+        actual = param_tuning._safe_float(row.get("actual_interval_price"))
+        low = param_tuning._safe_float(row.get("range_low"))
+        high = param_tuning._safe_float(row.get("range_high"))
+        if actual is None or low is None or high is None:
+            return None
+        return low <= actual <= high
+
+    hit_codes = [str(row.get("code") or "") for row in rows if _interval_hit(row) is True]
+    miss_codes = [str(row.get("code") or "") for row in rows if _interval_hit(row) is False]
     evaluated_count = len(hit_codes) + len(miss_codes)
     return {
         "hit_count": len(hit_codes),
@@ -560,6 +700,13 @@ def _auto_shadow_sample_codes(dataset: dict[str, Any], result: dict[str, Any]) -
     return [code for _, code in codes]
 
 
+def _file_sha256(path: str | Path) -> str | None:
+    file_path = Path(path)
+    if not file_path.exists() or not file_path.is_file():
+        return None
+    return hashlib.sha256(file_path.read_bytes()).hexdigest()
+
+
 def _write_auto_shadow_context(
     args: argparse.Namespace,
     dataset: dict[str, Any],
@@ -570,9 +717,15 @@ def _write_auto_shadow_context(
     overrides = dict(result.get("changed_overrides") or {})
     baseline_entry = dict(result.get("baseline") or {})
     best_entry = dict(result.get("best") or {})
+    rejected_statuses = {"rejected_formal_guard", "rejected_time_slice"}
+    shadow_uses_candidate = status not in rejected_statuses and status != "no_change"
+    shadow_overrides = overrides if shadow_uses_candidate else {}
+    shadow_entry = best_entry if shadow_uses_candidate else baseline_entry
+    now_text = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     context = {
-        "schema": "valuation_auto_shadow_context_v1",
-        "generated_at": result.get("generated_at"),
+        "schema": "valuation_auto_shadow_context_v2",
+        "generated_at": now_text,
+        "auto_result_generated_at": result.get("generated_at"),
         "sample_count": len(sample_codes),
         "sample_codes": sample_codes,
         "baseline": {
@@ -582,12 +735,20 @@ def _write_auto_shadow_context(
         },
         "top_candidates": [
             {
-                "label": "auto_best",
-                "overrides": overrides,
-                "exact_score": _auto_context_score(best_entry, sample_codes),
+                "label": "auto_best" if shadow_uses_candidate else "formal_params",
+                "overrides": shadow_overrides,
+                "exact_score": _auto_context_score(shadow_entry, sample_codes),
+                "deployable": status == "accepted",
+                "research_only": status == "not_accepted",
             }
         ],
         "auto_tune_status": status,
+        "candidate": {
+            "overrides": overrides,
+            "formal_acceptance_guard": result.get("formal_acceptance_guard") or {},
+            "time_slice_gate": result.get("time_slice_gate") or {},
+            "deployable": status == "accepted",
+        },
         "auto_tune": {
             "stage_level": result.get("stage_level"),
             "reference_date": result.get("reference_date"),
@@ -595,10 +756,21 @@ def _write_auto_shadow_context(
             "best_is_baseline": bool(result.get("best_is_baseline")),
             "baseline_auto_score": (baseline_entry.get("auto_score") or {}),
             "best_auto_score": (best_entry.get("auto_score") or {}),
+            "model_contract": result.get("model_contract") or {},
         },
         "local_learning_rerank": result.get("local_learning_rerank") or {},
         "params_file": str(Path(args.params_file)),
         "dataset_path": str(Path(args.dataset_path)),
+        "input_signatures": {
+            "params_sha256": _file_sha256(args.params_file),
+            "dataset_sha256": _file_sha256(args.dataset_path),
+            "model_sources": {
+                "code/param_tuning.py": _file_sha256(ROOT_DIR / "code" / "param_tuning.py"),
+                "code/valuation_engine.py": _file_sha256(ROOT_DIR / "code" / "valuation_engine.py"),
+                "tools/local_learning_auto_rerank.py": _file_sha256(ROOT_DIR / "tools" / "local_learning_auto_rerank.py"),
+                "tools/revalidate_valuation_time_slices.py": _file_sha256(VALUATION_TIME_SLICE_RECHECK_PATH),
+            },
+        },
     }
     latest_path = Path(args.auto_shadow_context_path)
     latest_path.parent.mkdir(parents=True, exist_ok=True)
@@ -744,8 +916,8 @@ def _run_auto_mode(
         )
         if action == "accept":
             return_code = _accept_auto_result(args, params, result)
-            if return_code == 0:
-                _refresh_auto_shadow_reports(args, dataset, result, "accepted")
+            status = str(result.get("acceptance_status") or ("accepted" if return_code == 0 else "rejected"))
+            _refresh_auto_shadow_reports(args, dataset, result, status)
             return return_code
         if action != "continue":
             print("已退出自动调参，未写入参数。后续可以手动修改 策略参数.txt。")

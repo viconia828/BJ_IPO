@@ -76,6 +76,10 @@ def _safe_float(value: Any) -> float | None:
     return result if math.isfinite(result) else None
 
 
+def _is_enabled(value: Any) -> bool:
+    return str(value).strip().lower() not in {"", "0", "false", "no", "off", "否", "关闭"}
+
+
 def _candidate_signature(entry: dict[str, Any]) -> tuple[tuple[str, str], ...]:
     return tuple(sorted((str(key), repr(value)) for key, value in dict(entry.get("overrides") or {}).items()))
 
@@ -120,6 +124,9 @@ def _candidate_pool(result: dict[str, Any], pool_size: int) -> list[dict[str, An
     seen: set[tuple[tuple[str, str], ...]] = set()
     for entry in candidates:
         if not entry or not isinstance(entry.get("metrics"), dict):
+            continue
+        guard = entry.get("formal_acceptance_guard") or {}
+        if guard.get("passed") is False:
             continue
         signature = _candidate_signature(entry)
         if signature in seen:
@@ -301,8 +308,19 @@ def _evaluate_candidate(
         proxy._evaluate_strategy(dict(REGIME_STRATEGY), target_rows, candidate_params),
         reference_date,
     )
+    rolling_strategy = dict(ROLLING_STRATEGY)
+    if _is_enabled(candidate_params.get("local_center_overlay_enabled")):
+        rolling_strategy.update(
+            {
+                "name": "auto_candidate_formal_local_center_layered_v1_recent_mood",
+                "center_policy": "model",
+                "center_condition": "never",
+                "center_alpha": 0.0,
+                "research_only": False,
+            }
+        )
     rolling = _weighted_line_summary(
-        proxy._evaluate_strategy(dict(ROLLING_STRATEGY), target_rows, candidate_params),
+        proxy._evaluate_strategy(rolling_strategy, target_rows, candidate_params),
         reference_date,
     )
     core_score = _safe_float((entry.get("auto_score") or {}).get("auto_score")) or 0.0
@@ -394,6 +412,13 @@ def rerank_auto_tune_result(
     result["best"] = selected_entry
     result["changed_overrides"] = dict(selected_entry.get("overrides") or {})
     result["best_is_baseline"] = not bool(result["changed_overrides"])
+    selected_guard = dict(selected_entry.get("formal_acceptance_guard") or {})
+    previous_guard = dict(result.get("formal_acceptance_guard") or {})
+    result["formal_acceptance_guard"] = {
+        **selected_guard,
+        "eligible_candidate_count": previous_guard.get("eligible_candidate_count"),
+        "evaluated_candidate_count": previous_guard.get("evaluated_candidate_count"),
+    }
     result["local_learning_rerank"] = {
         "enabled": True,
         "applied": True,

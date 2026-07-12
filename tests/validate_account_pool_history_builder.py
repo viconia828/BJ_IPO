@@ -397,12 +397,139 @@ def _run_announcement_constraints_with_history_prior_case(failures: list[str]) -
     _assert(values[1] > 50000.0, "announcement constraints: compressed 31343-account cliff leaked into result", failures)
 
 
+def _run_incremental_suffix_rebuild_case(failures: list[str]) -> None:
+    temp_dir = ROOT_DIR / ".tmp" / "validate_account_pool_incremental_suffix"
+    if temp_dir.exists():
+        shutil.rmtree(temp_dir)
+    temp_dir.mkdir(parents=True, exist_ok=True)
+    try:
+        history_path = temp_dir / "subscription_history_sample.csv"
+        label_path = temp_dir / "subscription_ladder_labels.csv"
+        points_path = temp_dir / "account_pool_history_points.csv"
+        thresholds_path = temp_dir / "account_pool_history_thresholds.csv"
+        summary_path = temp_dir / "account_pool_history_summary.json"
+        rows = [
+            {
+                "security_code": "920301",
+                "security_name_abbr": "First",
+                "apply_date": "2026-03-01",
+                "listing_date": "2026-03-10",
+                "issue_price": "10",
+                "online_issue_shares": "14000",
+                "online_valid_accounts": "1000",
+                "online_allocated_accounts": "100",
+                "top_apply_amount_wan": "1000",
+                "allocation_fit_json": "{}",
+            },
+            {
+                "security_code": "920302",
+                "security_name_abbr": "Second",
+                "apply_date": "2026-03-02",
+                "listing_date": "2026-03-11",
+                "issue_price": "10",
+                "online_issue_shares": "18000",
+                "online_valid_accounts": "1000",
+                "online_allocated_accounts": "120",
+                "top_apply_amount_wan": "1000",
+                "allocation_fit_json": "{}",
+            },
+        ]
+        _write_history(history_path, rows)
+
+        def write_labels(first: str, second: str) -> None:
+            subscription_ladder_labels.write_label_rows(
+                [
+                    {
+                        "security_code": "920301",
+                        "security_name_abbr": "First",
+                        "apply_date": "2026-03-01",
+                        "manual_ladder": first,
+                    },
+                    {
+                        "security_code": "920302",
+                        "security_name_abbr": "Second",
+                        "apply_date": "2026-03-02",
+                        "manual_ladder": second,
+                    },
+                ],
+                label_path,
+            )
+
+        write_labels("1+0=300;1+1=600", "1+0=400;1+1=700")
+        first_summary = build_account_pool_history.build_account_pool_history(
+            history_path=history_path,
+            ladder_label_path=label_path,
+            points_path=points_path,
+            thresholds_path=thresholds_path,
+            summary_path=summary_path,
+        )
+        first_threshold_rows = _read_csv(thresholds_path)
+        unchanged_summary = build_account_pool_history.build_account_pool_history(
+            history_path=history_path,
+            ladder_label_path=label_path,
+            points_path=points_path,
+            thresholds_path=thresholds_path,
+            summary_path=summary_path,
+        )
+        write_labels("1+0=300;1+1=600", "1+0=450;1+1=750")
+        suffix_summary = build_account_pool_history.build_account_pool_history(
+            history_path=history_path,
+            ladder_label_path=label_path,
+            points_path=points_path,
+            thresholds_path=thresholds_path,
+            summary_path=summary_path,
+        )
+        suffix_threshold_rows = _read_csv(thresholds_path)
+        suffix_points_text = points_path.read_text(encoding="utf-8-sig")
+        suffix_thresholds_text = thresholds_path.read_text(encoding="utf-8-sig")
+        forced_summary = build_account_pool_history.build_account_pool_history(
+            history_path=history_path,
+            ladder_label_path=label_path,
+            points_path=points_path,
+            thresholds_path=thresholds_path,
+            summary_path=summary_path,
+            force_rebuild=True,
+        )
+        forced_points_text = points_path.read_text(encoding="utf-8-sig")
+        forced_thresholds_text = thresholds_path.read_text(encoding="utf-8-sig")
+        write_labels("1+0=320;1+1=620", "1+0=450;1+1=750")
+        earliest_summary = build_account_pool_history.build_account_pool_history(
+            history_path=history_path,
+            ladder_label_path=label_path,
+            points_path=points_path,
+            thresholds_path=thresholds_path,
+            summary_path=summary_path,
+        )
+    finally:
+        shutil.rmtree(temp_dir, ignore_errors=True)
+
+    _assert(first_summary.get("rebuild_mode") == "full", "incremental pool: first run should be full", failures)
+    _assert(unchanged_summary.get("rebuild_mode") == "no_change", "incremental pool: unchanged run should be no-op", failures)
+    _assert(unchanged_summary.get("rebuilt_suffix_count") == 0, "incremental pool: unchanged run rebuilt rows", failures)
+    _assert(suffix_summary.get("rebuild_mode") == "suffix", "incremental pool: second-row change should rebuild suffix", failures)
+    _assert(suffix_summary.get("reused_prefix_count") == 1, "incremental pool: prefix reuse count mismatch", failures)
+    _assert(suffix_summary.get("rebuilt_suffix_count") == 1, "incremental pool: suffix rebuild count mismatch", failures)
+    _assert(suffix_summary.get("rebuild_from_code") == "920302", "incremental pool: rebuild start code mismatch", failures)
+    _assert(
+        first_threshold_rows[0].get("account_pool_snapshot_json")
+        == suffix_threshold_rows[0].get("account_pool_snapshot_json"),
+        "incremental pool: unchanged prefix snapshot was modified",
+        failures,
+    )
+    _assert(forced_summary.get("rebuild_mode") == "full", "incremental pool: force flag should rebuild all", failures)
+    _assert(suffix_points_text == forced_points_text, "incremental pool: suffix points differ from full rebuild", failures)
+    _assert(suffix_thresholds_text == forced_thresholds_text, "incremental pool: suffix snapshots differ from full rebuild", failures)
+    _assert(earliest_summary.get("rebuild_mode") == "full", "incremental pool: first-row change should rebuild all", failures)
+    _assert(earliest_summary.get("rebuild_from_code") == "920301", "incremental pool: earliest changed code mismatch", failures)
+
+
 def main() -> int:
     failures: list[str] = []
     _run_manual_ladder_merge_case(failures)
     _run_sequential_refinement_case(failures)
     _run_new_point_caps_conflicting_old_point_case(failures)
     _run_announcement_constraints_with_history_prior_case(failures)
+    _run_incremental_suffix_rebuild_case(failures)
     if failures:
         for failure in failures:
             print(f"FAIL: {failure}")

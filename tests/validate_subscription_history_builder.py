@@ -312,6 +312,95 @@ def _run_new_model_ready_row_overrides_existing_case(failures: list[str]) -> Non
     _assert(row.get("online_valid_shares") == "123000000", "merge: latest model_ready values should win", failures)
 
 
+def _run_incremental_signature_case(failures: list[str]) -> None:
+    temp_dir = _reset_temp_dir("validate_subscription_history_incremental")
+    dataset_path = temp_dir / "replay_dataset.json"
+    output_path = temp_dir / "subscription_history_sample.csv"
+    label_path = temp_dir / "subscription_ladder_labels.csv"
+    listing_pdf = temp_dir / "920008_Incremental_上市公告书.pdf"
+    original_find_pdfs = build_subscription_history._find_local_pdfs
+    original_parser_versions = dict(pdf_parser.PARSE_CACHE_KIND_VERSIONS)
+
+    def write_dataset(issue_price: float) -> None:
+        dataset_path.write_text(
+            json.dumps(
+                {
+                    "schema": "offline_tuning_replay_v1",
+                    "items": [
+                        {
+                            "SECURITY_CODE": "920008",
+                            "SECURITY_NAME_ABBR": "Incremental",
+                            "APPLY_DATE": "2026-06-01",
+                            "LISTING_DATE": "2026-06-10",
+                            "ISSUE_PRICE": issue_price,
+                            "TOTAL_ISSUE_NUM": 100.0,
+                            "ONLINE_ISSUE_NUM": 1000000.0,
+                            "ONLINE_VA_SHARES": 50000000.0,
+                        }
+                    ],
+                },
+                ensure_ascii=False,
+                indent=2,
+            ),
+            encoding="utf-8",
+        )
+
+    listing_pdf.write_bytes(b"%PDF-fixture-v1%%EOF")
+    build_subscription_history._find_local_pdfs = lambda pdf_dir, code: {
+        "prospectus": None,
+        "issue": None,
+        "result": None,
+        "listing": listing_pdf,
+    }
+    try:
+        write_dataset(10.0)
+        first = build_subscription_history.build_subscription_history_table(
+            dataset_path=dataset_path,
+            output_path=output_path,
+            ladder_label_path=label_path,
+            pdf_dir=temp_dir,
+        )
+        second = build_subscription_history.build_subscription_history_table(
+            dataset_path=dataset_path,
+            output_path=output_path,
+            ladder_label_path=label_path,
+            pdf_dir=temp_dir,
+        )
+        write_dataset(11.0)
+        replay_changed = build_subscription_history.build_subscription_history_table(
+            dataset_path=dataset_path,
+            output_path=output_path,
+            ladder_label_path=label_path,
+            pdf_dir=temp_dir,
+        )
+        listing_pdf.write_bytes(b"%PDF-fixture-version-2%%EOF")
+        pdf_changed = build_subscription_history.build_subscription_history_table(
+            dataset_path=dataset_path,
+            output_path=output_path,
+            ladder_label_path=label_path,
+            pdf_dir=temp_dir,
+        )
+        pdf_parser.PARSE_CACHE_KIND_VERSIONS["issue_result_info"] += 1
+        parser_changed = build_subscription_history.build_subscription_history_table(
+            dataset_path=dataset_path,
+            output_path=output_path,
+            ladder_label_path=label_path,
+            pdf_dir=temp_dir,
+        )
+    finally:
+        build_subscription_history._find_local_pdfs = original_find_pdfs
+        pdf_parser.PARSE_CACHE_KIND_VERSIONS.clear()
+        pdf_parser.PARSE_CACHE_KIND_VERSIONS.update(original_parser_versions)
+        shutil.rmtree(temp_dir, ignore_errors=True)
+
+    _assert(first.get("rebuilt_count") == 1, "incremental history: first run should rebuild", failures)
+    _assert(second.get("rebuilt_count") == 0, "incremental history: unchanged run should not rebuild", failures)
+    _assert(second.get("reused_count") == 1, "incremental history: unchanged row should be reused", failures)
+    _assert(replay_changed.get("rebuilt_codes") == ["920008"], "incremental history: replay change not detected", failures)
+    _assert(pdf_changed.get("rebuilt_codes") == ["920008"], "incremental history: PDF change not detected", failures)
+    _assert(parser_changed.get("rebuilt_codes") == ["920008"], "incremental history: parser change not detected", failures)
+
+
 def _run_result_date_text_case(failures: list[str]) -> None:
     text = "发行人：示例股份有限公司\n日期：2026年1月9日"
     _assert(
@@ -331,6 +420,7 @@ def main() -> int:
     _run_ladder_label_only_items_are_augmented_case(failures)
     _run_history_table_applies_manual_ladder_case(failures)
     _run_new_model_ready_row_overrides_existing_case(failures)
+    _run_incremental_signature_case(failures)
     _run_result_date_text_case(failures)
     if failures:
         for failure in failures:

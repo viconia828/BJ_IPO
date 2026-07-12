@@ -34,7 +34,8 @@ INTRADAY_DIR = listing_average_price_helper.DEFAULT_INTRADAY_DIR
 PDF_DIR = REPO_ROOT / "公告文件"
 DATASET_SCHEMA = "offline_tuning_replay_v1"
 REPLAY_ITEM_SCHEMA = "offline_tuning_replay_item_v1"
-REPLAY_ITEM_CACHE_VERSION = 7
+REPLAY_ITEM_CACHE_VERSION = 8
+REPLAY_RECORD_SIGNATURE_VERSION = 2
 REPLAY_AVERAGE_PRICE_CALC_VERSION = listing_average_price_helper.AVERAGE_PRICE_CALC_VERSION
 METHOD2_ONLY_SCOPE = "method2_only"
 COMPOSITE_EVALUATION_SCOPE = "composite"
@@ -65,6 +66,54 @@ AUTO_TUNE_WIDTH_DIAGNOSTIC_FACTOR = 0.50
 AUTO_TUNE_MAE_PENALTY = 0.002
 AUTO_TUNE_STAGE_TIME_LIMIT_SECONDS = 180.0
 AUTO_TUNE_STAGE_CANDIDATE_LIMIT = 650
+AUTO_TUNE_MODEL_CONTRACT_VERSION = 3
+LATEST_METHOD1_AUTO_TUNABLE_KEYS = {
+    "bse_discount_factor",
+    "weight_comparable",
+    "weight_industry_momentum",
+    "float_size_threshold",
+    "small_cap_premium",
+    "pe_low_threshold",
+    "pe_discount_boost",
+    "pe_high_threshold",
+    "pe_premium_drag",
+    "method1_industry_fallback_confidence",
+    "comparable_pe_stat",
+}
+LATEST_METHOD2_AUTO_TUNABLE_KEYS = {
+    "method2_weight_mode",
+    "method2_decay_half_life_days",
+    "robust_median_min_samples",
+    "robust_mad_multiplier",
+}
+LATEST_METHOD2_CONFIDENCE_AUTO_TUNABLE_KEYS = {
+    "method2_confidence_1_sample",
+    "method2_confidence_2_samples",
+    "method2_confidence_3_samples",
+    "method2_confidence_4plus_samples",
+}
+LATEST_METHOD3_AUTO_TUNABLE_KEYS = {
+    "recent_days",
+    "sentiment_decay_half_life_days",
+    "sentiment_first_day_baseline_pct",
+    "sentiment_first_day_scale",
+    "sentiment_post_listing_scale",
+    "sentiment_premium_cap_pct",
+    "sentiment_premium_floor_pct",
+}
+LATEST_LOCAL_CENTER_AUTO_TUNABLE_KEYS = {
+    "local_center_alpha",
+    "local_center_min_history",
+    "local_center_history_window",
+    "local_center_actual_cap_pct",
+    "local_center_slope_cap",
+}
+LATEST_MODEL_STRUCTURAL_FLAGS = (
+    "method1_pe_float_factors_enabled",
+    "method1_industry_fallback_enabled",
+    "method2_sample_confidence_enabled",
+    "local_center_overlay_enabled",
+)
 REPLAY_RECORD_SIGNATURE_KEYS = (
     "SECURITY_CODE",
     "SECURITY_NAME_ABBR",
@@ -91,6 +140,9 @@ REPLAY_RECORD_SIGNATURE_KEYS = (
     "SW_INDUSTRY",
     "INDUSTRY",
     "INDUSTRY_CODE",
+    "industry_primary",
+    "industry_secondary",
+    "industry_source",
 )
 REPLAY_DERIVED_POST_LISTING_KEYS = {
     "NEXT_DAY_CLOSE",
@@ -235,6 +287,12 @@ def _safe_float(value: Any) -> float | None:
         return None
 
 
+def _is_enabled(value: Any, default: bool = False) -> bool:
+    if value in (None, ""):
+        return default
+    return str(value).strip().lower() not in {"0", "false", "no", "off", "否", "关闭"}
+
+
 def _parse_date_key(value: Any) -> tuple[int, str]:
     text = str(value or "").strip().split(" ", 1)[0]
     if not text:
@@ -274,6 +332,14 @@ def _build_replay_record_signature(record: dict[str, Any]) -> dict[str, Any]:
     return {key: _replay_cache_scalar(record.get(key)) for key in REPLAY_RECORD_SIGNATURE_KEYS}
 
 
+def _build_replay_refresh_contract() -> dict[str, Any]:
+    return {
+        "record_signature_version": REPLAY_RECORD_SIGNATURE_VERSION,
+        "record_signature_keys": list(REPLAY_RECORD_SIGNATURE_KEYS),
+        "pdf_parser_versions": dict(pdf_parser.PARSE_CACHE_KIND_VERSIONS),
+    }
+
+
 def _is_existing_replay_item_compatible(item: dict[str, Any], record_signature: dict[str, Any]) -> bool:
     item_signature = {key: _replay_cache_scalar(item.get(key)) for key in REPLAY_EXISTING_ITEM_SIGNATURE_KEYS}
     record_subset = {key: record_signature.get(key) for key in REPLAY_EXISTING_ITEM_SIGNATURE_KEYS}
@@ -294,6 +360,51 @@ def _existing_replay_item_signature_matches(item: dict[str, Any], record_signatu
     item_signature = {key: _replay_cache_scalar(item.get(key)) for key in REPLAY_EXISTING_ITEM_SIGNATURE_KEYS}
     record_subset = {key: record_signature.get(key) for key in REPLAY_EXISTING_ITEM_SIGNATURE_KEYS}
     return item_signature == record_subset
+
+
+def _cached_replay_pdf_signature_matches(
+    code: str,
+    pdf_signature: dict[str, Any],
+    cache_dir: str | Path,
+) -> bool | None:
+    cache_path = _replay_item_cache_path(code, cache_dir)
+    if not cache_path.exists():
+        return None
+    try:
+        payload = json.loads(cache_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return False
+    if payload.get("schema") != REPLAY_ITEM_SCHEMA:
+        return False
+    if payload.get("cache_version") != REPLAY_ITEM_CACHE_VERSION:
+        return False
+    if str(payload.get("code") or "").strip() != str(code or "").strip():
+        return False
+    return payload.get("pdf_signature") == pdf_signature
+
+
+def _cached_replay_record_signature_matches(
+    code: str,
+    record_signature: dict[str, Any],
+    cache_dir: str | Path,
+) -> bool | None:
+    cache_path = _replay_item_cache_path(code, cache_dir)
+    if not cache_path.exists():
+        return None
+    try:
+        payload = json.loads(cache_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return False
+    if payload.get("schema") != REPLAY_ITEM_SCHEMA:
+        return False
+    if payload.get("cache_version") != REPLAY_ITEM_CACHE_VERSION:
+        return False
+    if str(payload.get("code") or "").strip() != str(code or "").strip():
+        return False
+    cached_signature = payload.get("record_signature") or {}
+    cached_subset = {key: cached_signature.get(key) for key in REPLAY_EXISTING_ITEM_SIGNATURE_KEYS}
+    current_subset = {key: record_signature.get(key) for key in REPLAY_EXISTING_ITEM_SIGNATURE_KEYS}
+    return cached_subset == current_subset
 
 
 def _file_signature(path: Path | None) -> dict[str, Any] | None:
@@ -430,7 +541,10 @@ def _resolve_replay_pdf_paths(code: str) -> dict[str, Path | None]:
 
 
 def _build_replay_pdf_signature(pdf_paths: dict[str, Path | None]) -> dict[str, Any]:
-    return {key: _file_signature(path) for key, path in pdf_paths.items()}
+    return {
+        "files": {key: _file_signature(path) for key, path in pdf_paths.items()},
+        "pdf_parser_versions": dict(pdf_parser.PARSE_CACHE_KIND_VERSIONS),
+    }
 
 
 def _replay_item_cache_path(code: str, cache_dir: str | Path = DEFAULT_REPLAY_ITEM_CACHE_DIR) -> Path:
@@ -515,6 +629,19 @@ def _mean(values: list[float]) -> float | None:
     if not values:
         return None
     return sum(values) / len(values)
+
+
+def _quantile(values: list[float], q: float) -> float | None:
+    if not values:
+        return None
+    ordered = sorted(values)
+    if len(ordered) == 1:
+        return ordered[0]
+    position = (len(ordered) - 1) * min(max(q, 0.0), 1.0)
+    low = int(position)
+    high = min(low + 1, len(ordered) - 1)
+    fraction = position - low
+    return ordered[low] * (1 - fraction) + ordered[high] * fraction
 
 
 def _rmse(errors: list[float]) -> float | None:
@@ -612,6 +739,10 @@ def inspect_replay_dataset_sync(
         dataset_cache_version_int = None
     if dataset_cache_version_int != REPLAY_ITEM_CACHE_VERSION:
         reasons.append(f"回放样本缓存版本变化：数据集={dataset_cache_version}，当前={REPLAY_ITEM_CACHE_VERSION}")
+    dataset_refresh_contract = dataset.get("replay_refresh_contract")
+    current_refresh_contract = _build_replay_refresh_contract()
+    if dataset_refresh_contract != current_refresh_contract:
+        reasons.append("replay 刷新契约发生变化：记录签名字段或 PDF 解析器版本已更新")
 
     return {
         "needs_refresh": bool(reasons),
@@ -956,6 +1087,7 @@ def _build_replay_dataset_payload(
         "generated_at": _now_text(),
         "source_months": months,
         "replay_item_cache_version": REPLAY_ITEM_CACHE_VERSION,
+        "replay_refresh_contract": _build_replay_refresh_contract(),
         "sample_codes": [item["SECURITY_CODE"] for item in items],
         "requested_codes": requested_codes,
         "available_count": len(items),
@@ -1029,6 +1161,8 @@ def build_replay_dataset(
         if record is None:
             record = _build_replay_record_from_announcements(code)
             fallback_record = record is not None
+            if record is not None:
+                record = mapper.enrich_recent_ipos([record])[0]
         if record is None:
             skipped.append({"code": code, "reason": f"最近 {months} 个月历史池中未找到该样本，且无法生成样本种子"})
             if progress_callback:
@@ -1042,6 +1176,11 @@ def build_replay_dataset(
         status = "announcement_fallback" if fallback_record else "built"
         item = None
         cache_path = _replay_item_cache_path(code, item_cache_dir) if cache_enabled else None
+        cached_pdf_signature_matches = (
+            _cached_replay_pdf_signature_matches(code, pdf_signature, item_cache_dir)
+            if cache_enabled
+            else None
+        )
 
         if cache_enabled:
             item = load_replay_item_cache(code, record_signature, pdf_signature, item_cache_dir)
@@ -1053,6 +1192,7 @@ def build_replay_dataset(
             item is None
             and existing_item is not None
             and _existing_replay_item_signature_matches(existing_item, record_signature)
+            and cached_pdf_signature_matches is not False
         ):
             if _is_existing_replay_item_compatible(existing_item, record_signature):
                 item = dict(existing_item)
@@ -1564,6 +1704,11 @@ def _build_recent_pool(items: list[dict[str, Any]]) -> list[dict[str, Any]]:
             "SECURITY_NAME_ABBR": item.get("SECURITY_NAME_ABBR"),
             "LISTING_DATE": item.get("LISTING_DATE"),
             "ISSUE_PRICE": item.get("ISSUE_PRICE"),
+            "AFTER_ISSUE_PE": item.get("AFTER_ISSUE_PE"),
+            "INDUSTRY_PE_NEW": item.get("INDUSTRY_PE_NEW"),
+            "TOTAL_ISSUE_NUM": item.get("TOTAL_ISSUE_NUM"),
+            "ONLINE_ISSUE_NUM": item.get("ONLINE_ISSUE_NUM"),
+            "TOP_APPLY_MARKETCAP": item.get("TOP_APPLY_MARKETCAP"),
             "CLOSE_PRICE": item.get("CLOSE_PRICE"),
             "AVERAGE_PRICE": item.get("AVERAGE_PRICE"),
             "LD_CLOSE_CHANGE": item.get("LD_CLOSE_CHANGE"),
@@ -1578,6 +1723,8 @@ def _build_recent_pool(items: list[dict[str, Any]]) -> list[dict[str, Any]]:
             "TURNOVERRATE": item.get("TURNOVERRATE"),
             "industry_primary": item.get("industry_primary"),
             "industry_secondary": item.get("industry_secondary"),
+            "old_shares": item.get("old_shares"),
+            "float_shares": item.get("float_shares"),
         }
         for item in items
     ]
@@ -1654,6 +1801,24 @@ def _evaluate_replay_prediction(
         float_shares=_safe_float(item.get("float_shares")),
     )
     final = valuation_engine.composite_valuation(method1, method2, params, method3=method3)
+    final = valuation_engine.apply_local_center_overlay(
+        final,
+        issue_price=issue_price,
+        issue_pe=_safe_float(item.get("AFTER_ISSUE_PE")),
+        industry_pe=_safe_float(item.get("INDUSTRY_PE_NEW")),
+        float_shares=_safe_float(item.get("float_shares")),
+        old_shares=_safe_float(item.get("old_shares")),
+        industry={
+            "primary": str(item.get("industry_primary") or "未分类"),
+            "secondary": str(item.get("industry_secondary") or "未分类"),
+        },
+        recent_ipos=recent_pool,
+        params=params,
+        target_code=code,
+        target_listing_date=item.get("LISTING_DATE"),
+        online_issue_num=_safe_float(item.get("ONLINE_ISSUE_NUM")),
+        top_apply_marketcap=_safe_float(item.get("TOP_APPLY_MARKETCAP")),
+    )
     return final, method1, method2, method3
 
 
@@ -1776,6 +1941,8 @@ def evaluate_replay_targets(
         "change_eval_count": change_eval_count,
         "price_eval_count": price_eval_count,
         "mae_change_pct": _mean(change_abs_errors),
+        "p90_change_abs_error_pct": _quantile(change_abs_errors, 0.90),
+        "worst_change_abs_error_pct": max(change_abs_errors) if change_abs_errors else None,
         "rmse_change_pct": _rmse(change_signed_errors),
         "mae_target_price": _mean(price_abs_errors),
         "rmse_target_price": _rmse(price_signed_errors),
@@ -2402,37 +2569,38 @@ def build_auto_tune_candidate_groups(
         )
         groups.append(("北交所折扣", [{"bse_discount_factor": value} for value in discount_values]))
 
-    float_threshold_values = _auto_stage_int_values(params, "float_size_threshold", 800, 2800, 1800, (300, 100), stage_level)
-    small_cap_values = _auto_stage_values(params, "small_cap_premium", 0.00, 0.25, 0.10, (0.05, 0.025), stage_level, decimals=3)
-    groups.append(("流通盘阈值", [{"float_size_threshold": threshold} for threshold in float_threshold_values]))
-    groups.append(("小盘溢价", [{"small_cap_premium": premium} for premium in small_cap_values]))
+    if evaluation_scope == COMPOSITE_EVALUATION_SCOPE:
+        float_threshold_values = _auto_stage_int_values(params, "float_size_threshold", 800, 2800, 1800, (300, 100), stage_level)
+        small_cap_values = _auto_stage_values(params, "small_cap_premium", 0.00, 0.25, 0.10, (0.05, 0.025), stage_level, decimals=3)
+        groups.append(("流通盘阈值", [{"float_size_threshold": threshold} for threshold in float_threshold_values]))
+        groups.append(("小盘溢价", [{"small_cap_premium": premium} for premium in small_cap_values]))
 
-    pe_low_values = _auto_stage_values(params, "pe_low_threshold", 0.20, 0.50, 0.35, (0.05, 0.025), stage_level, decimals=3)
-    pe_boost_values = _auto_stage_values(params, "pe_discount_boost", 0.00, 0.15, 0.05, (0.025, 0.01), stage_level, decimals=3)
-    pe_high_values = _auto_stage_values(params, "pe_high_threshold", 0.55, 0.85, 0.70, (0.05, 0.025), stage_level, decimals=3)
-    pe_drag_values = _auto_stage_values(params, "pe_premium_drag", -0.15, 0.00, -0.05, (0.025, 0.01), stage_level, decimals=3)
-    groups.append(
-        (
-            "PE 低估修正",
-            _auto_product_candidates(
-                [
-                    [{"pe_low_threshold": low} for low in pe_low_values],
-                    [{"pe_discount_boost": boost} for boost in pe_boost_values],
-                ]
-            ),
+        pe_low_values = _auto_stage_values(params, "pe_low_threshold", 0.20, 0.50, 0.35, (0.05, 0.025), stage_level, decimals=3)
+        pe_boost_values = _auto_stage_values(params, "pe_discount_boost", 0.00, 0.15, 0.05, (0.025, 0.01), stage_level, decimals=3)
+        pe_high_values = _auto_stage_values(params, "pe_high_threshold", 0.55, 0.85, 0.70, (0.05, 0.025), stage_level, decimals=3)
+        pe_drag_values = _auto_stage_values(params, "pe_premium_drag", -0.15, 0.00, -0.05, (0.025, 0.01), stage_level, decimals=3)
+        groups.append(
+            (
+                "PE 低估修正",
+                _auto_product_candidates(
+                    [
+                        [{"pe_low_threshold": low} for low in pe_low_values],
+                        [{"pe_discount_boost": boost} for boost in pe_boost_values],
+                    ]
+                ),
+            )
         )
-    )
-    groups.append(
-        (
-            "PE 高估修正",
-            _auto_product_candidates(
-                [
-                    [{"pe_high_threshold": high} for high in pe_high_values],
-                    [{"pe_premium_drag": drag} for drag in pe_drag_values],
-                ]
-            ),
+        groups.append(
+            (
+                "PE 高估修正",
+                _auto_product_candidates(
+                    [
+                        [{"pe_high_threshold": high} for high in pe_high_values],
+                        [{"pe_premium_drag": drag} for drag in pe_drag_values],
+                    ]
+                ),
+            )
         )
-    )
 
     half_life_values = _auto_stage_int_values(params, "method2_decay_half_life_days", 30, 180, 90, (30, 15), stage_level)
     groups.append(("方法二样本权重模式", [{"method2_weight_mode": "static"}, {"method2_weight_mode": "time_decay"}]))
@@ -2447,23 +2615,106 @@ def build_auto_tune_candidate_groups(
     )
     groups.append(
         (
-            "方法一行业 PE 兜底置信度",
+            "方法二稳健过滤",
+            _auto_product_candidates(
+                [
+                    [
+                        {"robust_median_min_samples": value}
+                        for value in _auto_stage_int_values(
+                            params,
+                            "robust_median_min_samples",
+                            3,
+                            8,
+                            4,
+                            (1, 1),
+                            stage_level,
+                        )
+                    ],
+                    [
+                        {"robust_mad_multiplier": value}
+                        for value in _auto_stage_values(
+                            params,
+                            "robust_mad_multiplier",
+                            2.0,
+                            4.0,
+                            3.0,
+                            (0.5, 0.25),
+                            stage_level,
+                            decimals=2,
+                        )
+                    ],
+                ]
+            ),
+        )
+    )
+    if evaluation_scope == COMPOSITE_EVALUATION_SCOPE:
+        groups.append(
+            (
+                "方法二小样本置信度",
+                [
+                    {
+                        "method2_confidence_1_sample": n1,
+                        "method2_confidence_2_samples": n2,
+                        "method2_confidence_3_samples": n3,
+                        "method2_confidence_4plus_samples": n4,
+                    }
+                    for n1, n2, n3, n4 in (
+                        (0.20, 0.20, 0.35, 0.40),
+                        (0.05, 0.20, 0.45, 0.75),
+                        (0.10, 0.25, 0.50, 0.80),
+                        (0.15, 0.35, 0.60, 0.90),
+                        (0.20, 0.40, 0.65, 0.90),
+                        (0.25, 0.50, 0.75, 1.00),
+                        (0.35, 0.60, 0.80, 1.00),
+                    )
+                ],
+            )
+        )
+        groups.append(
+            (
+                "方法一行业 PE 兜底置信度",
+                [
+                    {"method1_industry_fallback_confidence": value}
+                    for value in _auto_stage_values(
+                        params,
+                        "method1_industry_fallback_confidence",
+                        0.10,
+                        0.60,
+                        0.30,
+                        (0.10, 0.05),
+                        stage_level,
+                        decimals=3,
+                    )
+                ],
+            )
+        )
+        groups.append(
+            (
+                "可比 PE 统计方式",
+                [
+                    {"comparable_pe_stat": "median"},
+                    {"comparable_pe_stat": "mean"},
+                ],
+            )
+        )
+
+    groups.append(
+        (
+            "方法三情绪窗口",
             [
-                {"method1_industry_fallback_confidence": value}
-                for value in _auto_stage_values(
+                {"recent_days": value}
+                for value in _auto_stage_int_values(
                     params,
-                    "method1_industry_fallback_confidence",
-                    0.10,
-                    0.60,
-                    0.30,
-                    (0.10, 0.05),
+                    "recent_days",
+                    30,
+                    120,
+                    60,
+                    (15, 5),
                     stage_level,
-                    decimals=3,
                 )
             ],
         )
     )
-
     sentiment_half_life_values = _auto_stage_int_values(params, "sentiment_decay_half_life_days", 2, 15, 5, (2, 1), stage_level)
     groups.append(("sentiment_half_life", [{"sentiment_decay_half_life_days": value} for value in sentiment_half_life_values]))
     groups.append(
@@ -2511,58 +2762,97 @@ def build_auto_tune_candidate_groups(
             ],
         )
     )
-
-    trend_weight_values = _auto_stage_values(params, "industry_trend_weight", 0.30, 0.85, 0.60, (0.05, 0.025), stage_level, decimals=3)
-    groups.append(
-        (
-            "走势权重",
-            [
-                {
-                    "industry_trend_weight": value,
-                    "market_sentiment_weight": round(1 - float(value), 10),
-                }
-                for value in trend_weight_values
-            ],
+    if evaluation_scope == COMPOSITE_EVALUATION_SCOPE and _is_enabled(params.get("local_center_overlay_enabled"), False):
+        groups.append(
+            (
+                "本地滚动中枢混合",
+                _auto_product_candidates(
+                    [
+                        [
+                            {"local_center_alpha": value}
+                            for value in _auto_stage_values(
+                                params,
+                                "local_center_alpha",
+                                0.25,
+                                0.75,
+                                0.50,
+                                (0.10, 0.05),
+                                stage_level,
+                                decimals=2,
+                            )
+                        ],
+                        [
+                            {"local_center_history_window": value}
+                            for value in _auto_stage_int_values(
+                                params,
+                                "local_center_history_window",
+                                10,
+                                40,
+                                20,
+                                (5, 2),
+                                stage_level,
+                            )
+                        ],
+                    ]
+                ),
+            )
         )
-    )
-    groups.append(
-        (
-            "强势走势加成",
-            [
-                {"trend_strong_boost": value}
-                for value in _auto_stage_values(params, "trend_strong_boost", 0.00, 0.12, 0.05, (0.025, 0.01), stage_level, decimals=3)
-            ],
+        groups.append(
+            (
+                "本地滚动中枢稳健性",
+                _auto_product_candidates(
+                    [
+                        [
+                            {"local_center_min_history": value}
+                            for value in _auto_stage_int_values(
+                                params,
+                                "local_center_min_history",
+                                5,
+                                12,
+                                8,
+                                (1, 1),
+                                stage_level,
+                            )
+                        ],
+                        [
+                            {"local_center_actual_cap_pct": value}
+                            for value in _auto_stage_values(
+                                params,
+                                "local_center_actual_cap_pct",
+                                400.0,
+                                900.0,
+                                600.0,
+                                (100.0, 50.0),
+                                stage_level,
+                                decimals=1,
+                            )
+                        ],
+                        [
+                            {"local_center_slope_cap": value}
+                            for value in _auto_stage_values(
+                                params,
+                                "local_center_slope_cap",
+                                10.0,
+                                35.0,
+                                25.0,
+                                (5.0, 2.5),
+                                stage_level,
+                                decimals=1,
+                            )
+                        ],
+                    ]
+                ),
+            )
         )
-    )
-    groups.append(
-        (
-            "弱势走势折价",
-            [
-                {"trend_weak_discount": value}
-                for value in _auto_stage_values(params, "trend_weak_discount", -0.12, 0.00, -0.05, (0.025, 0.01), stage_level, decimals=3)
-            ],
-        )
-    )
-    groups.append(
-        (
-            "强势走势阈值",
-            [
-                {"trend_strong_threshold": value}
-                for value in _auto_stage_int_values(params, "trend_strong_threshold", 60, 85, 70, (5, 2), stage_level)
-            ],
-        )
-    )
-    groups.append(
-        (
-            "弱势走势阈值",
-            [
-                {"trend_weak_threshold": value}
-                for value in _auto_stage_int_values(params, "trend_weak_threshold", 25, 55, 40, (5, 2), stage_level)
-            ],
-        )
-    )
-
-    groups.append(("WSI 权重组合", build_stage_candidates("wsi_turnover_balance")))
+    if evaluation_scope == METHOD2_ONLY_SCOPE:
+        allowed_keys = set(LATEST_METHOD2_AUTO_TUNABLE_KEYS)
+        groups = [
+            (
+                name,
+                [candidate for candidate in candidates if set(candidate).issubset(allowed_keys)],
+            )
+            for name, candidates in groups
+        ]
     return [(name, _dedupe_override_list(candidates)) for name, candidates in groups if candidates]
 
 
@@ -2746,6 +3036,51 @@ def _auto_entry_sort_key(item: dict[str, Any]) -> tuple[float, float, float, flo
     )
 
 
+def _formal_acceptance_guard(
+    candidate_metrics: dict[str, Any],
+    baseline_metrics: dict[str, Any],
+) -> dict[str, Any]:
+    epsilon = 1e-12
+    candidate_hit = float(candidate_metrics.get("interval_hit_rate") or 0.0)
+    baseline_hit = float(baseline_metrics.get("interval_hit_rate") or 0.0)
+    candidate_mae = _safe_float(candidate_metrics.get("mae_change_pct"))
+    baseline_mae = _safe_float(baseline_metrics.get("mae_change_pct"))
+    candidate_p90 = _safe_float(candidate_metrics.get("p90_change_abs_error_pct"))
+    baseline_p90 = _safe_float(baseline_metrics.get("p90_change_abs_error_pct"))
+    candidate_available = float(candidate_metrics.get("available_rate") or 0.0)
+    baseline_available = float(baseline_metrics.get("available_rate") or 0.0)
+    checks = {
+        "full_hit_not_lower": candidate_hit + epsilon >= baseline_hit,
+        "full_mae_not_higher": (
+            candidate_mae is not None
+            and baseline_mae is not None
+            and candidate_mae <= baseline_mae + epsilon
+        ),
+        "full_p90_not_higher": (
+            candidate_p90 is not None
+            and baseline_p90 is not None
+            and candidate_p90 <= baseline_p90 + epsilon
+        ),
+        "availability_not_lower": candidate_available + epsilon >= baseline_available,
+    }
+    return {
+        "passed": all(checks.values()),
+        "checks": checks,
+        "candidate": {
+            "interval_hit_rate": candidate_hit,
+            "mae_change_pct": candidate_mae,
+            "p90_change_abs_error_pct": candidate_p90,
+            "available_rate": candidate_available,
+        },
+        "baseline": {
+            "interval_hit_rate": baseline_hit,
+            "mae_change_pct": baseline_mae,
+            "p90_change_abs_error_pct": baseline_p90,
+            "available_rate": baseline_available,
+        },
+    }
+
+
 def _diff_params(
     base_params: dict[str, Any],
     candidate_params: dict[str, Any],
@@ -2791,6 +3126,26 @@ def auto_tune_params(
     search_start_params = dict(center_params or base_params)
     groups = build_auto_tune_candidate_groups(base_params, dataset, stage_level=stage_level, center_params=search_start_params)
     evaluation_scope = _get_dataset_evaluation_scope(dataset)
+    candidate_keys = sorted({key for _, candidates in groups for candidate in candidates for key in candidate})
+    required_latest_keys = set(LATEST_METHOD2_AUTO_TUNABLE_KEYS)
+    if evaluation_scope == COMPOSITE_EVALUATION_SCOPE:
+        required_latest_keys.update(LATEST_METHOD1_AUTO_TUNABLE_KEYS)
+        required_latest_keys.update(LATEST_METHOD2_CONFIDENCE_AUTO_TUNABLE_KEYS)
+        required_latest_keys.update(LATEST_METHOD3_AUTO_TUNABLE_KEYS)
+        if _is_enabled(base_params.get("local_center_overlay_enabled"), False):
+            required_latest_keys.update(LATEST_LOCAL_CENTER_AUTO_TUNABLE_KEYS)
+    missing_latest_keys = sorted(required_latest_keys - set(candidate_keys))
+    model_contract = {
+        "version": AUTO_TUNE_MODEL_CONTRACT_VERSION,
+        "evaluation_scope": evaluation_scope,
+        "candidate_keys": candidate_keys,
+        "required_latest_model_keys": sorted(required_latest_keys),
+        "missing_latest_model_keys": missing_latest_keys,
+        "structural_flags": {key: base_params.get(key) for key in LATEST_MODEL_STRUCTURAL_FLAGS},
+        "latest_model_compatible": not missing_latest_keys,
+    }
+    if missing_latest_keys:
+        raise ValueError(f"自动调参候选缺少最新估值模型参数：{', '.join(missing_latest_keys)}")
     reference_date = _auto_tune_reference_date(dataset)
     tunable_keys = {key for _, candidates in groups for candidate in candidates for key in candidate.keys()}
     tunable_keys.update(key for key in search_start_params if _values_differ(base_params.get(key), search_start_params.get(key)))
@@ -2916,9 +3271,29 @@ def auto_tune_params(
         unique_entries.append(entry)
     unique_entries.sort(key=_auto_entry_sort_key)
 
+    baseline_metrics = dict(baseline_entry.get("metrics") or {})
+    for entry in unique_entries:
+        entry["formal_acceptance_guard"] = _formal_acceptance_guard(
+            dict(entry.get("metrics") or {}),
+            baseline_metrics,
+        )
+    guarded_entries = [
+        entry
+        for entry in unique_entries
+        if (entry.get("formal_acceptance_guard") or {}).get("passed")
+    ]
+    guarded_entries.sort(key=_auto_entry_sort_key)
+    best_entry = guarded_entries[0] if guarded_entries else baseline_entry
+    current_overrides = dict(best_entry.get("overrides") or {})
+    final_guard = dict(
+        best_entry.get("formal_acceptance_guard")
+        or _formal_acceptance_guard(dict(best_entry.get("metrics") or {}), baseline_metrics)
+    )
+
     return {
         "generated_at": _now_text(),
         "evaluation_scope": evaluation_scope,
+        "model_contract": model_contract,
         "stage_level": stage_level,
         "reference_date": reference_date.isoformat(),
         "sample_window_days": _auto_sample_window_days(base_params),
@@ -2937,8 +3312,13 @@ def auto_tune_params(
         "best": best_entry,
         "best_is_baseline": not bool(current_overrides),
         "changed_overrides": current_overrides,
+        "formal_acceptance_guard": {
+            **final_guard,
+            "eligible_candidate_count": len(guarded_entries),
+            "evaluated_candidate_count": len(unique_entries),
+        },
         "pass_summaries": pass_summaries,
-        "top_candidates": unique_entries[:top_n],
+        "top_candidates": guarded_entries[:top_n],
     }
 
 
@@ -2972,6 +3352,10 @@ def prepend_auto_tuning_record(
     overrides = dict(result.get("changed_overrides") or {})
     baseline_score = ((result.get("baseline") or {}).get("auto_score") or {})
     best_score = ((result.get("best") or {}).get("auto_score") or {})
+    baseline_metrics = ((result.get("baseline") or {}).get("metrics") or {})
+    best_metrics = ((result.get("best") or {}).get("metrics") or {})
+    formal_guard = result.get("formal_acceptance_guard") or {}
+    time_slice_gate = result.get("time_slice_gate") or {}
     local_rerank = result.get("local_learning_rerank") or {}
     local_selected = local_rerank.get("selected") or {}
     conservative = local_selected.get("conservative") or {}
@@ -2997,6 +3381,12 @@ def prepend_auto_tuning_record(
         f"- 新参数近期加权命中率：{_fmt_metric(best_score.get('weighted_interval_hit_rate'))}",
         f"- 新参数最近样本权重占比：{_fmt_metric(best_score.get('recent_weight_share'))}",
         f"- 新参数加权 MAE(涨幅)：{_fmt_metric(best_score.get('weighted_mae_change_pct'))}",
+        f"- 正式写回安全门槛：{'通过' if formal_guard.get('passed') else '未通过'}",
+        f"- 三折时间切片门槛：{'通过' if time_slice_gate.get('passed') else '未通过'}；路径：{time_slice_gate.get('required_path') or '-'}；显式绕过：{'是' if time_slice_gate.get('bypassed') else '否'}",
+        f"- 时间切片报告：{((time_slice_gate.get('outputs') or {}).get('markdown') or '-')}",
+        f"- 全样本命中率 baseline / 新参数：{_fmt_metric(baseline_metrics.get('interval_hit_rate'))} / {_fmt_metric(best_metrics.get('interval_hit_rate'))}",
+        f"- 全样本 MAE baseline / 新参数：{_fmt_metric(baseline_metrics.get('mae_change_pct'))} / {_fmt_metric(best_metrics.get('mae_change_pct'))}",
+        f"- 全样本 P90 绝对误差 baseline / 新参数：{_fmt_metric(baseline_metrics.get('p90_change_abs_error_pct'))} / {_fmt_metric(best_metrics.get('p90_change_abs_error_pct'))}",
         f"- 当前手动区间宽度诊断扣分：{_fmt_metric(best_score.get('width_diagnostic_penalty'))}",
         f"- 本地学习重排：{'已执行' if local_rerank.get('applied') else '未执行'}；是否改变核心最优：{'是' if local_rerank.get('selection_changed') else '否'}",
         f"- 综合学习分：{_fmt_metric(local_selected.get('learning_score'))}",

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import math
 import statistics
 from datetime import date, timedelta
 from typing import Any
@@ -141,6 +142,19 @@ def _sample_first_day_change_pct(item: dict[str, Any]) -> float | None:
     if average_change is not None:
         return average_change
     return _safe_float(item.get("LD_CLOSE_CHANGE"))
+
+
+def _quantile(values: list[float], q: float) -> float | None:
+    clean = sorted(value for value in values if math.isfinite(value))
+    if not clean:
+        return None
+    if len(clean) == 1:
+        return clean[0]
+    position = (len(clean) - 1) * q
+    low = int(position)
+    high = min(low + 1, len(clean) - 1)
+    fraction = position - low
+    return clean[low] * (1 - fraction) + clean[high] * fraction
 
 
 def _change_from_listing_close(first_day_change: float | None, later_change: float | None) -> float | None:
@@ -374,6 +388,26 @@ def _filter_samples_by_year_to_date(
     return filtered
 
 
+def _method2_sample_confidence(raw_sample_count: int, params: dict[str, Any]) -> tuple[float, str]:
+    if not _is_enabled(params.get("method2_sample_confidence_enabled", True), default=True):
+        return 1.0, "disabled"
+    if raw_sample_count <= 1:
+        key, tier = "method2_confidence_1_sample", "1"
+    elif raw_sample_count == 2:
+        key, tier = "method2_confidence_2_samples", "2"
+    elif raw_sample_count == 3:
+        key, tier = "method2_confidence_3_samples", "3"
+    else:
+        key, tier = "method2_confidence_4plus_samples", "4+"
+    defaults = {
+        "method2_confidence_1_sample": 0.25,
+        "method2_confidence_2_samples": 0.50,
+        "method2_confidence_3_samples": 0.75,
+        "method2_confidence_4plus_samples": 1.00,
+    }
+    return _clamp(float(params.get(key, defaults[key])), 0.0, 1.0), tier
+
+
 def _pick_secondary_industry_samples(
     industry: dict[str, Any],
     records: list[dict[str, Any]],
@@ -452,14 +486,20 @@ def method2_industry_momentum(
 
     target_price = issue_price * (1 + base_chg / 100)
     start_date = date(reference_date.year, 1, 1)
+    confidence_multiplier, confidence_tier = _method2_sample_confidence(len(samples), params)
     return {
         "available": True,
         "method": "industry_first_day_change",
+        "issue_price": issue_price,
         "base_chg": base_chg,
         "target_price": target_price,
         "change_pct": base_chg,
         "sample_count": len(clean_samples),
         "raw_sample_count": len(samples),
+        "confidence_multiplier": confidence_multiplier,
+        "confidence_tier": confidence_tier,
+        "confidence_sample_count": len(samples),
+        "confidence_basis": "raw_sample_count_before_outlier_removal",
         "sample_scope": sample_scope,
         "sample_window_label": f"{reference_date.year}年内",
         "sample_window_start": start_date.isoformat(),
@@ -628,7 +668,20 @@ def composite_valuation(
         }
 
     normalized = _normalize_available_method_weights(candidates)
-    base_target_price = sum(float(result["target_price"]) * normalized[key] for key, result, _ in candidates)
+    confidence_residual_anchor_price = 0.0
+    confidence_residual_weight = 0.0
+    if len(candidates) == 1 and candidates[0][0] == "method2":
+        method2_result = candidates[0][1]
+        method2_confidence = _clamp(float(method2_result.get("confidence_multiplier", 1.0)), 0.0, 1.0)
+        issue_price = _safe_float(method2_result.get("issue_price"))
+        if issue_price is not None and method2_confidence < 1.0:
+            confidence_residual_weight = 1.0 - method2_confidence
+            confidence_residual_anchor_price = issue_price
+            normalized = {"method2": method2_confidence}
+    base_target_price = (
+        sum(float(result["target_price"]) * normalized[key] for key, result, _ in candidates)
+        + confidence_residual_anchor_price * confidence_residual_weight
+    )
 
     sentiment_premium_price = 0.0
     sentiment_premium_pct = 0.0
@@ -651,8 +704,353 @@ def composite_valuation(
         "weight_method1": normalized.get("method1", 0.0),
         "weight_method2": normalized.get("method2", 0.0),
         "weight_method3": 0.0,
+        "weight_confidence_residual": confidence_residual_weight,
+        "confidence_residual_anchor_price": confidence_residual_anchor_price if confidence_residual_weight > 0 else None,
         "method3_available": bool(method3 and method3.get("available")),
         "available_methods": [key for key, _, _ in candidates],
+    }
+
+
+def _local_center_industry_keys(item: dict[str, Any]) -> tuple[str, str]:
+    return (
+        str(item.get("industry_primary") or item.get("INDUSTRY") or "").strip(),
+        str(item.get("industry_secondary") or "").strip(),
+    )
+
+
+def _local_center_float_shares(item: dict[str, Any]) -> float | None:
+    direct = _safe_float(item.get("float_shares"))
+    if direct is not None:
+        return direct
+    issue_shares = _safe_float(item.get("TOTAL_ISSUE_NUM"))
+    old_shares = _safe_float(item.get("old_shares")) or 0.0
+    return issue_shares + old_shares if issue_shares is not None else None
+
+
+def _local_center_raw_row(item: dict[str, Any], completed: list[dict[str, Any]]) -> dict[str, Any]:
+    issue_price = _safe_float(item.get("ISSUE_PRICE"))
+    float_shares = _local_center_float_shares(item)
+    issue_pe = _safe_float(item.get("AFTER_ISSUE_PE"))
+    industry_pe = _safe_float(item.get("INDUSTRY_PE_NEW"))
+    old_shares = _safe_float(item.get("old_shares"))
+    primary, secondary = _local_center_industry_keys(item)
+    changes = [
+        float(row["actual_change_pct"])
+        for row in completed
+        if _safe_float(row.get("actual_change_pct")) is not None
+    ]
+    same_industry = []
+    for row in completed:
+        row_primary = str(row.get("industry_primary") or "")
+        row_secondary = str(row.get("industry_secondary") or "")
+        if secondary and row_secondary == secondary:
+            same_industry.append(row)
+        elif primary and row_primary == primary:
+            same_industry.append(row)
+    same_changes = [
+        float(row["actual_change_pct"])
+        for row in same_industry[-5:]
+        if _safe_float(row.get("actual_change_pct")) is not None
+    ]
+    return {
+        "code": str(item.get("SECURITY_CODE") or "").strip(),
+        "listing_date": str(item.get("LISTING_DATE") or "")[:10],
+        "industry_primary": primary,
+        "industry_secondary": secondary,
+        "issue_price": issue_price,
+        "float_market_cap_yi": (
+            issue_price * float_shares / 10000
+            if issue_price is not None and float_shares is not None
+            else None
+        ),
+        "old_share_ratio": (
+            old_shares / float_shares
+            if old_shares is not None and float_shares not in (None, 0)
+            else None
+        ),
+        "after_issue_pe": issue_pe,
+        "pe_to_industry": (
+            issue_pe / industry_pe
+            if issue_pe is not None and industry_pe not in (None, 0)
+            else None
+        ),
+        "recent5_median_change": statistics.median(changes[-5:]) if changes else None,
+        "same_industry_recent_median": statistics.median(same_changes) if same_changes else None,
+        "top_apply_marketcap": _safe_float(item.get("TOP_APPLY_MARKETCAP")),
+        "online_issue_num": _safe_float(item.get("ONLINE_ISSUE_NUM")),
+        "actual_change_pct": _sample_first_day_change_pct(item),
+    }
+
+
+def _local_center_thresholds(rows: list[dict[str, Any]]) -> dict[str, dict[str, float | None]]:
+    fields = (
+        "float_market_cap_yi",
+        "top_apply_marketcap",
+        "online_issue_num",
+    )
+    result: dict[str, dict[str, float | None]] = {}
+    for field in fields:
+        values = [
+            float(value)
+            for value in (_safe_float(row.get(field)) for row in rows)
+            if value is not None
+        ]
+        result[field] = {
+            "p25": _quantile(values, 0.25),
+            "p50": _quantile(values, 0.50),
+            "p75": _quantile(values, 0.75),
+        }
+    return result
+
+
+def _local_center_proxy_score(
+    row: dict[str, Any],
+    thresholds: dict[str, dict[str, float | None]],
+) -> tuple[float, list[str]]:
+    score = 0.0
+    reasons: list[str] = []
+    issue_price = _safe_float(row.get("issue_price"))
+    float_cap = _safe_float(row.get("float_market_cap_yi"))
+    pe = _safe_float(row.get("after_issue_pe"))
+    pe_ratio = _safe_float(row.get("pe_to_industry"))
+    recent5 = _safe_float(row.get("recent5_median_change"))
+    same_industry = _safe_float(row.get("same_industry_recent_median"))
+    old_ratio = _safe_float(row.get("old_share_ratio"))
+    top_apply = _safe_float(row.get("top_apply_marketcap"))
+    online_issue = _safe_float(row.get("online_issue_num"))
+
+    float_q = thresholds.get("float_market_cap_yi") or {}
+    if float_cap is not None:
+        if float_q.get("p25") is not None and float_cap <= float(float_q["p25"]):
+            score += 2
+            reasons.append("small_float_cap")
+        elif float_q.get("p50") is not None and float_cap <= float(float_q["p50"]):
+            score += 1
+            reasons.append("mid_small_float_cap")
+        elif float_q.get("p75") is not None and float_cap >= float(float_q["p75"]):
+            score -= 1
+            reasons.append("large_float_cap")
+    if issue_price is not None:
+        if issue_price <= 15:
+            score += 1
+            reasons.append("low_issue_price")
+        elif issue_price >= 30:
+            score -= 1
+            reasons.append("high_issue_price")
+
+    if pe_ratio is not None:
+        if pe_ratio <= 0.55:
+            score += 2
+            reasons.append("deep_issue_pe_discount")
+        elif pe_ratio <= 0.80:
+            score += 1
+            reasons.append("issue_pe_discount")
+        elif pe_ratio >= 1.50:
+            score -= 2
+            reasons.append("high_issue_pe_premium")
+        elif pe_ratio >= 1.15:
+            score -= 1
+            reasons.append("issue_pe_premium")
+    if pe is not None:
+        if pe <= 15:
+            score += 1
+            reasons.append("low_issue_pe")
+        elif pe >= 35:
+            score -= 1
+            reasons.append("high_issue_pe")
+
+    if recent5 is not None:
+        if recent5 >= 180:
+            score += 3
+            reasons.append("very_strong_recent_mood")
+        elif recent5 >= 120:
+            score += 2
+            reasons.append("strong_recent_mood")
+        elif recent5 >= 70:
+            score += 1
+            reasons.append("positive_recent_mood")
+        elif recent5 < 20:
+            score -= 2
+            reasons.append("weak_recent_mood")
+        elif recent5 < 50:
+            score -= 1
+            reasons.append("soft_recent_mood")
+    if same_industry is not None:
+        if same_industry >= 160:
+            score += 2
+            reasons.append("strong_sector_mood")
+        elif same_industry >= 90:
+            score += 1
+            reasons.append("positive_sector_mood")
+        elif same_industry < 30:
+            score -= 1
+            reasons.append("weak_sector_mood")
+
+    top_q = thresholds.get("top_apply_marketcap") or {}
+    online_q = thresholds.get("online_issue_num") or {}
+    if top_apply is not None and top_q.get("p25") is not None and top_q.get("p75") is not None:
+        if top_apply <= float(top_q["p25"]):
+            score += 1
+            reasons.append("low_top_apply")
+        elif top_apply >= float(top_q["p75"]):
+            score -= 0.5
+            reasons.append("high_top_apply")
+    if online_issue is not None and online_q.get("p25") is not None and online_issue <= float(online_q["p25"]):
+        score += 0.5
+        reasons.append("small_online_issue")
+    if old_ratio is not None:
+        if old_ratio >= 0.25:
+            score -= 2
+            reasons.append("high_old_share_overhang")
+        elif old_ratio >= 0.12:
+            score -= 1
+            reasons.append("old_share_overhang")
+    return score, reasons
+
+
+def _local_center_linear_prediction(
+    previous: list[dict[str, Any]],
+    score: float,
+    params: dict[str, Any],
+) -> tuple[float | None, int]:
+    min_history = max(int(float(params.get("local_center_min_history", 8))), 1)
+    history_window = max(int(float(params.get("local_center_history_window", 20))), 0)
+    actual_cap = float(params.get("local_center_actual_cap_pct", 900.0))
+    slope_cap = max(float(params.get("local_center_slope_cap", 25.0)), 0.0)
+    history = previous[-history_window:] if history_window > 0 else previous
+    pairs = [
+        (float(row["proxy_score"]), min(float(row["actual_change_pct"]), actual_cap))
+        for row in history
+        if _safe_float(row.get("proxy_score")) is not None
+        and _safe_float(row.get("actual_change_pct")) is not None
+    ]
+    if len(pairs) < min_history:
+        return None, len(pairs)
+    if len(pairs) < 5:
+        similar = [y for x, y in pairs if abs(x - score) <= 2.5]
+        values = similar if len(similar) >= 2 else [y for _, y in pairs]
+        return statistics.median(values), len(pairs)
+
+    xs = [x for x, _ in pairs]
+    ys = [y for _, y in pairs]
+    mean_x = statistics.fmean(xs)
+    mean_y = statistics.fmean(ys)
+    variance = sum((x - mean_x) ** 2 for x in xs)
+    if variance <= 1e-9:
+        return statistics.median(ys), len(pairs)
+    beta = sum((x - mean_x) * (y - mean_y) for x, y in pairs) / variance
+    beta = max(-20.0, min(slope_cap, beta))
+    intercept = mean_y - beta * mean_x
+    return max(-50.0, min(actual_cap, intercept + beta * score)), len(pairs)
+
+
+def apply_local_center_overlay(
+    final: dict[str, Any],
+    *,
+    issue_price: float | None,
+    issue_pe: float | None,
+    industry_pe: float | None,
+    float_shares: float | None,
+    old_shares: float | None,
+    industry: dict[str, Any],
+    recent_ipos: list[dict[str, Any]],
+    params: dict[str, Any],
+    target_code: str | None = None,
+    target_listing_date: str | date | None = None,
+    online_issue_num: float | None = None,
+    top_apply_marketcap: float | None = None,
+) -> dict[str, Any]:
+    if not _is_enabled(params.get("local_center_overlay_enabled"), False):
+        return final
+    if not final.get("available") or issue_price in (None, 0):
+        return final
+
+    reference_date = _parse_date(target_listing_date) or date.today()
+    normalized_target_code = str(target_code or "").strip()
+    historical = []
+    for item in recent_ipos:
+        code = str(item.get("SECURITY_CODE") or "").strip()
+        listing_date = _parse_date(item.get("LISTING_DATE"))
+        if normalized_target_code and code == normalized_target_code:
+            continue
+        if listing_date is None or listing_date >= reference_date:
+            continue
+        if _sample_first_day_change_pct(item) is None:
+            continue
+        historical.append(dict(item))
+    historical.sort(key=lambda item: (_parse_date(item.get("LISTING_DATE")) or date.min, str(item.get("SECURITY_CODE") or "")))
+
+    target_item = {
+        "SECURITY_CODE": normalized_target_code,
+        "LISTING_DATE": reference_date.isoformat(),
+        "ISSUE_PRICE": issue_price,
+        "AFTER_ISSUE_PE": issue_pe,
+        "INDUSTRY_PE_NEW": industry_pe,
+        "float_shares": float_shares,
+        "old_shares": old_shares,
+        "industry_primary": str(industry.get("primary") or ""),
+        "industry_secondary": str(industry.get("secondary") or ""),
+        "ONLINE_ISSUE_NUM": online_issue_num,
+        "TOP_APPLY_MARKETCAP": top_apply_marketcap,
+    }
+    sequence = [*historical, target_item]
+    completed: list[dict[str, Any]] = []
+    target_row: dict[str, Any] | None = None
+    index = 0
+    while index < len(sequence):
+        group_date = str(sequence[index].get("LISTING_DATE") or "")[:10]
+        group_items: list[dict[str, Any]] = []
+        while index < len(sequence) and str(sequence[index].get("LISTING_DATE") or "")[:10] == group_date:
+            group_items.append(sequence[index])
+            index += 1
+        raw_group = [_local_center_raw_row(item, completed) for item in group_items]
+        threshold_rows = completed if len(completed) >= 4 else completed + raw_group
+        thresholds = _local_center_thresholds(threshold_rows)
+        for row in raw_group:
+            row["proxy_score"], row["proxy_reasons"] = _local_center_proxy_score(row, thresholds)
+            if row.get("code") == normalized_target_code and group_date == reference_date.isoformat():
+                target_row = row
+        completed.extend(row for row in raw_group if _safe_float(row.get("actual_change_pct")) is not None)
+
+    if target_row is None:
+        return {**final, "local_center_overlay_applied": False, "local_center_overlay_reason": "target feature row unavailable"}
+    rolling_change, history_count = _local_center_linear_prediction(
+        completed,
+        float(target_row.get("proxy_score") or 0.0),
+        params,
+    )
+    if rolling_change is None:
+        return {
+            **final,
+            "local_center_overlay_applied": False,
+            "local_center_overlay_reason": "insufficient completed history",
+            "local_center_history_count": history_count,
+            "local_center_proxy_score": target_row.get("proxy_score"),
+        }
+
+    base_target = _safe_float(final.get("target_price"))
+    if base_target is None:
+        return final
+    base_change = (base_target / float(issue_price) - 1) * 100
+    alpha = min(max(float(params.get("local_center_alpha", 0.50)), 0.0), 1.0)
+    blended_change = base_change * (1 - alpha) + rolling_change * alpha
+    target_price = float(issue_price) * (1 + blended_change / 100)
+    width = float(params.get("price_range_width", 0.10))
+    return {
+        **final,
+        "target_price": target_price,
+        "range_low": target_price * (1 - width),
+        "range_high": target_price * (1 + width),
+        "pre_local_center_target_price": base_target,
+        "pre_local_center_change_pct": base_change,
+        "local_center_overlay_applied": True,
+        "local_center_overlay_reason": "walk_forward_local_proxy_blend",
+        "local_center_alpha": alpha,
+        "local_center_proxy_score": target_row.get("proxy_score"),
+        "local_center_proxy_reasons": target_row.get("proxy_reasons") or [],
+        "local_center_history_count": history_count,
+        "local_center_rolling_change_pct": rolling_change,
+        "local_center_blended_change_pct": blended_change,
     }
 
 

@@ -187,8 +187,10 @@ REGRESSION_CASES = (
             "大博医疗",
             "方法二样本范围",
             "方法二实际样本代码",
-            "综合估值公式",
+            "基础估值公式",
             "区间宽度",
+            "偏PE估值区间",
+            "偏情绪估值区间",
             "东方财富（仅展示补充：定价方式、有效申购户数、主营业务）",
         ),
     ),
@@ -201,10 +203,11 @@ REGRESSION_CASES = (
             "怡合达",
             "宏工科技",
             "综合估值",
-            "方法二样本范围",
-            "方法二实际样本代码",
-            "综合估值公式",
+            "没有同二级行业历史新股样本",
+            "基础权重 = 方法一 100%",
             "区间宽度",
+            "偏PE估值区间",
+            "偏情绪估值区间",
         ),
     ),
 )
@@ -629,7 +632,8 @@ def _assert_report_overview_text(failures: list[str]) -> None:
         "正股抢时间 否\n"
         "碎股抢时间 1+1以下可能\n"
         "上市日期\n"
-        "估价区间（元） 12.30 - 14.50\n"
+        "偏PE估值区间（元） 12.30 - 14.50\n"
+        "偏情绪估值区间（元）\n"
     )
     if overview != expected:
         failures.append(f"overview text mismatch: {overview!r}")
@@ -815,9 +819,9 @@ def _assert_note_builder_focus_scope(params: dict[str, Any], failures: list[str]
         note_params,
     )
     expected_notes = [
-        "当前标的尚未完成行业映射，方法二已自动回退全市场样本。建议在 `策略参数.txt` 中补充 `stock_industry` 或行业映射。",
-        "发行 PE 相对行业偏高，需要关注上市首日估值兑现压力。",
-        "首日流通盘偏小，历史上这类新股更容易获得情绪溢价。",
+        "当前标的尚未完成二级行业映射，方法二不再回退一级行业或全市场样本。",
+        "发行 PE 相对行业 PE 偏高；EPS 已反映该影响，当前不再重复施加高 PE 惩罚。",
+        "首日流通盘偏小，方法一已连续计入流通盘溢价；方法二仍保持纯行业口径。",
         "首日流通老股数据待确认，原因：未找到上市公告书，且未找到可用招股文件。当前首日流通盘按仅新增发行量估算。",
     ]
     if noisy_notes != expected_notes:
@@ -836,7 +840,7 @@ def _assert_note_builder_focus_scope(params: dict[str, Any], failures: list[str]
         },
         note_params,
     )
-    if low_pe_notes != ["发行 PE 显著低于行业 PE，定价具备一定折价优势。"]:
+    if low_pe_notes != ["发行 PE 明显低于披露的行业 PE，方法一已计入有限的低估修正。"]:
         failures.append(f"note_builder low PE mismatch: {low_pe_notes}")
 
 

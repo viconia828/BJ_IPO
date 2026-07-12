@@ -354,6 +354,46 @@ def load_or_refresh_replay_dataset(
         months=months,
     )
     if not sync_status["needs_refresh"]:
+        stale_pdf_codes: list[str] = []
+        stale_record_codes: list[str] = []
+        mapper = param_tuning.IndustryMapper(params)
+        dataset_items_by_code = {
+            str(item.get("SECURITY_CODE") or "").strip(): item
+            for item in dataset.get("items") or []
+        }
+        cache_dir = dataset_path.parent / "replay_items"
+        for code in sync_status.get("local_codes") or []:
+            existing_item = dataset_items_by_code.get(code)
+            if existing_item is not None:
+                enriched_item = mapper.enrich_recent_ipos([existing_item])[0]
+                record_signature = param_tuning._build_replay_record_signature(enriched_item)
+                if param_tuning._cached_replay_record_signature_matches(
+                    code,
+                    record_signature,
+                    cache_dir,
+                ) is False:
+                    stale_record_codes.append(code)
+            pdf_paths = param_tuning._resolve_replay_pdf_paths(code)
+            pdf_signature = param_tuning._build_replay_pdf_signature(pdf_paths)
+            if param_tuning._cached_replay_pdf_signature_matches(
+                code,
+                pdf_signature,
+                cache_dir,
+            ) is False:
+                stale_pdf_codes.append(code)
+        if stale_record_codes or stale_pdf_codes:
+            sync_status["needs_refresh"] = True
+            if stale_record_codes:
+                sync_status["reasons"].append(
+                    "replay 记录或行业映射签名变化：" + ", ".join(stale_record_codes)
+                )
+            if stale_pdf_codes:
+                sync_status["reasons"].append(
+                    "replay PDF 文件签名或解析器版本变化：" + ", ".join(stale_pdf_codes)
+                )
+            sync_status["stale_record_codes"] = stale_record_codes
+            sync_status["stale_pdf_codes"] = stale_pdf_codes
+    if not sync_status["needs_refresh"]:
         print(
             "回放数据集已同步本地样本源：样本源 {csv_count} 个，可用样本 {sample_count} 个。".format(
                 csv_count=len(sync_status.get("local_codes") or []),
@@ -944,13 +984,15 @@ def sync_offline_tuning_dataset(
             download_retries=download_retries,
             download_delay_seconds=download_delay_seconds,
             progress_callback=_history_progress,
+            force_rebuild=bool(getattr(args, "force_rebuild_subscription_history", False)),
         )
     finally:
         if history_heartbeat is not None:
             history_heartbeat.stop()
     if verbose:
         print(
-            "申购 history 行数：{row_count}；model_ready={model_ready_count}；手工标签行数 {ladder_label_rows}。".format(
+            "申购 history 行数：{row_count}；重建 {rebuilt_count}，复用 {reused_count}；"
+            "model_ready={model_ready_count}；手工标签行数 {ladder_label_rows}。".format(
                 **history_summary
             ),
             flush=True,
@@ -962,10 +1004,13 @@ def sync_offline_tuning_dataset(
         points_path=account_pool_points_path,
         thresholds_path=account_pool_thresholds_path,
         summary_path=account_pool_summary_path,
+        force_rebuild=bool(getattr(args, "force_rebuild_account_pool", False)),
     )
     if verbose:
         print(
-            "account-pool history refreshed: samples={sample_count}, usable_points={usable_point_count}, snapshots={threshold_row_count}, cutpoints={snapshot_cutpoint_count}.".format(
+            "account-pool history refreshed: samples={sample_count}, usable_points={usable_point_count}, "
+            "snapshots={threshold_row_count}, cutpoints={snapshot_cutpoint_count}, "
+            "mode={rebuild_mode}, reused_prefix={reused_prefix_count}, rebuilt_suffix={rebuilt_suffix_count}.".format(
                 **account_pool_summary
             ),
             flush=True,
@@ -1072,6 +1117,16 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--download-retries", type=int, default=1)
     parser.add_argument("--download-delay-seconds", type=float, default=0.0)
     parser.add_argument("--parse-prospectus", action="store_true")
+    parser.add_argument(
+        "--force-rebuild-subscription-history",
+        action="store_true",
+        help="忽略逐代码输入签名，强制重建全部申购 history 行。",
+    )
+    parser.add_argument(
+        "--force-rebuild-account-pool",
+        action="store_true",
+        help="忽略快照签名，从第一只样本开始全量重建 account-pool。",
+    )
     parser.add_argument("--json", action="store_true", help="输出机器可读摘要。")
     return parser.parse_args()
 

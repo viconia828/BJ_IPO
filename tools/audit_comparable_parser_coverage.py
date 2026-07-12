@@ -26,6 +26,35 @@ VALID_CODE_PATTERN = re.compile(r"^\d{6}\.(?:SH|SZ|BJ|NQ)$", re.IGNORECASE)
 SELECTION_SENTENCE_PATTERN = re.compile(
     r"[^。；\n]{0,100}(?:选取|选择|确定)[^。；\n]{0,260}(?:作为|确定为)[^。；\n]{0,30}(?:同行业)?可比公司[^。；\n]{0,80}",
 )
+REVIEW_DISPOSITIONS = {
+    "920177": {
+        "disposition": "confirmed_no_comparable_companies",
+        "note": "人工复核招股说明书：正文明确无可比公司，空结果符合原文。",
+    },
+    "920186": {
+        "disposition": "confirmed_no_comparable_companies",
+        "note": "人工复核招股说明书：正文明确无可比公司，空结果符合原文。",
+    },
+    **{
+        code: {
+            "disposition": "reviewed_audit_false_positive",
+            "note": "人工复核确认当前解析结果可接受，审计启发式标记为误报。",
+        }
+        for code in (
+            "920011",
+            "920028",
+            "920076",
+            "920078",
+            "920083",
+            "920117",
+            "920126",
+            "920176",
+            "920183",
+            "920191",
+            "920200",
+        )
+    },
+}
 
 
 def _parse_args() -> argparse.Namespace:
@@ -148,13 +177,18 @@ def _build_code_groups(files: list[dict[str, Any]]) -> list[dict[str, Any]]:
         flags = sorted({flag for item in documents for flag in item["flags"]})
         if len(result_sets) > 1:
             flags.append("document_stage_result_mismatch")
+        raw_flags = sorted(set(flags))
+        review = dict(REVIEW_DISPOSITIONS.get(code) or {})
         rows.append(
             {
                 "code": code,
                 "document_count": len(documents),
                 "documents": [item["file_name"] for item in documents],
                 "parsed_results": {item["document_kind"]: item["parsed_codes"] for item in documents},
-                "flags": sorted(set(flags)),
+                "flags": raw_flags,
+                "unresolved_flags": [] if review else raw_flags,
+                "review_disposition": review.get("disposition", ""),
+                "review_note": review.get("note", ""),
             }
         )
     return rows
@@ -173,12 +207,15 @@ def _render_markdown(payload: dict[str, Any]) -> str:
         f"- 股票代码：{summary['code_count']} 个。",
         f"- 当前零结果文件：{summary['zero_result_file_count']} 份。",
         f"- 异常格式代码文件：{summary['invalid_code_file_count']} 份。",
-        f"- 需要人工复核的代码：{summary['flagged_code_count']} 个。",
+        f"- 启发式原始标记：{summary['raw_flagged_code_count']} 个。",
+        f"- 已人工关闭：{summary['reviewed_code_count']} 个。",
+        f"- 尚待人工复核：{summary['flagged_code_count']} 个。",
+        f"- 确认原文无可比公司：{summary['confirmed_no_comparable_count']} 个。",
         "",
         "## 逐代码",
         "",
-        "| 代码 | 文件数 | 解析结果 | 标记 |",
-        "|---|---:|---|---|",
+        "| 代码 | 文件数 | 解析结果 | 原始标记 | 人工处置 | 未关闭标记 |",
+        "|---|---:|---|---|---|---|",
     ]
     for item in payload["codes"]:
         rendered_results = "；".join(
@@ -186,7 +223,9 @@ def _render_markdown(payload: dict[str, Any]) -> str:
             for kind, codes in item["parsed_results"].items()
         )
         flags = ", ".join(item["flags"]) or "-"
-        lines.append(f"| {item['code']} | {item['document_count']} | {rendered_results} | {flags} |")
+        unresolved = ", ".join(item["unresolved_flags"]) or "-"
+        disposition = item["review_disposition"] or "-"
+        lines.append(f"| {item['code']} | {item['document_count']} | {rendered_results} | {flags} | {disposition} | {unresolved} |")
 
     lines.extend(["", "## 标记文件证据", ""])
     for item in payload["files"]:
@@ -207,6 +246,13 @@ def _render_markdown(payload: dict[str, Any]) -> str:
         if item["section_snippet"]:
             lines.append("- 章节片段：" + item["section_snippet"])
         lines.append("")
+    lines.extend(["", "## 人工复核处置", ""])
+    for item in payload["codes"]:
+        if not item["review_disposition"]:
+            continue
+        lines.append(
+            f"- {item['code']}：`{item['review_disposition']}`；{item['review_note']}"
+        )
     return "\n".join(lines).rstrip() + "\n"
 
 
@@ -227,6 +273,7 @@ def main() -> int:
     else:
         files = [_audit_file(path) for path in paths]
     codes = _build_code_groups(files)
+    reviewed_codes = [item for item in codes if item["review_disposition"]]
     payload = {
         "schema": "comparable_parser_coverage_audit_v1",
         "generated_at": datetime.now().isoformat(timespec="seconds"),
@@ -235,7 +282,13 @@ def main() -> int:
             "code_count": len(codes),
             "zero_result_file_count": sum(1 for item in files if not item["parsed_codes"]),
             "invalid_code_file_count": sum(1 for item in files if item["invalid_codes"]),
-            "flagged_code_count": sum(1 for item in codes if item["flags"]),
+            "raw_flagged_code_count": sum(1 for item in codes if item["flags"]),
+            "reviewed_code_count": len(reviewed_codes),
+            "flagged_code_count": sum(1 for item in codes if item["unresolved_flags"]),
+            "confirmed_no_comparable_count": sum(
+                item["review_disposition"] == "confirmed_no_comparable_companies"
+                for item in codes
+            ),
         },
         "codes": codes,
         "files": files,

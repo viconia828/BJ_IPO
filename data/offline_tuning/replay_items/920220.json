@@ -1,7 +1,7 @@
 {
   "schema": "offline_tuning_replay_item_v1",
-  "cache_version": 7,
-  "generated_at": "2026-07-09 23:33:30",
+  "cache_version": 8,
+  "generated_at": "2026-07-12 21:21:40",
   "code": "920220",
   "listing_date": "2026-05-22 00:00:00",
   "record_signature": {
@@ -29,23 +29,35 @@
     "TURNOVERRATE": 89.9138,
     "SW_INDUSTRY": null,
     "INDUSTRY": null,
-    "INDUSTRY_CODE": null
+    "INDUSTRY_CODE": null,
+    "industry_primary": "高端装备",
+    "industry_secondary": "汽车零部件",
+    "industry_source": "built_in_sample_map"
   },
   "pdf_signature": {
-    "listing": {
-      "name": "920220_朗信电气_上市公告书.pdf",
-      "size": 984612,
-      "mtime_ns": 1779809710007759500
+    "files": {
+      "listing": {
+        "name": "920220_朗信电气_上市公告书.pdf",
+        "size": 984612,
+        "mtime_ns": 1779809710007759500
+      },
+      "old_shares": {
+        "name": "920220_朗信电气_招股说明书.pdf",
+        "size": 8199303,
+        "mtime_ns": 1779809708893493600
+      },
+      "comparables": {
+        "name": "920220_朗信电气_招股说明书.pdf",
+        "size": 8199303,
+        "mtime_ns": 1779809708893493600
+      }
     },
-    "old_shares": {
-      "name": "920220_朗信电气_招股说明书.pdf",
-      "size": 8199303,
-      "mtime_ns": 1779809708893493600
-    },
-    "comparables": {
-      "name": "920220_朗信电气_招股说明书.pdf",
-      "size": 8199303,
-      "mtime_ns": 1779809708893493600
+    "pdf_parser_versions": {
+      "prospectus_issue_info": 8,
+      "issue_announcement_info": 5,
+      "issue_result_info": 4,
+      "comparable_companies": 22,
+      "business_desc": 3
     }
   },
   "item": {
@@ -64,22 +76,22 @@
     "AVERAGE_PRICE": 175.46014538542545,
     "LD_CLOSE_CHANGE": 390.6327,
     "LD_AVERAGE_CHANGE": 520.2196726243388,
-    "NEXT_DAY_CLOSE": null,
-    "THIRD_DAY_CLOSE": null,
-    "NEXT_DAY_CLOSE_CHANGE": null,
-    "THIRD_DAY_CLOSE_CHANGE": null,
-    "NEXT_DAY_FROM_LISTING_CLOSE_PCT": null,
-    "THIRD_DAY_FROM_LISTING_CLOSE_PCT": null,
-    "POST_LISTING_PROFIT_EFFECT_PCT": null,
-    "post_listing_performance_source": "",
-    "post_listing_performance_reason": "Tushare quota 已达上限，本次不再发起新请求。",
+    "NEXT_DAY_CLOSE": 101.73,
+    "THIRD_DAY_CLOSE": 85.7,
+    "NEXT_DAY_CLOSE_CHANGE": 259.5970307529162,
+    "THIRD_DAY_CLOSE_CHANGE": 202.93389890420644,
+    "NEXT_DAY_FROM_LISTING_CLOSE_PCT": -26.707492795389054,
+    "THIRD_DAY_FROM_LISTING_CLOSE_PCT": -38.25648414985591,
+    "POST_LISTING_PROFIT_EFFECT_PCT": -32.48198847262248,
+    "post_listing_performance_source": "tushare_daily",
+    "post_listing_performance_reason": "",
     "TURNOVERRATE": 89.9138,
     "SW_INDUSTRY": "",
     "INDUSTRY": "",
     "INDUSTRY_CODE": "",
-    "industry_primary": "未分类",
-    "industry_secondary": "未分类",
-    "industry_source": "unclassified",
+    "industry_primary": "高端装备",
+    "industry_secondary": "汽车零部件",
+    "industry_source": "built_in_sample_map",
     "old_shares": 0.0,
     "old_shares_desc": "0.00 万股（PDF 提取：上市公告书）",
     "old_shares_meta": {
@@ -99,30 +111,113 @@
     "float_shares": 1324.1252,
     "has_intraday_file": true,
     "comparable_codes": [
+      "603305.SH",
       "300969.SZ",
       "002536.SZ",
-      "603305.SH",
       "603348.SH",
       "603266.SH"
     ],
-    "comparable_data": [],
+    "comparable_data": [
+      {
+        "code": "603305.SH",
+        "name": "603305.SH",
+        "close": 17.11,
+        "pe_ttm": 50.1056,
+        "pb_lf": 2.1136,
+        "mkt_cap": 197.74173393,
+        "trade_date": "20260521",
+        "source": "tushare_historical",
+        "close_source": "tushare_historical",
+        "pe_source": "tushare_historical",
+        "pb_source": "tushare_historical",
+        "mkt_cap_source": "tushare_historical"
+      },
+      {
+        "code": "300969.SZ",
+        "name": "300969.SZ",
+        "close": 159.34,
+        "pe_ttm": 113.1995,
+        "pb_lf": 10.4974,
+        "mkt_cap": 186.7918425,
+        "trade_date": "20260521",
+        "source": "tushare_historical",
+        "close_source": "tushare_historical",
+        "pe_source": "tushare_historical",
+        "pb_source": "tushare_historical",
+        "mkt_cap_source": "tushare_historical"
+      },
+      {
+        "code": "002536.SZ",
+        "name": "002536.SZ",
+        "close": 44.58,
+        "pe_ttm": 101.6345,
+        "pb_lf": 7.2961,
+        "mkt_cap": 256.23954887,
+        "trade_date": "20260521",
+        "source": "tushare_historical",
+        "close_source": "tushare_historical",
+        "pe_source": "tushare_historical",
+        "pb_source": "tushare_historical",
+        "mkt_cap_source": "tushare_historical"
+      },
+      {
+        "code": "603348.SH",
+        "name": "603348.SH",
+        "close": 17.7,
+        "pe_ttm": null,
+        "pb_lf": 1.4297,
+        "mkt_cap": 55.66246298,
+        "trade_date": "20260521",
+        "source": "tushare_historical",
+        "close_source": "tushare_historical",
+        "pe_source": "tushare_historical",
+        "pb_source": "tushare_historical",
+        "mkt_cap_source": "tushare_historical"
+      },
+      {
+        "code": "603266.SH",
+        "name": "603266.SH",
+        "close": 20.6,
+        "pe_ttm": 37.1383,
+        "pb_lf": 2.5248,
+        "mkt_cap": 40.970670500000004,
+        "trade_date": "20260521",
+        "source": "tushare_historical",
+        "close_source": "tushare_historical",
+        "pe_source": "tushare_historical",
+        "pb_source": "tushare_historical",
+        "mkt_cap_source": "tushare_historical"
+      }
+    ],
     "comparable_summary": {
       "provider": "tushare_historical",
       "requested_codes": [
+        "603305.SH",
         "300969.SZ",
         "002536.SZ",
-        "603305.SH",
         "603348.SH",
         "603266.SH"
       ],
-      "returned_codes": [],
+      "returned_codes": [
+        "603305.SH",
+        "300969.SZ",
+        "002536.SZ",
+        "603348.SH",
+        "603266.SH"
+      ],
       "cache_hits": [],
-      "api_fetched": [],
+      "api_fetched": [
+        "603305.SH",
+        "300969.SZ",
+        "002536.SZ",
+        "603348.SH",
+        "603266.SH"
+      ],
       "skipped_unsupported": [],
       "reference_trade_date": "20260521",
-      "reason": "Tushare quota 已达上限，本次不再发起新请求。"
+      "reason": ""
     },
-    "method1_replay_available": false,
+    "method1_replay_available": true,
     "average_price_source": "intraday_csv",
     "average_price_reason": "",
     "average_price_calc_version": 3,

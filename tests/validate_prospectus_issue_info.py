@@ -12,6 +12,7 @@ if str(CODE_DIR) not in sys.path:
     sys.path.insert(0, str(CODE_DIR))
 
 import bse_ipo_valuation
+import config_loader
 from industry_mapping import IndustryMapper
 import pdf_parser
 import report_source_helper
@@ -243,6 +244,48 @@ def _run_industry_mapping_case(failures: list[str]) -> None:
     _assert(auto_parts.source == "industry_code_mapping", "industry code mapping: source mismatch", failures)
     known_auto_parts = mapper.resolve_stock_industry("920086", {"INDUSTRY": "汽车制造业", "INDUSTRY_CODE": "C36"})
     _assert(known_auto_parts.display_name == "高端装备 / 汽车零部件", "industry mapping: known C36 sample should stay auto parts", failures)
+    langxin_auto_parts = mapper.resolve_stock_industry("920220", {})
+    _assert(langxin_auto_parts.display_name == "高端装备 / 汽车零部件", "industry mapping: 朗信电气 should be auto parts", failures)
+    yongli_auto_parts = mapper.resolve_stock_industry("920136", {})
+    _assert(yongli_auto_parts.display_name == "高端装备 / 汽车零部件", "industry mapping: 永励精密 should be auto parts", failures)
+    zhongkeyi_semiconductor = mapper.resolve_stock_industry("920186", {})
+    _assert(zhongkeyi_semiconductor.display_name == "信息技术 / 半导体制造", "industry mapping: 中科仪 should be semiconductor", failures)
+    oulun_appliance = mapper.resolve_stock_industry("920081", {})
+    _assert(oulun_appliance.display_name == "消费服务 / 家用电器", "industry mapping: 欧伦电气 home appliances should stay separate from consumer electronics", failures)
+    nongda_fertilizer = mapper.resolve_stock_industry("920159", {})
+    _assert(nongda_fertilizer.display_name == "化工新材 / 化学制品", "industry mapping: 农大科技 fertilizer should be chemical products", failures)
+    chuangda_packaging = mapper.resolve_stock_industry("920012", {})
+    _assert(chuangda_packaging.display_name == "信息技术 / 半导体制造", "industry mapping: 创达新材 semiconductor packaging materials should remain semiconductor", failures)
+    confirmed_industries = {
+        "920072": "医药生物 / 医疗器械",
+        "920076": "化工新材 / 非金属材料",
+        "920083": "化工新材 / 非金属材料",
+        "920096": "高端装备 / 电气设备",
+        "920119": "高端装备 / 机械设备",
+        "920125": "信息技术 / 半导体制造",
+        "920126": "高端装备 / 机械设备",
+        "920156": "高端装备 / 机械设备",
+        "920161": "化工新材 / 橡胶和塑料制品业",
+        "920178": "高端装备 / 机械设备",
+        "920188": "化工新材 / 橡胶和塑料制品业",
+        "920189": "信息技术 / 半导体制造",
+        "920191": "化工新材 / 非金属材料",
+        "920193": "化工新材 / 化学制品",
+        "920200": "高端装备 / 机械设备",
+        "920211": "高端装备 / 机械设备",
+        "920218": "化工新材 / 橡胶和塑料制品业",
+        "920222": "高端装备 / 电气设备",
+    }
+    for code, expected in confirmed_industries.items():
+        actual = mapper.resolve_stock_industry(code, {}).display_name
+        _assert(actual == expected, f"industry mapping: {code} expected {expected}, got {actual}", failures)
+    production_mapper = IndustryMapper(config_loader.load_params(ROOT_DIR / "策略参数.txt"))
+    home_appliance = production_mapper.resolve_stock_industry("fixture", {"INDUSTRY": "家用电器"})
+    _assert(
+        home_appliance.display_name == "消费服务 / 家用电器",
+        "industry mapping: the production taxonomy must keep home appliances separate from consumer electronics",
+        failures,
+    )
     known_override = mapper.resolve_stock_industry("920069", {"INDUSTRY": "专用设备制造业", "INDUSTRY_CODE": "C35"})
     _assert(
         known_override.display_name == "医药生物 / 医疗器械",

@@ -1,7 +1,7 @@
 {
   "schema": "offline_tuning_replay_item_v1",
-  "cache_version": 7,
-  "generated_at": "2026-07-09 23:33:29",
+  "cache_version": 8,
+  "generated_at": "2026-07-12 21:21:38",
   "code": "920166",
   "listing_date": "2026-02-12 00:00:00",
   "record_signature": {
@@ -29,23 +29,35 @@
     "TURNOVERRATE": 41.799,
     "SW_INDUSTRY": null,
     "INDUSTRY": null,
-    "INDUSTRY_CODE": null
+    "INDUSTRY_CODE": null,
+    "industry_primary": "医药生物",
+    "industry_secondary": "医疗器械",
+    "industry_source": "built_in_sample_map"
   },
   "pdf_signature": {
-    "listing": {
-      "name": "920166_海圣医疗_上市公告书.pdf",
-      "size": 1221402,
-      "mtime_ns": 1779808378224770700
+    "files": {
+      "listing": {
+        "name": "920166_海圣医疗_上市公告书.pdf",
+        "size": 1221402,
+        "mtime_ns": 1779808378224770700
+      },
+      "old_shares": {
+        "name": "920166_海圣医疗_招股说明书.pdf",
+        "size": 7406893,
+        "mtime_ns": 1779808377170308900
+      },
+      "comparables": {
+        "name": "920166_海圣医疗_招股说明书.pdf",
+        "size": 7406893,
+        "mtime_ns": 1779808377170308900
+      }
     },
-    "old_shares": {
-      "name": "920166_海圣医疗_招股说明书.pdf",
-      "size": 7406893,
-      "mtime_ns": 1779808377170308900
-    },
-    "comparables": {
-      "name": "920166_海圣医疗_招股说明书.pdf",
-      "size": 7406893,
-      "mtime_ns": 1779808377170308900
+    "pdf_parser_versions": {
+      "prospectus_issue_info": 8,
+      "issue_announcement_info": 5,
+      "issue_result_info": 4,
+      "comparable_companies": 22,
+      "business_desc": 3
     }
   },
   "item": {
@@ -64,15 +76,15 @@
     "AVERAGE_PRICE": 30.627913731031416,
     "LD_CLOSE_CHANGE": 172.8639,
     "LD_AVERAGE_CHANGE": 142.30944407461564,
-    "NEXT_DAY_CLOSE": null,
-    "THIRD_DAY_CLOSE": null,
-    "NEXT_DAY_CLOSE_CHANGE": null,
-    "THIRD_DAY_CLOSE_CHANGE": null,
-    "NEXT_DAY_FROM_LISTING_CLOSE_PCT": null,
-    "THIRD_DAY_FROM_LISTING_CLOSE_PCT": null,
-    "POST_LISTING_PROFIT_EFFECT_PCT": null,
-    "post_listing_performance_source": "",
-    "post_listing_performance_reason": "Tushare quota 已达上限，本次不再发起新请求。",
+    "NEXT_DAY_CLOSE": 29.56,
+    "THIRD_DAY_CLOSE": 28.36,
+    "NEXT_DAY_CLOSE_CHANGE": 133.86075949367086,
+    "THIRD_DAY_CLOSE_CHANGE": 124.36708860759494,
+    "NEXT_DAY_FROM_LISTING_CLOSE_PCT": -14.293998260365337,
+    "THIRD_DAY_FROM_LISTING_CLOSE_PCT": -17.773267613801114,
+    "POST_LISTING_PROFIT_EFFECT_PCT": -16.033632937083226,
+    "post_listing_performance_source": "tushare_daily",
+    "post_listing_performance_reason": "",
     "TURNOVERRATE": 41.799,
     "SW_INDUSTRY": "",
     "INDUSTRY": "",
@@ -99,22 +111,77 @@
     "float_shares": 2489.4118,
     "has_intraday_file": true,
     "comparable_codes": [
-      "603309.SH"
+      "603309.SH",
+      "300453.SZ",
+      "301097.SZ"
     ],
-    "comparable_data": [],
+    "comparable_data": [
+      {
+        "code": "603309.SH",
+        "name": "603309.SH",
+        "close": 14.83,
+        "pe_ttm": 17.7171,
+        "pb_lf": 2.3062,
+        "mkt_cap": 43.284531290000004,
+        "trade_date": "20260211",
+        "source": "tushare_historical",
+        "close_source": "tushare_historical",
+        "pe_source": "tushare_historical",
+        "pb_source": "tushare_historical",
+        "mkt_cap_source": "tushare_historical"
+      },
+      {
+        "code": "300453.SZ",
+        "name": "300453.SZ",
+        "close": 9.47,
+        "pe_ttm": 20.224,
+        "pb_lf": 3.5825,
+        "mkt_cap": 49.44138084,
+        "trade_date": "20260211",
+        "source": "tushare_historical",
+        "close_source": "tushare_historical",
+        "pe_source": "tushare_historical",
+        "pb_source": "tushare_historical",
+        "mkt_cap_source": "tushare_historical"
+      },
+      {
+        "code": "301097.SZ",
+        "name": "301097.SZ",
+        "close": 56.52,
+        "pe_ttm": 256.1354,
+        "pb_lf": 2.8192,
+        "mkt_cap": 33.31705239,
+        "trade_date": "20260211",
+        "source": "tushare_historical",
+        "close_source": "tushare_historical",
+        "pe_source": "tushare_historical",
+        "pb_source": "tushare_historical",
+        "mkt_cap_source": "tushare_historical"
+      }
+    ],
     "comparable_summary": {
       "provider": "tushare_historical",
       "requested_codes": [
-        "603309.SH"
+        "603309.SH",
+        "300453.SZ",
+        "301097.SZ"
       ],
-      "returned_codes": [],
+      "returned_codes": [
+        "603309.SH",
+        "300453.SZ",
+        "301097.SZ"
+      ],
       "cache_hits": [],
-      "api_fetched": [],
+      "api_fetched": [
+        "603309.SH",
+        "300453.SZ",
+        "301097.SZ"
+      ],
       "skipped_unsupported": [],
       "reference_trade_date": "20260211",
-      "reason": "Tushare quota 已达上限，本次不再发起新请求。"
+      "reason": ""
     },
-    "method1_replay_available": false,
+    "method1_replay_available": true,
     "average_price_source": "intraday_csv",
     "average_price_reason": "",
     "average_price_calc_version": 3,

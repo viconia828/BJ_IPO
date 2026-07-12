@@ -1,7 +1,7 @@
 {
   "schema": "offline_tuning_replay_item_v1",
-  "cache_version": 7,
-  "generated_at": "2026-07-09 23:33:15",
+  "cache_version": 8,
+  "generated_at": "2026-07-12 21:21:36",
   "code": "920036",
   "listing_date": "2026-03-09 00:00:00",
   "record_signature": {
@@ -29,23 +29,35 @@
     "TURNOVERRATE": 88.8636,
     "SW_INDUSTRY": null,
     "INDUSTRY": null,
-    "INDUSTRY_CODE": null
+    "INDUSTRY_CODE": null,
+    "industry_primary": "消费服务",
+    "industry_secondary": "消费电子",
+    "industry_source": "built_in_sample_map"
   },
   "pdf_signature": {
-    "listing": {
-      "name": "920036_觅睿科技_上市公告书.pdf",
-      "size": 947694,
-      "mtime_ns": 1779805627803535100
+    "files": {
+      "listing": {
+        "name": "920036_觅睿科技_上市公告书.pdf",
+        "size": 947694,
+        "mtime_ns": 1779805627803535100
+      },
+      "old_shares": {
+        "name": "920036_觅睿科技_招股说明书.pdf",
+        "size": 6497434,
+        "mtime_ns": 1779805626905571100
+      },
+      "comparables": {
+        "name": "920036_觅睿科技_招股说明书.pdf",
+        "size": 6497434,
+        "mtime_ns": 1779805626905571100
+      }
     },
-    "old_shares": {
-      "name": "920036_觅睿科技_招股说明书.pdf",
-      "size": 6497434,
-      "mtime_ns": 1779805626905571100
-    },
-    "comparables": {
-      "name": "920036_觅睿科技_招股说明书.pdf",
-      "size": 6497434,
-      "mtime_ns": 1779805626905571100
+    "pdf_parser_versions": {
+      "prospectus_issue_info": 8,
+      "issue_announcement_info": 5,
+      "issue_result_info": 4,
+      "comparable_companies": 22,
+      "business_desc": 3
     }
   },
   "item": {

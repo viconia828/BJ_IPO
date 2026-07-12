@@ -42,6 +42,11 @@ def _base_params() -> dict[str, object]:
         "method1_industry_fallback_confidence": 0.50,
         "weight_comparable": 0.50,
         "weight_industry_momentum": 0.50,
+        "method2_sample_confidence_enabled": True,
+        "method2_confidence_1_sample": 0.25,
+        "method2_confidence_2_samples": 0.50,
+        "method2_confidence_3_samples": 0.75,
+        "method2_confidence_4plus_samples": 1.00,
         "price_range_width": 0.10,
         "recent_days": 60,
         "sentiment_first_day_baseline_pct": 0.0,
@@ -127,6 +132,16 @@ def method2_independent_weight_case(failures: list[str]) -> None:
     )
     _close(result.get("base_chg"), 200.0, "method2 static industry median should ignore legacy short decay", failures)
     _assert("时间衰减" not in str(result.get("base_stat_label")), "method2 label should expose static statistic", failures)
+    _close(result.get("confidence_multiplier"), 0.50, "method2 confidence should use raw sample count", failures)
+    _assert(result.get("confidence_sample_count") == 2, "method2 confidence count should be before outlier removal", failures)
+    method1 = {"available": True, "target_price": 10.0}
+    composite = valuation_engine.composite_valuation(method1, result, params)
+    _close(composite.get("weight_method1"), 2 / 3, "method2 confidence should return weight to method1", failures)
+    _close(composite.get("weight_method2"), 1 / 3, "method2 effective composite weight mismatch", failures)
+    method2_only = valuation_engine.composite_valuation(None, result, params)
+    _close(method2_only.get("weight_method2"), 0.50, "method2-only confidence must not normalize back to 100%", failures)
+    _close(method2_only.get("weight_confidence_residual"), 0.50, "method2-only residual anchor weight mismatch", failures)
+    _close(method2_only.get("base_target_price"), 20.0, "method2-only residual should anchor to issue price", failures)
 
 
 def method3_short_decay_case(failures: list[str]) -> None:
