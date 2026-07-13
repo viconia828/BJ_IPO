@@ -77,27 +77,71 @@ def run_pipeline(args: argparse.Namespace) -> dict[str, Any]:
     common = ["--dataset", str(args.dataset), "--params", str(args.params), "--scan-report", str(scan_report), "--output-dir", str(output_dir)]
     steps: list[dict[str, Any]] = []
     warnings: list[str] = []
+    all_actual_proxy_report = ""
+
+    steps.append(
+        _run_step(
+            "方法一锚点可靠性",
+            [
+                python,
+                "-X",
+                "utf8",
+                str(ROOT_DIR / "tools" / "evaluate_method1_anchor_reliability.py"),
+                "--dataset",
+                str(args.dataset),
+                "--params",
+                str(args.params),
+                "--output-dir",
+                str(output_dir),
+            ],
+        )
+    )
 
     if author_report and author_report.exists():
         for target in ("scan_sample", "all_actual"):
-            steps.append(
-                _run_step(
-                    f"本地 proxy：{target}",
-                    [
-                        python,
-                        "-X",
-                        "utf8",
-                        str(ROOT_DIR / "tools" / "evaluate_local_proxy_strategy.py"),
-                        *common,
-                        "--author-score-report",
-                        str(author_report),
-                        "--target",
-                        target,
-                    ],
-                )
+            step = _run_step(
+                f"本地 proxy：{target}",
+                [
+                    python,
+                    "-X",
+                    "utf8",
+                    str(ROOT_DIR / "tools" / "evaluate_local_proxy_strategy.py"),
+                    *common,
+                    "--author-score-report",
+                    str(author_report),
+                    "--target",
+                    target,
+                ],
             )
+            steps.append(step)
+            if target == "all_actual":
+                all_actual_proxy_report = str(((step.get("payload") or {}).get("outputs") or {}).get("json") or "")
     else:
         warnings.append("未找到 author-rule score，跳过 local proxy 榜单；regime-break 与盘中指导仍继续。")
+        print(f"提示：{warnings[-1]}", flush=True)
+
+    if all_actual_proxy_report:
+        steps.append(
+            _run_step(
+                "动态宽度验收",
+                [
+                    python,
+                    "-X",
+                    "utf8",
+                    str(ROOT_DIR / "tools" / "revalidate_dynamic_width_acceptance.py"),
+                    "--proxy-report",
+                    all_actual_proxy_report,
+                    "--dataset",
+                    str(args.dataset),
+                    "--params",
+                    str(args.params),
+                    "--output-dir",
+                    str(output_dir),
+                ],
+            )
+        )
+    else:
+        warnings.append("未生成 all_actual proxy 报告，跳过动态宽度验收。")
         print(f"提示：{warnings[-1]}", flush=True)
 
     steps.append(
@@ -130,7 +174,7 @@ def run_pipeline(args: argparse.Namespace) -> dict[str, Any]:
     )
 
     payload = {
-        "schema": "valuation_shadow_pipeline_v1",
+        "schema": "valuation_shadow_pipeline_v2",
         "generated_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         "inputs": {
             "scan_report": str(scan_report),
@@ -166,7 +210,7 @@ def run_pipeline(args: argparse.Namespace) -> dict[str, Any]:
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="Refresh local valuation proxy, regime-break, and intraday shadow reports.")
+    parser = argparse.ArgumentParser(description="Refresh anchor reliability, local proxy, dynamic-width, regime-break, and intraday shadow reports.")
     parser.add_argument("--scan-report", default="")
     parser.add_argument("--dataset", default=str(DEFAULT_DATASET))
     parser.add_argument("--params", default=str(DEFAULT_PARAMS))

@@ -105,6 +105,63 @@ def method1_fallback_confidence_case(failures: list[str]) -> None:
     _assert(not fallback_only.get("available"), "industry PE fallback must not support a final valuation by itself", failures)
 
 
+def method1_anchor_reliability_case(failures: list[str]) -> None:
+    params = _base_params()
+    direct = valuation_engine.method1_comparable(
+        issue_price=10.0,
+        issue_pe=10.0,
+        comparable_data=[{"pe_ttm": 10.0}, {"pe_ttm": 20.0}, {"pe_ttm": 40.0}, {"pe_ttm": 80.0}],
+        params=params,
+        industry_pe=20.0,
+        float_shares=2000.0,
+    )
+    quality = direct.get("anchor_quality") or {}
+    _close(direct.get("confidence_multiplier"), 1.0, "formal default must keep direct-comparable confidence unchanged", failures)
+    _assert(quality.get("confidence_mode") == "diagnostic_only", "formal default should expose diagnostics only", failures)
+    _close(quality.get("max_min_ratio"), 8.0, "method1 max/min PE diagnostic mismatch", failures)
+    _close(quality.get("robust_dispersion_ratio"), 2.0, "method1 robust PE dispersion mismatch", failures)
+
+    shadow_params = dict(params)
+    shadow_params.update(
+        {
+            "method1_anchor_reliability_enabled": True,
+            "method1_anchor_confidence_mode": "count_and_dispersion",
+            "method1_anchor_min_confidence": 0.35,
+            "method1_anchor_full_confidence_samples": 4,
+            "method1_anchor_dispersion_soft_ratio": 1.5,
+            "method1_anchor_dispersion_hard_ratio": 3.0,
+            "method1_anchor_dispersion_floor": 0.5,
+        }
+    )
+    shadow = valuation_engine.method1_comparable(
+        issue_price=10.0,
+        issue_pe=10.0,
+        comparable_data=[{"pe_ttm": 10.0}, {"pe_ttm": 20.0}, {"pe_ttm": 40.0}, {"pe_ttm": 80.0}],
+        params=shadow_params,
+        industry_pe=20.0,
+        float_shares=2000.0,
+    )
+    _assert(float(shadow.get("confidence_multiplier") or 1.0) < 1.0, "shadow reliability should downweight dispersed direct comparables", failures)
+
+    gap_params = dict(shadow_params)
+    gap_params.update(
+        {
+            "method1_anchor_disagreement_enabled": True,
+            "method1_anchor_disagreement_soft_ratio": 1.5,
+            "method1_anchor_disagreement_hard_ratio": 3.0,
+            "method1_anchor_disagreement_floor": 0.5,
+        }
+    )
+    composite = valuation_engine.composite_valuation(
+        {"available": True, "target_price": 40.0, "confidence_multiplier": 1.0},
+        {"available": True, "target_price": 10.0, "confidence_multiplier": 1.0},
+        gap_params,
+    )
+    _close(composite.get("method1_disagreement_ratio"), 4.0, "method1/method2 disagreement ratio mismatch", failures)
+    _close(composite.get("method1_disagreement_factor"), 0.5, "method disagreement confidence factor mismatch", failures)
+    _close(composite.get("weight_method1"), 1 / 3, "method disagreement should reduce method1 weight", failures)
+
+
 def method2_independent_weight_case(failures: list[str]) -> None:
     params = _base_params()
     params.update(
@@ -166,6 +223,7 @@ def main() -> int:
     failures: list[str] = []
     method1_factor_case(failures)
     method1_fallback_confidence_case(failures)
+    method1_anchor_reliability_case(failures)
     method2_independent_weight_case(failures)
     method3_short_decay_case(failures)
     if failures:
@@ -173,7 +231,7 @@ def main() -> int:
         for failure in failures:
             print(f"- {failure}")
         return 1
-    print("Valuation method role validation passed: 4 cases")
+    print("Valuation method role validation passed: 5 cases")
     return 0
 
 

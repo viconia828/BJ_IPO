@@ -42,6 +42,9 @@ def main() -> int:
     width, reasons = proxy._dynamic_width(row, strategy, False)
     if width < 0.20 or "single_method_anchor" not in reasons:
         failures.append("single-method anchor should receive uncertainty width protection")
+    fixed_width, fixed_reasons = proxy._dynamic_width(row, {**strategy, "width_policy": "fixed_10"}, False)
+    if fixed_width != 0.10 or fixed_reasons != ["fixed_10_formal_baseline"]:
+        failures.append("dynamic-width acceptance should have an exact formal ±10% baseline")
     if failures:
         print("\n".join(f"FAIL: {failure}" for failure in failures))
         return 1

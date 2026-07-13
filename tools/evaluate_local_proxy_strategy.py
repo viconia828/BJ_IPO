@@ -256,6 +256,8 @@ def _model_value(row: dict[str, Any], model: str, field: str) -> Any:
 def _dynamic_width(row: dict[str, Any], strategy: dict[str, Any], fallback_used: bool) -> tuple[float, list[str]]:
     policy_name = str(strategy["width_policy"])
     model = str(strategy.get("model") or "current_params")
+    if policy_name == "fixed_10":
+        return 0.10, ["fixed_10_formal_baseline"]
     if policy_name == "layered_v1":
         score = abs(_safe_float(row.get("proxy_score")) or 0.0)
         uncertainty = _safe_float(row.get("model_uncertainty_score")) or 0.0

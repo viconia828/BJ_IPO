@@ -13,6 +13,21 @@ def _median_or_mean(values: list[float], stat_name: str) -> float:
     return statistics.median(values)
 
 
+def _linear_quantile(values: list[float], quantile: float) -> float | None:
+    ordered = sorted(values)
+    if not ordered:
+        return None
+    if len(ordered) == 1:
+        return ordered[0]
+    position = min(max(quantile, 0.0), 1.0) * (len(ordered) - 1)
+    lower = int(math.floor(position))
+    upper = int(math.ceil(position))
+    if lower == upper:
+        return ordered[lower]
+    weight = position - lower
+    return ordered[lower] * (1 - weight) + ordered[upper] * weight
+
+
 def _weighted_median(value_weight_pairs: list[tuple[float, float]]) -> float | None:
     valid_pairs = sorted(
         ((value, weight) for value, weight in value_weight_pairs if weight > 0),
@@ -289,6 +304,67 @@ def _summarize_change_stat(
     return value, label
 
 
+def _method1_anchor_quality(
+    clean_pe_values: list[float],
+    params: dict[str, Any],
+) -> dict[str, Any]:
+    """Describe direct-comparable reliability without changing formal defaults."""
+    sample_count = len(clean_pe_values)
+    if not clean_pe_values:
+        return {
+            "enabled": False,
+            "sample_count": 0,
+            "confidence_multiplier": 1.0,
+            "confidence_mode": "not_applicable",
+        }
+
+    ordered = sorted(clean_pe_values)
+    q1 = _linear_quantile(ordered, 0.25)
+    q3 = _linear_quantile(ordered, 0.75)
+    max_min_ratio = ordered[-1] / ordered[0] if ordered[0] > 0 else None
+    iqr_ratio = q3 / q1 if q1 is not None and q1 > 0 and q3 is not None else None
+    log_values = [math.log(value) for value in ordered]
+    log_median = statistics.median(log_values)
+    log_mad = statistics.median(abs(value - log_median) for value in log_values)
+    robust_dispersion_ratio = math.exp(log_mad)
+
+    enabled = _is_enabled(params.get("method1_anchor_reliability_enabled"), False)
+    mode = str(params.get("method1_anchor_confidence_mode", "count_and_dispersion")).strip().lower()
+    min_confidence = _clamp(float(params.get("method1_anchor_min_confidence", 0.35)), 0.0, 1.0)
+    full_confidence_samples = max(int(float(params.get("method1_anchor_full_confidence_samples", 4))), 1)
+    count_progress = min(sample_count / full_confidence_samples, 1.0)
+    count_factor = min_confidence + (1.0 - min_confidence) * count_progress
+
+    soft_ratio = max(float(params.get("method1_anchor_dispersion_soft_ratio", 1.50)), 1.0)
+    hard_ratio = max(float(params.get("method1_anchor_dispersion_hard_ratio", 3.00)), soft_ratio + 1e-9)
+    dispersion_floor = _clamp(float(params.get("method1_anchor_dispersion_floor", 0.50)), 0.0, 1.0)
+    if mode == "count_only" or robust_dispersion_ratio <= soft_ratio:
+        dispersion_factor = 1.0
+    elif robust_dispersion_ratio >= hard_ratio:
+        dispersion_factor = dispersion_floor
+    else:
+        position = (robust_dispersion_ratio - soft_ratio) / (hard_ratio - soft_ratio)
+        dispersion_factor = 1.0 + (dispersion_floor - 1.0) * position
+
+    confidence = max(min_confidence, count_factor * dispersion_factor) if enabled else 1.0
+    return {
+        "enabled": enabled,
+        "sample_count": sample_count,
+        "pe_min": ordered[0],
+        "pe_q1": q1,
+        "pe_median": statistics.median(ordered),
+        "pe_q3": q3,
+        "pe_max": ordered[-1],
+        "max_min_ratio": max_min_ratio,
+        "iqr_ratio": iqr_ratio,
+        "robust_dispersion_ratio": robust_dispersion_ratio,
+        "count_factor": count_factor,
+        "dispersion_factor": dispersion_factor,
+        "confidence_multiplier": _clamp(confidence, 0.0, 1.0),
+        "confidence_mode": mode if enabled else "diagnostic_only",
+    }
+
+
 def method1_comparable(
     issue_price: float | None,
     issue_pe: float | None,
@@ -306,10 +382,12 @@ def method1_comparable(
         if pe_value and pe_value > 0:
             clean_pe_values.append(pe_value)
 
+    anchor_quality = _method1_anchor_quality(clean_pe_values, params)
     anchor_source = "prospectus_comparables"
     confidence_multiplier = 1.0
     if clean_pe_values:
         comp_pe = _median_or_mean(clean_pe_values, str(params.get("comparable_pe_stat", "median")))
+        confidence_multiplier = float(anchor_quality.get("confidence_multiplier", 1.0))
     else:
         valid_industry_pe = _safe_float(industry_pe)
         fallback_enabled = _is_enabled(params.get("method1_industry_fallback_enabled"), False)
@@ -360,6 +438,7 @@ def method1_comparable(
         "eps": eps,
         "comp_pe": comp_pe,
         "anchor_source": anchor_source,
+        "anchor_quality": anchor_quality,
         "confidence_multiplier": confidence_multiplier,
         "base_target_pe": base_target_pe,
         "pe_ratio": pe_ratio,
@@ -650,9 +729,32 @@ def composite_valuation(
         "method2": float(params.get("weight_industry_momentum", 0.5)),
     }
     candidates: list[tuple[str, dict[str, Any], float]] = []
+    method1_disagreement_ratio = None
+    method1_disagreement_factor = 1.0
+    if (
+        method1
+        and method1.get("available")
+        and method2
+        and method2.get("available")
+        and _is_enabled(params.get("method1_anchor_disagreement_enabled"), False)
+    ):
+        method1_target = _safe_float(method1.get("target_price"))
+        method2_target = _safe_float(method2.get("target_price"))
+        if method1_target is not None and method1_target > 0 and method2_target is not None and method2_target > 0:
+            method1_disagreement_ratio = max(method1_target, method2_target) / min(method1_target, method2_target)
+            soft_ratio = max(float(params.get("method1_anchor_disagreement_soft_ratio", 1.50)), 1.0)
+            hard_ratio = max(float(params.get("method1_anchor_disagreement_hard_ratio", 3.00)), soft_ratio + 1e-9)
+            floor_factor = _clamp(float(params.get("method1_anchor_disagreement_floor", 0.50)), 0.0, 1.0)
+            if method1_disagreement_ratio >= hard_ratio:
+                method1_disagreement_factor = floor_factor
+            elif method1_disagreement_ratio > soft_ratio:
+                position = (method1_disagreement_ratio - soft_ratio) / (hard_ratio - soft_ratio)
+                method1_disagreement_factor = 1.0 + (floor_factor - 1.0) * position
     for key, result in (("method1", method1), ("method2", method2)):
         if result and result.get("available"):
             confidence = max(float(result.get("confidence_multiplier", 1.0)), 0.0)
+            if key == "method1":
+                confidence *= method1_disagreement_factor
             candidates.append((key, result, raw_weights.get(key, 0.0) * confidence))
 
     if not candidates:
@@ -707,6 +809,8 @@ def composite_valuation(
         "weight_confidence_residual": confidence_residual_weight,
         "confidence_residual_anchor_price": confidence_residual_anchor_price if confidence_residual_weight > 0 else None,
         "method3_available": bool(method3 and method3.get("available")),
+        "method1_disagreement_ratio": method1_disagreement_ratio,
+        "method1_disagreement_factor": method1_disagreement_factor,
         "available_methods": [key for key, _, _ in candidates],
     }
 
