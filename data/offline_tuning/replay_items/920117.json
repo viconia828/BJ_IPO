@@ -1,7 +1,7 @@
 {
   "schema": "offline_tuning_replay_item_v1",
   "cache_version": 8,
-  "generated_at": "2026-07-12 21:21:37",
+  "generated_at": "2026-07-14 22:13:00",
   "code": "920117",
   "listing_date": "2026-07-06",
   "record_signature": {
@@ -36,7 +36,11 @@
   },
   "pdf_signature": {
     "files": {
-      "listing": null,
+      "listing": {
+        "name": "920117_龙鑫智能_上市公告书.pdf",
+        "size": 1123761,
+        "mtime_ns": 1784025702985024700
+      },
       "old_shares": {
         "name": "920117_龙鑫智能_招股说明书.pdf",
         "size": 6103353,
@@ -88,23 +92,23 @@
     "industry_primary": "高端装备",
     "industry_secondary": "机械设备",
     "industry_source": "record_mapping",
-    "old_shares": 2246.0003,
-    "old_shares_desc": "2246.00 万股（PDF 提取：招股文件）",
+    "old_shares": 0.0,
+    "old_shares_desc": "0.00 万股（PDF 提取：上市公告书）",
     "old_shares_meta": {
-      "value_wan_shares": 2246.0003,
-      "source_file_type": "招股文件",
-      "source_rule": "keyword_value",
-      "source_anchor": "公开发售股份",
-      "raw_snippet": "公开发售股份。根据截至本招股说明书签署日的公司股东持股情况，假设本次发行22,460,003股",
-      "confidence": 0.7,
+      "value_wan_shares": 0.0,
+      "source_file_type": "上市公告书",
+      "source_rule": "listing_table",
+      "source_anchor": "本次发行前后的股本结构变动情况 -> 无限售流通股小计",
+      "raw_snippet": "计67,380,009100.00%69,626,00977.5000%--二、无限售流通股小计--20,214,00322.5000%--合计67,380,009100.00%89,840,012100.0000%--六、",
+      "confidence": 0.95,
       "unit": "股",
-      "pre_unrestricted_wan_shares": 2246.0003,
-      "listing_pdf_found": false,
+      "pre_unrestricted_wan_shares": 0.0,
+      "listing_pdf_found": true,
       "prospectus_pdf_found": true,
-      "selected_source_label": "招股文件",
+      "selected_source_label": "上市公告书",
       "fallback_used": false
     },
-    "float_shares": 4492.0006,
+    "float_shares": 2246.0003,
     "has_intraday_file": false,
     "comparable_codes": [
       "301662.SZ",
@@ -163,7 +167,7 @@
       "prospectus": "920117_龙鑫智能_招股说明书.pdf",
       "issue": "920117_龙鑫智能_发行公告.pdf",
       "result": "920117_龙鑫智能_发行结果公告.pdf",
-      "listing": ""
+      "listing": "920117_龙鑫智能_上市公告书.pdf"
     }
   }
 }

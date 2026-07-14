@@ -25,7 +25,7 @@ DEFAULT_POINTS_PATH = ROOT_DIR / "data" / "offline_tuning" / "account_pool_histo
 DEFAULT_THRESHOLDS_PATH = ROOT_DIR / "data" / "offline_tuning" / "account_pool_history_thresholds.csv"
 DEFAULT_SUMMARY_PATH = ROOT_DIR / "data" / "offline_tuning" / "account_pool_history_summary.json"
 DEFAULT_THRESHOLDS_WAN: tuple[float, ...] = ()
-ACCOUNT_POOL_BUILD_VERSION = 2
+ACCOUNT_POOL_BUILD_VERSION = 3
 UNINFORMATIVE_THRESHOLD_BASES = {
     "",
     "no_observed_points",
@@ -425,7 +425,12 @@ def _announcement_constrained_cumulative(
     prior_state: dict[str, dict[str, Any]],
 ) -> tuple[dict[int, float], str]:
     max_lots = max(thresholds_by_lot, default=0)
-    if max_lots <= 0 or allocated_accounts <= 0 or total_lots < allocated_accounts:
+    # The final allocated account may receive fewer than LOT_SIZE shares when
+    # the online issue size is not an exact multiple of one lot.  In that
+    # case ``total_lots`` can be fractionally below the integer allocated
+    # account count even though the announcement is internally consistent.
+    max_accounts_supported = math.ceil(max(float(total_lots), 0.0) - 1e-9)
+    if max_lots <= 0 or allocated_accounts <= 0 or allocated_accounts > max_accounts_supported:
         return {}, "unavailable"
 
     first_accounts = float(allocated_accounts)

@@ -397,6 +397,26 @@ def _run_announcement_constraints_with_history_prior_case(failures: list[str]) -
     _assert(values[1] > 50000.0, "announcement constraints: compressed 31343-account cliff leaked into result", failures)
 
 
+def _run_partial_final_lot_case(failures: list[str]) -> None:
+    cumulative, basis = build_account_pool_history._announcement_constrained_cumulative(
+        allocated_accounts=101648.0,
+        total_lots=101647.07,
+        thresholds_by_lot={1: 340.0},
+        prior_state={},
+    )
+    _assert(basis == "announcement_exact", "partial final lot: valid fractional tail rejected", failures)
+    _assert_close(cumulative.get(1), 101648.0, "partial final lot: allocated account count mismatch", failures)
+
+    invalid, invalid_basis = build_account_pool_history._announcement_constrained_cumulative(
+        allocated_accounts=101649.0,
+        total_lots=101647.0,
+        thresholds_by_lot={1: 340.0},
+        prior_state={},
+    )
+    _assert(invalid == {}, "partial final lot: impossible account count accepted", failures)
+    _assert(invalid_basis == "unavailable", "partial final lot: impossible case basis mismatch", failures)
+
+
 def _run_incremental_suffix_rebuild_case(failures: list[str]) -> None:
     temp_dir = ROOT_DIR / ".tmp" / "validate_account_pool_incremental_suffix"
     if temp_dir.exists():
@@ -529,6 +549,7 @@ def main() -> int:
     _run_sequential_refinement_case(failures)
     _run_new_point_caps_conflicting_old_point_case(failures)
     _run_announcement_constraints_with_history_prior_case(failures)
+    _run_partial_final_lot_case(failures)
     _run_incremental_suffix_rebuild_case(failures)
     if failures:
         for failure in failures:
