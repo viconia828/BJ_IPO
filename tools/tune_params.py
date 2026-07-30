@@ -340,9 +340,14 @@ def build_parser(params_file: str, tuning_settings: dict[str, Any]) -> argparse.
         help="关闭自动调参的本地 proxy/动态宽度/regime 两级重排。",
     )
     parser.add_argument(
+        "--auto-time-slice-gate",
+        action="store_true",
+        help="显式启用旧版固定样本三折时间切片写回门槛；默认暂时停用，等待改为自然季度步进。",
+    )
+    parser.add_argument(
         "--no-auto-time-slice-gate",
         action="store_true",
-        help="显式绕过正式写回前的三折时间切片门槛；只用于测试或人工应急。",
+        help="保持三折时间切片写回门槛停用；兼容旧命令行。",
     )
     parser.add_argument("--auto-time-slice-initial-train-size", type=int, default=20)
     parser.add_argument("--auto-time-slice-fold-size", type=int, default=7)
@@ -487,7 +492,13 @@ def _params_with_overrides(base_params: dict[str, Any], overrides: dict[str, Any
     return merged
 
 
-def _print_auto_result_context(result: dict[str, Any], params: dict[str, Any]) -> None:
+def _auto_time_slice_gate_enabled(args: argparse.Namespace) -> bool:
+    return bool(getattr(args, "auto_time_slice_gate", False)) and not bool(
+        getattr(args, "no_auto_time_slice_gate", False)
+    )
+
+
+def _print_auto_result_context(args: argparse.Namespace, result: dict[str, Any], params: dict[str, Any]) -> None:
     baseline_score = ((result.get("baseline") or {}).get("auto_score") or {})
     best_score = ((result.get("best") or {}).get("auto_score") or {})
     overrides = dict(result.get("changed_overrides") or {})
@@ -513,7 +524,10 @@ def _print_auto_result_context(result: dict[str, Any], params: dict[str, Any]) -
         )
     )
     _print_local_learning_rerank(result)
-    print("提示：接受写入前还必须通过三折时间切片门槛；未通过将自动拒绝写入。")
+    if _auto_time_slice_gate_enabled(args):
+        print("提示：本轮已显式启用旧版三折时间切片门槛；未通过将自动拒绝写入。")
+    else:
+        print("提示：三折时间切片门槛暂时停用，等待改为自然季度步进；本轮只执行全样本安全门槛。")
 
     if not overrides:
         print("本轮暂未找到优于当前参数的自动修改方案。")
@@ -529,18 +543,20 @@ def _run_auto_time_slice_gate(
     args: argparse.Namespace,
     result: dict[str, Any],
 ) -> dict[str, Any]:
-    if getattr(args, "no_auto_time_slice_gate", False):
+    required_path = "two_level" if (result.get("local_learning_rerank") or {}).get("applied") else "core"
+    if not _auto_time_slice_gate_enabled(args):
         gate = {
             "passed": True,
+            "enforced": False,
             "bypassed": True,
-            "status": "bypassed_by_explicit_flag",
-            "required_path": "two_level" if (result.get("local_learning_rerank") or {}).get("applied") else "core",
+            "status": "disabled_pending_calendar_walk_forward",
+            "reason": "当前季度数据不足以形成三折自然季度步进，旧版固定样本门槛暂时停用",
+            "required_path": required_path,
         }
         result["time_slice_gate"] = gate
-        print("警告：已按显式参数绕过时间切片写回门槛。")
+        print("提示：三折时间切片写回门槛暂时停用，本轮只校验全样本安全门槛。")
         return gate
 
-    required_path = "two_level" if (result.get("local_learning_rerank") or {}).get("applied") else "core"
     overrides = dict(result.get("changed_overrides") or {})
     command = [
         sys.executable,
@@ -581,6 +597,7 @@ def _run_auto_time_slice_gate(
     if completed.returncode != 0:
         gate = {
             "passed": False,
+            "enforced": True,
             "bypassed": False,
             "status": "execution_failed",
             "required_path": required_path,
@@ -595,6 +612,7 @@ def _run_auto_time_slice_gate(
     except json.JSONDecodeError as exc:
         gate = {
             "passed": False,
+            "enforced": True,
             "bypassed": False,
             "status": "invalid_output",
             "required_path": required_path,
@@ -609,6 +627,7 @@ def _run_auto_time_slice_gate(
     gate = {
         **payload,
         "passed": path_passed and not stability_warning,
+        "enforced": True,
         "bypassed": False,
         "status": "passed" if path_passed and not stability_warning else "rejected",
         "required_path": required_path,
@@ -905,7 +924,7 @@ def _run_auto_mode(
     for stage_level in range(1, max_refine_stages + 1):
         result = _run_auto_stage(args, params, dataset, stage_level=stage_level, center_params=center_params)
         print("自动调参阶段完成。")
-        _print_auto_result_context(result, params)
+        _print_auto_result_context(args, result, params)
 
         has_next_stage = stage_level < max_refine_stages
         action = _prompt_auto_stage_action(

@@ -1830,7 +1830,6 @@ def auto_cli_accept_case(failures: list[str]) -> None:
         "--auto-shadow-context-path",
         str(TEMP_ROOT / "auto_shadow_context_latest.json"),
         "--no-auto-shadow-refresh",
-        "--no-auto-time-slice-gate",
         "--top-n",
         "3",
         "--auto-max-refine-stages",
@@ -1856,6 +1855,7 @@ def auto_cli_accept_case(failures: list[str]) -> None:
     _assert("自动调参阶段完成" in completed.stdout, "auto CLI 应打印阶段完成提示", failures)
     _assert("第 1 轮后请选择下一步" in completed.stdout, "auto CLI 应在每轮结束后提示下一步", failures)
     _assert("当前累计建议修改的参数" in completed.stdout, "auto CLI 应打印建议修改参数", failures)
+    _assert("三折时间切片门槛暂时停用" in completed.stdout, "auto CLI 应明确提示三折门槛暂时停用", failures)
     _assert("已写入参数文件" in completed.stdout, "auto CLI 接受后应写入参数文件", failures)
     _assert(record_path.exists(), "auto CLI 接受后应写入自动调参记录", failures)
     if record_path.exists():
@@ -1900,7 +1900,6 @@ def auto_cli_continue_then_accept_case(failures: list[str]) -> None:
         "--auto-shadow-context-path",
         str(TEMP_ROOT / "auto_shadow_context_latest.json"),
         "--no-auto-shadow-refresh",
-        "--no-auto-time-slice-gate",
         "--top-n",
         "3",
         "--auto-max-refine-stages",
@@ -2197,6 +2196,7 @@ def formal_acceptance_guard_case(failures: list[str]) -> None:
 
 def auto_time_slice_write_gate_case(failures: list[str]) -> None:
     args = SimpleNamespace(
+        auto_time_slice_gate=False,
         no_auto_time_slice_gate=False,
         dataset_path="fixture_dataset.json",
         params_file="fixture_params.txt",
@@ -2227,17 +2227,28 @@ def auto_time_slice_write_gate_case(failures: list[str]) -> None:
             ),
             stderr="",
         )
+        disabled = tune_params_cli._run_auto_time_slice_gate(args, result)
+        args.auto_time_slice_gate = True
         gate = tune_params_cli._run_auto_time_slice_gate(args, result)
     finally:
         tune_params_cli.subprocess.run = original_run
+    _assert(
+        disabled.get("passed") is True
+        and disabled.get("enforced") is False
+        and disabled.get("status") == "disabled_pending_calendar_walk_forward",
+        "默认应停用旧版固定样本三折门槛并留下明确状态",
+        failures,
+    )
     _assert(gate.get("required_path") == "two_level", "执行雪球二级排序后应校验 two_level 时间切片路径", failures)
     _assert(gate.get("passed") is False, "two_level 时间切片失败时必须拒绝正式写回", failures)
 
     args.no_auto_time_slice_gate = True
     bypassed = tune_params_cli._run_auto_time_slice_gate(args, result)
     _assert(
-        bypassed.get("passed") is True and bypassed.get("bypassed") is True,
-        "显式应急参数应留下时间切片门槛绕过记录",
+        bypassed.get("passed") is True
+        and bypassed.get("enforced") is False
+        and bypassed.get("bypassed") is True,
+        "兼容停用参数应留下时间切片门槛未执行记录",
         failures,
     )
 

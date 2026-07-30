@@ -1,3 +1,147 @@
+## 2026-07-30 18:46:17 申购资金自动调参（已接受）
+
+- 参数文件：D:\BJ_IPO\策略参数.txt
+- 历史样本：D:\BJ_IPO\data\offline_tuning\subscription_history_sample.csv
+- 主网格候选组数：138 / 计划 178
+- 主网格搜索模式：coarse_fine；细搜轮数 2
+- prior 分支候选组数：8
+- 选中分支：account_pool_prior
+- baseline：MAE=40.1462 万元, MAPE=7.15%, 分档MAPE=16.20%, 漏判=0, 误判=0, 评估=44
+- 主网格最优：MAE=36.3474 万元, MAPE=6.59%, 分档MAPE=14.98%, 漏判=0, 误判=0, 评估=44
+- prior 分支最优：MAE=36.2473 万元, MAPE=6.51%, 分档MAPE=14.98%, 漏判=0, 误判=0, 评估=44
+- 新参数：MAE=36.2473 万元, MAPE=6.51%, 分档MAPE=14.98%, 漏判=0, 误判=0, 评估=44
+
+修改参数：
+- subscription_prediction_similar_top_apply_frozen_recent_samples: 28 -> 24
+- subscription_prediction_similar_top_apply_frozen_min_samples: 4 -> 6
+- subscription_prediction_similar_top_apply_frozen_max_relative_distance: 0.4 -> 0.45
+- subscription_prediction_similar_top_apply_frozen_bandwidth: 0.27 -> 0.24
+- subscription_prediction_account_pool_recent_samples: 12 -> 8
+
+## 2026-07-17 19:06:34 申购资金自动调参（已接受）
+
+- 参数文件：D:\BJ_IPO\策略参数.txt
+- 历史样本：D:\BJ_IPO\data\offline_tuning\subscription_history_sample.csv
+- 主网格候选组数：107 / 计划 178
+- 主网格搜索模式：coarse_fine；细搜轮数 2
+- prior 分支候选组数：8
+- 选中分支：main_grid
+- baseline：MAE=41.7519 万元, MAPE=7.31%, 分档MAPE=13.92%, 漏判=0, 误判=0, 评估=41
+- 主网格最优：MAE=41.7360 万元, MAPE=7.31%, 分档MAPE=13.91%, 漏判=0, 误判=0, 评估=41
+- prior 分支最优：MAE=41.7360 万元, MAPE=7.31%, 分档MAPE=13.91%, 漏判=0, 误判=0, 评估=41
+- 新参数：MAE=41.7360 万元, MAPE=7.31%, 分档MAPE=13.91%, 漏判=0, 误判=0, 评估=41
+
+修改参数：
+- subscription_prediction_cap_factor_exponent: 0.55 -> 0.5
+
+## 2026-07-17 19:06:08 申购资金自动调参（已接受）
+
+- 参数文件：D:\BJ_IPO\策略参数.txt
+- 历史样本：D:\BJ_IPO\data\offline_tuning\subscription_history_sample.csv
+- 主网格候选组数：123 / 计划 180
+- 主网格搜索模式：coarse_fine；细搜轮数 2
+- prior 分支候选组数：8
+- 选中分支：main_grid
+- baseline：MAE=47.6408 万元, MAPE=8.35%, 分档MAPE=15.33%, 漏判=0, 误判=0, 评估=41
+- 主网格最优：MAE=41.7519 万元, MAPE=7.31%, 分档MAPE=13.92%, 漏判=0, 误判=0, 评估=41
+- prior 分支最优：MAE=41.7519 万元, MAPE=7.31%, 分档MAPE=13.92%, 漏判=0, 误判=0, 评估=41
+- 新参数：MAE=41.7519 万元, MAPE=7.31%, 分档MAPE=13.92%, 漏判=0, 误判=0, 评估=41
+
+修改参数：
+- subscription_prediction_cap_factor_direction: target_over_median -> median_over_target
+- subscription_prediction_cap_factor_exponent: 0 -> 0.55
+- subscription_prediction_issue_factor_direction: target_over_median -> median_over_target
+- subscription_prediction_issue_factor_exponent: 0.1 -> 0.35
+- subscription_prediction_lock_factor_exponent: 0.2 -> 0
+- subscription_prediction_similar_top_apply_frozen_min_samples: 3 -> 4
+
+## 2026-07-17 19:05:43 申购资金自动调参（已接受）
+
+- 参数文件：D:\BJ_IPO\策略参数.txt
+- 历史样本：D:\BJ_IPO\data\offline_tuning\subscription_history_sample.csv
+- 主网格候选组数：111 / 计划 184
+- 主网格搜索模式：coarse_fine；细搜轮数 2
+- prior 分支候选组数：8
+- 选中分支：main_grid
+- baseline：MAE=49.0372 万元, MAPE=8.59%, 分档MAPE=15.36%, 漏判=0, 误判=0, 评估=41
+- 主网格最优：MAE=47.6408 万元, MAPE=8.35%, 分档MAPE=15.33%, 漏判=0, 误判=0, 评估=41
+- prior 分支最优：MAE=47.6408 万元, MAPE=8.35%, 分档MAPE=15.33%, 漏判=0, 误判=0, 评估=41
+- 新参数：MAE=47.6408 万元, MAPE=8.35%, 分档MAPE=15.33%, 漏判=0, 误判=0, 评估=41
+
+修改参数：
+- subscription_prediction_sample_decay_half_life_days: 2.81 -> 5
+- subscription_prediction_cap_factor_exponent: 0.1 -> 0
+- subscription_prediction_lock_factor_exponent: 0.55 -> 0.2
+- subscription_prediction_multiple_scale: 1.25 -> 0.85
+
+## 2026-07-17 19:05:16 申购资金自动调参（已接受）
+
+- 参数文件：D:\BJ_IPO\策略参数.txt
+- 历史样本：D:\BJ_IPO\data\offline_tuning\subscription_history_sample.csv
+- 主网格候选组数：141 / 计划 166
+- 主网格搜索模式：coarse_fine；细搜轮数 2
+- prior 分支候选组数：8
+- 选中分支：account_pool_prior
+- baseline：MAE=51.5696 万元, MAPE=9.10%, 分档MAPE=19.71%, 漏判=0, 误判=0, 评估=41
+- 主网格最优：MAE=49.8397 万元, MAPE=8.62%, 分档MAPE=15.36%, 漏判=0, 误判=0, 评估=41
+- prior 分支最优：MAE=49.0372 万元, MAPE=8.59%, 分档MAPE=15.36%, 漏判=0, 误判=0, 评估=41
+- 新参数：MAE=49.0372 万元, MAPE=8.59%, 分档MAPE=15.36%, 漏判=0, 误判=0, 评估=41
+
+修改参数：
+- subscription_prediction_sample_decay_half_life_days: 5 -> 2.81
+- subscription_prediction_cap_factor_exponent: 0 -> 0.1
+- subscription_prediction_lock_factor_exponent: 0.35 -> 0.55
+- subscription_prediction_multiple_scale: 1.1 -> 1.25
+- subscription_prediction_similar_top_apply_frozen_weight: 0.65 -> 1
+- subscription_prediction_similar_top_apply_frozen_recent_samples: 36 -> 28
+- subscription_prediction_similar_top_apply_frozen_min_samples: 1 -> 3
+- subscription_prediction_similar_top_apply_frozen_half_life_samples: 8 -> 6
+- subscription_prediction_account_pool_recent_samples: 8 -> 12
+
+## 2026-07-16 19:02:51 申购资金自动调参（已接受）
+
+- 参数文件：D:\BJ_IPO\策略参数.txt
+- 历史样本：D:\BJ_IPO\data\offline_tuning\subscription_history_sample.csv
+- 主网格候选组数：141 / 计划 166
+- 主网格搜索模式：coarse_fine；细搜轮数 2
+- prior 分支候选组数：8
+- 选中分支：main_grid
+- baseline：MAE=55.3059 万元, MAPE=9.81%, 分档MAPE=17.08%, 漏判=0, 误判=0, 评估=41
+- 主网格最优：MAE=51.7925 万元, MAPE=9.13%, 分档MAPE=16.64%, 漏判=0, 误判=0, 评估=41
+- prior 分支最优：MAE=51.7925 万元, MAPE=9.13%, 分档MAPE=16.64%, 漏判=0, 误判=0, 评估=41
+- 新参数：MAE=51.7925 万元, MAPE=9.13%, 分档MAPE=16.64%, 漏判=0, 误判=0, 评估=41
+
+修改参数：
+- subscription_prediction_sample_decay_half_life_days: 11.25 -> 5
+- subscription_prediction_issue_factor_exponent: 0.35 -> 0.1
+- subscription_prediction_lock_factor_exponent: 0.55 -> 0.35
+- subscription_prediction_multiple_scale: 1.15 -> 1.1
+- subscription_prediction_similar_top_apply_frozen_max_relative_distance: 0.45 -> 0.4
+- subscription_prediction_similar_top_apply_frozen_bandwidth: 0.24 -> 0.27
+
+## 2026-07-16 19:02:21 申购资金自动调参（已接受）
+
+- 参数文件：D:\BJ_IPO\策略参数.txt
+- 历史样本：D:\BJ_IPO\data\offline_tuning\subscription_history_sample.csv
+- 主网格候选组数：142 / 计划 166
+- 主网格搜索模式：coarse_fine；细搜轮数 2
+- prior 分支候选组数：8
+- 选中分支：main_grid
+- baseline：MAE=39.3572 万元, MAPE=6.78%, 分档MAPE=19.37%, 漏判=0, 误判=0, 评估=41
+- 主网格最优：MAE=55.3059 万元, MAPE=9.81%, 分档MAPE=17.08%, 漏判=0, 误判=0, 评估=41
+- prior 分支最优：MAE=55.3059 万元, MAPE=9.81%, 分档MAPE=17.08%, 漏判=0, 误判=0, 评估=41
+- 新参数：MAE=55.3059 万元, MAPE=9.81%, 分档MAPE=17.08%, 漏判=0, 误判=0, 评估=41
+
+修改参数：
+- subscription_prediction_sample_decay_half_life_days: 15 -> 11.25
+- subscription_prediction_issue_factor_direction: median_over_target -> target_over_median
+- subscription_prediction_issue_factor_exponent: 0.4 -> 0.35
+- subscription_prediction_lock_factor_exponent: 0.1 -> 0.55
+- subscription_prediction_multiple_scale: 0.95 -> 1.15
+- subscription_prediction_similar_top_apply_frozen_recent_samples: 12 -> 36
+- subscription_prediction_similar_top_apply_frozen_max_relative_distance: 0.5 -> 0.45
+- subscription_prediction_similar_top_apply_frozen_bandwidth: 0.18 -> 0.24
+
 ## 2026-07-11 20:14:16 自动调参（已接受）
 
 - 参数文件：D:\BJ_IPO\策略参数.txt

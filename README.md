@@ -20,6 +20,7 @@
 
 - `python code\bse_ipo_valuation.py 920177`
 - `python tools\tune_params.py --mode auto`
+- 当前正式写回前的旧版固定样本三折时间切片门槛暂时停用，自动调参仍强制执行全样本命中率、MAE、P90 和可用率安全门槛。独立复核工具继续保留；如需研究性复现旧门槛，可显式增加 `--auto-time-slice-gate`。
 - `python tools\tune_params.py --mode offline --param-name small_cap_premium --candidate-values 0.10,0.15`
 - `python tools\cache_listing_day_intraday.py --latest-until-cached --months 18`
 

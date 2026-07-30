@@ -3370,6 +3370,11 @@ def prepend_auto_tuning_record(
         width = _safe_float(line.get("weighted_avg_width"))
         return "" if width is None else f"{width * 100:.2f}%"
 
+    if time_slice_gate.get("enforced") is False:
+        time_slice_gate_text = "暂时停用"
+    else:
+        time_slice_gate_text = "通过" if time_slice_gate.get("passed") else "未通过"
+
     change_lines = build_auto_tune_change_lines(base_params, overrides) or ["无参数变化"]
     record_lines = [
         f"## {_now_text()} 自动调参（已接受）",
@@ -3387,7 +3392,7 @@ def prepend_auto_tuning_record(
         f"- 新参数最近样本权重占比：{_fmt_metric(best_score.get('recent_weight_share'))}",
         f"- 新参数加权 MAE(涨幅)：{_fmt_metric(best_score.get('weighted_mae_change_pct'))}",
         f"- 正式写回安全门槛：{'通过' if formal_guard.get('passed') else '未通过'}",
-        f"- 三折时间切片门槛：{'通过' if time_slice_gate.get('passed') else '未通过'}；路径：{time_slice_gate.get('required_path') or '-'}；显式绕过：{'是' if time_slice_gate.get('bypassed') else '否'}",
+        f"- 三折时间切片门槛：{time_slice_gate_text}；状态：{time_slice_gate.get('status') or '-'}；路径：{time_slice_gate.get('required_path') or '-'}",
         f"- 时间切片报告：{((time_slice_gate.get('outputs') or {}).get('markdown') or '-')}",
         f"- 全样本命中率 baseline / 新参数：{_fmt_metric(baseline_metrics.get('interval_hit_rate'))} / {_fmt_metric(best_metrics.get('interval_hit_rate'))}",
         f"- 全样本 MAE baseline / 新参数：{_fmt_metric(baseline_metrics.get('mae_change_pct'))} / {_fmt_metric(best_metrics.get('mae_change_pct'))}",
