@@ -414,6 +414,48 @@ def _run_fractional_between_one_and_two_display_case(failures: list[str]) -> Non
     _assert("3+1建议申购门槛" in table_labels, "fractional 1-2 table should keep 3+1", failures)
 
 
+def _run_fractional_equals_second_guaranteed_case(failures: list[str]) -> None:
+    prediction = subscription_predictor.build_subscription_prediction(
+        {
+            "SECURITY_CODE": "920138",
+            "SECURITY_NAME_ABBR": "EqualBoundary",
+            "ISSUE_PRICE": 10.0,
+            "ONLINE_ISSUE_NUM": 1000000.0,
+            "ONLINE_VA_SHARES": 1000000000.0,
+            "TOP_APPLY_MARKETCAP": 500.0,
+            "FRACTIONAL_THRESHOLD_SHARES": 200000.0,
+            "FRACTIONAL_TIME_PRIORITY_REQUIRED": True,
+        },
+        recent_ipos=[],
+        params={"subscription_prediction_lot_threshold_max_lots": 4},
+    )
+    lot_thresholds = prediction.get("lot_thresholds") or []
+    by_label = {str(item.get("ladder_label") or ""): item for item in lot_thresholds}
+    display_labels = [
+        str(item.get("ladder_label") or "")
+        for item in lot_thresholds
+        if item.get("display") is not False
+    ]
+    _assert_close(by_label.get("1+1", {}).get("threshold_amount_wan"), 200.0, "equal boundary: 1+1 amount mismatch", failures)
+    _assert_close(by_label.get("2+0", {}).get("threshold_amount_wan"), 200.0, "equal boundary: 2+0 amount mismatch", failures)
+    _assert_close(by_label.get("2+1", {}).get("threshold_amount_wan"), 200.0, "equal boundary: 2+1 amount mismatch", failures)
+    _assert(by_label.get("1+1", {}).get("display") is False, "equal boundary: dominated 1+1 should be hidden", failures)
+    _assert(by_label.get("2+0", {}).get("display") is True, "equal boundary: 2+0 should display", failures)
+    _assert(by_label.get("2+1", {}).get("display") is True, "equal boundary: 2+1 should display", failures)
+    _assert(by_label.get("2+1", {}).get("time_priority_required") is True, "equal boundary: third lot should require time priority", failures)
+    _assert("1+1" not in display_labels, "equal boundary: 1+1 display label should be removed", failures)
+    _assert("2+0" in display_labels and "2+1" in display_labels, "equal boundary: 2+0 and 2+1 should both display", failures)
+    _assert(
+        prediction.get("fractional_time_priority_note") == "2+1以下碎股可能需要抢时间",
+        "equal boundary: time-priority note should point to the third lot",
+        failures,
+    )
+    table_labels = [str(row[0]) for row in (prediction.get("table_rows") or []) if "建议申购门槛" in str(row[0])]
+    _assert("1+1建议申购门槛" not in table_labels, "equal boundary: table should hide 1+1", failures)
+    _assert("2+0建议申购门槛" in table_labels, "equal boundary: table should keep 2+0", failures)
+    _assert("2+1建议申购门槛" in table_labels, "equal boundary: table should keep 2+1", failures)
+
+
 def _run_account_pool_fractional_threshold_case(failures: list[str]) -> None:
     account_pool_row: dict[str, Any] = {
         "security_code": "920900",
@@ -739,6 +781,7 @@ def main() -> int:
     _run_frozen_funds_cap_case(failures)
     _run_920126_lot_threshold_case(failures)
     _run_fractional_between_one_and_two_display_case(failures)
+    _run_fractional_equals_second_guaranteed_case(failures)
     _run_account_pool_fractional_threshold_case(failures)
     _run_account_pool_runtime_index_cache_case(failures)
     _run_latest_calibrated_account_pool_snapshot_case(failures)

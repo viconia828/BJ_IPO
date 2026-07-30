@@ -1659,7 +1659,10 @@ def _mark_lot_threshold_display(rows: list[dict[str, Any]]) -> list[dict[str, An
         amount = _safe_float(row.get("threshold_amount_wan"))
         if lots <= 0 or amount is None:
             continue
-        preference = 0 if int(row.get("fractional_lots") or 0) > 0 else 1
+        # 金额完全相同时，完整正股档比被其覆盖的低档“+1”标签更准确。
+        # 例如 2+0 与 1+1 都落在同一门槛时，应展示 2+0；第 3 手
+        # 是否为碎股竞争则继续由同金额的 2+1 行表达。
+        preference = 0 if int(row.get("fractional_lots") or 0) == 0 else 1
         current = best_by_lots.get(lots)
         if current is None or (amount, preference, idx) < current:
             best_by_lots[lots] = (amount, preference, idx)
@@ -1801,7 +1804,9 @@ def _build_lot_thresholds(
                 "threshold_amount_wan": _shares_to_amount_wan(fractional_candidate_shares, issue_price),
                 "basis": fractional_basis,
                 "threshold_kind": "fractional",
-                "time_priority_required": bool(fractional_time_required and fractional_shares > guaranteed_shares),
+                # 碎股线与 N+0 正股线重合时，该金额既保证 N 手，也是
+                # 第 N+1 手的竞争边界；相等边界仍需保留抢时间提示。
+                "time_priority_required": bool(fractional_time_required and fractional_shares >= guaranteed_shares),
             }
         )
     return _mark_lot_threshold_display(rows)
