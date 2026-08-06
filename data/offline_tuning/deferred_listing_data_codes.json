@@ -1,18 +1,16 @@
 {
   "schema": "offline_tuning_listing_data_retry_v1",
-  "updated_at": "2026-07-30 19:32:47",
+  "updated_at": "2026-08-06 19:26:45",
   "pending_codes": [
-    "920165"
+    "920107"
   ],
   "reasons_by_code": {
-    "920165": [
+    "920107": [
       "missing_result_announcement",
-      "download_errors",
-      "needs_result_announcement",
-      "missing_fields:ONLINE_VA_SHARES/FROZEN_FUNDS_YI|ONLINE_VA_NUM|ONLINE_ALLOCATED_ACCOUNTS|SUBSCRIPTION_AMOUNT_DISTRIBUTION/FRACTIONAL_THRESHOLD_SHARES|FRACTIONAL_TIME_PRIORITY_REQUIRED|prediction:历史有效申购样本不足 3 个"
+      "download_errors"
     ]
   },
   "last_download_attempt_date_by_code": {
-    "920165": "2026-07-30"
+    "920107": "2026-08-06"
   }
 }

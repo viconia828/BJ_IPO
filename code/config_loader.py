@@ -207,6 +207,22 @@ def _validate_params(params: dict[str, Any]) -> None:
             raise ValueError(f"{non_negative_key} 不能小于 0")
     if float(params.get("subscription_prediction_multiple_scale", 1.0)) <= 0:
         raise ValueError("subscription_prediction_multiple_scale 必须大于 0")
+    if float(params.get("subscription_prediction_recent_market_level_factor", 1.0)) <= 0:
+        raise ValueError("subscription_prediction_recent_market_level_factor 必须大于 0")
+    target_frozen_funds_code = str(params.get("subscription_prediction_target_frozen_funds_code", "") or "").strip()
+    target_frozen_funds_yi = params.get("subscription_prediction_target_frozen_funds_yi")
+    target_frozen_funds_low_yi = params.get("subscription_prediction_target_frozen_funds_low_yi")
+    target_frozen_funds_high_yi = params.get("subscription_prediction_target_frozen_funds_high_yi")
+    if target_frozen_funds_code:
+        if len(target_frozen_funds_code) != 6 or not target_frozen_funds_code.isdigit():
+            raise ValueError("subscription_prediction_target_frozen_funds_code 必须为 6 位证券代码")
+        if target_frozen_funds_yi in (None, "") or float(target_frozen_funds_yi) <= 0:
+            raise ValueError("个股冻资情景中枢必须大于 0")
+        midpoint_yi = float(target_frozen_funds_yi)
+        low_yi = midpoint_yi if target_frozen_funds_low_yi in (None, "") else float(target_frozen_funds_low_yi)
+        high_yi = midpoint_yi if target_frozen_funds_high_yi in (None, "") else float(target_frozen_funds_high_yi)
+        if low_yi <= 0 or high_yi <= 0 or not low_yi <= midpoint_yi <= high_yi:
+            raise ValueError("个股冻资情景必须满足 0 < 下限 <= 中枢 <= 上限")
     for positive_key in (
         "subscription_prediction_similar_top_apply_frozen_recent_samples",
         "subscription_prediction_similar_top_apply_frozen_min_samples",

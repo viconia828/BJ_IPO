@@ -21,6 +21,7 @@ DEFAULT_FROZEN_FUNDS_FLOOR_WEIGHT = 0.95
 DEFAULT_FROZEN_FUNDS_CAP_RECENT_SAMPLES = 20
 DEFAULT_FROZEN_FUNDS_CAP_QUANTILE = 1.0
 DEFAULT_FROZEN_FUNDS_CAP_WEIGHT = 1.10
+DEFAULT_RECENT_MARKET_LEVEL_FACTOR = 1.0
 DEFAULT_LOT_THRESHOLD_MAX_LOTS = 20
 DEFAULT_SIMILAR_TOP_APPLY_FROZEN_WEIGHT = 0.65
 DEFAULT_SIMILAR_TOP_APPLY_FROZEN_RECENT_SAMPLES = 24
@@ -878,7 +879,7 @@ def _resolve_lock_days(record: dict[str, Any]) -> tuple[int | None, str]:
     return max((result_date - apply_date).days, 1), "APPLY_DATE->ISSUE_RESULT_DATE"
 
 
-def _historical_sample(record: dict[str, Any]) -> dict[str, float] | None:
+def _historical_sample(record: dict[str, Any]) -> dict[str, Any] | None:
     issue_price = _safe_float(record.get("ISSUE_PRICE"))
     online_issue_shares, _ = _resolve_online_issue_shares(record)
     valid_shares, _ = _resolve_valid_subscription_shares(record, online_issue_shares, issue_price)
@@ -890,8 +891,15 @@ def _historical_sample(record: dict[str, Any]) -> dict[str, float] | None:
     top_apply_wan, _ = _resolve_top_apply_amount_wan(record, issue_price)
     lock_days, _ = _resolve_lock_days(record)
     issue_amount_yi = online_issue_shares * issue_price / 100000000
+    sample_date = _parse_date(
+        record.get("ISSUE_RESULT_DATE")
+        or record.get("BALLOT_NUM_DATE")
+        or record.get("APPLY_DATE")
+        or record.get("LISTING_DATE")
+    )
     return {
         "security_code": str(record.get("SECURITY_CODE") or ""),
+        "sample_date_ordinal": float(sample_date.toordinal()) if sample_date is not None else 0.0,
         "subscription_multiple": valid_shares / online_issue_shares,
         "frozen_funds_yi": valid_shares * issue_price / 100000000,
         "top_apply_wan": top_apply_wan or 0.0,
@@ -1130,7 +1138,20 @@ def _estimate_valid_subscription_shares(
     lock_days: int | None,
     params: dict[str, Any],
 ) -> dict[str, Any]:
-    samples = [sample for item in recent_ipos if (sample := _historical_sample(item))]
+    samples: list[dict[str, Any]] = []
+    for input_index, item in enumerate(recent_ipos):
+        sample = _historical_sample(item)
+        if sample is None:
+            continue
+        sample["input_order"] = input_index
+        samples.append(sample)
+    samples.sort(
+        key=lambda sample: (
+            float(sample.get("sample_date_ordinal") or 0.0),
+            -int(sample.get("input_order") or 0),
+        ),
+        reverse=True,
+    )
     min_samples = int(float(params.get("subscription_prediction_min_samples", 3)))
     if len(samples) < min_samples:
         return {
@@ -1241,6 +1262,30 @@ def _estimate_valid_subscription_shares(
         frozen_floor["uplift_ratio"] = (
             valid_subscription_shares / base_valid_shares if base_valid_shares > 0 else None
         )
+    recent_market_level_factor = max(
+        float(
+            params.get(
+                "subscription_prediction_recent_market_level_factor",
+                DEFAULT_RECENT_MARKET_LEVEL_FACTOR,
+            )
+        ),
+        0.01,
+    )
+    pre_market_level_valid_shares = valid_subscription_shares
+    pre_market_level_frozen_funds_yi = pre_market_level_valid_shares * issue_price / 100000000
+    recent_market_level_applied = abs(recent_market_level_factor - 1.0) > 1e-12
+    if recent_market_level_applied:
+        valid_subscription_shares *= recent_market_level_factor
+        predicted_multiple = valid_subscription_shares / online_issue_shares
+    recent_market_level = {
+        "applied": recent_market_level_applied,
+        "factor": recent_market_level_factor,
+        "pre_adjustment_valid_subscription_shares": pre_market_level_valid_shares,
+        "pre_adjustment_frozen_funds_yi": pre_market_level_frozen_funds_yi,
+        "adjusted_valid_subscription_shares": valid_subscription_shares,
+        "adjusted_frozen_funds_yi": valid_subscription_shares * issue_price / 100000000,
+        "basis": "recent_market_level",
+    }
     if frozen_cap:
         pre_cap_valid_subscription_shares = valid_subscription_shares
         pre_cap_frozen_funds_yi = pre_cap_valid_subscription_shares * issue_price / 100000000
@@ -1279,6 +1324,7 @@ def _estimate_valid_subscription_shares(
         "similar_top_apply_frozen_funds": similar_top_apply_frozen,
         "frozen_funds_floor": frozen_floor,
         "frozen_funds_cap": frozen_cap,
+        "recent_market_level": recent_market_level,
         "reason": "",
     }
 
@@ -1834,6 +1880,34 @@ def _fractional_time_priority_limit_label(lot_thresholds: list[dict[str, Any]]) 
     return candidates[-1][2]
 
 
+def _target_frozen_funds_override(
+    ipo_info: dict[str, Any],
+    settings: dict[str, Any],
+) -> dict[str, Any] | None:
+    target_code = str(settings.get("subscription_prediction_target_frozen_funds_code") or "").strip()
+    security_code = str(ipo_info.get("SECURITY_CODE") or "").strip()
+    if not target_code or security_code != target_code:
+        return None
+
+    midpoint_yi = _safe_float(settings.get("subscription_prediction_target_frozen_funds_yi"))
+    if midpoint_yi is None or midpoint_yi <= 0:
+        return None
+    low_yi = _safe_float(settings.get("subscription_prediction_target_frozen_funds_low_yi"))
+    high_yi = _safe_float(settings.get("subscription_prediction_target_frozen_funds_high_yi"))
+    low_yi = midpoint_yi if low_yi is None or low_yi <= 0 else low_yi
+    high_yi = midpoint_yi if high_yi is None or high_yi <= 0 else high_yi
+    reason = str(settings.get("subscription_prediction_target_frozen_funds_reason") or "个股情景修正").strip()
+    return {
+        "applied": True,
+        "security_code": security_code,
+        "frozen_funds_yi": midpoint_yi,
+        "low_yi": low_yi,
+        "high_yi": high_yi,
+        "reason": reason,
+        "basis": "target_specific_frozen_funds_scenario",
+    }
+
+
 def build_subscription_prediction(
     ipo_info: dict[str, Any],
     recent_ipos: list[dict[str, Any]] | None = None,
@@ -1857,6 +1931,7 @@ def build_subscription_prediction(
     valid_shares, valid_source = _resolve_valid_subscription_shares(ipo_info, online_issue_shares, issue_price)
     allocated_accounts, allocated_accounts_source = _resolve_allocated_accounts(ipo_info)
     estimate: dict[str, Any] = {}
+    target_frozen_funds_override: dict[str, Any] | None = None
     mode = "actual"
     if not valid_shares or valid_shares <= online_issue_shares:
         estimate = _estimate_valid_subscription_shares(
@@ -1871,6 +1946,27 @@ def build_subscription_prediction(
         valid_shares = _safe_float(estimate.get("valid_subscription_shares"))
         valid_source = "history_estimate" if valid_shares else ""
         mode = "estimated"
+        target_frozen_funds_override = _target_frozen_funds_override(ipo_info, settings)
+        if target_frozen_funds_override:
+            base_valid_shares = valid_shares
+            base_frozen_funds_yi = (
+                base_valid_shares * issue_price / 100000000
+                if base_valid_shares is not None and base_valid_shares > 0
+                else None
+            )
+            valid_shares = float(target_frozen_funds_override["frozen_funds_yi"]) * 100000000 / issue_price
+            valid_source = "target_specific_frozen_funds_scenario"
+            target_frozen_funds_override.update(
+                {
+                    "base_valid_subscription_shares": base_valid_shares,
+                    "base_frozen_funds_yi": base_frozen_funds_yi,
+                    "adjusted_valid_subscription_shares": valid_shares,
+                    "adjusted_subscription_multiple": valid_shares / online_issue_shares,
+                }
+            )
+            estimate["target_frozen_funds_override"] = target_frozen_funds_override
+            estimate["valid_subscription_shares"] = valid_shares
+            estimate["predicted_subscription_multiple"] = valid_shares / online_issue_shares
 
     if not valid_shares or valid_shares <= online_issue_shares:
         return {
@@ -2083,6 +2179,33 @@ def build_subscription_prediction(
             fractional_basis,
         ],
     ]
+    if target_frozen_funds_override:
+        table_rows.insert(
+            6,
+            [
+                "个股冻资情景区间",
+                f"{float(target_frozen_funds_override['low_yi']):.2f}-{float(target_frozen_funds_override['high_yi']):.2f} 亿元",
+                str(target_frozen_funds_override.get("basis") or "target_specific_frozen_funds_scenario"),
+            ],
+        )
+        table_rows.insert(
+            7,
+            [
+                "个股情景说明",
+                str(target_frozen_funds_override.get("reason") or "个股情景修正"),
+                str(target_frozen_funds_override.get("basis") or "target_specific_frozen_funds_scenario"),
+            ],
+        )
+    recent_market_level = estimate.get("recent_market_level") or {}
+    if recent_market_level.get("applied") and not target_frozen_funds_override:
+        table_rows.insert(
+            6,
+            [
+                "近期资金水位修正",
+                f"{(float(recent_market_level.get('factor') or 1.0) - 1.0) * 100:+.2f}%",
+                str(recent_market_level.get("basis") or "recent_market_level"),
+            ],
+        )
     for item in lot_thresholds:
         if item.get("display") is False:
             continue
@@ -2142,6 +2265,7 @@ def build_subscription_prediction(
         "valid_accounts": valid_accounts,
         "allocated_accounts": allocated_accounts,
         "frozen_funds_yi": frozen_funds_yi,
+        "target_frozen_funds_override": target_frozen_funds_override,
         "lock_days": lock_days,
         "subscription_multiple": subscription_multiple,
         "allocation_rate_pct": allocation_rate_pct,

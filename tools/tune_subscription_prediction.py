@@ -39,6 +39,7 @@ DEFAULT_BASELINE_PARAMS = {
     "subscription_prediction_issue_factor_exponent": 0.45,
     "subscription_prediction_lock_factor_exponent": 0.0,
     "subscription_prediction_multiple_scale": 1.0,
+    "subscription_prediction_recent_market_level_factor": 1.0,
 }
 
 DEFAULT_SEARCH_GRID = {
@@ -49,6 +50,7 @@ DEFAULT_SEARCH_GRID = {
     "subscription_prediction_issue_factor_exponent": [0.0, 0.15, 0.20, 0.30, 0.45],
     "subscription_prediction_lock_factor_exponent": [0.0, 0.20, 0.35],
     "subscription_prediction_multiple_scale": [0.85, 1.0, 1.15],
+    "subscription_prediction_recent_market_level_factor": [1.0, 1.02, 1.03, 1.04, 1.05],
 }
 
 
@@ -74,6 +76,10 @@ DEFAULT_CORE_COARSE_BLOCK_GRIDS = (
             "subscription_prediction_lock_factor_exponent": [0.0, 0.20, 0.35],
             "subscription_prediction_multiple_scale": [0.85, 1.0, 1.15],
         },
+    ),
+    (
+        "core_recent_market_level_coarse",
+        {"subscription_prediction_recent_market_level_factor": [1.0, 1.02, 1.03, 1.04, 1.05]},
     ),
 )
 
@@ -143,6 +149,7 @@ DEFAULT_ACCOUNT_POOL_PRIOR_BASE_PARAMS = {
     "subscription_prediction_issue_factor_exponent": 0.45,
     "subscription_prediction_lock_factor_exponent": 0.0,
     "subscription_prediction_multiple_scale": 1.0,
+    "subscription_prediction_recent_market_level_factor": 1.0,
 }
 
 DEFAULT_ACCOUNT_POOL_PRIOR_WEIGHTS = [0.8, 1.0, 1.1, 1.2]
@@ -700,6 +707,7 @@ def evaluate_subscription_prediction(
     skipped_history = 0
     amount_abs_errors: list[float] = []
     amount_pct_errors: list[float] = []
+    amount_signed_pct_errors: list[float] = []
     classification_total = 0
     classification_correct = 0
     top_apply_false_negatives: list[str] = []
@@ -738,11 +746,14 @@ def evaluate_subscription_prediction(
         predicted_amount = _safe_float(prediction.get("guaranteed_threshold_amount_wan"))
         amount_abs_error = None
         amount_pct_error = None
+        amount_signed_pct_error = None
         if prediction.get("available") and actual_amount and predicted_amount:
             amount_abs_error = abs(predicted_amount - actual_amount)
             amount_pct_error = amount_abs_error / actual_amount
+            amount_signed_pct_error = (predicted_amount - actual_amount) / actual_amount
             amount_abs_errors.append(amount_abs_error)
             amount_pct_errors.append(amount_pct_error)
+            amount_signed_pct_errors.append(amount_signed_pct_error)
 
         actual_top_apply = _parse_bool(row.get("top_apply_below_guaranteed"))
         predicted_top_apply = bool(prediction.get("top_apply_below_guaranteed")) if prediction.get("available") else None
@@ -821,6 +832,7 @@ def evaluate_subscription_prediction(
                 "predicted_subscription_multiple": _safe_float(prediction.get("subscription_multiple")),
                 "guaranteed_amount_abs_error_wan": amount_abs_error,
                 "guaranteed_amount_pct_error": amount_pct_error,
+                "guaranteed_amount_signed_pct_error": amount_signed_pct_error,
                 "actual_top_apply_below_guaranteed": actual_top_apply,
                 "predicted_top_apply_below_guaranteed": predicted_top_apply,
                 "top_apply_classification_match": classification_match,
@@ -862,6 +874,8 @@ def evaluate_subscription_prediction(
         if manual_ladder_amount_pct_errors
         else None
     )
+    recent_signed_pct_errors = amount_signed_pct_errors[-6:]
+    recent_abs_pct_errors = [abs(value) for value in recent_signed_pct_errors]
     return {
         "history_path": "",
         "total_rows": len(sorted_rows),
@@ -873,6 +887,27 @@ def evaluate_subscription_prediction(
         "guaranteed_amount_metric_rows": len(amount_abs_errors),
         "guaranteed_amount_mae_wan": mae,
         "guaranteed_amount_mape": mape,
+        "guaranteed_amount_signed_bias": (
+            sum(amount_signed_pct_errors) / len(amount_signed_pct_errors)
+            if amount_signed_pct_errors
+            else None
+        ),
+        "recent_guaranteed_metric_rows": len(recent_signed_pct_errors),
+        "recent_guaranteed_signed_bias": (
+            sum(recent_signed_pct_errors) / len(recent_signed_pct_errors)
+            if recent_signed_pct_errors
+            else None
+        ),
+        "recent_guaranteed_mape": (
+            sum(recent_abs_pct_errors) / len(recent_abs_pct_errors)
+            if recent_abs_pct_errors
+            else None
+        ),
+        "recent_guaranteed_underprediction_rate": (
+            sum(value < 0 for value in recent_signed_pct_errors) / len(recent_signed_pct_errors)
+            if recent_signed_pct_errors
+            else None
+        ),
         "top_apply_classification_total": classification_total,
         "top_apply_classification_correct": classification_correct,
         "top_apply_classification_accuracy": (
@@ -1028,6 +1063,11 @@ def _core_fine_block_grids(base_params: dict[str, Any]) -> tuple[tuple[str, dict
     issue_exponent = _current_numeric_param(base_params, "subscription_prediction_issue_factor_exponent", 0.45)
     lock_exponent = _current_numeric_param(base_params, "subscription_prediction_lock_factor_exponent", 0.0)
     multiple_scale = _current_numeric_param(base_params, "subscription_prediction_multiple_scale", 1.0)
+    recent_market_level_factor = _current_numeric_param(
+        base_params,
+        "subscription_prediction_recent_market_level_factor",
+        1.0,
+    )
     return (
         (
             "core_decay_fine",
@@ -1073,6 +1113,23 @@ def _core_fine_block_grids(base_params: dict[str, Any]) -> tuple[tuple[str, dict
                     [multiple_scale - 0.05, multiple_scale, multiple_scale + 0.05],
                     low=0.70,
                     high=1.30,
+                ),
+            },
+        ),
+        (
+            "core_recent_market_level_fine",
+            {
+                "subscription_prediction_recent_market_level_factor": _unique_sorted_numeric_values(
+                    [
+                        recent_market_level_factor - 0.02,
+                        recent_market_level_factor - 0.01,
+                        recent_market_level_factor,
+                        recent_market_level_factor + 0.01,
+                        recent_market_level_factor + 0.02,
+                    ],
+                    low=0.90,
+                    high=1.15,
+                    digits=3,
                 ),
             },
         ),
@@ -1922,6 +1979,10 @@ def format_summary(summary: dict[str, Any]) -> str:
         f"- 实际评估样本: {summary.get('evaluated_rows', 0)}",
         f"- 正股门槛 MAE: {_format_float(summary.get('guaranteed_amount_mae_wan'), 4)} 万元",
         f"- 正股门槛 MAPE: {_format_float((summary.get('guaranteed_amount_mape') or 0) * 100 if summary.get('guaranteed_amount_mape') is not None else None, 2)}%",
+        f"- 正股门槛有符号偏差: {_format_float((summary.get('guaranteed_amount_signed_bias') or 0) * 100 if summary.get('guaranteed_amount_signed_bias') is not None else None, 2)}%",
+        f"- 最近 {summary.get('recent_guaranteed_metric_rows', 0)} 只偏差 / MAPE: "
+        f"{_format_float((summary.get('recent_guaranteed_signed_bias') or 0) * 100 if summary.get('recent_guaranteed_signed_bias') is not None else None, 2)}% / "
+        f"{_format_float((summary.get('recent_guaranteed_mape') or 0) * 100 if summary.get('recent_guaranteed_mape') is not None else None, 2)}%",
         f"- 手工分档样本: {summary.get('manual_ladder_label_rows', 0)} 只，分档误差样本 {summary.get('manual_ladder_amount_metric_rows', 0)} 档",
         f"- 手工分档 MAE: {_format_float(summary.get('manual_ladder_amount_mae_wan'), 4)} 万元",
         f"- 手工分档 MAPE: {_format_float((summary.get('manual_ladder_amount_mape') or 0) * 100 if summary.get('manual_ladder_amount_mape') is not None else None, 2)}%",
@@ -2081,6 +2142,7 @@ def _format_metric_brief(summary: dict[str, Any]) -> str:
         f"MAE={_format_float(summary.get('guaranteed_amount_mae_wan'), 4)} 万元, "
         f"MAPE={_format_float((summary.get('guaranteed_amount_mape') or 0) * 100 if summary.get('guaranteed_amount_mape') is not None else None, 2)}%, "
         f"分档MAPE={_format_float((summary.get('manual_ladder_amount_mape') or 0) * 100 if summary.get('manual_ladder_amount_mape') is not None else None, 2)}%, "
+        f"近6偏差={_format_float((summary.get('recent_guaranteed_signed_bias') or 0) * 100 if summary.get('recent_guaranteed_signed_bias') is not None else None, 2)}%, "
         f"漏判={len(summary.get('top_apply_false_negative_codes') or [])}, "
         f"误判={len(summary.get('top_apply_false_positive_codes') or [])}, "
         f"评估={summary.get('evaluated_rows', 0)}"

@@ -1,3 +1,23 @@
+## 2026-08-05 19:07:36 申购资金自动调参（已接受）
+
+- 参数文件：D:\BJ_IPO\策略参数.txt
+- 历史样本：D:\BJ_IPO\data\offline_tuning\subscription_history_sample.csv
+- 主网格候选组数：150 / 计划 178
+- 主网格搜索模式：coarse_fine；细搜轮数 2
+- prior 分支候选组数：8
+- 选中分支：main_grid
+- baseline：MAE=36.5117 万元, MAPE=6.60%, 分档MAPE=13.77%, 漏判=0, 误判=0, 评估=46
+- 主网格最优：MAE=38.9579 万元, MAPE=6.93%, 分档MAPE=12.82%, 漏判=0, 误判=0, 评估=46
+- prior 分支最优：MAE=38.9579 万元, MAPE=6.93%, 分档MAPE=12.82%, 漏判=0, 误判=0, 评估=46
+- 新参数：MAE=38.9579 万元, MAPE=6.93%, 分档MAPE=12.82%, 漏判=0, 误判=0, 评估=46
+
+修改参数：
+- subscription_prediction_cap_factor_exponent: 0.5 -> 0.55
+- subscription_prediction_lock_factor_exponent: 0 -> 0.2
+- subscription_prediction_similar_top_apply_frozen_recent_samples: 24 -> 20
+- subscription_prediction_similar_top_apply_frozen_half_life_samples: 6 -> 2
+- subscription_prediction_similar_top_apply_frozen_bandwidth: 0.24 -> 0.12
+
 ## 2026-07-30 19:11:27 自动调参（已接受）
 
 - 参数文件：D:\BJ_IPO\策略参数.txt

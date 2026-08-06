@@ -252,8 +252,8 @@ def _run_similar_top_apply_frozen_anchor_case(failures: list[str]) -> None:
     similar_anchor = (prediction.get("estimate") or {}).get("similar_top_apply_frozen_funds") or {}
     _assert(prediction.get("available") is True, "similar frozen anchor: prediction unavailable", failures)
     _assert(similar_anchor.get("applied") is True, "similar frozen anchor: anchor not applied", failures)
-    _assert_close(similar_anchor.get("anchor_frozen_funds_yi"), 9000.0, "similar frozen anchor: anchor mismatch", failures)
-    _assert_close(prediction.get("frozen_funds_yi"), 9000.0, "similar frozen anchor: frozen funds mismatch", failures)
+    _assert_close(similar_anchor.get("anchor_frozen_funds_yi"), 9600.0, "similar frozen anchor: anchor mismatch", failures)
+    _assert_close(prediction.get("frozen_funds_yi"), 9600.0, "similar frozen anchor: frozen funds mismatch", failures)
     _assert(float(similar_anchor.get("base_frozen_funds_yi") or 0.0) > 15000.0, "similar frozen anchor: base should be higher", failures)
 
 
@@ -454,6 +454,154 @@ def _run_fractional_equals_second_guaranteed_case(failures: list[str]) -> None:
     _assert("1+1建议申购门槛" not in table_labels, "equal boundary: table should hide 1+1", failures)
     _assert("2+0建议申购门槛" in table_labels, "equal boundary: table should keep 2+0", failures)
     _assert("2+1建议申购门槛" in table_labels, "equal boundary: table should keep 2+1", failures)
+
+
+def _run_target_frozen_funds_override_case(failures: list[str]) -> None:
+    target = {
+        "SECURITY_CODE": "920138",
+        "SECURITY_NAME_ABBR": "TargetScenario",
+        "ISSUE_PRICE": 10.0,
+        "ONLINE_ISSUE_NUM": 1000000.0,
+        "TOP_APPLY_MARKETCAP": 500.0,
+    }
+    params = {
+        "subscription_prediction_target_frozen_funds_code": 920138,
+        "subscription_prediction_target_frozen_funds_yi": 100.0,
+        "subscription_prediction_target_frozen_funds_low_yi": 95.0,
+        "subscription_prediction_target_frozen_funds_high_yi": 105.0,
+        "subscription_prediction_target_frozen_funds_reason": "明星股情景",
+        "subscription_prediction_lot_threshold_max_lots": 4,
+    }
+    prediction = subscription_predictor.build_subscription_prediction(target, recent_ipos=[], params=params)
+    override = prediction.get("target_frozen_funds_override") or {}
+    _assert(prediction.get("available") is True, "target frozen override: prediction unavailable", failures)
+    _assert_close(prediction.get("frozen_funds_yi"), 100.0, "target frozen override: midpoint mismatch", failures)
+    _assert_close(prediction.get("subscription_multiple"), 1000.0, "target frozen override: multiple mismatch", failures)
+    _assert(override.get("security_code") == "920138", "target frozen override: code mismatch", failures)
+    _assert(override.get("reason") == "明星股情景", "target frozen override: reason mismatch", failures)
+    table_by_label = {str(row[0]): row for row in prediction.get("table_rows") or []}
+    _assert(
+        (table_by_label.get("个股冻资情景区间") or [None, None])[1] == "95.00-105.00 亿元",
+        "target frozen override: range row mismatch",
+        failures,
+    )
+    _assert(
+        (table_by_label.get("个股情景说明") or [None, None])[1] == "明星股情景",
+        "target frozen override: reason row mismatch",
+        failures,
+    )
+
+    actual_prediction = subscription_predictor.build_subscription_prediction(
+        {**target, "ONLINE_VA_SHARES": 2000000.0},
+        recent_ipos=[],
+        params=params,
+    )
+    _assert(
+        actual_prediction.get("target_frozen_funds_override") is None,
+        "target frozen override: published actual data must not be overridden",
+        failures,
+    )
+    non_target_prediction = subscription_predictor.build_subscription_prediction(
+        {**target, "SECURITY_CODE": "920139"},
+        recent_ipos=[],
+        params=params,
+    )
+    _assert(
+        non_target_prediction.get("target_frozen_funds_override") is None,
+        "target frozen override: non-target stock must not be overridden",
+        failures,
+    )
+    _assert(
+        non_target_prediction.get("available") is False,
+        "target frozen override: non-target stock must keep its original insufficient-data result",
+        failures,
+    )
+
+
+def _run_recent_market_level_factor_case(failures: list[str]) -> None:
+    recent_ipos = [
+        {
+            "SECURITY_CODE": f"92010{index}",
+            "APPLY_DATE": f"2026-07-0{index}",
+            "ISSUE_PRICE": 10.0,
+            "ONLINE_ISSUE_NUM": 1000000.0,
+            "ONLINE_VA_SHARES": 10000000.0,
+        }
+        for index in range(1, 4)
+    ]
+    target = {
+        "SECURITY_CODE": "920200",
+        "ISSUE_PRICE": 10.0,
+        "ONLINE_ISSUE_NUM": 1000000.0,
+        "TOP_APPLY_MARKETCAP": 500.0,
+    }
+    params = {
+        "subscription_prediction_recent_market_level_factor": 1.10,
+        "subscription_prediction_similar_top_apply_frozen_enabled": False,
+        "subscription_prediction_frozen_funds_floor_enabled": False,
+        "subscription_prediction_frozen_funds_cap_enabled": False,
+        "subscription_prediction_cap_factor_exponent": 0.0,
+        "subscription_prediction_issue_factor_exponent": 0.0,
+        "subscription_prediction_lock_factor_exponent": 0.0,
+        "subscription_prediction_multiple_scale": 1.0,
+    }
+    prediction = subscription_predictor.build_subscription_prediction(target, recent_ipos, params)
+    recent_level = (prediction.get("estimate") or {}).get("recent_market_level") or {}
+    _assert_close(prediction.get("frozen_funds_yi"), 1.10, "recent market level: frozen funds mismatch", failures)
+    _assert_close(prediction.get("subscription_multiple"), 11.0, "recent market level: multiple mismatch", failures)
+    _assert(recent_level.get("applied") is True, "recent market level: adjustment not applied", failures)
+    table_labels = [str(row[0]) for row in prediction.get("table_rows") or []]
+    _assert("近期资金水位修正" in table_labels, "recent market level: report row missing", failures)
+
+    actual_prediction = subscription_predictor.build_subscription_prediction(
+        {**target, "ONLINE_VA_SHARES": 12000000.0},
+        recent_ipos,
+        params,
+    )
+    _assert_close(
+        actual_prediction.get("subscription_multiple"),
+        12.0,
+        "recent market level: published actual data must not be adjusted",
+        failures,
+    )
+
+
+def _run_historical_sample_date_order_case(failures: list[str]) -> None:
+    recent_ipos = [
+        {
+            "SECURITY_CODE": f"92030{index}",
+            "ISSUE_RESULT_DATE": result_date,
+            "ISSUE_PRICE": 10.0,
+            "ONLINE_ISSUE_NUM": 1000000.0,
+            "ONLINE_VA_SHARES": valid_shares,
+        }
+        for index, (result_date, valid_shares) in enumerate(
+            (
+                ("2026-07-01", 10000000.0),
+                ("2026-07-03", 30000000.0),
+                ("2026-07-02", 20000000.0),
+            ),
+            start=1,
+        )
+    ]
+    prediction = subscription_predictor.build_subscription_prediction(
+        {
+            "SECURITY_CODE": "920399",
+            "ISSUE_PRICE": 10.0,
+            "ONLINE_ISSUE_NUM": 1000000.0,
+        },
+        recent_ipos,
+        {
+            "subscription_prediction_frozen_funds_floor_recent_samples": 3,
+            "subscription_prediction_frozen_funds_floor_min_samples": 3,
+        },
+    )
+    floor = (prediction.get("estimate") or {}).get("frozen_funds_floor") or {}
+    _assert(
+        floor.get("source_codes") == ["920302", "920303", "920301"],
+        f"historical sample order: expected newest issue result first, got {floor.get('source_codes')}",
+        failures,
+    )
 
 
 def _run_account_pool_fractional_threshold_case(failures: list[str]) -> None:
@@ -782,6 +930,9 @@ def main() -> int:
     _run_920126_lot_threshold_case(failures)
     _run_fractional_between_one_and_two_display_case(failures)
     _run_fractional_equals_second_guaranteed_case(failures)
+    _run_target_frozen_funds_override_case(failures)
+    _run_recent_market_level_factor_case(failures)
+    _run_historical_sample_date_order_case(failures)
     _run_account_pool_fractional_threshold_case(failures)
     _run_account_pool_runtime_index_cache_case(failures)
     _run_latest_calibrated_account_pool_snapshot_case(failures)

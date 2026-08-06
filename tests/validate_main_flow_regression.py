@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from datetime import date
 from pathlib import Path
 import sys
 from tempfile import TemporaryDirectory
@@ -401,6 +402,35 @@ def _assert_subscription_history_overlay(failures: list[str]) -> None:
         failures.append("subscription history overlay: issue result date not applied")
     if summary.get("overlay_count") != 1 or summary.get("matched_codes") != ["920126"]:
         failures.append(f"subscription history overlay: summary mismatch {summary}")
+
+
+def _assert_unlisted_issue_result_overlay(failures: list[str]) -> None:
+    with TemporaryDirectory() as temp_dir:
+        history_path = Path(temp_dir) / "subscription_history_sample.csv"
+        history_path.write_text(
+            "security_code,security_name_abbr,apply_date,issue_result_date,listing_date,issue_price,online_issue_shares,online_valid_shares,frozen_funds_yi\n"
+            "920101,OldListed,2026-07-20,2026-07-23,2026-07-29,10,1000000,1000000000,100\n"
+            "920102,FreshUnlisted,2026-08-03,2026-08-06,,10,1000000,1400000000,140\n"
+            "920103,FutureResult,2026-08-07,2026-08-10,,10,1000000,1500000000,150\n"
+            "920104,Target,2026-08-10,2026-08-13,,10,1000000,1600000000,160\n",
+            encoding="utf-8",
+        )
+        recent_ipos = [{"SECURITY_CODE": "920101", "ISSUE_PRICE": 10.0}]
+        overlaid, summary = bse_ipo_valuation._overlay_subscription_history_recent_ipos(
+            recent_ipos,
+            history_path,
+            include_unlisted_results=True,
+            target_code="920104",
+            target_apply_date="2026-08-10",
+            recent_days=30,
+            as_of_date=date(2026, 8, 6),
+        )
+
+    codes = [str(item.get("SECURITY_CODE") or "") for item in overlaid]
+    if codes != ["920102", "920101"]:
+        failures.append(f"unlisted issue result overlay: unexpected sample order {codes}")
+    if summary.get("appended_codes") != ["920102"] or summary.get("appended_count") != 1:
+        failures.append(f"unlisted issue result overlay: summary mismatch {summary}")
 
 
 def _assert_target_subscription_overlays(failures: list[str]) -> None:
@@ -870,6 +900,7 @@ def main() -> int:
     params = config_loader.load_params(ROOT_DIR / "策略参数.txt")
     failures: list[str] = []
     _assert_subscription_history_overlay(failures)
+    _assert_unlisted_issue_result_overlay(failures)
     _assert_target_subscription_overlays(failures)
     _assert_missing_online_va_num_placeholder(failures)
     _assert_recent_table_time_window(failures)

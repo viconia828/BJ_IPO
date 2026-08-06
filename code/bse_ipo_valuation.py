@@ -7,7 +7,7 @@ import re
 import sys
 import threading
 import time
-from datetime import date
+from datetime import date, timedelta
 from pathlib import Path
 from typing import Any, Callable, Iterator
 
@@ -374,6 +374,12 @@ def _load_subscription_history_overlays(
 def _overlay_subscription_history_recent_ipos(
     recent_ipos: list[dict[str, Any]],
     history_path: Path = SUBSCRIPTION_HISTORY_SAMPLE_PATH,
+    *,
+    include_unlisted_results: bool = False,
+    target_code: str = "",
+    target_apply_date: Any = None,
+    recent_days: int | None = None,
+    as_of_date: date | None = None,
 ) -> tuple[list[dict[str, Any]], dict[str, Any]]:
     overlays = _load_subscription_history_overlays(history_path)
     if not overlays:
@@ -382,10 +388,13 @@ def _overlay_subscription_history_recent_ipos(
             "history_row_count": 0,
             "overlay_count": 0,
             "matched_codes": [],
+            "appended_count": 0,
+            "appended_codes": [],
         }
 
     overlaid: list[dict[str, Any]] = []
     matched_codes: list[str] = []
+    appended_codes: list[str] = []
     applied_fields_by_code: dict[str, list[str]] = {}
     for item in recent_ipos:
         merged = dict(item)
@@ -403,11 +412,53 @@ def _overlay_subscription_history_recent_ipos(
             applied_fields_by_code[code] = applied_fields
         overlaid.append(merged)
 
+    if include_unlisted_results:
+        today = as_of_date or date.today()
+        target_apply = subscription_predictor._parse_date(target_apply_date)
+        effective_as_of = today
+        if target_apply is not None:
+            effective_as_of = min(effective_as_of, target_apply - timedelta(days=1))
+        day_count = max(int(recent_days or 90), 1)
+        cutoff = effective_as_of - timedelta(days=day_count)
+        existing_codes = {
+            str(item.get("SECURITY_CODE") or "").strip()
+            for item in overlaid
+            if str(item.get("SECURITY_CODE") or "").strip()
+        }
+        normalized_target_code = str(target_code or "").strip()
+        for code, overlay in overlays.items():
+            if code in existing_codes or code == normalized_target_code:
+                continue
+            result_date = subscription_predictor._parse_date(
+                overlay.get("ISSUE_RESULT_DATE") or overlay.get("BALLOT_NUM_DATE")
+            )
+            if result_date is None or result_date < cutoff or result_date > effective_as_of:
+                continue
+            overlaid.append(dict(overlay))
+            existing_codes.add(code)
+            appended_codes.append(code)
+
+        indexed_items = list(enumerate(overlaid))
+
+        def _recent_sort_key(indexed_item: tuple[int, dict[str, Any]]) -> tuple[int, int]:
+            index, item = indexed_item
+            sample_date = subscription_predictor._parse_date(
+                item.get("ISSUE_RESULT_DATE")
+                or item.get("BALLOT_NUM_DATE")
+                or item.get("APPLY_DATE")
+                or item.get("LISTING_DATE")
+            )
+            return (sample_date.toordinal() if sample_date is not None else 0, -index)
+
+        overlaid = [item for _, item in sorted(indexed_items, key=_recent_sort_key, reverse=True)]
+
     return overlaid, {
         "history_path": str(history_path),
         "history_row_count": len(overlays),
-        "overlay_count": len(matched_codes),
+        "overlay_count": len(matched_codes) + len(appended_codes),
         "matched_codes": matched_codes,
+        "appended_count": len(appended_codes),
+        "appended_codes": appended_codes,
         "applied_fields_by_code": applied_fields_by_code,
     }
 
@@ -993,7 +1044,13 @@ def build_analysis_data(
 
     recent_ipos = mapper.enrich_recent_ipos(ipo_data_bundle.get("recent_ipos") or [])
     recent_ipos = [item for item in recent_ipos if item.get("SECURITY_CODE") != code]
-    recent_ipos, subscription_history_overlay_summary = _overlay_subscription_history_recent_ipos(recent_ipos)
+    recent_ipos, subscription_history_overlay_summary = _overlay_subscription_history_recent_ipos(
+        recent_ipos,
+        include_unlisted_results=True,
+        target_code=code,
+        target_apply_date=ipo_info.get("APPLY_DATE"),
+        recent_days=int(ipo_data_summary.get("recent_days") or params.get("recent_days") or 90),
+    )
     ipo_data_summary["subscription_history_overlay"] = subscription_history_overlay_summary
     ipo_info, target_subscription_history_overlay_summary = _overlay_subscription_history_target_ipo(ipo_info)
     ipo_data_summary["subscription_history_target_overlay"] = target_subscription_history_overlay_summary
