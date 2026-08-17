@@ -209,6 +209,31 @@ def _validate_params(params: dict[str, Any]) -> None:
         raise ValueError("subscription_prediction_multiple_scale 必须大于 0")
     if float(params.get("subscription_prediction_recent_market_level_factor", 1.0)) <= 0:
         raise ValueError("subscription_prediction_recent_market_level_factor 必须大于 0")
+    recent_market_level_samples = int(
+        float(params.get("subscription_prediction_recent_market_level_adaptive_recent_samples", 6))
+    )
+    recent_market_level_min_samples = int(
+        float(params.get("subscription_prediction_recent_market_level_adaptive_min_samples", 3))
+    )
+    if recent_market_level_samples <= 0 or recent_market_level_min_samples <= 0:
+        raise ValueError("近期资金水位自适应样本数必须大于 0")
+    if recent_market_level_min_samples > recent_market_level_samples:
+        raise ValueError("近期资金水位自适应最少样本数不能大于近期窗口")
+    if float(params.get("subscription_prediction_recent_market_level_adaptive_half_life_samples", 3.0)) <= 0:
+        raise ValueError("subscription_prediction_recent_market_level_adaptive_half_life_samples 必须大于 0")
+    recent_market_level_weight = float(
+        params.get("subscription_prediction_recent_market_level_adaptive_weight", 0.75)
+    )
+    if not 0.0 <= recent_market_level_weight <= 1.0:
+        raise ValueError("subscription_prediction_recent_market_level_adaptive_weight 必须在 0 与 1 之间")
+    recent_market_level_factor_min = float(
+        params.get("subscription_prediction_recent_market_level_adaptive_factor_min", 0.90)
+    )
+    recent_market_level_factor_max = float(
+        params.get("subscription_prediction_recent_market_level_adaptive_factor_max", 1.15)
+    )
+    if recent_market_level_factor_min <= 0 or recent_market_level_factor_max < recent_market_level_factor_min:
+        raise ValueError("近期资金水位自适应因子必须满足 0 < 下限 <= 上限")
     target_frozen_funds_code = str(params.get("subscription_prediction_target_frozen_funds_code", "") or "").strip()
     target_frozen_funds_yi = params.get("subscription_prediction_target_frozen_funds_yi")
     target_frozen_funds_low_yi = params.get("subscription_prediction_target_frozen_funds_low_yi")

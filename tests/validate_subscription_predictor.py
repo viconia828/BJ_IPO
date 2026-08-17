@@ -566,6 +566,63 @@ def _run_recent_market_level_factor_case(failures: list[str]) -> None:
     )
 
 
+def _run_adaptive_recent_market_level_case(failures: list[str]) -> None:
+    recent_ipos: list[dict[str, Any]] = []
+    for index in range(1, 14):
+        valid_shares = 12000000.0 if index >= 11 else 10000000.0
+        recent_ipos.append(
+            {
+                "SECURITY_CODE": f"9201{index:02d}",
+                "APPLY_DATE": f"2026-07-{index:02d}",
+                "ISSUE_RESULT_DATE": f"2026-07-{index:02d}",
+                "ISSUE_PRICE": 10.0,
+                "ONLINE_ISSUE_NUM": 1000000.0,
+                "TOP_APPLY_MARKETCAP": 500.0,
+                "ONLINE_VA_SHARES": valid_shares,
+            }
+        )
+    params = {
+        "subscription_prediction_recent_market_level_factor": 1.03,
+        "subscription_prediction_recent_market_level_adaptive_enabled": True,
+        "subscription_prediction_recent_market_level_adaptive_recent_samples": 3,
+        "subscription_prediction_recent_market_level_adaptive_min_samples": 3,
+        "subscription_prediction_recent_market_level_adaptive_half_life_samples": 2.0,
+        "subscription_prediction_recent_market_level_adaptive_weight": 1.0,
+        "subscription_prediction_recent_market_level_adaptive_factor_min": 0.80,
+        "subscription_prediction_recent_market_level_adaptive_factor_max": 1.30,
+        "subscription_prediction_sample_decay_half_life_days": 40,
+        "subscription_prediction_similar_top_apply_frozen_enabled": False,
+        "subscription_prediction_frozen_funds_floor_enabled": False,
+        "subscription_prediction_frozen_funds_cap_enabled": False,
+        "subscription_prediction_cap_factor_exponent": 0.0,
+        "subscription_prediction_issue_factor_exponent": 0.0,
+        "subscription_prediction_lock_factor_exponent": 0.0,
+        "subscription_prediction_multiple_scale": 1.0,
+    }
+    prediction = subscription_predictor.build_subscription_prediction(
+        {
+            "SECURITY_CODE": "920199",
+            "ISSUE_PRICE": 10.0,
+            "ONLINE_ISSUE_NUM": 1000000.0,
+            "TOP_APPLY_MARKETCAP": 500.0,
+        },
+        recent_ipos,
+        params,
+    )
+    recent_level = (prediction.get("estimate") or {}).get("recent_market_level") or {}
+    _assert(recent_level.get("available") is True, "adaptive market level: calibration unavailable", failures)
+    _assert_close(recent_level.get("observed_factor"), 1.20, "adaptive market level: observed factor mismatch", failures)
+    _assert_close(recent_level.get("factor"), 1.20, "adaptive market level: applied factor mismatch", failures)
+    _assert_close(prediction.get("subscription_multiple"), 12.0, "adaptive market level: multiple mismatch", failures)
+    _assert(
+        recent_level.get("source_codes") == ["920113", "920112", "920111"],
+        f"adaptive market level: source order mismatch {recent_level.get('source_codes')}",
+        failures,
+    )
+    table_labels = [str(row[0]) for row in prediction.get("table_rows") or []]
+    _assert("近期资金水位自适应" in table_labels, "adaptive market level: report row missing", failures)
+
+
 def _run_historical_sample_date_order_case(failures: list[str]) -> None:
     recent_ipos = [
         {
@@ -932,6 +989,7 @@ def main() -> int:
     _run_fractional_equals_second_guaranteed_case(failures)
     _run_target_frozen_funds_override_case(failures)
     _run_recent_market_level_factor_case(failures)
+    _run_adaptive_recent_market_level_case(failures)
     _run_historical_sample_date_order_case(failures)
     _run_account_pool_fractional_threshold_case(failures)
     _run_account_pool_runtime_index_cache_case(failures)

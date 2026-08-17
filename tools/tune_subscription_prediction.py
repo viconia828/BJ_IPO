@@ -40,6 +40,11 @@ DEFAULT_BASELINE_PARAMS = {
     "subscription_prediction_lock_factor_exponent": 0.0,
     "subscription_prediction_multiple_scale": 1.0,
     "subscription_prediction_recent_market_level_factor": 1.0,
+    "subscription_prediction_recent_market_level_adaptive_enabled": False,
+    "subscription_prediction_recent_market_level_adaptive_recent_samples": 6,
+    "subscription_prediction_recent_market_level_adaptive_min_samples": 3,
+    "subscription_prediction_recent_market_level_adaptive_half_life_samples": 3.0,
+    "subscription_prediction_recent_market_level_adaptive_weight": 0.75,
 }
 
 DEFAULT_SEARCH_GRID = {
@@ -50,8 +55,16 @@ DEFAULT_SEARCH_GRID = {
     "subscription_prediction_issue_factor_exponent": [0.0, 0.15, 0.20, 0.30, 0.45],
     "subscription_prediction_lock_factor_exponent": [0.0, 0.20, 0.35],
     "subscription_prediction_multiple_scale": [0.85, 1.0, 1.15],
-    "subscription_prediction_recent_market_level_factor": [1.0, 1.02, 1.03, 1.04, 1.05],
+    "subscription_prediction_recent_market_level_factor": [0.97, 1.0, 1.03, 1.06],
 }
+
+RECENT_MARKET_LEVEL_ADAPTIVE_PARAM_KEYS = (
+    "subscription_prediction_recent_market_level_adaptive_enabled",
+    "subscription_prediction_recent_market_level_adaptive_recent_samples",
+    "subscription_prediction_recent_market_level_adaptive_min_samples",
+    "subscription_prediction_recent_market_level_adaptive_half_life_samples",
+    "subscription_prediction_recent_market_level_adaptive_weight",
+)
 
 
 DEFAULT_CORE_COARSE_BLOCK_GRIDS = (
@@ -79,7 +92,23 @@ DEFAULT_CORE_COARSE_BLOCK_GRIDS = (
     ),
     (
         "core_recent_market_level_coarse",
-        {"subscription_prediction_recent_market_level_factor": [1.0, 1.02, 1.03, 1.04, 1.05]},
+        {"subscription_prediction_recent_market_level_factor": [0.97, 1.0, 1.03, 1.06]},
+    ),
+    (
+        "core_recent_market_level_adaptive_weight_coarse",
+        {
+            "subscription_prediction_recent_market_level_adaptive_enabled": [False, True],
+            "subscription_prediction_recent_market_level_adaptive_weight": [0.50, 0.75, 1.0],
+        },
+    ),
+    (
+        "core_recent_market_level_adaptive_window_coarse",
+        {
+            "subscription_prediction_recent_market_level_adaptive_enabled": [True],
+            "subscription_prediction_recent_market_level_adaptive_recent_samples": [4, 6, 8],
+            "subscription_prediction_recent_market_level_adaptive_min_samples": [2, 3, 4],
+            "subscription_prediction_recent_market_level_adaptive_half_life_samples": [2.0, 3.0, 4.0],
+        },
     ),
 )
 
@@ -156,7 +185,11 @@ DEFAULT_ACCOUNT_POOL_PRIOR_WEIGHTS = [0.8, 1.0, 1.1, 1.2]
 DEFAULT_ACCOUNT_POOL_PRIOR_RECENT_SAMPLES = [8, 12]
 DEFAULT_ACCOUNT_POOL_PRIOR_HALF_LIVES = [4.0]
 
-MAIN_TUNABLE_PARAM_KEYS = tuple(DEFAULT_SEARCH_GRID.keys()) + SIMILAR_TOP_APPLY_FROZEN_PARAM_KEYS
+MAIN_TUNABLE_PARAM_KEYS = (
+    tuple(DEFAULT_SEARCH_GRID.keys())
+    + RECENT_MARKET_LEVEL_ADAPTIVE_PARAM_KEYS
+    + SIMILAR_TOP_APPLY_FROZEN_PARAM_KEYS
+)
 PRIOR_TUNABLE_PARAM_KEYS = (
     "subscription_prediction_account_pool_prior_weight",
     "subscription_prediction_account_pool_recent_samples",
@@ -823,6 +856,7 @@ def evaluate_subscription_prediction(
             )
 
         account_pool_prior = prediction.get("account_pool_prior") or {}
+        recent_market_level = ((prediction.get("estimate") or {}).get("recent_market_level") or {})
         details.append(
             {
                 "security_code": row.get("security_code"),
@@ -830,6 +864,14 @@ def evaluate_subscription_prediction(
                 "actual_guaranteed_amount_wan": actual_amount,
                 "predicted_guaranteed_amount_wan": predicted_amount,
                 "predicted_subscription_multiple": _safe_float(prediction.get("subscription_multiple")),
+                "recent_market_level_factor": _safe_float(recent_market_level.get("factor")),
+                "recent_market_level_configured_factor": _safe_float(
+                    recent_market_level.get("configured_factor")
+                ),
+                "recent_market_level_adaptive_available": bool(recent_market_level.get("available")),
+                "recent_market_level_observed_factor": _safe_float(recent_market_level.get("observed_factor")),
+                "recent_market_level_sample_count": int(recent_market_level.get("sample_count") or 0),
+                "recent_market_level_source_codes": recent_market_level.get("source_codes") or [],
                 "guaranteed_amount_abs_error_wan": amount_abs_error,
                 "guaranteed_amount_pct_error": amount_pct_error,
                 "guaranteed_amount_signed_pct_error": amount_signed_pct_error,
@@ -908,6 +950,21 @@ def evaluate_subscription_prediction(
             if recent_signed_pct_errors
             else None
         ),
+        "recent_market_level_adaptive_ready_rows": sum(
+            1 for item in details if item.get("recent_market_level_adaptive_available")
+        ),
+        "latest_recent_market_level_factor": (
+            details[-1].get("recent_market_level_factor") if details else None
+        ),
+        "latest_recent_market_level_observed_factor": (
+            details[-1].get("recent_market_level_observed_factor") if details else None
+        ),
+        "latest_recent_market_level_sample_count": (
+            details[-1].get("recent_market_level_sample_count") if details else 0
+        ),
+        "latest_recent_market_level_source_codes": (
+            details[-1].get("recent_market_level_source_codes") if details else []
+        ),
         "top_apply_classification_total": classification_total,
         "top_apply_classification_correct": classification_correct,
         "top_apply_classification_accuracy": (
@@ -944,6 +1001,14 @@ def _candidate_params_from_grid(
     for values in itertools.product(*(grid[key] for key in keys)):
         params = dict(base_params or {})
         params.update(dict(zip(keys, values)))
+        recent_samples = _safe_float(
+            params.get("subscription_prediction_recent_market_level_adaptive_recent_samples")
+        )
+        min_samples = _safe_float(
+            params.get("subscription_prediction_recent_market_level_adaptive_min_samples")
+        )
+        if recent_samples is not None and min_samples is not None and min_samples > recent_samples:
+            continue
         candidates.append(params)
     return candidates
 
@@ -959,12 +1024,21 @@ def _normalize_param_value(value: Any) -> Any:
 
 def _candidate_signature(params: dict[str, Any]) -> tuple[tuple[str, Any], ...]:
     similar_enabled = _parse_bool(params.get('subscription_prediction_similar_top_apply_frozen_enabled'))
+    adaptive_market_level_enabled = _parse_bool(
+        params.get("subscription_prediction_recent_market_level_adaptive_enabled")
+    )
     signature: list[tuple[str, Any]] = []
     for key in MAIN_TUNABLE_PARAM_KEYS:
         if (
             key in SIMILAR_TOP_APPLY_FROZEN_PARAM_KEYS
             and key != 'subscription_prediction_similar_top_apply_frozen_enabled'
             and not similar_enabled
+        ):
+            signature.append((key, None))
+        elif (
+            key in RECENT_MARKET_LEVEL_ADAPTIVE_PARAM_KEYS
+            and key != "subscription_prediction_recent_market_level_adaptive_enabled"
+            and not adaptive_market_level_enabled
         ):
             signature.append((key, None))
         else:
@@ -1068,6 +1142,29 @@ def _core_fine_block_grids(base_params: dict[str, Any]) -> tuple[tuple[str, dict
         "subscription_prediction_recent_market_level_factor",
         1.0,
     )
+    adaptive_market_level_enabled = _parse_bool(
+        base_params.get("subscription_prediction_recent_market_level_adaptive_enabled")
+    )
+    adaptive_market_level_recent_samples = _current_numeric_param(
+        base_params,
+        "subscription_prediction_recent_market_level_adaptive_recent_samples",
+        6.0,
+    )
+    adaptive_market_level_min_samples = _current_numeric_param(
+        base_params,
+        "subscription_prediction_recent_market_level_adaptive_min_samples",
+        3.0,
+    )
+    adaptive_market_level_half_life = _current_numeric_param(
+        base_params,
+        "subscription_prediction_recent_market_level_adaptive_half_life_samples",
+        3.0,
+    )
+    adaptive_market_level_weight = _current_numeric_param(
+        base_params,
+        "subscription_prediction_recent_market_level_adaptive_weight",
+        0.75,
+    )
     return (
         (
             "core_decay_fine",
@@ -1130,6 +1227,56 @@ def _core_fine_block_grids(base_params: dict[str, Any]) -> tuple[tuple[str, dict
                     low=0.90,
                     high=1.15,
                     digits=3,
+                ),
+            },
+        ),
+        (
+            "core_recent_market_level_adaptive_weight_fine",
+            {
+                "subscription_prediction_recent_market_level_adaptive_enabled": [
+                    adaptive_market_level_enabled
+                ],
+                "subscription_prediction_recent_market_level_adaptive_weight": _unique_sorted_numeric_values(
+                    [
+                        adaptive_market_level_weight - 0.25,
+                        adaptive_market_level_weight - 0.10,
+                        adaptive_market_level_weight,
+                        adaptive_market_level_weight + 0.10,
+                        adaptive_market_level_weight + 0.25,
+                    ],
+                    low=0.0,
+                    high=1.0,
+                ),
+            },
+        ),
+        (
+            "core_recent_market_level_adaptive_window_fine",
+            {
+                "subscription_prediction_recent_market_level_adaptive_enabled": [
+                    adaptive_market_level_enabled
+                ],
+                "subscription_prediction_recent_market_level_adaptive_recent_samples": _unique_sorted_int_values(
+                    [
+                        adaptive_market_level_recent_samples - 2,
+                        adaptive_market_level_recent_samples,
+                        adaptive_market_level_recent_samples + 2,
+                    ],
+                    low=2,
+                ),
+                "subscription_prediction_recent_market_level_adaptive_min_samples": _unique_sorted_int_values(
+                    [
+                        adaptive_market_level_min_samples - 1,
+                        adaptive_market_level_min_samples,
+                        adaptive_market_level_min_samples + 1,
+                    ],
+                ),
+                "subscription_prediction_recent_market_level_adaptive_half_life_samples": _unique_sorted_numeric_values(
+                    [
+                        adaptive_market_level_half_life - 1.0,
+                        adaptive_market_level_half_life,
+                        adaptive_market_level_half_life + 1.0,
+                    ],
+                    low=1.0,
                 ),
             },
         ),
@@ -1198,31 +1345,41 @@ def _params_from_summary(base_params: dict[str, Any], summary: dict[str, Any] | 
     return params
 
 
-def _candidate_rank_key(summary: dict[str, Any]) -> tuple[float, float, float, float, float, float]:
+def _candidate_rank_key(summary: dict[str, Any]) -> tuple[float, ...]:
     false_negative_count = len(summary.get("top_apply_false_negative_codes") or [])
     false_positive_count = len(summary.get("top_apply_false_positive_codes") or [])
     ladder_mape = _safe_float(summary.get("manual_ladder_amount_mape"))
     mape = _safe_float(summary.get("guaranteed_amount_mape"))
+    recent_mape = _safe_float(summary.get("recent_guaranteed_mape"))
+    recent_signed_bias = _safe_float(summary.get("recent_guaranteed_signed_bias"))
     mae = _safe_float(summary.get("guaranteed_amount_mae_wan"))
     metric_rows = _safe_float(summary.get("guaranteed_amount_metric_rows")) or 0.0
+    resolved_mape = mape if mape is not None else 999.0
+    resolved_recent_mape = recent_mape if recent_mape is not None else resolved_mape
+    resolved_recent_bias = abs(recent_signed_bias) if recent_signed_bias is not None else resolved_recent_mape
+    # 规模主误差仍占多数权重，但近期 MAPE 与方向性偏差正式进入排名，
+    # 让资金水位突变能推动自适应候选胜出，而不是只出现在展示指标里。
+    scale_loss = 0.65 * resolved_mape + 0.25 * resolved_recent_mape + 0.10 * resolved_recent_bias
     return (
         float(false_negative_count),
         float(false_positive_count),
         ladder_mape if ladder_mape is not None else 999.0,
-        mape if mape is not None else 999.0,
+        scale_loss,
+        resolved_recent_bias,
+        resolved_mape,
         mae if mae is not None else 999999.0,
         -metric_rows,
     )
 
 
-def _summary_rank_key(summary: dict[str, Any]) -> tuple[float, float, float, float, float, float]:
+def _summary_rank_key(summary: dict[str, Any]) -> tuple[float, ...]:
     rank_key = summary.get("rank_key")
     if isinstance(rank_key, (list, tuple)) and rank_key:
         return tuple(float(value) for value in rank_key)
     return _candidate_rank_key(summary)
 
 
-def _account_pool_prior_minimal_trigger_rank_key(summary: dict[str, Any]) -> tuple[float, float, float, float, float, float]:
+def _account_pool_prior_minimal_trigger_rank_key(summary: dict[str, Any]) -> tuple[float, ...]:
     false_negative_count = len(summary.get("top_apply_false_negative_codes") or [])
     false_positive_count = len(summary.get("top_apply_false_positive_codes") or [])
     applied_count = _safe_float(summary.get("account_pool_prior_applied_count")) or 0.0
@@ -1983,6 +2140,11 @@ def format_summary(summary: dict[str, Any]) -> str:
         f"- 最近 {summary.get('recent_guaranteed_metric_rows', 0)} 只偏差 / MAPE: "
         f"{_format_float((summary.get('recent_guaranteed_signed_bias') or 0) * 100 if summary.get('recent_guaranteed_signed_bias') is not None else None, 2)}% / "
         f"{_format_float((summary.get('recent_guaranteed_mape') or 0) * 100 if summary.get('recent_guaranteed_mape') is not None else None, 2)}%",
+        "- 最新资金水位因子: "
+        f"{_format_float(summary.get('latest_recent_market_level_factor'), 4)} "
+        f"(观测 {_format_float(summary.get('latest_recent_market_level_observed_factor'), 4)}，"
+        f"逐时点样本 {summary.get('latest_recent_market_level_sample_count', 0)} 个，"
+        f"来源 {_format_code_list(summary.get('latest_recent_market_level_source_codes') or [])})",
         f"- 手工分档样本: {summary.get('manual_ladder_label_rows', 0)} 只，分档误差样本 {summary.get('manual_ladder_amount_metric_rows', 0)} 档",
         f"- 手工分档 MAE: {_format_float(summary.get('manual_ladder_amount_mae_wan'), 4)} 万元",
         f"- 手工分档 MAPE: {_format_float((summary.get('manual_ladder_amount_mape') or 0) * 100 if summary.get('manual_ladder_amount_mape') is not None else None, 2)}%",
@@ -2015,6 +2177,8 @@ def _format_candidate_line(index: int, item: dict[str, Any]) -> str:
     return (
         f"{index}. MAE={_format_float(item.get('guaranteed_amount_mae_wan'), 4)} 万元, "
         f"MAPE={_format_float((item.get('guaranteed_amount_mape') or 0) * 100 if item.get('guaranteed_amount_mape') is not None else None, 2)}%, "
+        f"近6偏差={_format_float((item.get('recent_guaranteed_signed_bias') or 0) * 100 if item.get('recent_guaranteed_signed_bias') is not None else None, 2)}%, "
+        f"水位因子={_format_float(item.get('latest_recent_market_level_factor'), 4)}, "
         f"分档MAPE={_format_float((item.get('manual_ladder_amount_mape') or 0) * 100 if item.get('manual_ladder_amount_mape') is not None else None, 2)}%, "
         f"漏判={len(false_negative_codes)} [{', '.join(false_negative_codes) or '-'}], "
         f"误判={len(false_positive_codes)} [{', '.join(false_positive_codes) or '-'}], "
@@ -2143,6 +2307,7 @@ def _format_metric_brief(summary: dict[str, Any]) -> str:
         f"MAPE={_format_float((summary.get('guaranteed_amount_mape') or 0) * 100 if summary.get('guaranteed_amount_mape') is not None else None, 2)}%, "
         f"分档MAPE={_format_float((summary.get('manual_ladder_amount_mape') or 0) * 100 if summary.get('manual_ladder_amount_mape') is not None else None, 2)}%, "
         f"近6偏差={_format_float((summary.get('recent_guaranteed_signed_bias') or 0) * 100 if summary.get('recent_guaranteed_signed_bias') is not None else None, 2)}%, "
+        f"水位因子={_format_float(summary.get('latest_recent_market_level_factor'), 4)}, "
         f"漏判={len(summary.get('top_apply_false_negative_codes') or [])}, "
         f"误判={len(summary.get('top_apply_false_positive_codes') or [])}, "
         f"评估={summary.get('evaluated_rows', 0)}"

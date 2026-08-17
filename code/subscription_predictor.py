@@ -22,6 +22,13 @@ DEFAULT_FROZEN_FUNDS_CAP_RECENT_SAMPLES = 20
 DEFAULT_FROZEN_FUNDS_CAP_QUANTILE = 1.0
 DEFAULT_FROZEN_FUNDS_CAP_WEIGHT = 1.10
 DEFAULT_RECENT_MARKET_LEVEL_FACTOR = 1.0
+DEFAULT_RECENT_MARKET_LEVEL_ADAPTIVE_ENABLED = False
+DEFAULT_RECENT_MARKET_LEVEL_ADAPTIVE_RECENT_SAMPLES = 6
+DEFAULT_RECENT_MARKET_LEVEL_ADAPTIVE_MIN_SAMPLES = 3
+DEFAULT_RECENT_MARKET_LEVEL_ADAPTIVE_HALF_LIFE_SAMPLES = 3.0
+DEFAULT_RECENT_MARKET_LEVEL_ADAPTIVE_WEIGHT = 0.75
+DEFAULT_RECENT_MARKET_LEVEL_ADAPTIVE_FACTOR_MIN = 0.90
+DEFAULT_RECENT_MARKET_LEVEL_ADAPTIVE_FACTOR_MAX = 1.15
 DEFAULT_LOT_THRESHOLD_MAX_LOTS = 20
 DEFAULT_SIMILAR_TOP_APPLY_FROZEN_WEIGHT = 0.65
 DEFAULT_SIMILAR_TOP_APPLY_FROZEN_RECENT_SAMPLES = 24
@@ -900,6 +907,8 @@ def _historical_sample(record: dict[str, Any]) -> dict[str, Any] | None:
     return {
         "security_code": str(record.get("SECURITY_CODE") or ""),
         "sample_date_ordinal": float(sample_date.toordinal()) if sample_date is not None else 0.0,
+        "issue_price": issue_price,
+        "online_issue_shares": online_issue_shares,
         "subscription_multiple": valid_shares / online_issue_shares,
         "frozen_funds_yi": valid_shares * issue_price / 100000000,
         "top_apply_wan": top_apply_wan or 0.0,
@@ -1129,6 +1138,209 @@ def _similar_top_apply_frozen_funds_from_samples(
     }
 
 
+def _adaptive_recent_market_level_from_history(
+    recent_ipos: list[dict[str, Any]],
+    params: dict[str, Any],
+    base_factor: float,
+) -> dict[str, Any]:
+    enabled = _is_enabled(
+        params.get("subscription_prediction_recent_market_level_adaptive_enabled"),
+        default=DEFAULT_RECENT_MARKET_LEVEL_ADAPTIVE_ENABLED,
+    )
+    result: dict[str, Any] = {
+        "enabled": enabled,
+        "available": False,
+        "applied": False,
+        "base_factor": base_factor,
+        "factor": base_factor,
+        "basis": "configured_recent_market_level",
+        "sample_count": 0,
+        "source_codes": [],
+    }
+    if not enabled:
+        result["reason"] = "adaptive_disabled"
+        return result
+
+    recent_samples = max(
+        int(
+            float(
+                params.get(
+                    "subscription_prediction_recent_market_level_adaptive_recent_samples",
+                    DEFAULT_RECENT_MARKET_LEVEL_ADAPTIVE_RECENT_SAMPLES,
+                )
+            )
+        ),
+        1,
+    )
+    min_samples = max(
+        int(
+            float(
+                params.get(
+                    "subscription_prediction_recent_market_level_adaptive_min_samples",
+                    DEFAULT_RECENT_MARKET_LEVEL_ADAPTIVE_MIN_SAMPLES,
+                )
+            )
+        ),
+        1,
+    )
+    half_life = max(
+        float(
+            params.get(
+                "subscription_prediction_recent_market_level_adaptive_half_life_samples",
+                DEFAULT_RECENT_MARKET_LEVEL_ADAPTIVE_HALF_LIFE_SAMPLES,
+            )
+        ),
+        1.0,
+    )
+    adaptive_weight = _clamp(
+        float(
+            params.get(
+                "subscription_prediction_recent_market_level_adaptive_weight",
+                DEFAULT_RECENT_MARKET_LEVEL_ADAPTIVE_WEIGHT,
+            )
+        ),
+        0.0,
+        1.0,
+    )
+    factor_min = max(
+        float(
+            params.get(
+                "subscription_prediction_recent_market_level_adaptive_factor_min",
+                DEFAULT_RECENT_MARKET_LEVEL_ADAPTIVE_FACTOR_MIN,
+            )
+        ),
+        0.01,
+    )
+    factor_max = max(
+        float(
+            params.get(
+                "subscription_prediction_recent_market_level_adaptive_factor_max",
+                DEFAULT_RECENT_MARKET_LEVEL_ADAPTIVE_FACTOR_MAX,
+            )
+        ),
+        factor_min,
+    )
+    result.update(
+        {
+            "recent_samples": recent_samples,
+            "min_samples": min_samples,
+            "half_life_samples": half_life,
+            "adaptive_weight": adaptive_weight,
+            "factor_min": factor_min,
+            "factor_max": factor_max,
+        }
+    )
+
+    ordered: list[dict[str, Any]] = []
+    for input_index, record in enumerate(recent_ipos):
+        sample = _historical_sample(record)
+        if sample is None:
+            continue
+        ordered.append({"record": record, "sample": sample, "input_order": input_index})
+    ordered.sort(
+        key=lambda item: (
+            float((item.get("sample") or {}).get("sample_date_ordinal") or 0.0),
+            -int(item.get("input_order") or 0),
+        ),
+        reverse=True,
+    )
+
+    calibration_params = dict(params)
+    calibration_params["subscription_prediction_recent_market_level_adaptive_enabled"] = False
+    calibration_params["subscription_prediction_recent_market_level_factor"] = 1.0
+    prediction_min_samples = max(
+        int(float(calibration_params.get("subscription_prediction_min_samples", 3))),
+        1,
+    )
+    weighted_ratios: list[tuple[float, float]] = []
+    observations: list[dict[str, Any]] = []
+    for entry in ordered[:recent_samples]:
+        sample = entry.get("sample") or {}
+        sample_date_ordinal = float(sample.get("sample_date_ordinal") or 0.0)
+        older_records: list[dict[str, Any]] = []
+        for older_entry in ordered:
+            if older_entry is entry:
+                continue
+            older_sample = older_entry.get("sample") or {}
+            older_date_ordinal = float(older_sample.get("sample_date_ordinal") or 0.0)
+            if sample_date_ordinal > 0 and older_date_ordinal > 0:
+                # 同一发行结果日的样本在当时互不可见，不能彼此用于校准。
+                if older_date_ordinal >= sample_date_ordinal:
+                    continue
+            elif int(older_entry.get("input_order") or 0) <= int(entry.get("input_order") or 0):
+                continue
+            older_records.append(older_entry.get("record") or {})
+        if len(older_records) < prediction_min_samples:
+            continue
+
+        issue_price = float(sample.get("issue_price") or 0.0)
+        online_issue_shares = float(sample.get("online_issue_shares") or 0.0)
+        if issue_price <= 0 or online_issue_shares <= 0:
+            continue
+        estimate = _estimate_valid_subscription_shares(
+            entry.get("record") or {},
+            older_records,
+            issue_price,
+            online_issue_shares,
+            float(sample.get("top_apply_wan") or 0.0) or None,
+            int(float(sample.get("lock_days") or 3)),
+            calibration_params,
+        )
+        recent_level = estimate.get("recent_market_level") or {}
+        predicted_frozen_funds_yi = _safe_float(recent_level.get("pre_adjustment_frozen_funds_yi"))
+        actual_frozen_funds_yi = _safe_float(sample.get("frozen_funds_yi"))
+        if (
+            predicted_frozen_funds_yi is None
+            or predicted_frozen_funds_yi <= 0
+            or actual_frozen_funds_yi is None
+            or actual_frozen_funds_yi <= 0
+        ):
+            continue
+        raw_ratio = actual_frozen_funds_yi / predicted_frozen_funds_yi
+        calibrated_ratio = _clamp(raw_ratio, factor_min, factor_max)
+        observation_age = len(observations)
+        observation_weight = 0.5 ** (observation_age / half_life)
+        weighted_ratios.append((calibrated_ratio, observation_weight))
+        observations.append(
+            {
+                "security_code": str(sample.get("security_code") or ""),
+                "actual_frozen_funds_yi": actual_frozen_funds_yi,
+                "predicted_frozen_funds_yi": predicted_frozen_funds_yi,
+                "raw_factor": raw_ratio,
+                "calibrated_factor": calibrated_ratio,
+                "weight": observation_weight,
+            }
+        )
+
+    result["sample_count"] = len(observations)
+    result["source_codes"] = [item["security_code"] for item in observations if item.get("security_code")]
+    result["samples"] = observations
+    if len(observations) < min_samples:
+        result["reason"] = "insufficient_walk_forward_samples"
+        return result
+
+    observed_factor = _weighted_median(weighted_ratios)
+    if observed_factor is None or observed_factor <= 0:
+        result["reason"] = "invalid_observed_factor"
+        return result
+    blended_factor = math.exp(
+        (1.0 - adaptive_weight) * math.log(max(base_factor, 0.01))
+        + adaptive_weight * math.log(observed_factor)
+    )
+    adaptive_factor = _clamp(blended_factor, factor_min, factor_max)
+    result.update(
+        {
+            "available": True,
+            "applied": True,
+            "observed_factor": observed_factor,
+            "factor": adaptive_factor,
+            "basis": "walk_forward_recent_market_level",
+            "reason": "",
+        }
+    )
+    return result
+
+
 def _estimate_valid_subscription_shares(
     target: dict[str, Any],
     recent_ipos: list[dict[str, Any]],
@@ -1262,7 +1474,7 @@ def _estimate_valid_subscription_shares(
         frozen_floor["uplift_ratio"] = (
             valid_subscription_shares / base_valid_shares if base_valid_shares > 0 else None
         )
-    recent_market_level_factor = max(
+    configured_recent_market_level_factor = max(
         float(
             params.get(
                 "subscription_prediction_recent_market_level_factor",
@@ -1271,21 +1483,29 @@ def _estimate_valid_subscription_shares(
         ),
         0.01,
     )
+    recent_market_level = _adaptive_recent_market_level_from_history(
+        recent_ipos,
+        params,
+        configured_recent_market_level_factor,
+    )
+    recent_market_level_factor = max(float(recent_market_level.get("factor") or 0.0), 0.01)
     pre_market_level_valid_shares = valid_subscription_shares
     pre_market_level_frozen_funds_yi = pre_market_level_valid_shares * issue_price / 100000000
     recent_market_level_applied = abs(recent_market_level_factor - 1.0) > 1e-12
     if recent_market_level_applied:
         valid_subscription_shares *= recent_market_level_factor
         predicted_multiple = valid_subscription_shares / online_issue_shares
-    recent_market_level = {
-        "applied": recent_market_level_applied,
-        "factor": recent_market_level_factor,
-        "pre_adjustment_valid_subscription_shares": pre_market_level_valid_shares,
-        "pre_adjustment_frozen_funds_yi": pre_market_level_frozen_funds_yi,
-        "adjusted_valid_subscription_shares": valid_subscription_shares,
-        "adjusted_frozen_funds_yi": valid_subscription_shares * issue_price / 100000000,
-        "basis": "recent_market_level",
-    }
+    recent_market_level.update(
+        {
+            "applied": recent_market_level_applied,
+            "configured_factor": configured_recent_market_level_factor,
+            "factor": recent_market_level_factor,
+            "pre_adjustment_valid_subscription_shares": pre_market_level_valid_shares,
+            "pre_adjustment_frozen_funds_yi": pre_market_level_frozen_funds_yi,
+            "adjusted_valid_subscription_shares": valid_subscription_shares,
+            "adjusted_frozen_funds_yi": valid_subscription_shares * issue_price / 100000000,
+        }
+    )
     if frozen_cap:
         pre_cap_valid_subscription_shares = valid_subscription_shares
         pre_cap_frozen_funds_yi = pre_cap_valid_subscription_shares * issue_price / 100000000
@@ -2197,13 +2417,19 @@ def build_subscription_prediction(
             ],
         )
     recent_market_level = estimate.get("recent_market_level") or {}
-    if recent_market_level.get("applied") and not target_frozen_funds_override:
+    if (
+        recent_market_level.get("applied") or recent_market_level.get("available")
+    ) and not target_frozen_funds_override:
+        adaptive_ready = bool(recent_market_level.get("available"))
+        basis = str(recent_market_level.get("basis") or "recent_market_level")
+        if adaptive_ready:
+            basis += f" / {int(recent_market_level.get('sample_count') or 0)} 个逐时点样本"
         table_rows.insert(
             6,
             [
-                "近期资金水位修正",
+                "近期资金水位自适应" if adaptive_ready else "近期资金水位修正",
                 f"{(float(recent_market_level.get('factor') or 1.0) - 1.0) * 100:+.2f}%",
-                str(recent_market_level.get("basis") or "recent_market_level"),
+                basis,
             ],
         )
     for item in lot_thresholds:

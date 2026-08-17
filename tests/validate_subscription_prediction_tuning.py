@@ -188,6 +188,98 @@ def _run_similar_top_apply_frozen_search_grid_case(failures: list[str]) -> None:
     _assert(recent_key in fine_grid, "similar grid: fine recent samples missing", failures)
     _assert(base_params.get(weight_key) in fine_grid.get(weight_key, []), "similar grid: fine should include current weight", failures)
     _assert(base_params.get(recent_key) in fine_grid.get(recent_key, []), "similar grid: fine should include current recent samples", failures)
+    adaptive_key_set = set(tune_subscription_prediction.RECENT_MARKET_LEVEL_ADAPTIVE_PARAM_KEYS)
+    _assert(adaptive_key_set.issubset(main_key_set), "adaptive market level: keys missing from main tunables", failures)
+    coarse_names = {name for name, _ in tune_subscription_prediction.DEFAULT_CORE_COARSE_BLOCK_GRIDS}
+    _assert(
+        "core_recent_market_level_adaptive_window_coarse" in coarse_names,
+        "adaptive market level: coarse window block missing",
+        failures,
+    )
+    adaptive_base = dict(base_params)
+    adaptive_base["subscription_prediction_recent_market_level_adaptive_enabled"] = True
+    fine_names = {name for name, _ in tune_subscription_prediction._core_fine_block_grids(adaptive_base)}
+    _assert(
+        "core_recent_market_level_adaptive_weight_fine" in fine_names,
+        "adaptive market level: fine weight block missing",
+        failures,
+    )
+
+
+def _run_adaptive_recent_market_level_walk_forward_case(failures: list[str]) -> None:
+    rows: list[dict[str, Any]] = []
+    for index in range(1, 14):
+        row = _sample_row(f"9201{index:02d}", f"2026-07-{index:02d}")
+        row["issue_result_date"] = f"2026-07-{index:02d}"
+        if index >= 11:
+            row["online_valid_shares"] = "36000000"
+            row["frozen_funds_yi"] = "3.6"
+            row["subscription_multiple"] = "36"
+            row["guaranteed_threshold_amount_wan"] = "3.6"
+        rows.append(row)
+    summary = tune_subscription_prediction.evaluate_subscription_prediction(
+        rows,
+        min_history_samples=3,
+        params={
+            "subscription_prediction_recent_market_level_factor": 1.0,
+            "subscription_prediction_recent_market_level_adaptive_enabled": True,
+            "subscription_prediction_recent_market_level_adaptive_recent_samples": 3,
+            "subscription_prediction_recent_market_level_adaptive_min_samples": 3,
+            "subscription_prediction_recent_market_level_adaptive_half_life_samples": 2.0,
+            "subscription_prediction_recent_market_level_adaptive_weight": 1.0,
+            "subscription_prediction_recent_market_level_adaptive_factor_min": 0.8,
+            "subscription_prediction_recent_market_level_adaptive_factor_max": 1.3,
+            "subscription_prediction_sample_decay_half_life_days": 40,
+            "subscription_prediction_similar_top_apply_frozen_enabled": False,
+            "subscription_prediction_frozen_funds_floor_enabled": False,
+            "subscription_prediction_frozen_funds_cap_enabled": False,
+            "subscription_prediction_cap_factor_exponent": 0.0,
+            "subscription_prediction_issue_factor_exponent": 0.0,
+            "subscription_prediction_lock_factor_exponent": 0.0,
+            "subscription_prediction_multiple_scale": 1.0,
+        },
+    )
+    _assert(
+        int(summary.get("recent_market_level_adaptive_ready_rows") or 0) > 0,
+        "adaptive market level walk-forward: no ready rows",
+        failures,
+    )
+    _assert_close(
+        summary.get("latest_recent_market_level_factor"),
+        1.2,
+        "adaptive market level walk-forward: latest factor mismatch",
+        failures,
+    )
+    latest_detail = (summary.get("details") or [{}])[-1]
+    _assert(
+        latest_detail.get("recent_market_level_source_codes") == ["920112", "920111", "920110"],
+        f"adaptive market level walk-forward: source mismatch {latest_detail.get('recent_market_level_source_codes')}",
+        failures,
+    )
+
+
+def _run_recent_market_level_ranking_case(failures: list[str]) -> None:
+    stale = {
+        "top_apply_false_negative_codes": [],
+        "top_apply_false_positive_codes": [],
+        "guaranteed_amount_mape": 0.05,
+        "recent_guaranteed_mape": 0.20,
+        "recent_guaranteed_signed_bias": -0.20,
+        "guaranteed_amount_mae_wan": 10.0,
+        "guaranteed_amount_metric_rows": 20,
+    }
+    adaptive = {
+        **stale,
+        "guaranteed_amount_mape": 0.08,
+        "recent_guaranteed_mape": 0.08,
+        "recent_guaranteed_signed_bias": 0.0,
+    }
+    _assert(
+        tune_subscription_prediction._candidate_rank_key(adaptive)
+        < tune_subscription_prediction._candidate_rank_key(stale),
+        "adaptive market level ranking: recent correction should enter scale loss",
+        failures,
+    )
 
 
 def _run_window_and_robustness_case(failures: list[str]) -> None:
@@ -569,6 +661,8 @@ def main() -> int:
     _run_csv_load_case(failures)
     _run_candidate_search_case(failures)
     _run_similar_top_apply_frozen_search_grid_case(failures)
+    _run_adaptive_recent_market_level_walk_forward_case(failures)
+    _run_recent_market_level_ranking_case(failures)
     _run_window_and_robustness_case(failures)
     _run_large_account_pool_case(failures)
     _run_account_pool_prior_case(failures)
