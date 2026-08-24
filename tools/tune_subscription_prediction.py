@@ -342,8 +342,18 @@ def _refresh_subscription_history_before_tuning(
 def _changed_main_tunable_params(base_params: dict[str, Any], candidate_params: dict[str, Any]) -> dict[str, Any]:
     updates: dict[str, Any] = {}
     fallback = _resolve_subscription_base_params(base_params)
+    adaptive_market_level_enabled = _parse_bool(
+        candidate_params.get("subscription_prediction_recent_market_level_adaptive_enabled")
+    )
     for key in MAIN_TUNABLE_PARAM_KEYS:
         if key not in candidate_params:
+            continue
+        if (
+            key == "subscription_prediction_recent_market_level_factor"
+            and adaptive_market_level_enabled
+        ):
+            # 自适应开启后，静态基准只负责样本不足时回退，不再跟随每轮
+            # 残差重复调高；自动调参只优化自适应窗口和收缩强度。
             continue
         old_value = fallback.get(key)
         new_value = candidate_params.get(key)
@@ -1009,6 +1019,27 @@ def _candidate_params_from_grid(
         )
         if recent_samples is not None and min_samples is not None and min_samples > recent_samples:
             continue
+        market_level_factor = _safe_float(
+            params.get("subscription_prediction_recent_market_level_factor")
+        )
+        market_level_factor_min = _safe_float(
+            params.get("subscription_prediction_recent_market_level_adaptive_factor_min")
+        )
+        market_level_factor_max = _safe_float(
+            params.get("subscription_prediction_recent_market_level_adaptive_factor_max")
+        )
+        if (
+            market_level_factor is not None
+            and market_level_factor_min is not None
+            and market_level_factor < market_level_factor_min
+        ):
+            continue
+        if (
+            market_level_factor is not None
+            and market_level_factor_max is not None
+            and market_level_factor > market_level_factor_max
+        ):
+            continue
         candidates.append(params)
     return candidates
 
@@ -1165,7 +1196,7 @@ def _core_fine_block_grids(base_params: dict[str, Any]) -> tuple[tuple[str, dict
         "subscription_prediction_recent_market_level_adaptive_weight",
         0.75,
     )
-    return (
+    blocks = (
         (
             "core_decay_fine",
             {
@@ -1225,7 +1256,7 @@ def _core_fine_block_grids(base_params: dict[str, Any]) -> tuple[tuple[str, dict
                         recent_market_level_factor + 0.02,
                     ],
                     low=0.90,
-                    high=1.15,
+                    high=1.10,
                     digits=3,
                 ),
             },
@@ -1280,6 +1311,21 @@ def _core_fine_block_grids(base_params: dict[str, Any]) -> tuple[tuple[str, dict
                 ),
             },
         ),
+    )
+    if adaptive_market_level_enabled:
+        return tuple(
+            block for block in blocks if block[0] != "core_recent_market_level_fine"
+        )
+    return blocks
+
+
+def _core_coarse_block_grids(base_params: dict[str, Any]) -> tuple[tuple[str, dict[str, list[Any]]], ...]:
+    if not _parse_bool(base_params.get("subscription_prediction_recent_market_level_adaptive_enabled")):
+        return DEFAULT_CORE_COARSE_BLOCK_GRIDS
+    return tuple(
+        block
+        for block in DEFAULT_CORE_COARSE_BLOCK_GRIDS
+        if block[0] != "core_recent_market_level_coarse"
     )
 
 
@@ -1363,8 +1409,8 @@ def _candidate_rank_key(summary: dict[str, Any]) -> tuple[float, ...]:
     return (
         float(false_negative_count),
         float(false_positive_count),
-        ladder_mape if ladder_mape is not None else 999.0,
         scale_loss,
+        ladder_mape if ladder_mape is not None else 999.0,
         resolved_recent_bias,
         resolved_mape,
         mae if mae is not None else 999999.0,
@@ -1493,7 +1539,7 @@ def evaluate_candidate_grid(
 
     if use_coarse_fine:
         planning_base = resolved_base_params
-        planned_total = _planned_block_count(DEFAULT_CORE_COARSE_BLOCK_GRIDS, planning_base)
+        planned_total = _planned_block_count(_core_coarse_block_grids(planning_base), planning_base)
         for _ in range(fine_round_count):
             planned_total += _planned_block_count(_core_fine_block_grids(planning_base), planning_base)
         planned_total += _planned_block_count(DEFAULT_SIMILAR_TOP_APPLY_FROZEN_COARSE_BLOCK_GRIDS, planning_base)
@@ -1566,7 +1612,7 @@ def evaluate_candidate_grid(
         progress_callback(0, planned_total, None)
 
     if use_coarse_fine:
-        for name, grid in DEFAULT_CORE_COARSE_BLOCK_GRIDS:
+        for name, grid in _core_coarse_block_grids(resolved_base_params):
             if not _budget_available():
                 break
             round_base = _params_from_summary(resolved_base_params, best_so_far)

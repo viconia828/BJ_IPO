@@ -204,6 +204,45 @@ def _run_similar_top_apply_frozen_search_grid_case(failures: list[str]) -> None:
         "adaptive market level: fine weight block missing",
         failures,
     )
+    _assert(
+        "core_recent_market_level_fine" not in fine_names,
+        "adaptive market level: static fallback factor must not keep tuning upward",
+        failures,
+    )
+    adaptive_coarse_names = {
+        name for name, _ in tune_subscription_prediction._core_coarse_block_grids(adaptive_base)
+    }
+    _assert(
+        "core_recent_market_level_coarse" not in adaptive_coarse_names,
+        "adaptive market level: static fallback coarse block must be skipped",
+        failures,
+    )
+    adaptive_updates = tune_subscription_prediction._changed_main_tunable_params(
+        base_params,
+        {
+            **adaptive_base,
+            "subscription_prediction_recent_market_level_factor": 1.10,
+        },
+    )
+    _assert(
+        "subscription_prediction_recent_market_level_factor" not in adaptive_updates,
+        "adaptive market level: auto tuning must not write back static fallback factor",
+        failures,
+    )
+    bounded_candidates = tune_subscription_prediction._candidate_params_from_grid(
+        {"subscription_prediction_recent_market_level_factor": [1.03, 1.06]},
+        {
+            **base_params,
+            "subscription_prediction_recent_market_level_adaptive_factor_min": 0.90,
+            "subscription_prediction_recent_market_level_adaptive_factor_max": 1.05,
+        },
+    )
+    _assert(
+        [item.get("subscription_prediction_recent_market_level_factor") for item in bounded_candidates]
+        == [1.03],
+        "adaptive market level: search candidates must respect the configured hard cap",
+        failures,
+    )
 
 
 def _run_adaptive_recent_market_level_walk_forward_case(failures: list[str]) -> None:
@@ -278,6 +317,23 @@ def _run_recent_market_level_ranking_case(failures: list[str]) -> None:
         tune_subscription_prediction._candidate_rank_key(adaptive)
         < tune_subscription_prediction._candidate_rank_key(stale),
         "adaptive market level ranking: recent correction should enter scale loss",
+        failures,
+    )
+    ladder_only = {
+        **adaptive,
+        "guaranteed_amount_mape": 0.20,
+        "recent_guaranteed_mape": 0.20,
+        "recent_guaranteed_signed_bias": 0.20,
+        "manual_ladder_amount_mape": 0.01,
+    }
+    scale_first = {
+        **adaptive,
+        "manual_ladder_amount_mape": 0.02,
+    }
+    _assert(
+        tune_subscription_prediction._candidate_rank_key(scale_first)
+        < tune_subscription_prediction._candidate_rank_key(ladder_only),
+        "adaptive market level ranking: tiny ladder gain must not override funding scale loss",
         failures,
     )
 

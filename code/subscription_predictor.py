@@ -15,6 +15,7 @@ ROOT_DIR = Path(__file__).resolve().parents[1]
 LOT_SIZE = 100
 DEFAULT_GUARANTEED_BUFFER_MIN_WAN = 50.0
 DEFAULT_GUARANTEED_BUFFER_MAX_WAN = 100.0
+DEFAULT_FRACTIONAL_TIME_PRIORITY_BUFFER_WAN = 50.0
 DEFAULT_FROZEN_FUNDS_FLOOR_RECENT_SAMPLES = 20
 DEFAULT_FROZEN_FUNDS_FLOOR_QUANTILE = 0.0
 DEFAULT_FROZEN_FUNDS_FLOOR_WEIGHT = 0.95
@@ -28,7 +29,7 @@ DEFAULT_RECENT_MARKET_LEVEL_ADAPTIVE_MIN_SAMPLES = 3
 DEFAULT_RECENT_MARKET_LEVEL_ADAPTIVE_HALF_LIFE_SAMPLES = 3.0
 DEFAULT_RECENT_MARKET_LEVEL_ADAPTIVE_WEIGHT = 0.75
 DEFAULT_RECENT_MARKET_LEVEL_ADAPTIVE_FACTOR_MIN = 0.90
-DEFAULT_RECENT_MARKET_LEVEL_ADAPTIVE_FACTOR_MAX = 1.15
+DEFAULT_RECENT_MARKET_LEVEL_ADAPTIVE_FACTOR_MAX = 1.10
 DEFAULT_LOT_THRESHOLD_MAX_LOTS = 20
 DEFAULT_SIMILAR_TOP_APPLY_FROZEN_WEIGHT = 0.65
 DEFAULT_SIMILAR_TOP_APPLY_FROZEN_RECENT_SAMPLES = 24
@@ -115,6 +116,13 @@ def _resolve_guaranteed_buffer_range(settings: dict[str, Any]) -> tuple[float, f
     min_buffer = max(min_buffer, 0.0)
     max_buffer = max(max_buffer, min_buffer)
     return min_buffer, max_buffer
+
+
+def _resolve_fractional_time_priority_buffer(settings: dict[str, Any]) -> float:
+    buffer_wan = _safe_float(settings.get("subscription_prediction_fractional_time_priority_buffer_wan"))
+    if buffer_wan is None:
+        buffer_wan = DEFAULT_FRACTIONAL_TIME_PRIORITY_BUFFER_WAN
+    return max(buffer_wan, 0.0)
 
 
 def _resolve_lot_threshold_max_lots(settings: dict[str, Any]) -> int:
@@ -1147,12 +1155,35 @@ def _adaptive_recent_market_level_from_history(
         params.get("subscription_prediction_recent_market_level_adaptive_enabled"),
         default=DEFAULT_RECENT_MARKET_LEVEL_ADAPTIVE_ENABLED,
     )
+    factor_min = max(
+        float(
+            params.get(
+                "subscription_prediction_recent_market_level_adaptive_factor_min",
+                DEFAULT_RECENT_MARKET_LEVEL_ADAPTIVE_FACTOR_MIN,
+            )
+        ),
+        0.01,
+    )
+    factor_max = max(
+        float(
+            params.get(
+                "subscription_prediction_recent_market_level_adaptive_factor_max",
+                DEFAULT_RECENT_MARKET_LEVEL_ADAPTIVE_FACTOR_MAX,
+            )
+        ),
+        factor_min,
+    )
+    configured_base_factor = max(float(base_factor), 0.01)
+    bounded_base_factor = _clamp(configured_base_factor, factor_min, factor_max)
     result: dict[str, Any] = {
         "enabled": enabled,
         "available": False,
         "applied": False,
-        "base_factor": base_factor,
-        "factor": base_factor,
+        "configured_base_factor": configured_base_factor,
+        "base_factor": bounded_base_factor,
+        "factor": bounded_base_factor,
+        "factor_min": factor_min,
+        "factor_max": factor_max,
         "basis": "configured_recent_market_level",
         "sample_count": 0,
         "source_codes": [],
@@ -1202,32 +1233,12 @@ def _adaptive_recent_market_level_from_history(
         0.0,
         1.0,
     )
-    factor_min = max(
-        float(
-            params.get(
-                "subscription_prediction_recent_market_level_adaptive_factor_min",
-                DEFAULT_RECENT_MARKET_LEVEL_ADAPTIVE_FACTOR_MIN,
-            )
-        ),
-        0.01,
-    )
-    factor_max = max(
-        float(
-            params.get(
-                "subscription_prediction_recent_market_level_adaptive_factor_max",
-                DEFAULT_RECENT_MARKET_LEVEL_ADAPTIVE_FACTOR_MAX,
-            )
-        ),
-        factor_min,
-    )
     result.update(
         {
             "recent_samples": recent_samples,
             "min_samples": min_samples,
             "half_life_samples": half_life,
             "adaptive_weight": adaptive_weight,
-            "factor_min": factor_min,
-            "factor_max": factor_max,
         }
     )
 
@@ -1323,16 +1334,20 @@ def _adaptive_recent_market_level_from_history(
     if observed_factor is None or observed_factor <= 0:
         result["reason"] = "invalid_observed_factor"
         return result
-    blended_factor = math.exp(
-        (1.0 - adaptive_weight) * math.log(max(base_factor, 0.01))
-        + adaptive_weight * math.log(observed_factor)
-    )
+    # 自适应水位只是对原公式（因子 1.0）的有限残差加成。配置基准仅在
+    # 样本不足时回退，不能再与观测残差叠加，否则反复调参会让两层水位
+    # 同时吸收同一段近期偏差并逐轮抬高。
+    observed_adjustment = observed_factor - 1.0
+    weighted_adjustment = adaptive_weight * observed_adjustment
+    blended_factor = 1.0 + weighted_adjustment
     adaptive_factor = _clamp(blended_factor, factor_min, factor_max)
     result.update(
         {
             "available": True,
             "applied": True,
             "observed_factor": observed_factor,
+            "observed_adjustment": observed_adjustment,
+            "weighted_adjustment": weighted_adjustment,
             "factor": adaptive_factor,
             "basis": "walk_forward_recent_market_level",
             "reason": "",
@@ -2350,21 +2365,43 @@ def build_subscription_prediction(
         if int(item.get("fractional_lots") or 0) > 0
     )
     fractional_time_priority_limit_label = _fractional_time_priority_limit_label(lot_thresholds)
-    fractional_time_priority_overview_text = (
-        f"{fractional_time_priority_limit_label}以下可能"
-        if time_required and fractional_time_priority_limit_label
-        else ""
-    )
+    fractional_time_priority_buffer_wan = _resolve_fractional_time_priority_buffer(settings)
+    fractional_time_priority_cutoff_amount_wan = None
+    fractional_threshold_at_top_apply = False
+    if time_required and fractional_amount_wan is not None:
+        fractional_threshold_at_top_apply = bool(
+            top_apply_wan is not None
+            and fractional_amount_wan >= top_apply_wan - max(abs(top_apply_wan) * 1e-9, 1e-6)
+        )
+        fractional_time_priority_cutoff_amount_wan = fractional_amount_wan + fractional_time_priority_buffer_wan
+        if top_apply_wan is not None:
+            fractional_time_priority_cutoff_amount_wan = min(
+                fractional_time_priority_cutoff_amount_wan,
+                top_apply_wan,
+            )
+    if time_required and fractional_threshold_at_top_apply:
+        fractional_time_priority_overview_text = "碎股门槛已到顶格，必须抢"
+    elif time_required and fractional_amount_wan is not None and fractional_time_priority_cutoff_amount_wan is not None:
+        fractional_time_priority_overview_text = (
+            f"门槛{_fmt_amount_wan(fractional_amount_wan).replace(' ', '')}，"
+            f"{_fmt_amount_wan(fractional_time_priority_cutoff_amount_wan).replace(' ', '')}以下可能"
+        )
+    else:
+        fractional_time_priority_overview_text = ""
     time_priority_scope = "none"
     if time_required:
         time_priority_scope = "all_top_apply_accounts" if top_apply_time_priority_required else "fractional_cutoff"
     if top_apply_time_priority_required:
         fractional_time_priority_note = "必须抢时间（顶格账户正股/碎股均按时间优先）" if time_required else "否"
+    elif time_required and fractional_threshold_at_top_apply:
+        fractional_time_priority_note = (
+            f"碎股门槛 {_fmt_amount_wan(fractional_amount_wan)}已到顶格；顶格也要抢时间"
+        )
     elif time_required:
         fractional_time_priority_note = (
-            f"{fractional_time_priority_limit_label}以下碎股可能需要抢时间"
-            if fractional_time_priority_limit_label
-            else "可能需要抢时间多获配一手碎股"
+            f"碎股门槛 {_fmt_amount_wan(fractional_amount_wan)}；"
+            f"加 {_fmt_amount_wan(fractional_time_priority_buffer_wan)}保护后，"
+            f"{_fmt_amount_wan(fractional_time_priority_cutoff_amount_wan)}以下可能需要抢时间"
         )
     else:
         fractional_time_priority_note = "否"
@@ -2517,6 +2554,9 @@ def build_subscription_prediction(
         "fractional_time_priority_note": fractional_time_priority_note,
         "fractional_time_priority_limit_label": fractional_time_priority_limit_label,
         "fractional_time_priority_overview_text": fractional_time_priority_overview_text,
+        "fractional_time_priority_buffer_wan": fractional_time_priority_buffer_wan,
+        "fractional_time_priority_cutoff_amount_wan": fractional_time_priority_cutoff_amount_wan,
+        "fractional_threshold_at_top_apply": fractional_threshold_at_top_apply,
         "time_priority_scope": time_priority_scope,
         "fractional_cutoff_fill_rate": cutoff_fill_rate,
         "leftover_lots": leftover_lots,

@@ -567,6 +567,44 @@ def _run_issue_fallback_after_prospectus_parse_failure_case(failures: list[str])
     print("OK issue announcement fallback: prospectus parse failure does not block issue fields")
 
 
+def _run_greenshoe_online_issue_override_case(failures: list[str]) -> None:
+    cases = (
+        ("920269", 7_329_000.0, 8_899_500.0),
+        ("920289", 11_900_014.0, 14_450_017.0),
+    )
+    for code, provider_shares, announced_shares in cases:
+        ipo_info = {
+            "SECURITY_CODE": code,
+            "ONLINE_ISSUE_NUM": provider_shares,
+        }
+        summary: dict[str, Any] = {"online_issue_num_source": "market_data_provider"}
+        applied = bse_ipo_valuation._apply_issue_announcement_info(
+            ipo_info,
+            summary,
+            {
+                "fields": {"ONLINE_ISSUE_NUM": announced_shares},
+                "field_sources": {"ONLINE_ISSUE_NUM": "issue_announcement:test"},
+            },
+            Path(f"{code}_发行公告.pdf"),
+        )
+        _assert(
+            ipo_info.get("ONLINE_ISSUE_NUM") == announced_shares,
+            f"greenshoe override {code}: official online issue shares did not replace provider value",
+            failures,
+        )
+        _assert(
+            applied == ["ONLINE_ISSUE_NUM"],
+            f"greenshoe override {code}: applied fields mismatch {applied}",
+            failures,
+        )
+        _assert(
+            summary.get("issue_announcement_overwritten_fields") == ["ONLINE_ISSUE_NUM"],
+            f"greenshoe override {code}: overwritten field not audited",
+            failures,
+        )
+    print("OK greenshoe online issue: official issue announcement overrides provider pre-greenshoe amount")
+
+
 def main() -> int:
     failures: list[str] = []
     _run_case(
@@ -626,6 +664,7 @@ def main() -> int:
         expected_listing_error="模拟未找到上市公告书",
     )
     _run_issue_fallback_after_prospectus_parse_failure_case(failures)
+    _run_greenshoe_online_issue_override_case(failures)
 
     if failures:
         print("\nProspectus autodownload validation failed:")
@@ -633,7 +672,7 @@ def main() -> int:
             print(f"- {item}")
         return 1
 
-    print("\nProspectus autodownload validation passed: 5 cases")
+    print("\nProspectus autodownload validation passed: 6 cases")
     return 0
 
 

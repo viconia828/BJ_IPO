@@ -57,6 +57,19 @@ ISSUE_RESULT_TEXT = """
 网上获配户数为 1,000 户
 """
 
+GREENSHOE_ISSUE_ANNOUNCEMENT_TEXT = """
+发行公告
+超额配售启用前，网上发行数量为732.90万股；
+超额配售启用后，网上发行数量为889.95万股。
+"""
+
+REBALANCED_ISSUE_RESULT_TEXT = """
+发行结果公告
+回拨机制启动前，网上初始发行数量为532.80万股。
+网上、网下回拨机制启动后，网上最终发行数量为666.00万股。
+网上获配股数为6,660,000股。
+"""
+
 
 def _assert(condition: bool, message: str, failures: list[str]) -> None:
     if not condition:
@@ -235,6 +248,24 @@ def _run_issue_result_parser_case(failures: list[str]) -> None:
     )
 
 
+def _run_online_issue_priority_cases(failures: list[str]) -> None:
+    greenshoe = pdf_parser._extract_issue_announcement_info_from_text(GREENSHOE_ISSUE_ANNOUNCEMENT_TEXT)
+    _assert_close(
+        (greenshoe.get("fields") or {}).get("ONLINE_ISSUE_NUM"),
+        8899500.0,
+        "issue announcement parser: post-greenshoe online shares mismatch",
+        failures,
+    )
+
+    rebalanced = pdf_parser._extract_issue_result_info_from_text(REBALANCED_ISSUE_RESULT_TEXT)
+    _assert_close(
+        (rebalanced.get("fields") or {}).get("ONLINE_ISSUE_NUM"),
+        6660000.0,
+        "issue result parser: final rebalanced online shares mismatch",
+        failures,
+    )
+
+
 def _run_industry_mapping_case(failures: list[str]) -> None:
     mapper = IndustryMapper({"industry_mapping": {"矿物制品": "化工新材 / 非金属材料"}})
     industry = mapper.resolve_stock_industry("920083", {"INDUSTRY": "非金属矿物制品业"})
@@ -301,6 +332,7 @@ def main() -> int:
     _run_apply_case(result, failures)
     _run_issue_announcement_fallback_case(failures)
     _run_issue_result_parser_case(failures)
+    _run_online_issue_priority_cases(failures)
     _run_industry_mapping_case(failures)
     if failures:
         for failure in failures:

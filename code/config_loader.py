@@ -200,6 +200,7 @@ def _validate_params(params: dict[str, Any]) -> None:
         "subscription_prediction_lock_factor_exponent",
         "subscription_prediction_guaranteed_buffer_min_wan",
         "subscription_prediction_guaranteed_buffer_max_wan",
+        "subscription_prediction_fractional_time_priority_buffer_wan",
         "subscription_prediction_similar_top_apply_frozen_weight",
         "subscription_prediction_similar_top_apply_frozen_max_relative_distance",
     ):
@@ -207,7 +208,10 @@ def _validate_params(params: dict[str, Any]) -> None:
             raise ValueError(f"{non_negative_key} 不能小于 0")
     if float(params.get("subscription_prediction_multiple_scale", 1.0)) <= 0:
         raise ValueError("subscription_prediction_multiple_scale 必须大于 0")
-    if float(params.get("subscription_prediction_recent_market_level_factor", 1.0)) <= 0:
+    recent_market_level_base_factor = float(
+        params.get("subscription_prediction_recent_market_level_factor", 1.0)
+    )
+    if recent_market_level_base_factor <= 0:
         raise ValueError("subscription_prediction_recent_market_level_factor 必须大于 0")
     recent_market_level_samples = int(
         float(params.get("subscription_prediction_recent_market_level_adaptive_recent_samples", 6))
@@ -230,10 +234,12 @@ def _validate_params(params: dict[str, Any]) -> None:
         params.get("subscription_prediction_recent_market_level_adaptive_factor_min", 0.90)
     )
     recent_market_level_factor_max = float(
-        params.get("subscription_prediction_recent_market_level_adaptive_factor_max", 1.15)
+        params.get("subscription_prediction_recent_market_level_adaptive_factor_max", 1.10)
     )
     if recent_market_level_factor_min <= 0 or recent_market_level_factor_max < recent_market_level_factor_min:
         raise ValueError("近期资金水位自适应因子必须满足 0 < 下限 <= 上限")
+    if not recent_market_level_factor_min <= recent_market_level_base_factor <= recent_market_level_factor_max:
+        raise ValueError("近期资金水位基准因子必须位于自适应因子上下限之间")
     target_frozen_funds_code = str(params.get("subscription_prediction_target_frozen_funds_code", "") or "").strip()
     target_frozen_funds_yi = params.get("subscription_prediction_target_frozen_funds_yi")
     target_frozen_funds_low_yi = params.get("subscription_prediction_target_frozen_funds_low_yi")

@@ -46,7 +46,7 @@ def _run_actual_distribution_case(failures: list[str]) -> None:
             ],
         },
         recent_ipos=[],
-        params={},
+        params={"subscription_prediction_fractional_time_priority_buffer_wan": 1.0},
     )
     _assert(prediction.get("available") is True, "actual distribution: prediction unavailable", failures)
     _assert(prediction.get("mode") == "actual", "actual distribution: mode mismatch", failures)
@@ -92,12 +92,13 @@ def _run_actual_distribution_case(failures: list[str]) -> None:
     )
     _assert(prediction.get("fractional_time_priority_required") is True, "actual distribution: time priority mismatch", failures)
     _assert(
-        prediction.get("fractional_time_priority_note") == "0+1以下碎股可能需要抢时间",
+        prediction.get("fractional_time_priority_note")
+        == "碎股门槛 5.00 万元；加 1.00 万元保护后，6.00 万元以下可能需要抢时间",
         "actual distribution: fractional time note mismatch",
         failures,
     )
     _assert(
-        prediction.get("fractional_time_priority_overview_text") == "0+1以下可能",
+        prediction.get("fractional_time_priority_overview_text") == "门槛5.00万元，6.00万元以下可能",
         "actual distribution: fractional overview mismatch",
         failures,
     )
@@ -446,8 +447,9 @@ def _run_fractional_equals_second_guaranteed_case(failures: list[str]) -> None:
     _assert("1+1" not in display_labels, "equal boundary: 1+1 display label should be removed", failures)
     _assert("2+0" in display_labels and "2+1" in display_labels, "equal boundary: 2+0 and 2+1 should both display", failures)
     _assert(
-        prediction.get("fractional_time_priority_note") == "2+1以下碎股可能需要抢时间",
-        "equal boundary: time-priority note should point to the third lot",
+        prediction.get("fractional_time_priority_note")
+        == "碎股门槛 200.00 万元；加 50.00 万元保护后，250.00 万元以下可能需要抢时间",
+        "equal boundary: time-priority note should use the amount cutoff",
         failures,
     )
     table_labels = [str(row[0]) for row in (prediction.get("table_rows") or []) if "建议申购门槛" in str(row[0])]
@@ -553,6 +555,23 @@ def _run_recent_market_level_factor_case(failures: list[str]) -> None:
     table_labels = [str(row[0]) for row in prediction.get("table_rows") or []]
     _assert("近期资金水位修正" in table_labels, "recent market level: report row missing", failures)
 
+    bounded_prediction = subscription_predictor.build_subscription_prediction(
+        target,
+        recent_ipos,
+        {
+            **params,
+            "subscription_prediction_recent_market_level_factor": 1.50,
+            "subscription_prediction_recent_market_level_adaptive_factor_max": 1.10,
+        },
+    )
+    bounded_level = (bounded_prediction.get("estimate") or {}).get("recent_market_level") or {}
+    _assert_close(
+        bounded_level.get("factor"),
+        1.10,
+        "recent market level: configured fallback must respect factor cap",
+        failures,
+    )
+
     actual_prediction = subscription_predictor.build_subscription_prediction(
         {**target, "ONLINE_VA_SHARES": 12000000.0},
         recent_ipos,
@@ -621,6 +640,28 @@ def _run_adaptive_recent_market_level_case(failures: list[str]) -> None:
     )
     table_labels = [str(row[0]) for row in prediction.get("table_rows") or []]
     _assert("近期资金水位自适应" in table_labels, "adaptive market level: report row missing", failures)
+
+    additive_prediction = subscription_predictor.build_subscription_prediction(
+        {
+            "SECURITY_CODE": "920198",
+            "ISSUE_PRICE": 10.0,
+            "ONLINE_ISSUE_NUM": 1000000.0,
+            "TOP_APPLY_MARKETCAP": 500.0,
+        },
+        recent_ipos,
+        {
+            **params,
+            "subscription_prediction_recent_market_level_factor": 1.25,
+            "subscription_prediction_recent_market_level_adaptive_weight": 0.5,
+        },
+    )
+    additive_level = (additive_prediction.get("estimate") or {}).get("recent_market_level") or {}
+    _assert_close(
+        additive_level.get("factor"),
+        1.10,
+        "adaptive market level: adjustment must shrink from original formula instead of base factor",
+        failures,
+    )
 
 
 def _run_historical_sample_date_order_case(failures: list[str]) -> None:
@@ -696,12 +737,13 @@ def _run_account_pool_fractional_threshold_case(failures: list[str]) -> None:
         failures,
     )
     _assert(
-        prediction.get("fractional_time_priority_note") == "2+1以下碎股可能需要抢时间",
+        prediction.get("fractional_time_priority_note")
+        == "碎股门槛 2.50 万元已到顶格；顶格也要抢时间",
         "account pool: fractional time note mismatch",
         failures,
     )
     _assert(
-        prediction.get("fractional_time_priority_overview_text") == "2+1以下可能",
+        prediction.get("fractional_time_priority_overview_text") == "碎股门槛已到顶格，必须抢",
         "account pool: fractional overview mismatch",
         failures,
     )

@@ -660,7 +660,7 @@ def _assert_report_overview_text(failures: list[str]) -> None:
         "4+1门槛（万元） 12.00\n"
         "5+1门槛（万元） 15.00\n"
         "正股抢时间 否\n"
-        "碎股抢时间 2+1以下可能\n"
+        "碎股抢时间 门槛6.00万元，56.00万元以下可能\n"
         "上市日期\n"
         "偏PE估值区间（元） 12.30 - 14.50\n"
         "偏情绪估值区间（元）\n"
@@ -800,7 +800,7 @@ def _assert_report_overview_text(failures: list[str]) -> None:
     )
     _assert_contains(
         estimated_overview,
-        ("代码 920222", "1+0门槛（万元）", "正股抢时间 否", "碎股抢时间 1+1以下可能"),
+        ("代码 920222", "1+0门槛（万元）", "正股抢时间 否", "碎股抢时间 碎股门槛"),
         failures,
         "estimated overview",
     )

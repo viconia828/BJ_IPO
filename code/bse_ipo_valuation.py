@@ -629,6 +629,7 @@ def _apply_issue_document_info(
     supplemented_fields_key: str,
     info_file_key: str,
     field_sources_key: str,
+    overwrite_fields: tuple[str, ...] = (),
 ) -> list[str]:
     fields = dict(issue_info.get("fields") or {}) if isinstance(issue_info, dict) else {}
     if not fields:
@@ -654,10 +655,17 @@ def _apply_issue_document_info(
         issue_info["field_sources"] = field_sources
 
     applied: list[str] = []
+    overwritten: list[str] = []
     for field_name in ISSUE_DOCUMENT_SUPPLEMENT_FIELDS:
         value = fields.get(field_name)
-        if _value_is_missing(value) or not _value_is_missing(ipo_info.get(field_name)):
+        if _value_is_missing(value):
             continue
+        existing_value = ipo_info.get(field_name)
+        existing_missing = _value_is_missing(existing_value)
+        if not existing_missing and field_name not in overwrite_fields:
+            continue
+        if not existing_missing and existing_value != value:
+            overwritten.append(field_name)
         ipo_info[field_name] = value
         applied.append(field_name)
 
@@ -670,6 +678,8 @@ def _apply_issue_document_info(
             existing_fields.append(field_name)
     summary[supplement_used_key] = True
     summary[supplemented_fields_key] = existing_fields
+    if overwritten:
+        summary[f"{source_prefix}_overwritten_fields"] = overwritten
     if document_pdf is not None:
         summary[info_file_key] = document_pdf.name
 
@@ -720,6 +730,9 @@ def _apply_issue_announcement_info(
         supplemented_fields_key="issue_announcement_supplemented_fields",
         info_file_key="issue_announcement_info_file",
         field_sources_key="issue_announcement_field_sources",
+        # 行情接口的网上发行量可能是超额配售启用前口径；申购预测必须
+        # 以发行公告披露的含超额配售网上发行量为准。
+        overwrite_fields=("ONLINE_ISSUE_NUM",),
     )
 
 
@@ -739,6 +752,7 @@ def _apply_issue_result_info(
         supplemented_fields_key="issue_result_supplemented_fields",
         info_file_key="issue_result_info_file",
         field_sources_key="issue_result_field_sources",
+        overwrite_fields=("ONLINE_ISSUE_NUM",),
     )
 
 

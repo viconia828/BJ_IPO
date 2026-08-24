@@ -406,6 +406,19 @@ PROSPECTUS_SUBSCRIPTION_LIMIT_PATTERNS = (
 )
 PROSPECTUS_ONLINE_ISSUE_PATTERNS = (
     re.compile(
+        rf"(?:网上最终发行数量|网上投资者认购股票数量)"
+        rf"[(](?P<unit>万股|股)[)][^0-9]{{0,12}}(?P<value>{NUMERIC_TOKEN_PATTERN})"
+    ),
+    re.compile(
+        rf"(?:网上最终发行数量|网上投资者认购股票数量|网上获配股数)"
+        rf"[^0-9。；;]{{0,16}}(?:为|:|=)[^0-9]{{0,12}}(?P<value>{NUMERIC_TOKEN_PATTERN})(?P<unit>万股|股)"
+    ),
+    re.compile(
+        rf"超额配售(?:选择权)?(?:全额)?(?:行使|启用)后[^。；;]{{0,80}}"
+        rf"(?:网上发行数量|网上发行股数)[^0-9。；;]{{0,16}}(?:为|:|=)"
+        rf"[^0-9]{{0,12}}(?P<value>{NUMERIC_TOKEN_PATTERN})(?P<unit>万股|股)"
+    ),
+    re.compile(
         rf"(?:网上发行数量|网上发行股数|网上初始发行数量|网上初始发行股数|本次网上发行数量|本次网上发行股数)"
         rf"[(](?P<unit>万股|股)[)][^0-9]{{0,12}}(?P<value>{NUMERIC_TOKEN_PATTERN})"
     ),
@@ -481,8 +494,8 @@ PROSPECTUS_INDUSTRY_PATTERNS = (
 PARSE_CACHE_SCHEMA = "pdf_parse_cache_v1"
 PARSE_CACHE_KIND_VERSIONS = {
     "prospectus_issue_info": 8,
-    "issue_announcement_info": 5,
-    "issue_result_info": 4,
+    "issue_announcement_info": 6,
+    "issue_result_info": 5,
     "comparable_companies": 22,
     "business_desc": 3,
 }
