@@ -668,6 +668,64 @@ def _assert_report_overview_text(failures: list[str]) -> None:
     if overview != expected:
         failures.append(f"overview text mismatch: {overview!r}")
 
+    all_fractional_overview = report_generator.build_report_overview_text(
+        {
+            "analysis_date": "2026-08-27",
+            "ipo_info": {
+                "SECURITY_CODE": "920268",
+                "SECURITY_NAME_ABBR": "百迈科",
+                "ISSUE_PRICE": 17.10,
+                "AFTER_ISSUE_PE": 14.0,
+                "INDUSTRY_PE_NEW": 30.0,
+                "APPLY_DATE": "2026-08-28",
+                "TOP_APPLY_MARKETCAP": 810.88,
+            },
+            "subscription_prediction": {
+                "available": True,
+                "top_apply_below_guaranteed": True,
+                "fractional_time_priority_required": False,
+                "fractional_time_priority_status": "possible",
+                "all_fractional_overview_note": (
+                    "全员碎股；插值得到顶格以上约 8.44 万户；"
+                    "距离本次 9.49 万手 碎股名额仅有 1.05 万户 缓冲；"
+                    "根据分户可能性，预测 0+1 门槛可能上移至顶格 810.88 万元。"
+                ),
+                "lot_thresholds": [
+                    {
+                        "ladder_label": "0+1",
+                        "threshold_amount_wan": 627.89,
+                        "fractional_lots": 1,
+                        "display": True,
+                    }
+                ],
+                "table_rows": [],
+            },
+            "industry": {"display_name": "专用设备"},
+            "method1": {"available": False, "reason": "test"},
+            "method2": {"available": False, "reason": "test"},
+            "final": {"available": True, "target_price": 20.0, "range_low": 18.0, "range_high": 22.0},
+            "params": {"price_range_width": 0.10, "recent_days": 90},
+            "notes": [],
+            "recent_ipos": [],
+            "comparable_data": [],
+            "float_shares": 948.5,
+            "old_shares_desc": "无",
+            "company_description": "",
+            "listing_pdf_found": False,
+        }
+    )
+    _assert_contains(
+        all_fractional_overview,
+        (
+            "0+1门槛（万元） 627.89",
+            "备注 全员碎股；插值得到顶格以上约 8.44 万户",
+            "正股抢时间 无正股",
+            "碎股抢时间 可能",
+        ),
+        failures,
+        "all fractional overview",
+    )
+
     protected_overview = report_generator.build_report_overview_text(
         {
             "analysis_date": "2026-04-18",

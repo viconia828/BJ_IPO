@@ -39,6 +39,7 @@ DEFAULT_SIMILAR_TOP_APPLY_FROZEN_MAX_REL_DISTANCE = 0.35
 DEFAULT_SIMILAR_TOP_APPLY_FROZEN_BANDWIDTH = 0.18
 DEFAULT_ACCOUNT_POOL_RECENT_SAMPLES = 8
 DEFAULT_ACCOUNT_POOL_HALF_LIFE_SAMPLES = 4.0
+DEFAULT_ALL_FRACTIONAL_SPLIT_BUFFER_RATIO_MAX = 0.20
 DEFAULT_ACCOUNT_POOL_THRESHOLDS_PATH = ROOT_DIR / "data" / "offline_tuning" / "account_pool_history_thresholds.csv"
 ACCOUNT_POOL_RUNTIME_CACHE_KEY = "_subscription_prediction_account_pool_runtime_cache"
 ACCOUNT_POOL_UNINFORMATIVE_BASES = {
@@ -162,6 +163,20 @@ def _fmt_accounts(value: Any) -> str:
     if number >= 10000:
         return f"{number / 10000:.2f} 万户"
     return f"{number:.0f} 户"
+
+
+def _fmt_lots(value: Any) -> str:
+    number = _safe_float(value)
+    if number is None:
+        return "-"
+    return f"{number:,.0f} 手"
+
+
+def _fmt_exact_accounts(value: Any) -> str:
+    number = _safe_float(value)
+    if number is None:
+        return "-"
+    return f"{number:,.0f} 户"
 
 
 def _fmt_yi(value: Any) -> str:
@@ -806,6 +821,16 @@ def _estimate_account_pool_fractional_cutoff(
     cutoff_fill_rate = leftover_lots / accounts_ge_cutoff if accounts_ge_cutoff and accounts_ge_cutoff > 0 else None
 
     time_priority_required = bool(cutoff_fill_rate is not None and cutoff_fill_rate < 1.0 - 1e-9)
+    top_apply_account_estimate = _estimate_account_pool_accounts_ge(
+        amount_wan=float(top_apply_amount_wan),
+        rows=rows,
+        thresholds=thresholds,
+        top_apply_amount_wan=top_apply_amount_wan,
+        settings=settings,
+        account_pool_index=account_pool_index,
+    )
+    top_apply_accounts = _safe_float(top_apply_account_estimate.get("estimate"))
+    top_apply_slot_buffer = leftover_lots - top_apply_accounts if top_apply_accounts is not None else None
 
     return {
         "available": True,
@@ -821,10 +846,123 @@ def _estimate_account_pool_fractional_cutoff(
         "leftover_lots": leftover_lots,
         "accounts_ge_cutoff": accounts_ge_cutoff,
         "cutoff_fill_rate": min(cutoff_fill_rate, 1.0) if cutoff_fill_rate is not None else None,
+        "top_apply_accounts_estimate": top_apply_accounts,
+        "top_apply_slot_buffer_accounts": top_apply_slot_buffer,
+        "top_apply_accounts_basis": top_apply_account_estimate.get("basis"),
+        "top_apply_accounts_source_codes": top_apply_account_estimate.get("source_codes") or [],
         "cutoff_basis": cutoff.get("basis"),
         "sample_count": cutoff.get("sample_count"),
         "source_codes": cutoff.get("source_codes") or [],
         "guaranteed_counts": guaranteed_counts,
+    }
+
+
+def _resolve_all_fractional_split_buffer_ratio_max(settings: dict[str, Any]) -> float:
+    raw_value = _safe_float(settings.get("subscription_prediction_all_fractional_split_buffer_ratio_max"))
+    if raw_value is None:
+        raw_value = DEFAULT_ALL_FRACTIONAL_SPLIT_BUFFER_RATIO_MAX
+    return _clamp(float(raw_value), 0.0, 1.0)
+
+
+def _build_all_fractional_scenario(
+    *,
+    enabled: bool,
+    top_apply_amount_wan: float | None,
+    fractional_threshold_amount_wan: float | None,
+    online_issue_shares: float,
+    account_pool_estimate: dict[str, Any] | None,
+    time_priority_required: bool,
+    settings: dict[str, Any],
+) -> dict[str, Any]:
+    if not enabled:
+        return {
+            "available": False,
+            "time_priority_status": "must" if time_priority_required else "none",
+            "overview_note": "",
+        }
+
+    fractional_slots = online_issue_shares / LOT_SIZE
+    pool = account_pool_estimate or {}
+    top_apply_accounts = _safe_float(pool.get("top_apply_accounts_estimate"))
+    slot_buffer_accounts = (
+        fractional_slots - top_apply_accounts
+        if top_apply_accounts is not None
+        else None
+    )
+    buffer_ratio = (
+        slot_buffer_accounts / top_apply_accounts
+        if slot_buffer_accounts is not None and top_apply_accounts and top_apply_accounts > 0
+        else None
+    )
+    split_buffer_ratio_max = _resolve_all_fractional_split_buffer_ratio_max(settings)
+
+    if time_priority_required or (slot_buffer_accounts is not None and slot_buffer_accounts < 0):
+        time_priority_status = "must"
+    elif (
+        slot_buffer_accounts is not None
+        and slot_buffer_accounts >= 0
+        and buffer_ratio is not None
+        and buffer_ratio <= split_buffer_ratio_max + 1e-9
+    ):
+        time_priority_status = "possible"
+    else:
+        time_priority_status = "none"
+
+    split_adjusted_threshold = fractional_threshold_amount_wan
+    if time_priority_status in {"possible", "must"} and top_apply_amount_wan is not None:
+        split_adjusted_threshold = top_apply_amount_wan
+
+    note_parts = ["全员碎股"]
+    if top_apply_accounts is not None:
+        note_parts.append(f"插值得到顶格以上约 {_fmt_accounts(top_apply_accounts)}")
+        if slot_buffer_accounts is not None and slot_buffer_accounts >= 0:
+            note_parts.append(
+                f"距离本次 {_fmt_lots(fractional_slots)}碎股名额仅有 {_fmt_exact_accounts(slot_buffer_accounts)}缓冲"
+            )
+        elif slot_buffer_accounts is not None:
+            note_parts.append(
+                f"已超过本次 {_fmt_lots(fractional_slots)}碎股名额约 {_fmt_exact_accounts(abs(slot_buffer_accounts))}"
+            )
+    else:
+        note_parts.append(f"本次共有 {_fmt_lots(fractional_slots)} 碎股名额")
+
+    if time_priority_status == "must" and top_apply_amount_wan is not None:
+        note_parts.append(
+            f"根据账户拥挤度，预测 0+1 门槛为顶格 {_fmt_amount_wan(top_apply_amount_wan)}且必须抢时间"
+        )
+    elif time_priority_status == "possible" and top_apply_amount_wan is not None:
+        required_increment_ratio = (
+            max(slot_buffer_accounts or 0.0, 0.0) / top_apply_accounts
+            if top_apply_accounts and top_apply_accounts > 0
+            else None
+        )
+        ratio_text = (
+            f"（新增账户约相当于当前顶格户数的 {required_increment_ratio * 100:.1f}%）"
+            if required_increment_ratio is not None
+            else ""
+        )
+        note_parts.append(
+            f"根据分户可能性{ratio_text}，预测 0+1 门槛可能上移至顶格 {_fmt_amount_wan(top_apply_amount_wan)}"
+        )
+    elif fractional_threshold_amount_wan is not None:
+        note_parts.append(
+            f"当前缓冲较充足，分户修正后仍采用静态 0+1 门槛 {_fmt_amount_wan(fractional_threshold_amount_wan)}"
+        )
+
+    return {
+        "available": True,
+        "all_fractional": True,
+        "fractional_slots": fractional_slots,
+        "top_apply_accounts_estimate": top_apply_accounts,
+        "top_apply_accounts_basis": pool.get("top_apply_accounts_basis"),
+        "top_apply_accounts_source_codes": pool.get("top_apply_accounts_source_codes") or [],
+        "slot_buffer_accounts": slot_buffer_accounts,
+        "slot_buffer_ratio": buffer_ratio,
+        "split_buffer_ratio_max": split_buffer_ratio_max,
+        "static_fractional_threshold_amount_wan": fractional_threshold_amount_wan,
+        "split_adjusted_fractional_threshold_amount_wan": split_adjusted_threshold,
+        "time_priority_status": time_priority_status,
+        "overview_note": "；".join(note_parts) + "。",
     }
 
 
@@ -2318,10 +2456,8 @@ def build_subscription_prediction(
             and fractional_shares is not None
             and int(fractional_shares) >= int(top_apply_shares)
         )
-    if top_apply_time_priority_required:
-        top_apply_time_priority_note = "必须抢时间（顶格仍不足正股）"
-    elif top_apply_below_guaranteed and account_pool_fractional_estimate:
-        top_apply_time_priority_note = "否（顶格不足正股，但顶格档预计可获碎股）"
+    if top_apply_below_guaranteed:
+        top_apply_time_priority_note = "无正股（顶格仍不足 100 股正股门槛）"
     elif protected_threshold_exceeds_top_apply:
         top_apply_time_priority_note = "可能需要抢时间（保护后建议金额超过顶格）"
     else:
@@ -2379,7 +2515,25 @@ def build_subscription_prediction(
                 fractional_time_priority_cutoff_amount_wan,
                 top_apply_wan,
             )
-    if time_required and fractional_threshold_at_top_apply:
+    all_fractional_scenario = _build_all_fractional_scenario(
+        enabled=top_apply_below_guaranteed,
+        top_apply_amount_wan=top_apply_wan,
+        fractional_threshold_amount_wan=fractional_amount_wan,
+        online_issue_shares=online_issue_shares,
+        account_pool_estimate=account_pool_fractional_estimate,
+        time_priority_required=time_required,
+        settings=settings,
+    )
+    fractional_time_priority_status = str(
+        all_fractional_scenario.get("time_priority_status")
+        or ("must" if time_required else "none")
+    )
+    if top_apply_below_guaranteed:
+        fractional_time_priority_overview_text = {
+            "must": "必须",
+            "possible": "可能",
+        }.get(fractional_time_priority_status, "否")
+    elif time_required and fractional_threshold_at_top_apply:
         fractional_time_priority_overview_text = "碎股门槛已到顶格，必须抢"
     elif time_required and fractional_amount_wan is not None and fractional_time_priority_cutoff_amount_wan is not None:
         fractional_time_priority_overview_text = (
@@ -2389,10 +2543,16 @@ def build_subscription_prediction(
     else:
         fractional_time_priority_overview_text = ""
     time_priority_scope = "none"
-    if time_required:
+    if top_apply_below_guaranteed and fractional_time_priority_status == "possible":
+        time_priority_scope = "possible_top_apply_accounts"
+    elif time_required:
         time_priority_scope = "all_top_apply_accounts" if top_apply_time_priority_required else "fractional_cutoff"
-    if top_apply_time_priority_required:
-        fractional_time_priority_note = "必须抢时间（顶格账户正股/碎股均按时间优先）" if time_required else "否"
+    if top_apply_below_guaranteed and fractional_time_priority_status == "must":
+        fractional_time_priority_note = "必须抢时间（全员碎股，顶格账户已超过或覆盖碎股名额）"
+    elif top_apply_below_guaranteed and fractional_time_priority_status == "possible":
+        fractional_time_priority_note = "可能需要抢时间（全员碎股，分户后门槛可能上移至顶格）"
+    elif top_apply_below_guaranteed:
+        fractional_time_priority_note = "否（全员碎股，但当前顶格户数缓冲较充足）"
     elif time_required and fractional_threshold_at_top_apply:
         fractional_time_priority_note = (
             f"碎股门槛 {_fmt_amount_wan(fractional_amount_wan)}已到顶格；顶格也要抢时间"
@@ -2427,15 +2587,36 @@ def build_subscription_prediction(
         ["正股保护阈值", _fmt_buffer_wan(buffer_min_wan, buffer_max_wan), "manual:safety_buffer"],
         ["正股建议申购金额", protected_amount_text, "guaranteed_threshold+safety_buffer"],
         ["碎股获配门槛", _fmt_amount_wan(fractional_amount_wan), fractional_basis],
-        ["碎股是否抢时间", "是" if time_required else "否", fractional_basis],
+        [
+            "碎股是否抢时间",
+            {"must": "必须", "possible": "可能"}.get(fractional_time_priority_status, "否"),
+            fractional_basis,
+        ],
         ["顶格抢时间提示", top_apply_time_priority_note, "top_apply_vs_guaranteed"],
         ["碎股加配抢时间提示", fractional_time_priority_note, fractional_basis],
         [
             "时间优先场景",
-            "顶格仍不足正股，全员抢碎股" if top_apply_time_priority_required else ("碎股边界抢时间" if time_required else "否"),
+            (
+                "全员碎股，顶格必须抢时间"
+                if top_apply_below_guaranteed and fractional_time_priority_status == "must"
+                else (
+                    "全员碎股，顶格可能抢时间"
+                    if top_apply_below_guaranteed and fractional_time_priority_status == "possible"
+                    else ("碎股边界抢时间" if time_required else "否")
+                )
+            ),
             fractional_basis,
         ],
     ]
+    if all_fractional_scenario.get("overview_note"):
+        table_rows.insert(
+            13,
+            [
+                "全员碎股备注",
+                str(all_fractional_scenario.get("overview_note")),
+                "account_pool+split_scenario",
+            ],
+        )
     if target_frozen_funds_override:
         table_rows.insert(
             6,
@@ -2551,6 +2732,7 @@ def build_subscription_prediction(
         "fractional_threshold_shares": fractional_shares,
         "fractional_threshold_amount_wan": fractional_amount_wan,
         "fractional_time_priority_required": time_required,
+        "fractional_time_priority_status": fractional_time_priority_status,
         "fractional_time_priority_note": fractional_time_priority_note,
         "fractional_time_priority_limit_label": fractional_time_priority_limit_label,
         "fractional_time_priority_overview_text": fractional_time_priority_overview_text,
@@ -2565,6 +2747,8 @@ def build_subscription_prediction(
         "manual_ladder_items": manual_ladder_items,
         "manual_ladder_overlay": manual_ladder_overlay,
         "account_pool_fractional_estimate": account_pool_fractional_estimate,
+        "all_fractional_scenario": all_fractional_scenario,
+        "all_fractional_overview_note": str(all_fractional_scenario.get("overview_note") or ""),
         "allocation_fit": allocation_fit,
         "table_rows": table_rows,
         "estimate": estimate,

@@ -1,7 +1,7 @@
 {
   "schema": "offline_tuning_replay_item_v1",
   "cache_version": 8,
-  "generated_at": "2026-08-18 19:22:59",
+  "generated_at": "2026-08-25 20:19:59",
   "code": "920288",
   "listing_date": "2026-08-17",
   "record_signature": {
@@ -50,8 +50,8 @@
     },
     "pdf_parser_versions": {
       "prospectus_issue_info": 8,
-      "issue_announcement_info": 5,
-      "issue_result_info": 4,
+      "issue_announcement_info": 6,
+      "issue_result_info": 5,
       "comparable_companies": 22,
       "business_desc": 3
     }
@@ -149,13 +149,17 @@
       "TOTAL_ISSUE_NUM": "issue_announcement:全文",
       "TOP_APPLY_MARKETCAP": "issue_announcement:全文",
       "SUBSCRIPTION_LIMIT_WAN_SHARES": "issue_announcement:全文",
-      "ONLINE_ISSUE_NUM": "issue_announcement:全文"
+      "ONLINE_ISSUE_NUM": "issue_announcement:全文",
+      "ONLINE_VA_NUM": "issue_result:result",
+      "ONLINE_ALLOCATED_ACCOUNTS": "issue_result:result",
+      "ONLINE_VA_SHARES": "issue_result:result",
+      "ONLINE_ES_MULTIPLE": "issue_result:result"
     },
     "announcement_fallback_parse_errors": [],
     "announcement_fallback_pdf_files": {
       "prospectus": "920288_华大海天_招股说明书.pdf",
       "issue": "920288_华大海天_发行公告.pdf",
-      "result": "",
+      "result": "920288_华大海天_发行结果公告.pdf",
       "listing": ""
     }
   }

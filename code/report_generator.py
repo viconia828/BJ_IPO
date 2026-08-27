@@ -289,12 +289,17 @@ def _build_time_priority_text(prediction: dict[str, Any], key: str, *, overview:
     value = prediction.get(key)
     if overview:
         if key == "top_apply_time_priority_required":
+            if prediction.get("top_apply_below_guaranteed"):
+                return "无正股"
             if value:
                 return "必须"
             return "可能" if prediction.get("protected_guaranteed_threshold_exceeds_top_apply") else "否"
         if key == "fractional_time_priority_required":
             if prediction.get("top_apply_below_guaranteed"):
-                return "必须"
+                return {
+                    "must": "必须",
+                    "possible": "可能",
+                }.get(str(prediction.get("fractional_time_priority_status") or ""), "否")
             if value:
                 return str(prediction.get("fractional_time_priority_overview_text") or "可能")
             return "否"
@@ -551,6 +556,9 @@ def _prepare_report_context(all_data: dict[str, Any]) -> dict[str, Any]:
         overview_listing_date = _fmt_date(ipo.get("LISTING_DATE"), fallback="")
 
     lot_threshold_overview_items = _build_lot_threshold_overview_items(subscription_prediction)
+    all_fractional_overview_note = str(
+        subscription_prediction.get("all_fractional_overview_note") or ""
+    ).strip()
     overview_headers = [
         "代码",
         "名称",
@@ -559,6 +567,7 @@ def _prepare_report_context(all_data: dict[str, Any]) -> dict[str, Any]:
         "发行价",
         "最大申购上限（万元）",
         *(header for header, _ in lot_threshold_overview_items),
+        *(("备注",) if all_fractional_overview_note else ()),
         "正股抢时间",
         "碎股抢时间",
         "上市日期",
@@ -573,6 +582,7 @@ def _prepare_report_context(all_data: dict[str, Any]) -> dict[str, Any]:
         _fmt_number(issue_price, fallback=""),
         _fmt_number(ipo.get("TOP_APPLY_MARKETCAP"), fallback=""),
         *(value for _, value in lot_threshold_overview_items),
+        *((all_fractional_overview_note,) if all_fractional_overview_note else ()),
         _build_time_priority_text(subscription_prediction, "top_apply_time_priority_required", overview=True),
         _build_time_priority_text(subscription_prediction, "fractional_time_priority_required", overview=True),
         overview_listing_date,
@@ -989,8 +999,14 @@ def _render_pdf_from_html(html_text: str, pdf_path: Path) -> None:
 
                 if process.poll() is not None:
                     edge_log.close()
-                    if _pdf_file_looks_complete(pdf_path):
-                        return
+                    # Windows/Edge occasionally exits just before the completed PDF
+                    # becomes visible to this process. Give the final file flush a
+                    # short grace window instead of reporting a false render failure.
+                    post_exit_deadline = time.monotonic() + max(PDF_READY_STABLE_SECONDS, 2.0)
+                    while time.monotonic() < post_exit_deadline:
+                        if _pdf_file_looks_complete(pdf_path):
+                            return
+                        time.sleep(0.1)
                     break
 
                 if time.monotonic() >= deadline:

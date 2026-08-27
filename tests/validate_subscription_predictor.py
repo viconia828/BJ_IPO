@@ -914,13 +914,18 @@ def _run_top_apply_below_guaranteed_case(failures: list[str]) -> None:
         failures,
     )
     _assert(
-        prediction.get("top_apply_time_priority_note") == "必须抢时间（顶格仍不足正股）",
+        prediction.get("top_apply_time_priority_note") == "无正股（顶格仍不足 100 股正股门槛）",
         "top apply below guaranteed: time note mismatch",
         failures,
     )
     _assert(
-        prediction.get("fractional_time_priority_note") == "必须抢时间（顶格账户正股/碎股均按时间优先）",
+        prediction.get("fractional_time_priority_note") == "必须抢时间（全员碎股，顶格账户已超过或覆盖碎股名额）",
         "top apply below guaranteed: fractional time note mismatch",
+        failures,
+    )
+    _assert(
+        prediction.get("fractional_time_priority_status") == "must",
+        "top apply below guaranteed: fractional time status mismatch",
         failures,
     )
     _assert(prediction.get("time_priority_scope") == "all_top_apply_accounts", "top apply below guaranteed: scope mismatch", failures)
@@ -986,8 +991,101 @@ def _run_top_apply_below_guaranteed_account_pool_cutoff_case(failures: list[str]
     pool_estimate = prediction.get("account_pool_fractional_estimate") or {}
     _assert_close(pool_estimate.get("full_allocated_lots_estimate"), 0.0, "top apply pool cutoff: full lots mismatch", failures)
     _assert_close(pool_estimate.get("leftover_lots"), 80.0, "top apply pool cutoff: leftover lots mismatch", failures)
+    _assert_close(pool_estimate.get("top_apply_accounts_estimate"), 40.0, "top apply pool cutoff: top accounts mismatch", failures)
+    _assert_close(pool_estimate.get("top_apply_slot_buffer_accounts"), 40.0, "top apply pool cutoff: buffer mismatch", failures)
+    _assert(
+        prediction.get("fractional_time_priority_status") == "none",
+        "top apply pool cutoff: fractional time status mismatch",
+        failures,
+    )
+    _assert(
+        prediction.get("top_apply_time_priority_note") == "无正股（顶格仍不足 100 股正股门槛）",
+        "top apply pool cutoff: regular stock note mismatch",
+        failures,
+    )
     by_label = {str(item.get("ladder_label") or ""): item for item in prediction.get("lot_thresholds") or []}
     _assert_close(by_label.get("0+1", {}).get("threshold_amount_wan"), 1.5, "top apply pool cutoff: 0+1 amount mismatch", failures)
+
+
+def _run_all_fractional_split_possible_case(failures: list[str]) -> None:
+    account_pool_row: dict[str, Any] = {
+        "security_code": "920924",
+        "apply_date": "2026-07-02",
+        "account_pool_snapshot_state": "true",
+    }
+    for threshold, accounts in {1.0: 100, 2.0: 80, 2.5: 70}.items():
+        prefix = subscription_predictor._account_pool_column_prefix(threshold)
+        account_pool_row[f"{prefix}_estimate"] = accounts
+        account_pool_row[f"{prefix}_basis"] = "carry_forward"
+
+    prediction = subscription_predictor.build_subscription_prediction(
+        {
+            "SECURITY_CODE": "920925",
+            "ISSUE_PRICE": 10.0,
+            "ONLINE_ISSUE_NUM": 8000.0,
+            "ONLINE_VA_SHARES": 800000.0,
+            "TOP_APPLY_MARKETCAP": 2.5,
+        },
+        recent_ipos=[],
+        params={
+            "subscription_prediction_account_pool_rows": [account_pool_row],
+            "subscription_prediction_account_pool_recent_samples": 1,
+            "subscription_prediction_lot_threshold_max_lots": 3,
+        },
+    )
+    scenario = prediction.get("all_fractional_scenario") or {}
+    _assert(prediction.get("top_apply_below_guaranteed") is True, "all fractional possible: flag missing", failures)
+    _assert(prediction.get("fractional_time_priority_required") is False, "all fractional possible: must flag mismatch", failures)
+    _assert(prediction.get("fractional_time_priority_status") == "possible", "all fractional possible: status mismatch", failures)
+    _assert_close(scenario.get("top_apply_accounts_estimate"), 70.0, "all fractional possible: top accounts mismatch", failures)
+    _assert_close(scenario.get("slot_buffer_accounts"), 10.0, "all fractional possible: buffer mismatch", failures)
+    _assert_close(
+        scenario.get("split_adjusted_fractional_threshold_amount_wan"),
+        2.5,
+        "all fractional possible: split threshold mismatch",
+        failures,
+    )
+    note = str(prediction.get("all_fractional_overview_note") or "")
+    _assert("全员碎股" in note, "all fractional possible: note flag missing", failures)
+    _assert("顶格以上约 70 户" in note, "all fractional possible: note top accounts missing", failures)
+    _assert("10 户缓冲" in note, "all fractional possible: note buffer missing", failures)
+    _assert("可能上移至顶格 2.50 万元" in note, "all fractional possible: note split prediction missing", failures)
+
+
+def _run_all_fractional_split_must_case(failures: list[str]) -> None:
+    account_pool_row: dict[str, Any] = {
+        "security_code": "920926",
+        "apply_date": "2026-07-03",
+        "account_pool_snapshot_state": "true",
+    }
+    for threshold, accounts in {1.0: 120, 2.0: 100, 2.5: 90}.items():
+        prefix = subscription_predictor._account_pool_column_prefix(threshold)
+        account_pool_row[f"{prefix}_estimate"] = accounts
+        account_pool_row[f"{prefix}_basis"] = "carry_forward"
+
+    prediction = subscription_predictor.build_subscription_prediction(
+        {
+            "SECURITY_CODE": "920927",
+            "ISSUE_PRICE": 10.0,
+            "ONLINE_ISSUE_NUM": 8000.0,
+            "ONLINE_VA_SHARES": 800000.0,
+            "TOP_APPLY_MARKETCAP": 2.5,
+        },
+        recent_ipos=[],
+        params={
+            "subscription_prediction_account_pool_rows": [account_pool_row],
+            "subscription_prediction_account_pool_recent_samples": 1,
+            "subscription_prediction_lot_threshold_max_lots": 3,
+        },
+    )
+    scenario = prediction.get("all_fractional_scenario") or {}
+    _assert(prediction.get("fractional_time_priority_required") is True, "all fractional must: must flag missing", failures)
+    _assert(prediction.get("fractional_time_priority_status") == "must", "all fractional must: status mismatch", failures)
+    _assert_close(scenario.get("top_apply_accounts_estimate"), 90.0, "all fractional must: top accounts mismatch", failures)
+    _assert_close(scenario.get("slot_buffer_accounts"), -10.0, "all fractional must: overflow mismatch", failures)
+    note = str(prediction.get("all_fractional_overview_note") or "")
+    _assert("已超过本次 80 手碎股名额约 10 户" in note, "all fractional must: overflow note missing", failures)
+    _assert("必须抢时间" in note, "all fractional must: time note missing", failures)
 
 
 def _run_manual_ladder_runtime_override_case(failures: list[str]) -> None:
@@ -1040,6 +1138,8 @@ def main() -> int:
     _run_account_pool_fully_covered_fractional_case(failures)
     _run_top_apply_below_guaranteed_case(failures)
     _run_top_apply_below_guaranteed_account_pool_cutoff_case(failures)
+    _run_all_fractional_split_possible_case(failures)
+    _run_all_fractional_split_must_case(failures)
     _run_manual_ladder_runtime_override_case(failures)
     if failures:
         for failure in failures:
