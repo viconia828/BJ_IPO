@@ -2549,9 +2549,10 @@ def _print_subscription_auto_summary(result: dict[str, Any], *, best_beats_basel
             f"- prior 最小触发：{_format_metric_brief(prior_minimal)}，"
             f"prior_applied={prior_minimal.get('account_pool_prior_applied_count', 0)}"
         )
-    print(f"- 选中分支：{result.get('selected_branch') or 'none'}；{_format_metric_brief(selected)}")
     if not best_beats_baseline:
-        print("- 结论：最优候选未优于当前参数。")
+        print("- 选中分支：最优候选未优于当前参数。")
+    else:
+        print(f"- 选中分支：{result.get('selected_branch')}；{_format_metric_brief(selected)}")
 
 
 def _run_auto_mode(
