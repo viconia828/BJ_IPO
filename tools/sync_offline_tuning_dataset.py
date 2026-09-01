@@ -23,6 +23,7 @@ if str(CURRENT_DIR) not in sys.path:
 import build_account_pool_history
 import build_subscription_history
 import config_loader
+import local_pdf_manifest
 import param_tuning
 import subscription_ladder_labels
 from bse_official_helper import BSEOfficialClient, BSEOfficialError
@@ -40,6 +41,7 @@ DEFAULT_MANIFEST_PATH = ROOT_DIR / "data" / "offline_tuning" / "sample_manifest.
 DEFAULT_REPLAY_ITEM_DIR = ROOT_DIR / "data" / "offline_tuning" / "replay_items"
 DEFAULT_RETRY_MARKER_PATH = ROOT_DIR / "data" / "offline_tuning" / "deferred_listing_data_codes.json"
 DEFAULT_INTRADAY_DIR = ROOT_DIR / "首日分时走势"
+DEFAULT_PDF_DIR = ROOT_DIR / "公告文件"
 
 
 def _now_text() -> str:
@@ -886,6 +888,25 @@ def sync_offline_tuning_dataset(
         dataset_path.parent / "deferred_listing_data_codes.json",
     )
 
+    initial_pdf_manifest_summary = local_pdf_manifest.refresh_local_pdf_manifest(
+        DEFAULT_PDF_DIR,
+        force=bool(getattr(args, "force_rebuild_pdf_manifest", False)),
+    )
+    if verbose:
+        if initial_pdf_manifest_summary.get("action") == "cache_hit":
+            print(
+                "公告 PDF manifest 命中：{file_count} 份文件、{indexed_code_count} 个代码；本轮跳过全目录扫描。".format(
+                    **initial_pdf_manifest_summary
+                ),
+                flush=True,
+            )
+        else:
+            print(
+                "公告 PDF manifest 已重建：{file_count} 份文件、{indexed_code_count} 个代码，"
+                "完整 {complete_count} 份、不完整 {incomplete_count} 份。".format(**initial_pdf_manifest_summary),
+                flush=True,
+            )
+
     retry_marker_before = _load_retry_marker(retry_marker_path)
     pending_before = list(retry_marker_before.get("pending_codes") or [])
     same_day_download_cooldown = set(_same_day_download_cooldown_codes(retry_marker_before))
@@ -926,7 +947,7 @@ def sync_offline_tuning_dataset(
         prospectus_codes = requested_codes if requested_codes is not None else param_tuning.discover_replay_sample_codes()
         prospectus_download_summary = _sync_prospectus_documents(
             prospectus_codes,
-            output_dir=ROOT_DIR / "公告文件",
+            output_dir=DEFAULT_PDF_DIR,
             verbose=verbose,
         )
 
@@ -977,6 +998,7 @@ def sync_offline_tuning_dataset(
             dataset_path=dataset_path,
             output_path=history_path,
             ladder_label_path=ladder_label_path,
+            pdf_dir=DEFAULT_PDF_DIR,
             download_missing_issue=download_missing,
             download_missing_result=download_missing,
             download_skip_codes=same_day_download_cooldown if download_missing else set(),
@@ -1038,6 +1060,12 @@ def sync_offline_tuning_dataset(
         else:
             print("公告和申购 history 字段均已满足当前可解析条件，待重试标记已清空。", flush=True)
 
+    final_pdf_manifest_summary = local_pdf_manifest.refresh_local_pdf_manifest(DEFAULT_PDF_DIR)
+    pdf_manifest_summary = {
+        "initial_action": initial_pdf_manifest_summary.get("action"),
+        "initial_reason": initial_pdf_manifest_summary.get("reason"),
+        **final_pdf_manifest_summary,
+    }
     sync_summary = {
         "replay": {
             "available_count": dataset.get("available_count", 0),
@@ -1047,6 +1075,7 @@ def sync_offline_tuning_dataset(
         "subscription_history": history_summary,
         "account_pool_history": account_pool_summary,
         "prospectus_download": prospectus_download_summary,
+        "local_pdf_manifest": pdf_manifest_summary,
         "listing_data_retry": {
             "marker_path": str(retry_marker_path),
             "pending_before": pending_before,
@@ -1083,6 +1112,7 @@ def sync_offline_tuning_dataset(
         "retry_marker_path": retry_marker_path,
         "retry_reasons_by_code": retry_reasons_by_code,
         "prospectus_download_summary": prospectus_download_summary,
+        "local_pdf_manifest_summary": pdf_manifest_summary,
     }
 
 
@@ -1117,6 +1147,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--download-retries", type=int, default=1)
     parser.add_argument("--download-delay-seconds", type=float, default=0.0)
     parser.add_argument("--parse-prospectus", action="store_true")
+    parser.add_argument(
+        "--force-rebuild-pdf-manifest",
+        action="store_true",
+        help="忽略目录状态并强制重建公告 PDF manifest；通常无需使用。",
+    )
     parser.add_argument(
         "--force-rebuild-subscription-history",
         action="store_true",
@@ -1159,6 +1194,7 @@ def main() -> int:
                     "manifest_path": str(manifest_path),
                     "retry_marker_path": str(result["retry_marker_path"]),
                     "account_pool_summary_path": str(result["account_pool_summary"].get("summary_path", "")),
+                    "local_pdf_manifest": result["local_pdf_manifest_summary"],
                     "summary": summary,
                     "retry_codes": sorted(result["retry_reasons_by_code"]),
                 },

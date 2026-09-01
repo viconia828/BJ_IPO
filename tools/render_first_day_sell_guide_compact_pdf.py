@@ -23,7 +23,7 @@ from reportlab.platypus import (
 
 
 ROOT_DIR = Path(__file__).resolve().parents[1]
-DEFAULT_OUTPUT = ROOT_DIR / "output" / "pdf" / "北交所新股首日卖出指南_简洁版_20260830.pdf"
+DEFAULT_OUTPUT = ROOT_DIR / "outputs" / "pdf" / "北交所新股首日卖出指南_简洁版_20260830.pdf"
 
 NAVY = colors.HexColor("#0B2A4A")
 BLUE = colors.HexColor("#2C77B8")

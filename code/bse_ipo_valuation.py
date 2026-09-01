@@ -16,6 +16,7 @@ import config_loader
 import comparable_data_helper
 import data_fetcher
 import ipo_data_helper
+import local_pdf_manifest
 import note_builder
 import pdf_parser
 import report_generator
@@ -97,10 +98,7 @@ def _find_pdf(directory: Path, code: str, suffix: str) -> Path | None:
 
 
 def _find_pdf_candidates(directory: Path, code: str, suffix: str) -> list[Path]:
-    candidate = directory / f"{code}_{suffix}.pdf"
-    if candidate.exists() and bse_official_helper.is_complete_pdf_file(candidate):
-        return [candidate]
-
+    exact_candidate = directory / f"{code}_{suffix}.pdf"
     aliases = {
         "上市公告书": ["上市公告书", "上市公告"],
         "发行公告": ["上市发行公告", "发行公告"],
@@ -113,10 +111,9 @@ def _find_pdf_candidates(directory: Path, code: str, suffix: str) -> list[Path]:
         "发行公告": ["发行结果", "结果公告", "上市公告书", "招股说明书", "招股意向书"],
         "发行结果公告": ["上市公告书", "招股说明书", "招股意向书"],
     }.get(suffix, [])
-    if not directory.exists():
-        return []
-
-    pdf_files = sorted(directory.glob("*.pdf"))
+    pdf_files = local_pdf_manifest.complete_pdf_files_for_code(directory, code)
+    if exact_candidate in pdf_files:
+        return [exact_candidate]
     prioritized: list[Path] = []
     fallback: list[Path] = []
     for file_path in pdf_files:

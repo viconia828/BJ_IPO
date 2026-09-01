@@ -41,10 +41,11 @@
 程序会自动使用和维护以下目录：
 
 - `公告文件/`：招股说明书、上市公告书等 PDF
+- `data/offline_tuning/local_pdf_manifest.json`：公告 PDF 的增量索引，记录代码映射、文件大小、修改时间和完整性
 - `首日分时走势/`：首日分时 CSV
 - `xueqiu/`：用户手工保存的雪球 MHTML/TXT；刷新入口不会联网抓取
 - `输出/`：报告输出目录
-- `outputs/`：雪球学习、proxy、regime-break 和盘中指导等研究报告
+- `outputs/`：统一的辅助产物目录；雪球学习、proxy、regime-break、盘中指导等研究报告直接放在目录下，成品 PDF 放在 `outputs/pdf/`
 
 ## 日常怎么用
 
@@ -86,7 +87,7 @@
 2. 选择输入方式：`单参数多候选值` / `手动候选组` / `候选文件`
 3. 输入必要参数
 
-每次通过 `调参.bat` 启动调参时，系统会先扫描 `首日分时走势/` 里的 CSV，自动同步估值回放样本集 `data/offline_tuning/replay_dataset.json`，再重建申购资金历史样本集 `data/offline_tuning/subscription_history_sample.csv`、同步手工分档表，并刷新 `account_pool_history_*` 户数分布表。估值回放会优先复用旧数据集条目和 `data/offline_tuning/replay_items/代码.json` 单样本缓存，只为新增样本补齐回放资料；申购资金历史表会优先采用本次解析出的 `model_ready` 发行结果行，只有新解析不可用时才用旧高质量行兜底，避免临时解析失败造成样本降级。若外部数据源临时超时或拒绝连接，本次会继续使用旧样本集，不会中断调参；网络恢复后再次运行即可自动重试同步。
+每次通过 `调参.bat` 启动调参时，系统会先扫描 `首日分时走势/` 里的 CSV，自动同步估值回放样本集 `data/offline_tuning/replay_dataset.json`，再重建申购资金历史样本集 `data/offline_tuning/subscription_history_sample.csv`、同步手工分档表，并刷新 `account_pool_history_*` 户数分布表。公告 PDF 不再按代码反复枚举整个 `公告文件/`：刷新入口先读取 `data/offline_tuning/local_pdf_manifest.json`，目录未变化时直接按代码查索引；新增、删除或重命名 PDF 时自动重建一次，官网下载的新文件则直接增量登记。估值回放会优先复用旧数据集条目和 `data/offline_tuning/replay_items/代码.json` 单样本缓存，只为新增样本补齐回放资料；申购资金历史表会优先采用本次解析出的 `model_ready` 发行结果行，只有新解析不可用时才用旧高质量行兜底，避免临时解析失败造成样本降级。若外部数据源临时超时或拒绝连接，本次会继续使用旧样本集，不会中断调参；网络恢复后再次运行即可自动重试同步。
 
 申购配售模型的历史样本表保存在 `data/offline_tuning/subscription_history_sample.csv`，这是可提交的训练样本产物。它按历史新股逐行记录发行价、网上发行数量、顶格申购金额、有效申购户数、有效申购股数、冻结资金、申购冻结天数、正股门槛、碎股门槛估算和字段来源。申购规模按网上发行口径处理：系统会用网上发行数量和发行价得到网上发行金额，用顶格申购金额判断单户上限，再用有效申购股数或冻结资金反推全市场有效申购资金池。正股/碎股门槛和是否需要抢时间，都是在这个口径上计算出来的。碎股抢时间提示使用金额边界：在碎股门槛上增加 `subscription_prediction_fractional_time_priority_buffer_wan` 保护值；若碎股门槛已达到顶格，则直接提示顶格必须抢时间。
 
@@ -171,7 +172,7 @@
 启动后可以选择：
 
 - `1. 刷新新股首日走势`：只补首日分时 CSV。
-- `2. 刷新新上市新股数据（估值 replay / 申购 history / 缺公告重试）`：补估值回放样本、申购资金历史样本、手工阶梯标签上下文和样本 manifest；缺失的发行公告/发行结果公告也会自动重试下载。申购 history 按 replay、PDF 和解析器版本签名逐代码增量刷新；account-pool 只从最早变化样本日期向后续算。排障时可分别使用 `--force-rebuild-subscription-history` 和 `--force-rebuild-account-pool` 强制全量重建。
+- `2. 刷新新上市新股数据（估值 replay / 申购 history / 缺公告重试）`：补估值回放样本、申购资金历史样本、手工阶梯标签上下文和样本 manifest；缺失的发行公告/发行结果公告也会自动重试下载。公告 PDF 通过 `local_pdf_manifest.json` 按代码增量定位，申购 history 按 replay、PDF 和解析器版本签名逐代码增量刷新；account-pool 只从最早变化样本日期向后续算。排障时可分别使用 `--force-rebuild-pdf-manifest`、`--force-rebuild-subscription-history` 和 `--force-rebuild-account-pool` 强制重建对应层。
 - `3. Refresh Xueqiu reference from manual files in xueqiu folder`：读取根目录 `xueqiu/` 中手工保存的 `.mhtml` 和 `.txt`，自动完成语料导入、区间抽取、覆盖审计、author-rule score、作者/模型融合、本地规则蒸馏和影子报告刷新。该功能不访问雪球，也不自动下载文章。
 
 雪球参考的日常用法：
@@ -218,6 +219,8 @@
 下载结果会保存到 `公告文件/`。
 
 自动下载现在会对 PDF 做完整性校验：下载后会检查文件大小、PDF 文件头和结束标记；如果本地已有 PDF 不完整，主流程会跳过该文件并重新下载，避免半截公告文件被当成可用文件复用。
+
+手工向 `公告文件/` 新增、删除或重命名 PDF 后，无需维护索引；下一次刷新会通过目录状态自动重建 manifest。若只是在原文件名上覆盖 PDF，查到该代码时还会复核该文件的大小和修改时间。仅在排障时才需要运行 `python tools\sync_offline_tuning_dataset.py --force-rebuild-pdf-manifest --no-download-missing-announcements` 强制全量重建。
 
 ## 输出文件怎么看
 
@@ -323,6 +326,7 @@
 - `tools/cache_listing_day_intraday.py`：缓存首日分时走势
 - `tools/add_new_ipo_intraday_cache.py`：补最新上市样本缓存
 - `tools/sync_offline_tuning_dataset.py`：刷新估值 replay、申购 history、手工标签上下文和缺公告重试
+- `code/local_pdf_manifest.py`：维护公告 PDF 增量索引并提供按代码查找
 - `tools/download_bse_official_pdf.py`：下载公告 PDF
 - `tools/scan_pdf_samples.py`：批量扫描本地 PDF 样本
 

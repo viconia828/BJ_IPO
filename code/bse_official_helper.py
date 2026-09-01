@@ -17,6 +17,8 @@ import urllib.parse
 import urllib.request
 from typing import Any, Callable, Iterable
 
+import local_pdf_manifest
+
 
 BASE_URL = "https://www.bse.cn"
 EASTMONEY_NOTICE_BASE_URL = "https://xinsanban.eastmoney.com"
@@ -1671,6 +1673,7 @@ class BSEOfficialClient:
         target_path = Path(output_path)
         if target_path.exists() and not overwrite:
             if is_complete_pdf_file(target_path):
+                local_pdf_manifest.register_pdf_file(target_path)
                 return target_path.resolve()
             self._notify_status(f"本地 PDF 不完整，正在重新下载：{target_path.name}")
 
@@ -1705,6 +1708,7 @@ class BSEOfficialClient:
                     temp_path.unlink()
                 except OSError:
                     pass
+        local_pdf_manifest.register_pdf_file(target_path)
         return target_path.resolve()
 
     def download_best_prospectus_by_post_listing_code(
