@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime
 import json
+import os
 from pathlib import Path
 import re
 from typing import Any
@@ -55,11 +56,30 @@ def _file_stat(path: Path) -> tuple[int, int] | None:
     return int(stat.st_size), int(stat.st_mtime_ns)
 
 
-def _is_complete_pdf_file(path: Path) -> bool:
-    signature = _file_stat(path)
-    if signature is None or signature[0] <= 0:
+def _list_pdf_signatures(directory: Path) -> dict[str, tuple[int, int]] | None:
+    if not directory.exists():
+        return {}
+    signatures: dict[str, tuple[int, int]] = {}
+    try:
+        with os.scandir(directory) as entries:
+            for item in entries:
+                if not item.name.lower().endswith(".pdf") or not item.is_file():
+                    continue
+                stat = item.stat()
+                signatures[item.name] = (int(stat.st_size), int(stat.st_mtime_ns))
+    except OSError:
+        return None
+    return signatures
+
+
+def _is_complete_pdf_file(path: Path, *, size: int | None = None) -> bool:
+    if size is None:
+        signature = _file_stat(path)
+        if signature is None:
+            return False
+        size = signature[0]
+    if size <= 0:
         return False
-    size = signature[0]
     try:
         with path.open("rb") as file_obj:
             head = file_obj.read(PDF_HEADER_SCAN_BYTES)
@@ -81,6 +101,17 @@ class LocalPdfManifest:
         self._payload: dict[str, Any] | None = None
         self._last_action = ""
         self._last_reason = ""
+        self._last_changes = self._empty_changes()
+
+    @staticmethod
+    def _empty_changes() -> dict[str, int]:
+        return {
+            "added_count": 0,
+            "changed_count": 0,
+            "removed_count": 0,
+            "reused_count": 0,
+            "pdf_opened_count": 0,
+        }
 
     def _load(self) -> dict[str, Any] | None:
         try:
@@ -112,8 +143,12 @@ class LocalPdfManifest:
             return False
         return True
 
-    def _entry_for_path(self, path: Path) -> dict[str, Any] | None:
-        signature = _file_stat(path)
+    def _entry_for_path(
+        self,
+        path: Path,
+        signature: tuple[int, int] | None = None,
+    ) -> dict[str, Any] | None:
+        signature = signature or _file_stat(path)
         if signature is None:
             return None
         size, mtime_ns = signature
@@ -121,7 +156,7 @@ class LocalPdfManifest:
             "name": path.name,
             "size": size,
             "mtime_ns": mtime_ns,
-            "complete": _is_complete_pdf_file(path),
+            "complete": _is_complete_pdf_file(path, size=size),
             "codes": _security_codes(path.name),
         }
 
@@ -148,19 +183,18 @@ class LocalPdfManifest:
             "indexed_code_count": len(payload.get("codes") or {}),
             "generated_at": str(payload.get("generated_at") or ""),
             "full_scan_count": int(payload.get("full_scan_count") or 0),
+            "incremental_update_count": int(payload.get("incremental_update_count") or 0),
+            **self._last_changes,
         }
 
     def _scan(self, reason: str) -> dict[str, Any]:
         previous_scan_count = int((self._payload or {}).get("full_scan_count") or 0)
         files: dict[str, dict[str, Any]] = {}
-        try:
-            pdf_paths = sorted(self.directory.glob("*.pdf")) if self.directory.exists() else []
-        except OSError:
-            pdf_paths = []
-        for path in pdf_paths:
-            entry = self._entry_for_path(path)
+        signatures = _list_pdf_signatures(self.directory) or {}
+        for filename, signature in sorted(signatures.items()):
+            entry = self._entry_for_path(self.directory / filename, signature)
             if entry is not None:
-                files[path.name] = entry
+                files[filename] = entry
 
         self._payload = {
             "schema": MANIFEST_SCHEMA,
@@ -169,6 +203,7 @@ class LocalPdfManifest:
             "generated_at": _now_text(),
             "directory_mtime_ns": _directory_mtime_ns(self.directory),
             "full_scan_count": previous_scan_count + 1,
+            "incremental_update_count": int((self._payload or {}).get("incremental_update_count") or 0),
             "files": files,
             "codes": self._build_code_index(files),
         }
@@ -184,6 +219,58 @@ class LocalPdfManifest:
 
         self._last_action = "rebuilt"
         self._last_reason = reason
+        self._last_changes = {
+            "added_count": len(files),
+            "changed_count": 0,
+            "removed_count": 0,
+            "reused_count": 0,
+            "pdf_opened_count": len(files),
+        }
+        return self._summary()
+
+    def _reconcile(self, reason: str) -> dict[str, Any]:
+        assert self._payload is not None
+        signatures = _list_pdf_signatures(self.directory)
+        if signatures is None:
+            self._last_action = "cache_stale"
+            self._last_reason = "directory_listing_failed"
+            self._last_changes = self._empty_changes()
+            return self._summary()
+
+        existing_files = dict(self._payload.get("files") or {})
+        files: dict[str, dict[str, Any]] = {}
+        added_count = 0
+        changed_count = 0
+        reused_count = 0
+        for filename, signature in sorted(signatures.items()):
+            existing_entry = existing_files.get(filename)
+            existing_signature = None
+            if isinstance(existing_entry, dict):
+                existing_signature = (existing_entry.get("size"), existing_entry.get("mtime_ns"))
+            if existing_signature == signature:
+                files[filename] = existing_entry
+                reused_count += 1
+                continue
+
+            entry = self._entry_for_path(self.directory / filename, signature)
+            if entry is not None:
+                files[filename] = entry
+            if existing_entry is None:
+                added_count += 1
+            else:
+                changed_count += 1
+
+        removed_count = len(set(existing_files) - set(signatures))
+        self._last_changes = {
+            "added_count": added_count,
+            "changed_count": changed_count,
+            "removed_count": removed_count,
+            "reused_count": reused_count,
+            "pdf_opened_count": added_count + changed_count,
+        }
+        self._save_files(files)
+        self._last_action = "incremental_update"
+        self._last_reason = reason
         return self._summary()
 
     def ensure_current(self, *, force: bool = False) -> dict[str, Any]:
@@ -197,10 +284,11 @@ class LocalPdfManifest:
         stored_mtime_ns = self._payload.get("directory_mtime_ns")
         current_mtime_ns = _directory_mtime_ns(self.directory)
         if stored_mtime_ns != current_mtime_ns:
-            return self._scan("directory_changed")
+            return self._reconcile("directory_changed")
 
         self._last_action = "cache_hit"
         self._last_reason = "directory_unchanged"
+        self._last_changes = self._empty_changes()
         return self._summary()
 
     def _save_files(self, files: dict[str, dict[str, Any]]) -> None:
@@ -209,6 +297,7 @@ class LocalPdfManifest:
         self._payload["codes"] = self._build_code_index(files)
         self._payload["generated_at"] = _now_text()
         self._payload["directory_mtime_ns"] = _directory_mtime_ns(self.directory)
+        self._payload["incremental_update_count"] = int(self._payload.get("incremental_update_count") or 0) + 1
         self._save()
 
     def register(self, path: str | Path) -> dict[str, Any]:
@@ -236,7 +325,18 @@ class LocalPdfManifest:
         if not changed:
             self._last_action = "cache_hit"
             self._last_reason = "registered_file_unchanged"
+            self._last_changes = {
+                **self._empty_changes(),
+                "reused_count": 1 if existing_entry is not None else 0,
+            }
             return self._summary()
+        self._last_changes = {
+            "added_count": 1 if existing_entry is None and entry is not None else 0,
+            "changed_count": 1 if existing_entry is not None and entry is not None else 0,
+            "removed_count": 1 if existing_entry is not None and entry is None else 0,
+            "reused_count": 0,
+            "pdf_opened_count": 1 if entry is not None else 0,
+        }
         self._save_files(files)
         self._last_action = "incremental_update"
         self._last_reason = "registered_file"
@@ -249,6 +349,8 @@ class LocalPdfManifest:
         files = dict(self._payload.get("files") or {})
         filenames = list((self._payload.get("codes") or {}).get(normalized_code) or [])
         changed = False
+        changed_count = 0
+        removed_count = 0
         result: list[Path] = []
         for filename in filenames:
             entry = files.get(filename)
@@ -263,13 +365,22 @@ class LocalPdfManifest:
                 changed = True
                 if refreshed_entry is None:
                     files.pop(filename, None)
+                    removed_count += 1
                     continue
                 files[filename] = refreshed_entry
                 entry = refreshed_entry
+                changed_count += 1
             if entry.get("complete") is True:
                 result.append(path)
 
         if changed:
+            self._last_changes = {
+                "added_count": 0,
+                "changed_count": changed_count,
+                "removed_count": removed_count,
+                "reused_count": len(filenames) - changed_count - removed_count,
+                "pdf_opened_count": changed_count,
+            }
             self._save_files(files)
             self._last_action = "incremental_update"
             self._last_reason = "indexed_file_changed"

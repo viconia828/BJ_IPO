@@ -1,6 +1,6 @@
 {
   "schema": "offline_tuning_sample_manifest_v1",
-  "generated_at": "2026-09-01 19:33:46",
+  "generated_at": "2026-09-02 19:12:02",
   "paths": {
     "dataset": "D:\\BJ_IPO\\data\\offline_tuning\\replay_dataset.json",
     "replay_items": "D:\\BJ_IPO\\data\\offline_tuning\\replay_items",
@@ -19,9 +19,9 @@
     "intraday_only_count": 0,
     "dataset_only_count": 4,
     "method1_ready_count": 57,
-    "model_ready_count": 56,
+    "model_ready_count": 57,
     "manual_ladder_ready_count": 56,
-    "listing_data_retry_count": 1
+    "listing_data_retry_count": 0
   },
   "differences": {
     "label_only_codes": [],
@@ -32,9 +32,7 @@
       "920269",
       "920289"
     ],
-    "listing_data_retry_codes": [
-      "920268"
-    ]
+    "listing_data_retry_codes": []
   },
   "sync_summary": {
     "replay": {
@@ -52,15 +50,17 @@
     "subscription_history": {
       "output_path": "D:\\BJ_IPO\\data\\offline_tuning\\subscription_history_sample.csv",
       "row_count": 57,
-      "model_ready_count": 56,
-      "fractional_label_ready_count": 56,
-      "result_pdf_count": 56,
+      "model_ready_count": 57,
+      "fractional_label_ready_count": 57,
+      "result_pdf_count": 57,
       "issue_pdf_count": 57,
       "incremental": true,
       "force_rebuild": false,
-      "rebuilt_count": 0,
-      "reused_count": 57,
-      "rebuilt_codes": [],
+      "rebuilt_count": 1,
+      "reused_count": 56,
+      "rebuilt_codes": [
+        "920268"
+      ],
       "reused_codes": [
         "920011",
         "920012",
@@ -115,15 +115,16 @@
         "920222",
         "920238",
         "920258",
-        "920268",
         "920269",
         "920288",
         "920289"
       ],
-      "changed_count": 0,
-      "changed_codes": [],
-      "earliest_changed_date": "",
-      "earliest_changed_code": "",
+      "changed_count": 1,
+      "changed_codes": [
+        "920268"
+      ],
+      "earliest_changed_date": "2026-08-31",
+      "earliest_changed_code": "920268",
       "label_only_history_item_count": 0,
       "ladder_label_path": "D:\\BJ_IPO\\data\\offline_tuning\\subscription_ladder_labels.csv",
       "ladder_label_rows": 57,
@@ -1095,25 +1096,25 @@
       },
       "incremental": true,
       "force_rebuild": false,
-      "rebuild_mode": "no_change",
-      "reused_prefix_count": 57,
-      "rebuilt_suffix_count": 0,
-      "rebuild_from_index": null,
-      "rebuild_from_code": "",
-      "rebuild_from_date": ""
+      "rebuild_mode": "suffix",
+      "reused_prefix_count": 56,
+      "rebuilt_suffix_count": 1,
+      "rebuild_from_index": 56,
+      "rebuild_from_code": "920268",
+      "rebuild_from_date": "2026-08-31"
     },
     "prospectus_download": {
-      "enabled": false,
-      "scanned_count": 0,
-      "existing_count": 0,
+      "enabled": true,
+      "scanned_count": 57,
+      "existing_count": 59,
       "downloaded": [],
-      "downloaded_count": 0,
       "failed": [],
-      "failed_count": 0,
       "document_kinds": [
         "intent",
         "prospectus"
-      ]
+      ],
+      "downloaded_count": 0,
+      "failed_count": 0
     },
     "local_pdf_manifest": {
       "initial_action": "cache_hit",
@@ -1122,11 +1123,11 @@
       "source_directory": "D:\\BJ_IPO\\公告文件",
       "action": "cache_hit",
       "reason": "directory_unchanged",
-      "file_count": 218,
-      "complete_count": 218,
+      "file_count": 219,
+      "complete_count": 219,
       "incomplete_count": 0,
       "indexed_code_count": 59,
-      "generated_at": "2026-09-01 19:12:34",
+      "generated_at": "2026-09-02 19:12:01",
       "full_scan_count": 1
     },
     "listing_data_retry": {
@@ -1134,17 +1135,15 @@
       "pending_before": [
         "920268"
       ],
-      "pending_after": [
-        "920268"
-      ],
-      "pending_after_count": 1,
+      "pending_after": [],
+      "pending_after_count": 0,
       "download_missing_announcements": true,
-      "same_day_download_cooldown_codes": [
+      "same_day_download_cooldown_codes": [],
+      "same_day_download_cooldown_count": 0,
+      "download_attempted_codes": [
         "920268"
       ],
-      "same_day_download_cooldown_count": 1,
-      "download_attempted_codes": [],
-      "download_attempted_count": 0,
+      "download_attempted_count": 1,
       "download_retries": 1,
       "download_delay_seconds": 0.0,
       "parse_prospectus": false
@@ -3289,20 +3288,15 @@
       "comparable_code_count": 1,
       "comparable_returned_count": 0,
       "comparable_reason": "上市日期缺失，无法构建方法一历史快照。",
-      "history_quality_score": 20,
-      "model_ready": false,
-      "allocation_fit_ready": false,
-      "allocation_fit_usable_for_tuning": false,
+      "history_quality_score": 225,
+      "model_ready": true,
+      "allocation_fit_ready": true,
+      "allocation_fit_usable_for_tuning": true,
       "manual_ladder_label_ready": false,
       "manual_ladder_item_count": 0,
-      "needs_listing_data_retry": true,
+      "needs_listing_data_retry": false,
       "pending_listing_data_retry_before": true,
-      "listing_data_retry_reasons": [
-        "missing_result_announcement",
-        "download_errors",
-        "needs_result_announcement",
-        "missing_fields:ONLINE_VA_SHARES/FROZEN_FUNDS_YI|ONLINE_VA_NUM|ONLINE_ALLOCATED_ACCOUNTS|SUBSCRIPTION_AMOUNT_DISTRIBUTION/FRACTIONAL_THRESHOLD_SHARES|FRACTIONAL_TIME_PRIORITY_REQUIRED|prediction:历史有效申购样本不足 3 个"
-      ],
+      "listing_data_retry_reasons": [],
       "top_apply_amount_wan": null,
       "online_issue_shares": null,
       "replay_item_generated_at": "2026-09-01 19:01:35",

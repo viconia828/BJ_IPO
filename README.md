@@ -87,7 +87,7 @@
 2. 选择输入方式：`单参数多候选值` / `手动候选组` / `候选文件`
 3. 输入必要参数
 
-每次通过 `调参.bat` 启动调参时，系统会先扫描 `首日分时走势/` 里的 CSV，自动同步估值回放样本集 `data/offline_tuning/replay_dataset.json`，再重建申购资金历史样本集 `data/offline_tuning/subscription_history_sample.csv`、同步手工分档表，并刷新 `account_pool_history_*` 户数分布表。公告 PDF 不再按代码反复枚举整个 `公告文件/`：刷新入口先读取 `data/offline_tuning/local_pdf_manifest.json`，目录未变化时直接按代码查索引；新增、删除或重命名 PDF 时自动重建一次，官网下载的新文件则直接增量登记。估值回放会优先复用旧数据集条目和 `data/offline_tuning/replay_items/代码.json` 单样本缓存，只为新增样本补齐回放资料；申购资金历史表会优先采用本次解析出的 `model_ready` 发行结果行，只有新解析不可用时才用旧高质量行兜底，避免临时解析失败造成样本降级。若外部数据源临时超时或拒绝连接，本次会继续使用旧样本集，不会中断调参；网络恢复后再次运行即可自动重试同步。
+每次通过 `调参.bat` 启动调参时，系统会先扫描 `首日分时走势/` 里的 CSV，自动同步估值回放样本集 `data/offline_tuning/replay_dataset.json`，再重建申购资金历史样本集 `data/offline_tuning/subscription_history_sample.csv`、同步手工分档表，并刷新 `account_pool_history_*` 户数分布表。公告 PDF 不再按代码反复枚举整个 `公告文件/`：刷新入口先读取 `data/offline_tuning/local_pdf_manifest.json`，目录未变化时直接按代码查索引；目录变化时只对账文件名、大小和修改时间，未变化条目直接复用，仅打开新增或被替换的 PDF 做完整性校验，删除文件只移除对应条目。官网下载的新文件会直接增量登记。估值回放会优先复用旧数据集条目和 `data/offline_tuning/replay_items/代码.json` 单样本缓存，只为新增样本补齐回放资料；申购资金历史表会优先采用本次解析出的 `model_ready` 发行结果行，只有新解析不可用时才用旧高质量行兜底，避免临时解析失败造成样本降级。若外部数据源临时超时或拒绝连接，本次会继续使用旧样本集，不会中断调参；网络恢复后再次运行即可自动重试同步。
 
 申购配售模型的历史样本表保存在 `data/offline_tuning/subscription_history_sample.csv`，这是可提交的训练样本产物。它按历史新股逐行记录发行价、网上发行数量、顶格申购金额、有效申购户数、有效申购股数、冻结资金、申购冻结天数、正股门槛、碎股门槛估算和字段来源。申购规模按网上发行口径处理：系统会用网上发行数量和发行价得到网上发行金额，用顶格申购金额判断单户上限，再用有效申购股数或冻结资金反推全市场有效申购资金池。正股/碎股门槛和是否需要抢时间，都是在这个口径上计算出来的。碎股抢时间提示使用金额边界：在碎股门槛上增加 `subscription_prediction_fractional_time_priority_buffer_wan` 保护值；若碎股门槛已达到顶格，则直接提示顶格必须抢时间。
 
@@ -220,7 +220,7 @@
 
 自动下载现在会对 PDF 做完整性校验：下载后会检查文件大小、PDF 文件头和结束标记；如果本地已有 PDF 不完整，主流程会跳过该文件并重新下载，避免半截公告文件被当成可用文件复用。
 
-手工向 `公告文件/` 新增、删除或重命名 PDF 后，无需维护索引；下一次刷新会通过目录状态自动重建 manifest。若只是在原文件名上覆盖 PDF，查到该代码时还会复核该文件的大小和修改时间。仅在排障时才需要运行 `python tools\sync_offline_tuning_dataset.py --force-rebuild-pdf-manifest --no-download-missing-announcements` 强制全量重建。
+手工向 `公告文件/` 新增、删除、重命名或覆盖 PDF 后，无需维护索引；下一次刷新只会增量对账变化文件。只有 manifest 缺失、损坏，或显式传入 `--force-rebuild-pdf-manifest` 时才会全量读取 PDF。排障时可运行 `python tools\sync_offline_tuning_dataset.py --force-rebuild-pdf-manifest --no-download-missing-announcements` 强制全量重建。
 
 ## 输出文件怎么看
 

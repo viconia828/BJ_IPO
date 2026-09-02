@@ -900,10 +900,24 @@ def sync_offline_tuning_dataset(
                 ),
                 flush=True,
             )
-        else:
+        elif initial_pdf_manifest_summary.get("action") == "incremental_update":
+            print(
+                "公告 PDF manifest 已增量对账：新增 {added_count}、替换 {changed_count}、"
+                "删除 {removed_count}、复用 {reused_count}；仅校验 {pdf_opened_count} 份变化 PDF。".format(
+                    **initial_pdf_manifest_summary
+                ),
+                flush=True,
+            )
+        elif initial_pdf_manifest_summary.get("action") == "rebuilt":
             print(
                 "公告 PDF manifest 已重建：{file_count} 份文件、{indexed_code_count} 个代码，"
                 "完整 {complete_count} 份、不完整 {incomplete_count} 份。".format(**initial_pdf_manifest_summary),
+                flush=True,
+            )
+        else:
+            print(
+                "提示：公告 PDF 目录状态暂时无法对账，继续沿用现有 manifest；"
+                f"原因：{initial_pdf_manifest_summary.get('reason') or 'unknown'}。",
                 flush=True,
             )
 

@@ -32,6 +32,14 @@ def _write_pdf(name: str, *, complete: bool = True) -> Path:
     return path
 
 
+def _mark_manifest_directory_stale() -> None:
+    manifest_path = TEMP_DIR / ".local_pdf_manifest.json"
+    payload = json.loads(manifest_path.read_text(encoding="utf-8"))
+    payload["directory_mtime_ns"] = -1
+    manifest_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+    local_pdf_manifest.clear_local_pdf_manifest_cache()
+
+
 def main() -> int:
     failures: list[str] = []
     _reset()
@@ -64,6 +72,44 @@ def main() -> int:
     if bse_ipo_valuation._pick_prospectus_pdf(TEMP_DIR, "920002", "old_shares") is not None:
         failures.append("incomplete PDF should not be returned from manifest")
 
+    unregistered_file = _write_pdf("920005_样本五_发行公告.pdf")
+    _mark_manifest_directory_stale()
+    added_delta = local_pdf_manifest.refresh_local_pdf_manifest(TEMP_DIR)
+    if (
+        added_delta.get("action") != "incremental_update"
+        or added_delta.get("added_count") != 1
+        or added_delta.get("changed_count") != 0
+        or added_delta.get("removed_count") != 0
+        or added_delta.get("reused_count") != 5
+        or added_delta.get("pdf_opened_count") != 1
+        or added_delta.get("full_scan_count") != 1
+    ):
+        failures.append(f"stale manifest should open only one newly added PDF, got {added_delta}")
+
+    listing.write_bytes(b"%PDF-1.7\nchanged listing content\n%%EOF\n")
+    _mark_manifest_directory_stale()
+    changed_delta = local_pdf_manifest.refresh_local_pdf_manifest(TEMP_DIR)
+    if (
+        changed_delta.get("changed_count") != 1
+        or changed_delta.get("added_count") != 0
+        or changed_delta.get("removed_count") != 0
+        or changed_delta.get("pdf_opened_count") != 1
+        or changed_delta.get("full_scan_count") != 1
+    ):
+        failures.append(f"stale manifest should open only the replaced PDF, got {changed_delta}")
+
+    unregistered_file.unlink()
+    _mark_manifest_directory_stale()
+    removed_delta = local_pdf_manifest.refresh_local_pdf_manifest(TEMP_DIR)
+    if (
+        removed_delta.get("removed_count") != 1
+        or removed_delta.get("added_count") != 0
+        or removed_delta.get("changed_count") != 0
+        or removed_delta.get("pdf_opened_count") != 0
+        or removed_delta.get("full_scan_count") != 1
+    ):
+        failures.append(f"stale manifest should remove an entry without opening PDFs, got {removed_delta}")
+
     unchanged_registration = local_pdf_manifest.register_pdf_file(listing)
     if unchanged_registration.get("action") != "cache_hit" or unchanged_registration.get("full_scan_count") != 1:
         failures.append("registering an unchanged local PDF should not rewrite or rescan the manifest")
@@ -88,6 +134,10 @@ def main() -> int:
     full_prospectus.write_bytes(b"%PDF-1.7\ntruncated replacement\n")
     if bse_ipo_valuation._pick_prospectus_pdf(TEMP_DIR, "920001", "old_shares") != summary_prospectus:
         failures.append("changed indexed file should be revalidated and excluded when incomplete")
+
+    forced = local_pdf_manifest.refresh_local_pdf_manifest(TEMP_DIR, force=True)
+    if forced.get("action") != "rebuilt" or forced.get("full_scan_count") != 2:
+        failures.append(f"explicit force should remain the only routine full-rescan path, got {forced}")
 
     if failures:
         for failure in failures:
