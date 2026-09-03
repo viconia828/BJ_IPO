@@ -17,7 +17,7 @@ import subscription_ladder_labels
 import tushare_helper
 import tushare_ipo_helper
 import valuation_engine
-from industry_mapping import IndustryMapper
+from industry_mapping import INDUSTRY_CLASSIFICATION_VERSION, IndustryMapper
 from local_file_db import LocalFileDB
 
 
@@ -34,8 +34,8 @@ INTRADAY_DIR = listing_average_price_helper.DEFAULT_INTRADAY_DIR
 PDF_DIR = REPO_ROOT / "公告文件"
 DATASET_SCHEMA = "offline_tuning_replay_v1"
 REPLAY_ITEM_SCHEMA = "offline_tuning_replay_item_v1"
-REPLAY_ITEM_CACHE_VERSION = 8
-REPLAY_RECORD_SIGNATURE_VERSION = 2
+REPLAY_ITEM_CACHE_VERSION = 9
+REPLAY_RECORD_SIGNATURE_VERSION = 3
 REPLAY_AVERAGE_PRICE_CALC_VERSION = listing_average_price_helper.AVERAGE_PRICE_CALC_VERSION
 METHOD2_ONLY_SCOPE = "method2_only"
 COMPOSITE_EVALUATION_SCOPE = "composite"
@@ -143,6 +143,12 @@ REPLAY_RECORD_SIGNATURE_KEYS = (
     "industry_primary",
     "industry_secondary",
     "industry_source",
+    "statutory_industry",
+    "statutory_industry_code",
+    "valuation_peer_group",
+    "business_tags",
+    "industry_confidence",
+    "industry_evidence",
 )
 REPLAY_DERIVED_POST_LISTING_KEYS = {
     "NEXT_DAY_CLOSE",
@@ -336,6 +342,7 @@ def _build_replay_refresh_contract() -> dict[str, Any]:
     return {
         "record_signature_version": REPLAY_RECORD_SIGNATURE_VERSION,
         "record_signature_keys": list(REPLAY_RECORD_SIGNATURE_KEYS),
+        "industry_classification_version": INDUSTRY_CLASSIFICATION_VERSION,
         "pdf_parser_versions": dict(pdf_parser.PARSE_CACHE_KIND_VERSIONS),
     }
 
@@ -800,6 +807,48 @@ def _merge_announcement_issue_fields(
         sources[field_name] = str(field_sources.get(field_name) or source_label).strip()
 
 
+def _supplement_replay_record_industry(
+    record: dict[str, Any],
+    pdf_paths: dict[str, Path | None],
+) -> dict[str, Any]:
+    """Fill missing legal-industry evidence from the local prospectus.
+
+    This is deliberately done even when the remote IPO row exists.  Previously
+    local parsing only ran for wholly missing remote rows, leaving otherwise good
+    replay records unclassified.
+    """
+    current = dict(record)
+    if not _is_missing_replay_value(current.get("INDUSTRY")) and not _is_missing_replay_value(
+        current.get("INDUSTRY_CODE")
+    ):
+        return current
+
+    prospectus_path = pdf_paths.get("old_shares") or pdf_paths.get("comparables")
+    if prospectus_path is None:
+        return current
+    try:
+        issue_info = pdf_parser.extract_prospectus_issue_info(prospectus_path)
+    except Exception as exc:
+        current["replay_industry_parse_error"] = f"{type(exc).__name__}: {exc}"
+        return current
+
+    fields = dict(issue_info.get("fields") or {}) if isinstance(issue_info, dict) else {}
+    field_sources = issue_info.get("field_sources") if isinstance(issue_info, dict) else {}
+    field_sources = field_sources if isinstance(field_sources, dict) else {}
+    applied_sources = dict(current.get("replay_industry_field_sources") or {})
+    for field_name in ("INDUSTRY", "INDUSTRY_CODE"):
+        if not _is_missing_replay_value(current.get(field_name)):
+            continue
+        value = fields.get(field_name)
+        if _is_missing_replay_value(value):
+            continue
+        current[field_name] = value
+        applied_sources[field_name] = str(field_sources.get(field_name) or f"prospectus:{prospectus_path.name}")
+    if applied_sources:
+        current["replay_industry_field_sources"] = applied_sources
+    return current
+
+
 def _fallback_replay_name_from_sources(code: str, pdfs: dict[str, Path | None]) -> str:
     for row in subscription_ladder_labels.load_label_rows(DEFAULT_LADDER_LABEL_PATH):
         if str(row.get("security_code") or "").strip() != code:
@@ -1037,6 +1086,16 @@ def _build_replay_item(
         "industry_primary": industry.primary,
         "industry_secondary": industry.secondary,
         "industry_source": industry.source,
+        "statutory_industry": getattr(industry, "statutory_industry", str(record.get("INDUSTRY") or "").strip()),
+        "statutory_industry_code": getattr(industry, "statutory_industry_code", str(record.get("INDUSTRY_CODE") or "").strip()),
+        "valuation_peer_group": getattr(
+            industry,
+            "display_name",
+            industry.primary if industry.secondary in {"", "未分类", industry.primary} else f"{industry.primary} / {industry.secondary}",
+        ),
+        "business_tags": list(getattr(industry, "business_tags", ())),
+        "industry_confidence": float(getattr(industry, "confidence", 0.0)),
+        "industry_evidence": list(getattr(industry, "evidence", ())),
         "old_shares": old_shares,
         "old_shares_desc": old_shares_desc,
         "old_shares_meta": old_shares_meta or {},
@@ -1114,12 +1173,11 @@ def build_replay_dataset(
     requested_codes = sample_codes if sample_codes is not None else discover_replay_sample_codes()
     requested_codes = sorted(_normalize_codes(requested_codes))
     raw_records = data_fetcher.fetch_recent_ipos(months=months, page_size=page_size)
-    enriched_records = mapper.enrich_recent_ipos(list(raw_records))
     comparable_snapshot_cache: dict[tuple[str, str], dict[str, Any] | None] = {}
 
     record_by_code = {
         str(item.get("SECURITY_CODE", "")).strip(): item
-        for item in enriched_records
+        for item in raw_records
         if str(item.get("SECURITY_CODE", "")).strip()
     }
 
@@ -1161,16 +1219,16 @@ def build_replay_dataset(
         if record is None:
             record = _build_replay_record_from_announcements(code)
             fallback_record = record is not None
-            if record is not None:
-                record = mapper.enrich_recent_ipos([record])[0]
         if record is None:
             skipped.append({"code": code, "reason": f"最近 {months} 个月历史池中未找到该样本，且无法生成样本种子"})
             if progress_callback:
                 progress_callback(index, total_codes, {"code": code, "status": "skipped"})
             continue
 
-        record_signature = _build_replay_record_signature(record)
         pdf_paths = _resolve_replay_pdf_paths(code)
+        record = _supplement_replay_record_industry(record, pdf_paths)
+        record = mapper.enrich_recent_ipos([record])[0]
+        record_signature = _build_replay_record_signature(record)
         pdf_signature = _build_replay_pdf_signature(pdf_paths)
         existing_item = existing_items_by_code.get(code)
         status = "announcement_fallback" if fallback_record else "built"

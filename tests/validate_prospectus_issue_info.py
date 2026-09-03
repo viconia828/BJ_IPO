@@ -272,7 +272,7 @@ def _run_industry_mapping_case(failures: list[str]) -> None:
     _assert(industry.display_name == "化工新材 / 非金属材料", "industry mapping: substring alias mismatch", failures)
     auto_parts = mapper.resolve_stock_industry("920079", {"INDUSTRY": "汽车制造业", "INDUSTRY_CODE": "C36"})
     _assert(auto_parts.display_name == "高端装备 / 汽车零部件", "industry code mapping: C36 should map to auto parts", failures)
-    _assert(auto_parts.source == "industry_code_mapping", "industry code mapping: source mismatch", failures)
+    _assert(auto_parts.source == "built_in_sample_map", "industry mapping: audited code mapping should take precedence", failures)
     known_auto_parts = mapper.resolve_stock_industry("920086", {"INDUSTRY": "汽车制造业", "INDUSTRY_CODE": "C36"})
     _assert(known_auto_parts.display_name == "高端装备 / 汽车零部件", "industry mapping: known C36 sample should stay auto parts", failures)
     langxin_auto_parts = mapper.resolve_stock_industry("920220", {})
@@ -306,6 +306,23 @@ def _run_industry_mapping_case(failures: list[str]) -> None:
         "920211": "高端装备 / 机械设备",
         "920218": "化工新材 / 橡胶和塑料制品业",
         "920222": "高端装备 / 电气设备",
+        "920038": "化工新材 / 金属新材料",
+        "920059": "高端装备 / 汽车零部件",
+        "920065": "消费服务 / 商贸零售",
+        "920071": "化工新材 / 金属新材料",
+        "920079": "高端装备 / 汽车零部件",
+        "920093": "高端装备 / 机械设备",
+        "920107": "化工新材 / 化学制品",
+        "920117": "高端装备 / 机械设备",
+        "920138": "信息技术 / 半导体制造",
+        "920165": "医药生物 / 生物制品",
+        "920176": "医药生物 / 生物制品",
+        "920201": "医药生物 / 医疗器械",
+        "920238": "高端装备 / 金属制品业",
+        "920258": "化工新材 / 化学制品",
+        "920268": "医药生物 / 医疗器械",
+        "920288": "消费服务 / 轻工制造",
+        "920298": "高端装备 / 机械设备",
     }
     for code, expected in confirmed_industries.items():
         actual = mapper.resolve_stock_industry(code, {}).display_name
@@ -323,6 +340,15 @@ def _run_industry_mapping_case(failures: list[str]) -> None:
         "industry code mapping: built-in verified map should take precedence",
         failures,
     )
+    baizhi = mapper.resolve_stock_industry("920201", {"INDUSTRY": "医药制造业", "INDUSTRY_CODE": "C27"})
+    _assert(baizhi.display_name == "医药生物 / 医疗器械", "industry mapping: 920201 peer group mismatch", failures)
+    _assert(baizhi.statutory_industry == "医药制造业", "industry mapping: legal industry should be retained", failures)
+    _assert("植入耗材" in baizhi.business_tags, "industry mapping: 920201 business tags missing", failures)
+    _assert(baizhi.confidence == 1.0, "industry mapping: audited mapping confidence mismatch", failures)
+    broad_c27 = mapper.resolve_stock_industry("fixture", {"INDUSTRY": "医药制造业", "INDUSTRY_CODE": "C27"})
+    _assert(broad_c27.display_name == "未分类", "industry mapping: broad C27 must not invent a peer group", failures)
+    paper = production_mapper.resolve_stock_industry("fixture", {"INDUSTRY": "造纸和纸制品业", "INDUSTRY_CODE": "C22"})
+    _assert(paper.display_name == "消费服务 / 轻工制造", "industry mapping: two-character 造纸 alias mismatch", failures)
 
 
 def main() -> int:

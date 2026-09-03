@@ -16,6 +16,7 @@ for path in (TOOLS_DIR, CODE_DIR):
         sys.path.insert(0, str(path))
 
 import build_subscription_history
+import local_pdf_manifest
 import sync_offline_tuning_dataset
 import subscription_ladder_labels
 
@@ -42,6 +43,133 @@ def _write_history_csv(path: Path, rows: list[dict[str, object]]) -> None:
 def _read_csv(path: Path) -> list[dict[str, str]]:
     with path.open("r", encoding="utf-8-sig", newline="") as file_obj:
         return list(csv.DictReader(file_obj))
+
+
+def _write_complete_pdf(path: Path) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_bytes(b"%PDF-1.4\n1 0 obj\n<<>>\nendobj\n%%EOF\n")
+
+
+def prospectus_sync_only_queries_incomplete_local_codes_case(failures: list[str]) -> None:
+    temp_dir = _reset_temp_dir()
+    pdf_dir = temp_dir / "pdfs"
+    _write_complete_pdf(pdf_dir / "920001_样本一_招股说明书.pdf")
+    _write_complete_pdf(pdf_dir / "920002_样本二_招股意向书.pdf")
+    local_pdf_manifest.clear_local_pdf_manifest_cache()
+
+    resolve_calls: list[str] = []
+    download_calls: list[tuple[str, str]] = []
+
+    class FakeClient:
+        def __init__(self, status_callback: object = None) -> None:
+            self.status_callback = status_callback
+
+        def resolve_prospectus_documents_by_post_listing_code(self, code: str) -> list[SimpleNamespace]:
+            resolve_calls.append(code)
+            return [
+                SimpleNamespace(disclosure=SimpleNamespace(title=f"{code} 招股意向书")),
+                SimpleNamespace(disclosure=SimpleNamespace(title=f"{code} 招股说明书")),
+            ]
+
+        def build_prospectus_filename(self, resolution: SimpleNamespace) -> str:
+            kind = sync_offline_tuning_dataset._prospectus_document_kind(resolution.disclosure.title)
+            label = "招股意向书" if kind == "intent" else "招股说明书"
+            return f"{resolution.disclosure.title[:6]}_样本_{label}.pdf"
+
+        def download_disclosure_file(
+            self,
+            disclosure: SimpleNamespace,
+            output_path: Path,
+            overwrite: bool = False,
+        ) -> Path:
+            download_calls.append(
+                (
+                    disclosure.title[:6],
+                    sync_offline_tuning_dataset._prospectus_document_kind(disclosure.title),
+                )
+            )
+            _write_complete_pdf(output_path)
+            local_pdf_manifest.register_pdf_file(output_path)
+            return output_path.resolve()
+
+    original_client = sync_offline_tuning_dataset.BSEOfficialClient
+    try:
+        sync_offline_tuning_dataset.BSEOfficialClient = FakeClient
+        summary = sync_offline_tuning_dataset._sync_prospectus_documents(
+            ["920000", "920001", "920002", "920003"],
+            output_dir=pdf_dir,
+            verbose=False,
+            listed_codes={"920000"},
+        )
+    finally:
+        sync_offline_tuning_dataset.BSEOfficialClient = original_client
+
+    if resolve_calls != ["920002", "920003"]:
+        failures.append(f"prospectus sync should query only locally incomplete codes, got {resolve_calls}")
+    if ("920002", "intent") in download_calls:
+        failures.append("prospectus sync should not redownload an existing complete intent document")
+    expected_downloads = {("920002", "prospectus"), ("920003", "intent"), ("920003", "prospectus")}
+    if set(download_calls) != expected_downloads:
+        failures.append(f"prospectus sync downloaded unexpected documents: {download_calls}")
+    if (
+        summary.get("network_checked_count") != 2
+        or summary.get("skipped_listed_count") != 1
+        or summary.get("skipped_complete_count") != 1
+    ):
+        failures.append(f"prospectus incremental summary is incorrect: {summary}")
+    if summary.get("still_incomplete_codes"):
+        failures.append(f"prospectus sync should leave no incomplete codes, got {summary.get('still_incomplete_codes')}")
+
+    resolve_calls.clear()
+    download_calls.clear()
+    try:
+        sync_offline_tuning_dataset.BSEOfficialClient = FakeClient
+        forced_summary = sync_offline_tuning_dataset._sync_prospectus_documents(
+            ["920001"],
+            output_dir=pdf_dir,
+            verbose=False,
+            force=True,
+        )
+    finally:
+        sync_offline_tuning_dataset.BSEOfficialClient = original_client
+
+    if resolve_calls != ["920001"] or forced_summary.get("network_checked_count") != 1:
+        failures.append("forced prospectus sync should explicitly recheck locally complete codes")
+    if download_calls != [("920001", "intent")]:
+        failures.append(f"forced prospectus sync should only download the missing kind, got {download_calls}")
+
+
+def known_listed_codes_ignores_apply_date_fallback_case(failures: list[str]) -> None:
+    temp_dir = _reset_temp_dir()
+    dataset_path = temp_dir / "replay_dataset.json"
+    intraday_dir = temp_dir / "intraday"
+    intraday_dir.mkdir()
+    (intraday_dir / "920003.csv").write_text("time,price\n", encoding="utf-8")
+    dataset_path.write_text(
+        json.dumps(
+            {
+                "items": [
+                    {"SECURITY_CODE": "920001", "LISTING_DATE": "2026-09-02"},
+                    {
+                        "SECURITY_CODE": "920002",
+                        "LISTING_DATE": "2026-09-02",
+                        "listing_date_source": "apply_date_fallback",
+                    },
+                    {"SECURITY_CODE": "920004", "LISTING_DATE": "2026-09-04"},
+                ]
+            },
+            ensure_ascii=False,
+        ),
+        encoding="utf-8",
+    )
+    listed_codes = sync_offline_tuning_dataset._known_listed_codes(
+        ["920001", "920002", "920003", "920004"],
+        dataset_path=dataset_path,
+        intraday_dir=intraday_dir,
+        current_date="2026-09-03",
+    )
+    if listed_codes != {"920001", "920003"}:
+        failures.append(f"listed-code detection should ignore apply-date fallback and future dates, got {listed_codes}")
 
 
 def retry_marker_same_day_download_cooldown_case(failures: list[str]) -> None:
@@ -444,6 +572,8 @@ def sync_rebuilds_account_pool_history_case(failures: list[str]) -> None:
 
 def main() -> int:
     failures: list[str] = []
+    prospectus_sync_only_queries_incomplete_local_codes_case(failures)
+    known_listed_codes_ignores_apply_date_fallback_case(failures)
     retry_marker_same_day_download_cooldown_case(failures)
     manifest_includes_label_only_samples_case(failures)
     replay_refresh_uses_unified_sample_source_case(failures)

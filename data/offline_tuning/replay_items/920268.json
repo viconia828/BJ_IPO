@@ -1,7 +1,7 @@
 {
   "schema": "offline_tuning_replay_item_v1",
-  "cache_version": 8,
-  "generated_at": "2026-09-01 19:01:35",
+  "cache_version": 9,
+  "generated_at": "2026-09-03 19:32:09",
   "code": "920268",
   "listing_date": "2026-08-31",
   "record_signature": {
@@ -31,8 +31,14 @@
     "INDUSTRY": "医药制造业",
     "INDUSTRY_CODE": "C27",
     "industry_primary": "医药生物",
-    "industry_secondary": "医药制造",
-    "industry_source": "industry_code_mapping"
+    "industry_secondary": "医疗器械",
+    "industry_source": "built_in_sample_map",
+    "statutory_industry": "医药制造业",
+    "statutory_industry_code": "C27",
+    "valuation_peer_group": "医药生物 / 医疗器械",
+    "business_tags": "['手术缝线', '介入耗材', '制药设备']",
+    "industry_confidence": 1.0,
+    "industry_evidence": "['manual_review_2026-09-03']"
   },
   "pdf_signature": {
     "files": {
@@ -53,7 +59,7 @@
       "issue_announcement_info": 6,
       "issue_result_info": 5,
       "comparable_companies": 22,
-      "business_desc": 3
+      "business_desc": 4
     }
   },
   "item": {
@@ -86,8 +92,20 @@
     "INDUSTRY": "医药制造业",
     "INDUSTRY_CODE": "C27",
     "industry_primary": "医药生物",
-    "industry_secondary": "医药制造",
-    "industry_source": "industry_code_mapping",
+    "industry_secondary": "医疗器械",
+    "industry_source": "built_in_sample_map",
+    "statutory_industry": "医药制造业",
+    "statutory_industry_code": "C27",
+    "valuation_peer_group": "医药生物 / 医疗器械",
+    "business_tags": [
+      "手术缝线",
+      "介入耗材",
+      "制药设备"
+    ],
+    "industry_confidence": 1.0,
+    "industry_evidence": [
+      "manual_review_2026-09-03"
+    ],
     "old_shares": 0.0,
     "old_shares_desc": "待确认（当前按 0 万股计）",
     "old_shares_meta": {
@@ -143,13 +161,17 @@
       "INDUSTRY_PE_NEW": "issue_announcement:全文",
       "TOP_APPLY_MARKETCAP": "issue_announcement:全文",
       "SUBSCRIPTION_LIMIT_WAN_SHARES": "issue_announcement:全文",
-      "ONLINE_ISSUE_NUM": "issue_announcement:全文"
+      "ONLINE_ISSUE_NUM": "issue_announcement:全文",
+      "ONLINE_VA_NUM": "issue_result:result",
+      "ONLINE_ALLOCATED_ACCOUNTS": "issue_result:result",
+      "ONLINE_VA_SHARES": "issue_result:result",
+      "ONLINE_ES_MULTIPLE": "issue_result:result"
     },
     "announcement_fallback_parse_errors": [],
     "announcement_fallback_pdf_files": {
       "prospectus": "920268_百迈科_招股说明书.pdf",
       "issue": "920268_百迈科_发行公告.pdf",
-      "result": "",
+      "result": "920268_百迈科_发行结果公告.pdf",
       "listing": ""
     }
   }

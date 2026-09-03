@@ -1,7 +1,7 @@
 {
   "schema": "offline_tuning_replay_item_v1",
-  "cache_version": 8,
-  "generated_at": "2026-08-25 20:19:31",
+  "cache_version": 9,
+  "generated_at": "2026-09-03 19:20:12",
   "code": "920138",
   "listing_date": "2026-08-12 00:00:00",
   "record_signature": {
@@ -30,9 +30,15 @@
     "SW_INDUSTRY": null,
     "INDUSTRY": null,
     "INDUSTRY_CODE": null,
-    "industry_primary": "未分类",
-    "industry_secondary": "未分类",
-    "industry_source": "unclassified"
+    "industry_primary": "信息技术",
+    "industry_secondary": "半导体制造",
+    "industry_source": "built_in_sample_map",
+    "statutory_industry": null,
+    "statutory_industry_code": null,
+    "valuation_peer_group": "信息技术 / 半导体制造",
+    "business_tags": "[]",
+    "industry_confidence": 1.0,
+    "industry_evidence": "['manual_review_2026-09-03']"
   },
   "pdf_signature": {
     "files": {
@@ -53,7 +59,7 @@
       "issue_announcement_info": 6,
       "issue_result_info": 5,
       "comparable_companies": 22,
-      "business_desc": 3
+      "business_desc": 4
     }
   },
   "item": {
@@ -85,9 +91,17 @@
     "SW_INDUSTRY": "",
     "INDUSTRY": "",
     "INDUSTRY_CODE": "",
-    "industry_primary": "未分类",
-    "industry_secondary": "未分类",
-    "industry_source": "unclassified",
+    "industry_primary": "信息技术",
+    "industry_secondary": "半导体制造",
+    "industry_source": "built_in_sample_map",
+    "statutory_industry": "",
+    "statutory_industry_code": "",
+    "valuation_peer_group": "信息技术 / 半导体制造",
+    "business_tags": [],
+    "industry_confidence": 1.0,
+    "industry_evidence": [
+      "manual_review_2026-09-03"
+    ],
     "old_shares": 0.0,
     "old_shares_desc": "待确认（当前按 0 万股计）",
     "old_shares_meta": {

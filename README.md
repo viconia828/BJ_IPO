@@ -172,7 +172,7 @@
 启动后可以选择：
 
 - `1. 刷新新股首日走势`：只补首日分时 CSV。
-- `2. 刷新新上市新股数据（估值 replay / 申购 history / 缺公告重试）`：补估值回放样本、申购资金历史样本、手工阶梯标签上下文和样本 manifest；缺失的发行公告/发行结果公告也会自动重试下载。公告 PDF 通过 `local_pdf_manifest.json` 按代码增量定位，申购 history 按 replay、PDF 和解析器版本签名逐代码增量刷新；account-pool 只从最早变化样本日期向后续算。排障时可分别使用 `--force-rebuild-pdf-manifest`、`--force-rebuild-subscription-history` 和 `--force-rebuild-account-pool` 强制重建对应层。
+- `2. 刷新新上市新股数据（估值 replay / 申购 history / 缺公告重试）`：补估值回放样本、申购资金历史样本、手工阶梯标签上下文和样本 manifest；缺失的发行公告/发行结果公告也会自动重试下载。招股意向书/招股说明书属于上市前文件：上市日期不晚于今天的代码直接冻结，不再访问官网更新；只有尚未上市且本地缺完整正式招股说明书的代码才查询官网，并把当次返回的招股文件缺件一并补齐。申购 history 按 replay、PDF 和解析器版本签名逐代码增量刷新；account-pool 只从最早变化样本日期向后续算。排障时可分别使用 `--force-sync-prospectus-documents`、`--force-rebuild-pdf-manifest`、`--force-rebuild-subscription-history` 和 `--force-rebuild-account-pool` 强制复查或重建对应层。
 - `3. Refresh Xueqiu reference from manual files in xueqiu folder`：读取根目录 `xueqiu/` 中手工保存的 `.mhtml` 和 `.txt`，自动完成语料导入、区间抽取、覆盖审计、author-rule score、作者/模型融合、本地规则蒸馏和影子报告刷新。该功能不访问雪球，也不自动下载文章。
 
 雪球参考的日常用法：
@@ -221,6 +221,8 @@
 自动下载现在会对 PDF 做完整性校验：下载后会检查文件大小、PDF 文件头和结束标记；如果本地已有 PDF 不完整，主流程会跳过该文件并重新下载，避免半截公告文件被当成可用文件复用。
 
 手工向 `公告文件/` 新增、删除、重命名或覆盖 PDF 后，无需维护索引；下一次刷新只会增量对账变化文件。只有 manifest 缺失、损坏，或显式传入 `--force-rebuild-pdf-manifest` 时才会全量读取 PDF。排障时可运行 `python tools\sync_offline_tuning_dataset.py --force-rebuild-pdf-manifest --no-download-missing-announcements` 强制全量重建。
+
+`--sync-prospectus-documents` 默认也是增量的：先跳过所有已上市代码，再对尚未上市的代码检查本地完整正式招股说明书；只有缺正式稿时才会查询并下载缺件。临时由申购日期回填的 `LISTING_DATE` 不会被误当成已经上市。如需排障复查所有样本，可同时传入 `--force-sync-prospectus-documents`。
 
 ## 输出文件怎么看
 

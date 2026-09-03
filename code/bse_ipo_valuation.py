@@ -3,6 +3,7 @@ from __future__ import annotations
 import csv
 from contextlib import contextmanager
 from dataclasses import asdict
+import json
 import re
 import sys
 import threading
@@ -30,6 +31,7 @@ CODE_PATTERN = re.compile(r"^\d{6}$")
 ROOT_DIR = Path(__file__).resolve().parents[1]
 SUBSCRIPTION_HISTORY_SAMPLE_PATH = ROOT_DIR / "data" / "offline_tuning" / "subscription_history_sample.csv"
 SUBSCRIPTION_LADDER_LABEL_PATH = ROOT_DIR / "data" / "offline_tuning" / "subscription_ladder_labels.csv"
+REPLAY_DATASET_PATH = ROOT_DIR / "data" / "offline_tuning" / "replay_dataset.json"
 
 
 class RequiredProspectusNotFoundError(RuntimeError):
@@ -457,6 +459,100 @@ def _overlay_subscription_history_recent_ipos(
         "appended_count": len(appended_codes),
         "appended_codes": appended_codes,
         "applied_fields_by_code": applied_fields_by_code,
+    }
+
+
+def _overlay_replay_history_recent_ipos(
+    recent_ipos: list[dict[str, Any]],
+    dataset_path: Path = REPLAY_DATASET_PATH,
+    *,
+    target_code: str = "",
+    target_date: Any = None,
+) -> tuple[list[dict[str, Any]], dict[str, Any]]:
+    """Merge the local replay pool so method 2 can use year-to-date samples.
+
+    The remote recent-IPO request is intentionally short for sentiment and
+    subscription work, while method 2 requires all earlier samples in the
+    target year.  Local replay is the already point-in-time-safe bridge between
+    those two windows.
+    """
+    if not dataset_path.exists():
+        return list(recent_ipos), {
+            "dataset_path": str(dataset_path),
+            "dataset_found": False,
+            "history_row_count": 0,
+            "matched_count": 0,
+            "appended_count": 0,
+            "appended_codes": [],
+        }
+    try:
+        payload = json.loads(dataset_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        return list(recent_ipos), {
+            "dataset_path": str(dataset_path),
+            "dataset_found": True,
+            "error": f"{type(exc).__name__}: {exc}",
+            "history_row_count": 0,
+            "matched_count": 0,
+            "appended_count": 0,
+            "appended_codes": [],
+        }
+
+    history_items = [dict(item) for item in payload.get("items") or [] if isinstance(item, dict)]
+    reference_date = subscription_predictor._parse_date(target_date)
+
+    def was_visible(record: dict[str, Any]) -> bool:
+        if reference_date is None:
+            return True
+        sample_date = subscription_predictor._parse_date(
+            record.get("ISSUE_RESULT_DATE")
+            or record.get("BALLOT_NUM_DATE")
+            or record.get("LISTING_DATE")
+            or record.get("APPLY_DATE")
+        )
+        return sample_date is None or sample_date < reference_date
+
+    merged_items = [dict(item) for item in recent_ipos if was_visible(item)]
+    positions = {
+        str(item.get("SECURITY_CODE") or "").strip(): index
+        for index, item in enumerate(merged_items)
+        if str(item.get("SECURITY_CODE") or "").strip()
+    }
+    normalized_target = str(target_code or "").strip()
+    matched_codes: list[str] = []
+    appended_codes: list[str] = []
+    filled_fields_by_code: dict[str, list[str]] = {}
+    for history_item in history_items:
+        code = str(history_item.get("SECURITY_CODE") or "").strip()
+        if not code or code == normalized_target or not was_visible(history_item):
+            continue
+        if code not in positions:
+            positions[code] = len(merged_items)
+            merged_items.append(history_item)
+            appended_codes.append(code)
+            continue
+        position = positions[code]
+        current = merged_items[position]
+        filled_fields: list[str] = []
+        for field_name, value in history_item.items():
+            if _value_is_missing(value) or not _value_is_missing(current.get(field_name)):
+                continue
+            current[field_name] = value
+            filled_fields.append(field_name)
+        if filled_fields:
+            filled_fields_by_code[code] = filled_fields
+        matched_codes.append(code)
+
+    return merged_items, {
+        "dataset_path": str(dataset_path),
+        "dataset_found": True,
+        "history_row_count": len(history_items),
+        "target_date": reference_date.isoformat() if reference_date is not None else "",
+        "matched_count": len(matched_codes),
+        "matched_codes": matched_codes,
+        "appended_count": len(appended_codes),
+        "appended_codes": appended_codes,
+        "filled_fields_by_code": filled_fields_by_code,
     }
 
 
@@ -1053,7 +1149,7 @@ def build_analysis_data(
     if not company_description:
         company_description = str(ipo_info.get("MAIN_BUSINESS", "") or "")
 
-    recent_ipos = mapper.enrich_recent_ipos(ipo_data_bundle.get("recent_ipos") or [])
+    recent_ipos = list(ipo_data_bundle.get("recent_ipos") or [])
     recent_ipos = [item for item in recent_ipos if item.get("SECURITY_CODE") != code]
     recent_ipos, subscription_history_overlay_summary = _overlay_subscription_history_recent_ipos(
         recent_ipos,
@@ -1062,7 +1158,17 @@ def build_analysis_data(
         target_apply_date=ipo_info.get("APPLY_DATE"),
         recent_days=int(ipo_data_summary.get("recent_days") or params.get("recent_days") or 90),
     )
+    # Keep the short recent window for subscription prediction and method 3.
+    # Method 2 alone receives the longer local year-to-date replay pool.
+    recent_ipos = mapper.enrich_recent_ipos(recent_ipos)
+    method2_ipos, replay_history_overlay_summary = _overlay_replay_history_recent_ipos(
+        recent_ipos,
+        target_code=code,
+        target_date=ipo_info.get("APPLY_DATE") or ipo_info.get("LISTING_DATE"),
+    )
+    method2_ipos = mapper.enrich_recent_ipos(method2_ipos)
     ipo_data_summary["subscription_history_overlay"] = subscription_history_overlay_summary
+    ipo_data_summary["replay_history_overlay"] = replay_history_overlay_summary
     ipo_info, target_subscription_history_overlay_summary = _overlay_subscription_history_target_ipo(ipo_info)
     ipo_data_summary["subscription_history_target_overlay"] = target_subscription_history_overlay_summary
     ipo_info, subscription_ladder_label_overlay_summary = _overlay_subscription_ladder_label_ipo_info(ipo_info)
@@ -1087,7 +1193,7 @@ def build_analysis_data(
         industry_pe=industry_pe,
         float_shares=float_shares,
         industry={"primary": industry.primary, "secondary": industry.secondary, "display_name": industry.display_name},
-        recent_ipos=recent_ipos,
+        recent_ipos=method2_ipos,
         params=params,
         target_code=code,
         target_listing_date=ipo_info.get("LISTING_DATE"),
@@ -1148,6 +1254,12 @@ def build_analysis_data(
             "secondary": industry.secondary,
             "source": industry.source,
             "display_name": industry.display_name,
+            "statutory_industry": getattr(industry, "statutory_industry", str(ipo_info.get("INDUSTRY") or "").strip()),
+            "statutory_industry_code": getattr(industry, "statutory_industry_code", str(ipo_info.get("INDUSTRY_CODE") or "").strip()),
+            "valuation_peer_group": industry.display_name,
+            "business_tags": list(getattr(industry, "business_tags", ())),
+            "confidence": float(getattr(industry, "confidence", 0.0)),
+            "evidence": list(getattr(industry, "evidence", ())),
         },
         "float_shares": float_shares,
         "old_shares_desc": old_shares_desc,

@@ -55,6 +55,15 @@ BUSINESS_TEXT = """
 报告期内，公司始终专注于功能性粉体的研发、生产和销售，导热粉体材料和阻燃粉体材料是收入的主要来源。
 """
 
+COMPARABLE_BUSINESS_TEXT = """
+第五节业务和技术
+5、同行业可比公司情况
+汉邦科技（688755.SH）是一家以色谱技术为核心，主要为制药领域提供分离纯化装备、耗材及技术解决方案。
+三、发行人主营业务情况
+公司主要从事手术缝线、介入耗材等医疗器械产品的研发、生产和销售。
+四、主要产品情况
+"""
+
 
 def main() -> int:
     failures: list[str] = []
@@ -80,6 +89,17 @@ def main() -> int:
         failures.append(f"920083 business text: missing issuer profile, got {description}")
     if "天马新材" in description:
         failures.append(f"920083 business text: selected comparable-company sentence, got {description}")
+
+    comparable_description = pdf_parser._extract_business_desc_from_text(COMPARABLE_BUSINESS_TEXT)
+    if "手术缝线" not in comparable_description:
+        failures.append(f"business subject guard: missing issuer description, got {comparable_description}")
+    if "汉邦科技" in comparable_description:
+        failures.append(f"business subject guard: selected comparable-company sentence, got {comparable_description}")
+    if not pdf_parser.business_desc_has_subject_conflict(
+        "公司是一家色谱设备供应商汉邦科技（688755.SH），主要从事设备研发和生产。",
+        "920268",
+    ):
+        failures.append("business subject guard: failed to detect another listed-company code")
 
     if failures:
         for failure in failures:

@@ -1,7 +1,7 @@
 {
   "schema": "offline_tuning_replay_item_v1",
-  "cache_version": 8,
-  "generated_at": "2026-08-25 20:19:09",
+  "cache_version": 9,
+  "generated_at": "2026-09-03 19:16:47",
   "code": "920069",
   "listing_date": "2026-03-27 00:00:00",
   "record_signature": {
@@ -28,11 +28,17 @@
     "POST_LISTING_PROFIT_EFFECT_PCT": null,
     "TURNOVERRATE": 65.5272,
     "SW_INDUSTRY": null,
-    "INDUSTRY": null,
-    "INDUSTRY_CODE": null,
+    "INDUSTRY": "专用设备制造业",
+    "INDUSTRY_CODE": "C35",
     "industry_primary": "医药生物",
     "industry_secondary": "医疗器械",
-    "industry_source": "built_in_sample_map"
+    "industry_source": "built_in_sample_map",
+    "statutory_industry": "专用设备制造业",
+    "statutory_industry_code": "C35",
+    "valuation_peer_group": "医药生物 / 医疗器械",
+    "business_tags": "[]",
+    "industry_confidence": 0.98,
+    "industry_evidence": "['curated_code_mapping']"
   },
   "pdf_signature": {
     "files": {
@@ -57,7 +63,7 @@
       "issue_announcement_info": 6,
       "issue_result_info": 5,
       "comparable_companies": 22,
-      "business_desc": 3
+      "business_desc": 4
     }
   },
   "item": {
@@ -87,11 +93,19 @@
     "post_listing_performance_reason": "",
     "TURNOVERRATE": 65.5272,
     "SW_INDUSTRY": "",
-    "INDUSTRY": "",
-    "INDUSTRY_CODE": "",
+    "INDUSTRY": "专用设备制造业",
+    "INDUSTRY_CODE": "C35",
     "industry_primary": "医药生物",
     "industry_secondary": "医疗器械",
     "industry_source": "built_in_sample_map",
+    "statutory_industry": "专用设备制造业",
+    "statutory_industry_code": "C35",
+    "valuation_peer_group": "医药生物 / 医疗器械",
+    "business_tags": [],
+    "industry_confidence": 0.98,
+    "industry_evidence": [
+      "curated_code_mapping"
+    ],
     "old_shares": 525.3215,
     "old_shares_desc": "525.32 万股（PDF 提取：上市公告书）",
     "old_shares_meta": {

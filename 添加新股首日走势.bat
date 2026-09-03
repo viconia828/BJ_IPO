@@ -26,7 +26,8 @@ if errorlevel 1 goto run_intraday
 :run_dataset
 echo.
 echo 正在刷新新上市新股数据：估值 replay、申购 history、手工阶梯标签上下文、样本 manifest...
-echo 缺失的招股意向书/招股说明书、发行公告、发行结果公告会自动尝试下载；未取到或字段未齐的代码会保留待重试标记。
+echo 上市前招股文件按增量规则补齐：已上市代码不再更新；未上市且本地缺正式招股说明书的代码才查询官网。
+echo 缺失的发行公告、发行结果公告会自动尝试下载；未取到或字段未齐的代码会保留待重试标记。
 python -u "tools\sync_offline_tuning_dataset.py" --sync-prospectus-documents
 set "EXIT_CODE=%ERRORLEVEL%"
 goto done

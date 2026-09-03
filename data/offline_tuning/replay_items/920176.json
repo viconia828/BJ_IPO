@@ -1,7 +1,7 @@
 {
   "schema": "offline_tuning_replay_item_v1",
-  "cache_version": 8,
-  "generated_at": "2026-08-25 20:19:37",
+  "cache_version": 9,
+  "generated_at": "2026-09-03 19:21:27",
   "code": "920176",
   "listing_date": "2026-07-27 00:00:00",
   "record_signature": {
@@ -28,11 +28,17 @@
     "POST_LISTING_PROFIT_EFFECT_PCT": null,
     "TURNOVERRATE": 98.7793,
     "SW_INDUSTRY": null,
-    "INDUSTRY": null,
-    "INDUSTRY_CODE": null,
-    "industry_primary": "未分类",
-    "industry_secondary": "未分类",
-    "industry_source": "unclassified"
+    "INDUSTRY": "化学原料和化学制品制造业",
+    "INDUSTRY_CODE": "C26",
+    "industry_primary": "医药生物",
+    "industry_secondary": "生物制品",
+    "industry_source": "built_in_sample_map",
+    "statutory_industry": "化学原料和化学制品制造业",
+    "statutory_industry_code": "C26",
+    "valuation_peer_group": "医药生物 / 生物制品",
+    "business_tags": "['活性多肽', '化妆品功效原料']",
+    "industry_confidence": 1.0,
+    "industry_evidence": "['manual_review_2026-09-03']"
   },
   "pdf_signature": {
     "files": {
@@ -53,7 +59,7 @@
       "issue_announcement_info": 6,
       "issue_result_info": 5,
       "comparable_companies": 22,
-      "business_desc": 3
+      "business_desc": 4
     }
   },
   "item": {
@@ -83,11 +89,22 @@
     "post_listing_performance_reason": "",
     "TURNOVERRATE": 98.7793,
     "SW_INDUSTRY": "",
-    "INDUSTRY": "",
-    "INDUSTRY_CODE": "",
-    "industry_primary": "未分类",
-    "industry_secondary": "未分类",
-    "industry_source": "unclassified",
+    "INDUSTRY": "化学原料和化学制品制造业",
+    "INDUSTRY_CODE": "C26",
+    "industry_primary": "医药生物",
+    "industry_secondary": "生物制品",
+    "industry_source": "built_in_sample_map",
+    "statutory_industry": "化学原料和化学制品制造业",
+    "statutory_industry_code": "C26",
+    "valuation_peer_group": "医药生物 / 生物制品",
+    "business_tags": [
+      "活性多肽",
+      "化妆品功效原料"
+    ],
+    "industry_confidence": 1.0,
+    "industry_evidence": [
+      "manual_review_2026-09-03"
+    ],
     "old_shares": 0.0,
     "old_shares_desc": "待确认（当前按 0 万股计）",
     "old_shares_meta": {

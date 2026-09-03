@@ -80,6 +80,28 @@ def _truthy(value: Any) -> bool:
 def _safe_float(value: Any) -> float | None:
     if value in (None, "", "--"):
         return None
+    try:
+        return float(str(value).replace(",", ""))
+    except (TypeError, ValueError):
+        return None
+
+
+def _prospectus_document_kind(path_or_title: str | Path) -> str:
+    text = str(path_or_title or "")
+    if "招股意向书" in text:
+        return "intent"
+    if "招股说明书" in text or "招股书" in text:
+        return "prospectus"
+    return ""
+
+
+def _local_prospectus_documents(output_dir: Path, code: str) -> dict[str, list[Path]]:
+    documents: dict[str, list[Path]] = {"intent": [], "prospectus": []}
+    for path in local_pdf_manifest.complete_pdf_files_for_code(output_dir, code):
+        kind = _prospectus_document_kind(path.name)
+        if kind:
+            documents[kind].append(path)
+    return documents
 
 
 def _sync_prospectus_documents(
@@ -87,29 +109,105 @@ def _sync_prospectus_documents(
     *,
     output_dir: Path,
     verbose: bool,
+    force: bool = False,
+    listed_codes: set[str] | None = None,
 ) -> dict[str, Any]:
+    normalized_codes = list(
+        dict.fromkeys(
+            str(code or "").strip()
+            for code in codes
+            if str(code or "").strip()
+        )
+    )
+    known_listed_codes = {str(code or "").strip() for code in (listed_codes or set())}
+    local_documents_by_code = {
+        code: _local_prospectus_documents(output_dir, code)
+        for code in normalized_codes
+    }
+    query_codes = [
+        code
+        for code in normalized_codes
+        if force
+        or (
+            code not in known_listed_codes
+            and not local_documents_by_code[code]["prospectus"]
+        )
+    ]
+    skipped_listed_codes = [
+        code
+        for code in normalized_codes
+        if not force and code in known_listed_codes
+    ]
+    skipped_complete_codes = [
+        code
+        for code in normalized_codes
+        if not force
+        and code not in known_listed_codes
+        and bool(local_documents_by_code[code]["prospectus"])
+    ]
     summary: dict[str, Any] = {
         "enabled": True,
-        "scanned_count": len(codes),
-        "existing_count": 0,
+        "force": force,
+        "requested_count": len(normalized_codes),
+        # Keep scanned_count for compatibility, but make it report actual
+        # remote lookups instead of the number of local sample codes.
+        "scanned_count": len(query_codes),
+        "network_checked_count": len(query_codes),
+        "network_checked_codes": list(query_codes),
+        "skipped_listed_count": len(skipped_listed_codes),
+        "skipped_listed_codes": skipped_listed_codes,
+        "skipped_complete_count": len(skipped_complete_codes),
+        "skipped_complete_codes": skipped_complete_codes,
+        "existing_count": sum(
+            len(paths)
+            for documents in local_documents_by_code.values()
+            for paths in documents.values()
+        ),
         "downloaded": [],
         "failed": [],
+        "still_incomplete_codes": [],
         "document_kinds": ["intent", "prospectus"],
+        "incremental_rule": "skip_listed_then_skip_complete_formal_prospectus",
     }
+    if verbose:
+        mode_label = "强制官网复查" if force else "增量检查"
+        print(
+            f"招股文件{mode_label}：样本 {len(normalized_codes)} 只，"
+            f"已上市冻结 {len(skipped_listed_codes)} 只，本地已齐跳过 {len(skipped_complete_codes)} 只，"
+            f"官网查询 {len(query_codes)} 只。",
+            flush=True,
+        )
+    if not query_codes:
+        summary["downloaded_count"] = 0
+        summary["failed_count"] = 0
+        summary["still_incomplete_count"] = 0
+        return summary
+
     client = BSEOfficialClient(status_callback=print if verbose else None)
-    for code in codes:
+    for code in query_codes:
+        local_documents = local_documents_by_code[code]
+        missing_labels = []
+        if not local_documents["intent"]:
+            missing_labels.append("招股意向书")
+        if not local_documents["prospectus"]:
+            missing_labels.append("招股说明书")
         if verbose:
-            print(f"同步扫描 {code} 的招股意向书与招股说明书。", flush=True)
+            print(f"本地缺{'、'.join(missing_labels)}，官网查询 {code}。", flush=True)
         try:
             resolutions = client.resolve_prospectus_documents_by_post_listing_code(code)
         except BSEOfficialError as exc:
             summary["failed"].append({"code": code, "reason": str(exc)})
+            summary["still_incomplete_codes"].append(code)
             if verbose:
                 print(f"{code} 招股文件下载失败：{exc}", flush=True)
             continue
         for resolution in resolutions:
             target_path = output_dir / client.build_prospectus_filename(resolution)
-            target_existed = target_path.exists()
+            document_kind = _prospectus_document_kind(resolution.disclosure.title) or _prospectus_document_kind(
+                target_path.name
+            )
+            if document_kind and local_documents.get(document_kind):
+                continue
             try:
                 downloaded_path = client.download_disclosure_file(
                     resolution.disclosure,
@@ -128,17 +226,16 @@ def _sync_prospectus_documents(
                 "path": str(downloaded_path),
                 "title": resolution.disclosure.title,
             }
-            if target_existed:
-                summary["existing_count"] += 1
-            else:
-                summary["downloaded"].append(entry)
+            summary["downloaded"].append(entry)
+            if document_kind:
+                local_documents.setdefault(document_kind, []).append(Path(downloaded_path))
+        refreshed_documents = _local_prospectus_documents(output_dir, code)
+        if not refreshed_documents["prospectus"]:
+            summary["still_incomplete_codes"].append(code)
     summary["downloaded_count"] = len(summary["downloaded"])
     summary["failed_count"] = len(summary["failed"])
+    summary["still_incomplete_count"] = len(summary["still_incomplete_codes"])
     return summary
-    try:
-        return float(str(value).replace(",", ""))
-    except (TypeError, ValueError):
-        return None
 
 
 ProgressCallback = Callable[[int, int, dict[str, object]], None]
@@ -403,6 +500,14 @@ def load_or_refresh_replay_dataset(
             ),
             flush=True,
         )
+        dataset["_sync_item_cache"] = {
+            "action": "dataset_unchanged",
+            "dataset_reused": int(dataset.get("available_count") or 0),
+            "hits": 0,
+            "existing_dataset_reused": 0,
+            "misses": 0,
+            "writes": 0,
+        }
         return dataset
 
     print("检测到本地样本源与回放数据集不一致，开始自动更新数据集...", flush=True)
@@ -622,6 +727,47 @@ def _discover_intraday_codes(intraday_dir: Path) -> set[str]:
         for path in intraday_dir.glob("*.csv")
         if len(path.stem) >= 6 and path.stem[:6].isdigit()
     }
+
+
+def _known_listed_codes(
+    codes: list[str],
+    *,
+    dataset_path: Path,
+    intraday_dir: Path,
+    current_date: str | None = None,
+) -> set[str]:
+    requested_codes = set(_dedupe_codes(codes))
+    if not requested_codes:
+        return set()
+
+    # A saved first-day intraday file is direct local evidence that the stock
+    # has listed. This also covers a newly added code before replay is rebuilt.
+    listed_codes = _discover_intraday_codes(intraday_dir) & requested_codes
+    try:
+        dataset = json.loads(dataset_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return listed_codes
+    if not isinstance(dataset, dict):
+        return listed_codes
+
+    today = current_date or _today_text()
+    for item in dataset.get("items") or []:
+        if not isinstance(item, dict):
+            continue
+        code = str(item.get("SECURITY_CODE") or "").strip()
+        if code not in requested_codes:
+            continue
+        listing_date_source = str(
+            item.get("listing_date_source") or item.get("LISTING_DATE_SOURCE") or ""
+        ).strip()
+        # Some upcoming samples temporarily copy APPLY_DATE into LISTING_DATE.
+        # That fallback is not proof that the stock has already listed.
+        if listing_date_source == "apply_date_fallback":
+            continue
+        listing_date = _date_prefix(item.get("LISTING_DATE"))
+        if listing_date and listing_date <= today:
+            listed_codes.add(code)
+    return listed_codes
 
 
 def _dataset_items_by_code(dataset: dict[str, Any]) -> dict[str, dict[str, Any]]:
@@ -928,13 +1074,24 @@ def sync_offline_tuning_dataset(
     sync_prospectus_documents = bool(getattr(args, "sync_prospectus_documents", False)) and download_missing
     prospectus_download_summary: dict[str, Any] = {
         "enabled": sync_prospectus_documents,
+        "force": bool(getattr(args, "force_sync_prospectus_documents", False)),
+        "requested_count": 0,
         "scanned_count": 0,
+        "network_checked_count": 0,
+        "network_checked_codes": [],
+        "skipped_listed_count": 0,
+        "skipped_listed_codes": [],
+        "skipped_complete_count": 0,
+        "skipped_complete_codes": [],
         "existing_count": 0,
         "downloaded": [],
         "downloaded_count": 0,
         "failed": [],
         "failed_count": 0,
+        "still_incomplete_codes": [],
+        "still_incomplete_count": 0,
         "document_kinds": ["intent", "prospectus"],
+        "incremental_rule": "skip_listed_then_skip_complete_formal_prospectus",
     }
     if verbose:
         print(
@@ -959,10 +1116,17 @@ def sync_offline_tuning_dataset(
     if sync_prospectus_documents:
         requested_codes = _parse_csv_codes(getattr(args, "sample_codes", None))
         prospectus_codes = requested_codes if requested_codes is not None else param_tuning.discover_replay_sample_codes()
+        listed_codes = _known_listed_codes(
+            prospectus_codes,
+            dataset_path=dataset_path,
+            intraday_dir=intraday_dir,
+        )
         prospectus_download_summary = _sync_prospectus_documents(
             prospectus_codes,
             output_dir=DEFAULT_PDF_DIR,
             verbose=verbose,
+            force=bool(getattr(args, "force_sync_prospectus_documents", False)),
+            listed_codes=listed_codes,
         )
 
     if verbose:
@@ -972,18 +1136,27 @@ def sync_offline_tuning_dataset(
         params,
         progress_callback=progress_callback,
     )
-    item_cache = dataset.get("item_cache") or {}
+    item_cache = dataset.get("_sync_item_cache") or dataset.get("item_cache") or {}
     if verbose:
-        print(
-            "估值 replay 样本数：{count}；缓存命中 {hits}，复用旧聚合 {reused}，新建 {misses}，写入 {writes}。".format(
-                count=dataset.get("available_count", 0),
-                hits=item_cache.get("hits", 0),
-                reused=item_cache.get("existing_dataset_reused", 0),
-                misses=item_cache.get("misses", 0),
-                writes=item_cache.get("writes", 0),
-            ),
-            flush=True,
-        )
+        if item_cache.get("action") == "dataset_unchanged":
+            print(
+                "估值 replay 样本数：{count}；数据集签名未变化，直接复用 {reused} 个条目，本轮重建 0。".format(
+                    count=dataset.get("available_count", 0),
+                    reused=item_cache.get("dataset_reused", 0),
+                ),
+                flush=True,
+            )
+        else:
+            print(
+                "估值 replay 样本数：{count}；缓存命中 {hits}，复用旧聚合 {reused}，新建 {misses}，写入 {writes}。".format(
+                    count=dataset.get("available_count", 0),
+                    hits=item_cache.get("hits", 0),
+                    reused=item_cache.get("existing_dataset_reused", 0),
+                    misses=item_cache.get("misses", 0),
+                    writes=item_cache.get("writes", 0),
+                ),
+                flush=True,
+            )
 
     download_retries = max(int(getattr(args, "download_retries", 1) or 1), 1)
     download_delay_seconds = max(float(getattr(args, "download_delay_seconds", 0.0) or 0.0), 0.0)
@@ -1156,7 +1329,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--sync-prospectus-documents",
         action="store_true",
-        help="构建 replay 前同步扫描并下载招股意向书与招股说明书，本地已有文件自动复用。",
+        help="构建 replay 前增量补齐上市前招股文件；已上市或已有完整正式招股说明书的代码不访问官网。",
+    )
+    parser.add_argument(
+        "--force-sync-prospectus-documents",
+        action="store_true",
+        help="强制逐代码访问官网复查招股文件（包括已上市代码）；仅用于排障。",
     )
     parser.add_argument("--download-retries", type=int, default=1)
     parser.add_argument("--download-delay-seconds", type=float, default=0.0)

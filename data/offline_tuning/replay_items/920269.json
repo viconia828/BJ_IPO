@@ -1,7 +1,7 @@
 {
   "schema": "offline_tuning_replay_item_v1",
-  "cache_version": 8,
-  "generated_at": "2026-08-27 19:58:17",
+  "cache_version": 9,
+  "generated_at": "2026-09-03 19:32:09",
   "code": "920269",
   "listing_date": "2026-08-26",
   "record_signature": {
@@ -32,7 +32,13 @@
     "INDUSTRY_CODE": "C36",
     "industry_primary": "高端装备",
     "industry_secondary": "汽车零部件",
-    "industry_source": "industry_code_mapping"
+    "industry_source": "industry_code_mapping",
+    "statutory_industry": "汽车制造业",
+    "statutory_industry_code": "C36",
+    "valuation_peer_group": "高端装备 / 汽车零部件",
+    "business_tags": "[]",
+    "industry_confidence": 0.6,
+    "industry_evidence": "['INDUSTRY_CODE:C36']"
   },
   "pdf_signature": {
     "files": {
@@ -53,7 +59,7 @@
       "issue_announcement_info": 6,
       "issue_result_info": 5,
       "comparable_companies": 22,
-      "business_desc": 3
+      "business_desc": 4
     }
   },
   "item": {
@@ -88,6 +94,14 @@
     "industry_primary": "高端装备",
     "industry_secondary": "汽车零部件",
     "industry_source": "industry_code_mapping",
+    "statutory_industry": "汽车制造业",
+    "statutory_industry_code": "C36",
+    "valuation_peer_group": "高端装备 / 汽车零部件",
+    "business_tags": [],
+    "industry_confidence": 0.6,
+    "industry_evidence": [
+      "INDUSTRY_CODE:C36"
+    ],
     "old_shares": 0.0,
     "old_shares_desc": "待确认（当前按 0 万股计）",
     "old_shares_meta": {
@@ -145,13 +159,17 @@
       "INDUSTRY_PE_NEW": "issue_announcement:全文",
       "TOP_APPLY_MARKETCAP": "issue_announcement:全文",
       "SUBSCRIPTION_LIMIT_WAN_SHARES": "issue_announcement:全文",
-      "ONLINE_ISSUE_NUM": "issue_announcement:全文"
+      "ONLINE_ISSUE_NUM": "issue_announcement:全文",
+      "ONLINE_VA_NUM": "issue_result:result",
+      "ONLINE_ALLOCATED_ACCOUNTS": "issue_result:result",
+      "ONLINE_VA_SHARES": "issue_result:result",
+      "ONLINE_ES_MULTIPLE": "issue_result:result"
     },
     "announcement_fallback_parse_errors": [],
     "announcement_fallback_pdf_files": {
       "prospectus": "920269_杰锋动力_招股说明书.pdf",
       "issue": "920269_杰锋动力_发行公告.pdf",
-      "result": "",
+      "result": "920269_杰锋动力_发行结果公告.pdf",
       "listing": ""
     }
   }

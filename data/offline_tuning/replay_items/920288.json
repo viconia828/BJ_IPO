@@ -1,7 +1,7 @@
 {
   "schema": "offline_tuning_replay_item_v1",
-  "cache_version": 8,
-  "generated_at": "2026-09-01 19:01:37",
+  "cache_version": 9,
+  "generated_at": "2026-09-03 19:32:10",
   "code": "920288",
   "listing_date": "2026-08-28 00:00:00",
   "record_signature": {
@@ -28,11 +28,17 @@
     "POST_LISTING_PROFIT_EFFECT_PCT": null,
     "TURNOVERRATE": 97.0288,
     "SW_INDUSTRY": null,
-    "INDUSTRY": null,
-    "INDUSTRY_CODE": null,
-    "industry_primary": "未分类",
-    "industry_secondary": "未分类",
-    "industry_source": "unclassified"
+    "INDUSTRY": "造纸和纸制品业",
+    "INDUSTRY_CODE": "C22",
+    "industry_primary": "消费服务",
+    "industry_secondary": "轻工制造",
+    "industry_source": "built_in_sample_map",
+    "statutory_industry": "造纸和纸制品业",
+    "statutory_industry_code": "C22",
+    "valuation_peer_group": "消费服务 / 轻工制造",
+    "business_tags": "[]",
+    "industry_confidence": 1.0,
+    "industry_evidence": "['manual_review_2026-09-03']"
   },
   "pdf_signature": {
     "files": {
@@ -53,7 +59,7 @@
       "issue_announcement_info": 6,
       "issue_result_info": 5,
       "comparable_companies": 22,
-      "business_desc": 3
+      "business_desc": 4
     }
   },
   "item": {
@@ -73,21 +79,29 @@
     "LD_CLOSE_CHANGE": 126.8099,
     "LD_AVERAGE_CHANGE": 117.13705442808111,
     "NEXT_DAY_CLOSE": 20.05,
-    "THIRD_DAY_CLOSE": null,
+    "THIRD_DAY_CLOSE": 19.5,
     "NEXT_DAY_CLOSE_CHANGE": 59.50676213206045,
-    "THIRD_DAY_CLOSE_CHANGE": null,
+    "THIRD_DAY_CLOSE_CHANGE": 55.131264916467785,
     "NEXT_DAY_FROM_LISTING_CLOSE_PCT": -29.673798667134342,
-    "THIRD_DAY_FROM_LISTING_CLOSE_PCT": null,
-    "POST_LISTING_PROFIT_EFFECT_PCT": -29.673798667134342,
+    "THIRD_DAY_FROM_LISTING_CLOSE_PCT": -31.602946334619432,
+    "POST_LISTING_PROFIT_EFFECT_PCT": -30.638372500876887,
     "post_listing_performance_source": "tushare_daily",
     "post_listing_performance_reason": "",
     "TURNOVERRATE": 97.0288,
     "SW_INDUSTRY": "",
-    "INDUSTRY": "",
-    "INDUSTRY_CODE": "",
-    "industry_primary": "未分类",
-    "industry_secondary": "未分类",
-    "industry_source": "unclassified",
+    "INDUSTRY": "造纸和纸制品业",
+    "INDUSTRY_CODE": "C22",
+    "industry_primary": "消费服务",
+    "industry_secondary": "轻工制造",
+    "industry_source": "built_in_sample_map",
+    "statutory_industry": "造纸和纸制品业",
+    "statutory_industry_code": "C22",
+    "valuation_peer_group": "消费服务 / 轻工制造",
+    "business_tags": [],
+    "industry_confidence": 1.0,
+    "industry_evidence": [
+      "manual_review_2026-09-03"
+    ],
     "old_shares": 0.0,
     "old_shares_desc": "待确认（当前按 0 万股计）",
     "old_shares_meta": {

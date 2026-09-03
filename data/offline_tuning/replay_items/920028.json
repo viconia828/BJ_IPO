@@ -1,7 +1,7 @@
 {
   "schema": "offline_tuning_replay_item_v1",
-  "cache_version": 8,
-  "generated_at": "2026-08-25 20:19:02",
+  "cache_version": 9,
+  "generated_at": "2026-09-03 19:15:27",
   "code": "920028",
   "listing_date": "2026-03-20 00:00:00",
   "record_signature": {
@@ -28,11 +28,17 @@
     "POST_LISTING_PROFIT_EFFECT_PCT": null,
     "TURNOVERRATE": 84.8896,
     "SW_INDUSTRY": null,
-    "INDUSTRY": null,
-    "INDUSTRY_CODE": null,
+    "INDUSTRY": "橡胶和塑料制品业",
+    "INDUSTRY_CODE": "C29",
     "industry_primary": "化工新材",
     "industry_secondary": "橡胶和塑料制品业",
-    "industry_source": "built_in_sample_map"
+    "industry_source": "built_in_sample_map",
+    "statutory_industry": "橡胶和塑料制品业",
+    "statutory_industry_code": "C29",
+    "valuation_peer_group": "化工新材 / 橡胶和塑料制品业",
+    "business_tags": "[]",
+    "industry_confidence": 0.98,
+    "industry_evidence": "['curated_code_mapping']"
   },
   "pdf_signature": {
     "files": {
@@ -57,7 +63,7 @@
       "issue_announcement_info": 6,
       "issue_result_info": 5,
       "comparable_companies": 22,
-      "business_desc": 3
+      "business_desc": 4
     }
   },
   "item": {
@@ -87,11 +93,19 @@
     "post_listing_performance_reason": "",
     "TURNOVERRATE": 84.8896,
     "SW_INDUSTRY": "",
-    "INDUSTRY": "",
-    "INDUSTRY_CODE": "",
+    "INDUSTRY": "橡胶和塑料制品业",
+    "INDUSTRY_CODE": "C29",
     "industry_primary": "化工新材",
     "industry_secondary": "橡胶和塑料制品业",
     "industry_source": "built_in_sample_map",
+    "statutory_industry": "橡胶和塑料制品业",
+    "statutory_industry_code": "C29",
+    "valuation_peer_group": "化工新材 / 橡胶和塑料制品业",
+    "business_tags": [],
+    "industry_confidence": 0.98,
+    "industry_evidence": [
+      "curated_code_mapping"
+    ],
     "old_shares": 557.81,
     "old_shares_desc": "557.81 万股（PDF 提取：上市公告书）",
     "old_shares_meta": {

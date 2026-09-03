@@ -497,7 +497,7 @@ PARSE_CACHE_KIND_VERSIONS = {
     "issue_announcement_info": 6,
     "issue_result_info": 5,
     "comparable_companies": 22,
-    "business_desc": 3,
+    "business_desc": 4,
 }
 PARSE_CACHE_DIR = Path(__file__).resolve().parents[1] / "data" / "pdf_parse_cache"
 _CACHE_MISSING = object()
@@ -1927,6 +1927,8 @@ def _is_plausible_business_desc(text: str) -> bool:
     current = _clean_business_desc(text)
     if not current:
         return False
+    if business_desc_has_subject_conflict(current):
+        return False
     if any(marker in current for marker in BUSINESS_REJECT_MARKERS):
         return False
     if re.search(r"除[\u4e00-\u9fffA-Za-z0-9（）()&\s]{1,30}外", current):
@@ -1939,6 +1941,21 @@ def _is_plausible_business_desc(text: str) -> bool:
     ):
         return False
     return True
+
+
+def business_desc_has_subject_conflict(text: str, target_code: str = "") -> bool:
+    """Return whether a purported issuer description visibly names another issuer.
+
+    Prospectuses contain many well-written descriptions of comparable companies.
+    They are poor issuer evidence even though they score highly under the ordinary
+    business-sentence heuristics.
+    """
+    current = str(text or "")
+    normalized_target = str(target_code or "").strip()
+    referenced_codes = re.findall(r"(?<!\d)(\d{6})(?:\.(?:SH|SZ|BJ|NQ))(?!\w)", current, flags=re.IGNORECASE)
+    if any(code != normalized_target for code in referenced_codes):
+        return True
+    return any(name in current for name in COMPARABLE_NAME_CODE_FALLBACKS)
 
 
 def _score_business_desc(text: str) -> tuple[int, int]:
@@ -2001,7 +2018,7 @@ def _extract_business_desc_from_text(text: str) -> str:
     if not normalized_text:
         return ""
 
-    candidate_sentences: list[str] = []
+    preferred_candidates: list[str] = []
     preferred_sections: list[str] = []
     exact_section_text, _ = _extract_compact_section(
         normalized_text,
@@ -2034,11 +2051,13 @@ def _extract_business_desc_from_text(text: str) -> str:
         preferred_sections.append(fallback_section_text)
 
     for current_section in preferred_sections:
-        candidate_sentences.extend(_collect_business_sentence_candidates(current_section))
-    candidate_sentences.extend(_collect_business_sentence_candidates(normalized_text))
+        preferred_candidates.extend(_collect_business_sentence_candidates(current_section))
+    if preferred_candidates:
+        return max(preferred_candidates, key=_score_business_desc)
 
-    if candidate_sentences:
-        return max(candidate_sentences, key=_score_business_desc)
+    document_candidates = _collect_business_sentence_candidates(normalized_text)
+    if document_candidates:
+        return max(document_candidates, key=_score_business_desc)
 
     preferred_section = fallback_section_text or exact_section_text or section_text
     if preferred_section:
