@@ -926,6 +926,14 @@ def _ensure_local_official_documents(
         except bse_official_helper.BSEOfficialError as exc:
             prospectus_download_error = str(exc)
 
+        # A report cannot proceed without a usable prospectus. Do not spend
+        # further network retries on optional announcements in that case.
+        existing_prospectus = _pick_prospectus_pdf(directory, code, "old_shares")
+        if existing_prospectus is None:
+            if not prospectus_download_error:
+                prospectus_download_error = "招股说明书下载后仍未在本地找到可用文件"
+            return None, prospectus_download_error, existing_issue_announcement, "", existing_listing, ""
+
     if existing_issue_announcement is None:
         try:
             _, existing_issue_announcement = client.download_issue_announcement_from_newshare_by_post_listing_code(
@@ -1137,9 +1145,14 @@ def build_analysis_data(
         "reason": "",
     }
     if comparable_codes:
+        if progress_callback is not None:
+            progress_callback(f"公告已读取，正在获取 {len(comparable_codes)} 家可比公司的行情及估值数据，请稍候。")
         comparable_result = comparable_data_helper.get_comparable_valuations(comparable_codes, params)
         comparable_data = comparable_result.get("items") or []
         comparable_summary = comparable_result.get("summary") or comparable_summary
+
+    if progress_callback is not None:
+        progress_callback("资料已整理，正在计算估值并生成报告。")
 
     company_description = (
         pdf_parser.extract_business_desc(business_pdf)

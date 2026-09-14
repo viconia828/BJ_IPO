@@ -657,11 +657,11 @@ def main() -> int:
         should_raise=True,
         expect_listing_warning=False,
         expect_prospectus_probe=True,
-        expect_issue_probe=True,
-        expect_listing_probe=True,
+        expect_issue_probe=False,
+        expect_listing_probe=False,
         expected_pdf_count=0,
-        expected_issue_error="模拟未找到发行公告",
-        expected_listing_error="模拟未找到上市公告书",
+        expected_issue_error="",
+        expected_listing_error="",
     )
     _run_issue_fallback_after_prospectus_parse_failure_case(failures)
     _run_greenshoe_online_issue_override_case(failures)

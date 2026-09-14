@@ -33,35 +33,35 @@ comparable_pe_stat = median           # 可比公司 PE 聚合方式：median / 
 trend_score_stocks = 5                # 走势评分最多纳入多少只历史样本
 
 # === 自动调参可写回：综合估值权重与方法一折价 ===
-bse_discount_factor = 0.775            # 北交所相对可比公司估值折价系数
-weight_comparable = 0.6               # 方法一在综合估值中的权重
-weight_industry_momentum = 0.4        # 方法二在综合估值中的权重
+bse_discount_factor = 0.7            # 北交所相对可比公司估值折价系数
+weight_comparable = 0.2               # 方法一在综合估值中的权重
+weight_industry_momentum = 0.8        # 方法二在综合估值中的权重
 
 # 方法二中枢继续使用MAD去极值后的样本；置信度按去极值前同二级行业原始样本数计算
 method2_sample_confidence_enabled = True
-method2_confidence_1_sample = 0.20
+method2_confidence_1_sample = 0.05
 method2_confidence_2_samples = 0.20
-method2_confidence_3_samples = 0.35
-method2_confidence_4plus_samples = 0.40
+method2_confidence_3_samples = 0.45
+method2_confidence_4plus_samples = 0.75
 
 # === Auto tuning: method1 valuation factors ===
 method1_pe_float_factors_enabled = True    # 方法一启用发行 PE 与首日流通盘连续修正
 method1_industry_fallback_enabled = True   # 无有效上市可比 PE 时允许行业 PE 低置信度兜底
-method1_industry_fallback_confidence = 0.1  # 行业 PE 兜底时的方法一权重置信度
+method1_industry_fallback_confidence = 0.6  # 行业 PE 兜底时的方法一权重置信度
 float_size_threshold = 800          # 方法一首日流通盘参考阈值（万股）
-small_cap_premium = 0.25             # 方法一小流通盘最大连续溢价
-pe_low_threshold = 0.225              # 发行 PE / 行业 PE 低估阈值
-pe_discount_boost = 0.095             # 方法一低 PE 最大上修
-pe_high_threshold = 0.7             # 发行 PE / 行业 PE 高估阈值
-pe_premium_drag = -0.095                # EPS 已含发行 PE 影响，当前不重复施加高 PE 惩罚
+small_cap_premium = 0             # 方法一小流通盘最大连续溢价
+pe_low_threshold = 0.2              # 发行 PE / 行业 PE 低估阈值
+pe_discount_boost = 0             # 方法一低 PE 最大上修
+pe_high_threshold = 0.55             # 发行 PE / 行业 PE 高估阈值
+pe_premium_drag = -0.15                # EPS 已含发行 PE 影响，当前不重复施加高 PE 惩罚
 
 # === Auto tuning: method2 industry premium/discount ===
 method2_weight_mode = time_decay          # 方法二使用当年同行业稳健统计，不跟随短期市场情绪
 method2_decay_half_life_days = 60     # 仅在 method2_weight_mode=time_decay 时生效
 sample_weight_mode = static           # 旧参数兼容，不再作为方法二正式入口
 sample_decay_half_life_days = 90       # 旧参数兼容
-robust_median_min_samples = 4         # Method2 MAD outlier filter minimum sample count
-robust_mad_multiplier = 3.0           # Method2 MAD outlier multiplier
+robust_median_min_samples = 8         # Method2 MAD outlier filter minimum sample count
+robust_mad_multiplier = 2.5           # Method2 MAD outlier multiplier
 
 # === 申购资金预测：正股/碎股门槛模型 ===
 subscription_prediction_account_pool_prior_min_source_samples = 1      # 账户规模 prior 最少需要多少个可用历史样本；不足则不启用该 prior
@@ -84,10 +84,10 @@ subscription_prediction_recent_market_level_adaptive_half_life_samples = 2 # 水
 subscription_prediction_recent_market_level_adaptive_weight = 1     # 观测残差加成的保留权重；越大越快跟随最新水位
 subscription_prediction_recent_market_level_adaptive_factor_min = 0.90 # 自适应水位因子下限，防止短期异常造成过度下修
 subscription_prediction_recent_market_level_adaptive_factor_max = 1.05 # 生产水位总因子上限；最多只在原公式基础上加成 5%
-subscription_prediction_target_frozen_funds_code = 920269              # 个股冻资情景仅对该证券代码生效；留空则关闭
-subscription_prediction_target_frozen_funds_yi = 9500                 # 920269 明星股情景冻资中枢（亿元）
-subscription_prediction_target_frozen_funds_low_yi = 9000             # 920269 明星股情景冻资下限（亿元）
-subscription_prediction_target_frozen_funds_high_yi = 10500            # 920269 明星股情景冻资上限（亿元）
+subscription_prediction_target_frozen_funds_code = 920025              # 个股冻资情景仅对该证券代码生效；留空则关闭
+subscription_prediction_target_frozen_funds_yi = 13500                 # 920269 明星股情景冻资中枢（亿元）
+subscription_prediction_target_frozen_funds_low_yi = 12000             # 920269 明星股情景冻资下限（亿元）
+subscription_prediction_target_frozen_funds_high_yi = 14000            # 920269 明星股情景冻资上限（亿元）
 subscription_prediction_target_frozen_funds_reason = 明星股资质与市场关注度情景修正  # 仅作个股情景，不参与全局调参
 subscription_prediction_guaranteed_buffer_min_wan = 50       # 正股建议申购保护阈值下限（万元）
 subscription_prediction_guaranteed_buffer_max_wan = 100      # 正股建议申购保护阈值上限（万元）
@@ -109,12 +109,12 @@ subscription_prediction_similar_top_apply_frozen_bandwidth = 0.25       # 相似
 # === Auto tuning: method3 recent sentiment premium ===
 industry_trend_weight = 0.85         # Legacy compatibility; method2 no longer applies trend factor
 market_sentiment_weight = 0.15       # Fallback default for method3 scales when explicit sentiment_* params are absent
-sentiment_decay_half_life_days = 15    # 方法三短期市场情绪半衰期（天）
+sentiment_decay_half_life_days = 5    # 方法三短期市场情绪半衰期（天）
 sentiment_first_day_baseline_pct = 160  # First-day change baseline; excess part drives premium
 sentiment_first_day_scale = 0.05      # Scale from first-day excess change to valuation premium
-sentiment_post_listing_scale = 0.15   # Scale from day-2/day-3 profit effect to valuation premium
-sentiment_premium_cap_pct = 15      # Method3 premium cap as pct of issue price
-sentiment_premium_floor_pct = 0   # Method3 premium floor as pct of issue price
+sentiment_post_listing_scale = 0.4   # Scale from day-2/day-3 profit effect to valuation premium
+sentiment_premium_cap_pct = 32.5      # Method3 premium cap as pct of issue price
+sentiment_premium_floor_pct = -35   # Method3 premium floor as pct of issue price
 trend_strong_boost = 0.12             # Legacy compatibility; current composite valuation does not read this
 trend_weak_discount = -0.105           # Legacy compatibility; current composite valuation does not read this
 trend_strong_threshold = 70           # Legacy compatibility; current composite valuation does not read this
@@ -124,9 +124,9 @@ trend_weak_threshold = 25             # Legacy compatibility; current composite 
 local_center_overlay_enabled = True    # 正式中枢与仅使用上市前本地历史拟合的滚动中枢混合
 local_center_alpha = 0.75              # 本地滚动中枢权重；0.50 表示与正式三方法中枢各占一半
 local_center_min_history = 8           # 至少积累 8 只已完成上市样本后才启用，之前保持原正式中枢
-local_center_history_window = 40       # 回归最多使用最近 20 只历史样本，0 表示使用全部历史
-local_center_actual_cap_pct = 900      # 历史首日均价涨幅的拟合上限，抑制极端样本支配回归
-local_center_slope_cap = 25            # proxy 分数每增加 1 分时，拟合涨幅斜率的正向上限
+local_center_history_window = 20       # 回归最多使用最近 20 只历史样本，0 表示使用全部历史
+local_center_actual_cap_pct = 600      # 历史首日均价涨幅的拟合上限，抑制极端样本支配回归
+local_center_slope_cap = 35            # proxy 分数每增加 1 分时，拟合涨幅斜率的正向上限
 
 # === 自动调参可写回：WSI 评分权重 ===
 wsi_weight_close_vwap = 0.30          # 收盘相对 VWAP 的强弱权重

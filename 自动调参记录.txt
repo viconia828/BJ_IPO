@@ -1,3 +1,86 @@
+## 2026-09-10 20:05:50 自动调参（已接受）
+
+- 参数文件：D:\BJ_IPO\策略参数.txt
+- 评估范围：composite
+- 最终搜索轮次：第 2 轮
+- 方法三情绪样本窗口：45 天（recent_days）
+- 近期权重基准日：2026-09-09，评分权重衰减窗口：90 天
+- 最近 30 天样本最低总权重：0.5000
+- baseline 排序分：0.0830
+- 新参数排序分：0.0836
+- baseline 近期加权命中率：0.2115
+- 新参数近期加权命中率：0.2115
+- 新参数最近样本权重占比：0.8107
+- 新参数加权 MAE(涨幅)：63.9496
+- 正式写回安全门槛：通过
+- 三折时间切片门槛：暂时停用；状态：disabled_pending_calendar_walk_forward；路径：two_level
+- 时间切片报告：-
+- 全样本命中率 baseline / 新参数：0.2143 / 0.2143
+- 全样本 MAE baseline / 新参数：114.8604 / 114.8522
+- 全样本 P90 绝对误差 baseline / 新参数：276.3852 / 276.3149
+- 当前手动区间宽度诊断扣分：0.0500
+- 本地学习重排：已执行；是否改变核心最优：否
+- 综合学习分：0.1693
+- 保守动态区间加权命中率 / MAE / 平均宽度：0.3020 / 63.9496 / 10.70%
+- regime-break 加权命中率 / MAE / 平均宽度：0.3020 / 63.9496 / 10.70%
+- 滚动中枢加权命中率 / MAE / 平均宽度：0.6879 / 63.9496 / 19.02%
+- 本地学习重排作者输入：未使用
+
+修改参数：
+- recent_days: 45 -> 30
+- robust_median_min_samples: 4 -> 8
+
+## 2026-09-07 19:18:59 自动调参（已接受）
+
+- 参数文件：D:\BJ_IPO\策略参数.txt
+- 评估范围：composite
+- 最终搜索轮次：第 4 轮
+- 方法三情绪样本窗口：30 天（recent_days）
+- 近期权重基准日：2026-09-03，评分权重衰减窗口：90 天
+- 最近 30 天样本最低总权重：0.5000
+- baseline 排序分：-0.0744
+- 新参数排序分：0.1114
+- baseline 近期加权命中率：0.1479
+- 新参数近期加权命中率：0.2632
+- 新参数最近样本权重占比：0.7783
+- 新参数加权 MAE(涨幅)：75.9073
+- 正式写回安全门槛：通过
+- 三折时间切片门槛：暂时停用；状态：disabled_pending_calendar_walk_forward；路径：two_level
+- 时间切片报告：-
+- 全样本命中率 baseline / 新参数：0.1852 / 0.2222
+- 全样本 MAE baseline / 新参数：124.8179 / 117.9692
+- 全样本 P90 绝对误差 baseline / 新参数：298.7681 / 283.2815
+- 当前手动区间宽度诊断扣分：0.0500
+- 本地学习重排：已执行；是否改变核心最优：否
+- 综合学习分：0.2044
+- 保守动态区间加权命中率 / MAE / 平均宽度：0.3777 / 75.9073 / 10.99%
+- regime-break 加权命中率 / MAE / 平均宽度：0.3777 / 75.9073 / 10.99%
+- 滚动中枢加权命中率 / MAE / 平均宽度：0.5843 / 75.9073 / 19.43%
+- 本地学习重排作者输入：未使用
+
+修改参数：
+- bse_discount_factor: 0.775 -> 0.7
+- local_center_actual_cap_pct: 900 -> 600
+- local_center_history_window: 40 -> 20
+- local_center_slope_cap: 25 -> 35
+- method1_industry_fallback_confidence: 0.1 -> 0.6
+- method2_confidence_1_sample: 0.2 -> 0.05
+- method2_confidence_3_samples: 0.35 -> 0.45
+- method2_confidence_4plus_samples: 0.4 -> 0.75
+- pe_discount_boost: 0.095 -> 0
+- pe_high_threshold: 0.7 -> 0.55
+- pe_low_threshold: 0.225 -> 0.2
+- pe_premium_drag: -0.095 -> -0.15
+- recent_days: 30 -> 45
+- robust_mad_multiplier: 3 -> 2.5
+- sentiment_decay_half_life_days: 15 -> 5
+- sentiment_post_listing_scale: 0.15 -> 0.4
+- sentiment_premium_cap_pct: 15 -> 32.5
+- sentiment_premium_floor_pct: 0 -> -35
+- small_cap_premium: 0.25 -> 0
+- weight_comparable: 0.6 -> 0.2
+- weight_industry_momentum: 0.4 -> 0.8
+
 ## 2026-08-27 19:55:40 申购资金自动调参（已接受）
 
 - 参数文件：D:\BJ_IPO\策略参数.txt

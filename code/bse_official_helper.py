@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import date, timedelta
 import http.client
 from http.cookiejar import CookieJar
@@ -15,7 +15,7 @@ import time
 import urllib.error
 import urllib.parse
 import urllib.request
-from typing import Any, Callable, Iterable
+from typing import Any, Callable, Iterable, TypeVar
 
 import local_pdf_manifest
 
@@ -23,6 +23,8 @@ import local_pdf_manifest
 BASE_URL = "https://www.bse.cn"
 EASTMONEY_NOTICE_BASE_URL = "https://xinsanban.eastmoney.com"
 EASTMONEY_NOTICE_LIST_URL = f"{EASTMONEY_NOTICE_BASE_URL}/api/gg/list"
+EASTMONEY_STOCK_NOTICE_URL = "https://np-anotice-stock.eastmoney.com/api/security/ann"
+EASTMONEY_STOCK_NOTICE_DETAIL_URL = "https://np-cnotice-stock.eastmoney.com/api/content/ann"
 DEFAULT_TIMEOUT = 20.0
 DEFAULT_HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
@@ -86,6 +88,26 @@ EASTMONEY_PDF_LINK_PATTERN = re.compile(
 
 class BSEOfficialError(RuntimeError):
     pass
+
+
+class _BSERedirectError(BSEOfficialError):
+    pass
+
+
+class _BSEHTTPRedirectHandler(urllib.request.HTTPRedirectHandler):
+    """Stop the site's cookie-free self redirects before urllib repeats them."""
+
+    max_repeats = 1
+    max_redirections = 5
+
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        if (
+            urllib.parse.urlsplit(req.full_url).hostname == "www.bse.cn"
+            and urllib.parse.urldefrag(req.full_url)[0] == urllib.parse.urldefrag(newurl)[0]
+            and not headers.get("Set-Cookie")
+        ):
+            raise urllib.error.HTTPError(req.full_url, code, "官网重定向回原地址", headers, fp)
+        return super().redirect_request(req, fp, code, msg, headers, newurl)
 
 
 class _PDFIntegrityError(RuntimeError):
@@ -165,6 +187,11 @@ class IssueAnnouncementResolution:
 class IssueResultAnnouncementResolution:
     mapping: PostListingCodeMapping
     disclosure: DisclosureFile
+
+
+_AnnouncementResolutionT = TypeVar(
+    "_AnnouncementResolutionT", ListingAnnouncementResolution, IssueAnnouncementResolution, IssueResultAnnouncementResolution
+)
 
 
 def _normalize_stock_code(code: str) -> str:
@@ -452,7 +479,11 @@ class BSEOfficialClient:
         self.timeout = timeout
         self.status_callback = status_callback
         self.cookie_jar = CookieJar()
-        self.opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(self.cookie_jar))
+        self.opener = urllib.request.build_opener(
+            urllib.request.HTTPCookieProcessor(self.cookie_jar), _BSEHTTPRedirectHandler()
+        )
+        self._bse_redirect_error = ""
+        self._stock_notice_cache: dict[str, list[dict[str, Any]]] = {}
 
     def _notify_status(self, message: str) -> None:
         if self.status_callback is not None and message:
@@ -540,6 +571,12 @@ class BSEOfficialClient:
                     charset = response.headers.get_content_charset()
                 return self._decode_response(raw_bytes, charset)
             except urllib.error.HTTPError as exc:
+                if 300 <= exc.code < 400:
+                    message = f"北交所官网请求失败：HTTP {exc.code} 循环重定向，已停止重复请求"
+                    if urllib.parse.urlsplit(request.full_url).hostname == "www.bse.cn":
+                        self._bse_redirect_error = message
+                    exc.close()
+                    raise _BSERedirectError(message) from exc
                 reason = f"HTTP {exc.code}"
                 if exc.reason:
                     reason = f"{reason} {exc.reason}"
@@ -584,11 +621,20 @@ class BSEOfficialClient:
                     _validate_pdf_binary(binary, expected_size=_parse_content_length(response.headers))
                     return binary
             except urllib.error.HTTPError as exc:
+                http_url = self._eastmoney_public_pdf_http_url(request.full_url)
+                if http_url:
+                    exc.close()
+                    self._notify_status("公告附件 HTTPS 请求失败，正在尝试同源公开 PDF 地址...")
+                    return self._download_binary(http_url, referer=referer, headers=headers)
                 reason = f"HTTP {exc.code}"
                 if exc.reason:
                     reason = f"{reason} {exc.reason}"
                 raise BSEOfficialError(f"北交所 PDF 下载失败: {reason}") from exc
             except (urllib.error.URLError, TimeoutError, http.client.IncompleteRead, OSError, _PDFIntegrityError) as exc:
+                http_url = self._eastmoney_public_pdf_http_url(request.full_url)
+                if http_url:
+                    self._notify_status("公告附件 HTTPS 未返回完整 PDF，正在尝试同源公开 PDF 地址...")
+                    return self._download_binary(http_url, referer=referer, headers=headers)
                 last_retryable_error = exc
                 if attempt < max_attempts - 1:
                     self._notify_status(f"官网 PDF 下载较慢，正在重试（{attempt + 2}/{max_attempts}）...")
@@ -608,6 +654,17 @@ class BSEOfficialClient:
             if isinstance(exc, TimeoutError):
                 raise BSEOfficialError(f"北交所 PDF 下载超时；curl 兜底失败：{curl_exc}") from exc
             raise BSEOfficialError(f"北交所 PDF 下载中断；curl 兜底失败：{curl_exc}") from exc
+
+    @staticmethod
+    def _eastmoney_public_pdf_http_url(url: str) -> str:
+        parsed = urllib.parse.urlsplit(url)
+        if (
+            parsed.scheme == "https" and parsed.hostname == "pdf.dfcfw.com"
+            and parsed.netloc == "pdf.dfcfw.com"
+            and re.fullmatch(r"/pdf/H2_AN\d+_\d+\.pdf", parsed.path)
+        ):
+            return urllib.parse.urlunsplit(parsed._replace(scheme="http"))
+        return ""
 
     def _download_binary_via_curl(
         self,
@@ -647,6 +704,7 @@ class BSEOfficialClient:
                     timeout=max(self.timeout, 300.0),
                     capture_output=True,
                     text=True,
+                    errors="replace",
                 )
             except subprocess.CalledProcessError as exc:
                 stderr = (exc.stderr or "").strip()
@@ -678,6 +736,8 @@ class BSEOfficialClient:
         warmup_urls: Iterable[str] = (),
         headers: dict[str, str] | None = None,
     ) -> Any:
+        if self._bse_redirect_error and urllib.parse.urlsplit(self._build_url(path_or_url)).hostname == "www.bse.cn":
+            raise _BSERedirectError(self._bse_redirect_error)
         last_error: BSEOfficialError | None = None
         for attempt in range(2):
             text = self._fetch_text_once(path_or_url, params=params, referer=referer, headers=headers)
@@ -1224,15 +1284,24 @@ class BSEOfficialClient:
         except BSEOfficialError as exc:
             project_error = str(exc)
 
-        if newshare_error and project_error:
-            raise BSEOfficialError(
-                f"newshare path and project path both failed: newshare={newshare_error}; project={project_error}"
-            )
-        if newshare_error:
-            raise BSEOfficialError(newshare_error)
-        if project_error:
-            raise BSEOfficialError(project_error)
-        raise BSEOfficialError("官网未找到招股意向书或招股说明书 PDF")
+        self._notify_status("官网招股文件暂不可用，正在查询东方财富公告备用源...")
+        try:
+            candidates = self._list_stock_notice_documents(code, "prospectus")
+            selected: list[ProspectusResolution] = []
+            for kind in ("intent", "prospectus"):
+                matches = [(mapping, item) for mapping, item in candidates if _prospectus_kind_from_title(item.title) == kind]
+                if matches:
+                    mapping, disclosure = matches[0]
+                    disclosure = self._resolve_stock_notice_attachment(code, disclosure)
+                    selected.append(ProspectusResolution(mapping=mapping, disclosure=disclosure))
+            if selected:
+                return selected
+            fallback_error = f"备用源未找到 {code} 的招股文件"
+        except BSEOfficialError as exc:
+            fallback_error = str(exc)
+        official_errors = list(dict.fromkeys(item for item in (newshare_error, project_error) if item))
+        official_detail = "；".join(official_errors) or "官网未找到招股文件"
+        raise BSEOfficialError(f"{official_detail}；{fallback_error}")
 
     def resolve_prospectus_by_post_listing_code(
         self,
@@ -1418,6 +1487,119 @@ class BSEOfficialClient:
         result = payload.get("result") or []
         return [item for item in result if isinstance(item, dict)]
 
+    def _list_stock_notice_documents(
+        self, code: str, document_type: str,
+    ) -> list[tuple[PostListingCodeMapping, DisclosureFile]]:
+        """Use the current stock notice feed, which also covers newly assigned 920 codes."""
+        normalized_code = _normalize_stock_code(code)
+        if normalized_code not in self._stock_notice_cache:
+            payload = self._request_json(
+                EASTMONEY_STOCK_NOTICE_URL,
+                params={"stock_list": normalized_code, "ann_type": "A", "page_size": 100, "page_index": 1, "sr": -1},
+                headers=EASTMONEY_HEADERS,
+            )
+            data = payload.get("data")
+            if not isinstance(data, dict) or not isinstance(data.get("list"), list):
+                raise BSEOfficialError("东方财富公告备用源返回结构异常")
+            self._stock_notice_cache[normalized_code] = [item for item in data["list"] if isinstance(item, dict)]
+
+        documents: list[tuple[PostListingCodeMapping, DisclosureFile]] = []
+        seen: set[str] = set()
+        for notice in self._stock_notice_cache[normalized_code]:
+            codes = notice.get("codes") or []
+            security = next((item for item in codes if isinstance(item, dict) and str(item.get("stock_code")) == normalized_code), None)
+            if security is None:
+                continue
+            title = str(notice.get("title") or notice.get("title_ch") or "").strip()
+            normalized_title = _normalize_title_text(title)
+            if document_type == "prospectus":
+                if (
+                    not re.search(r"(?:招股说明书|招股意向书)(?:\([^()]*\))*$", normalized_title)
+                    or any(word in normalized_title for word in ("摘要", "关于", "回复", "修订说明"))
+                ):
+                    continue
+                bucket = _prospectus_bucket_from_title(title)
+            else:
+                if (
+                    not re.search(r"(?:发行公告|发行结果公告|上市公告书|上市公告)(?:\([^()]*\))*$", normalized_title)
+                    or any(word in normalized_title for word in ("摘要", "关于", "提示性"))
+                ):
+                    continue
+                priority = {
+                    "发行公告": _issue_announcement_priority,
+                    "发行结果公告": _issue_result_announcement_priority,
+                    "上市公告书": _listing_announcement_priority,
+                }[document_type](title)
+                if priority > 3:
+                    continue
+                bucket = document_type
+            art_code = str(notice.get("art_code") or "").strip()
+            if not re.fullmatch(r"AN\d+", art_code) or art_code in seen:
+                continue
+            seen.add(art_code)
+            name = str(security.get("short_name") or "").strip() or normalized_code
+            publish_date = _normalize_date_text(notice.get("notice_date"))
+            # The feed verifies the requested code and short name. It does not
+            # establish an audit project id or a pre-listing code; leave those unknown.
+            mapping = PostListingCodeMapping(
+                listed_company=ListedCompanyProfile(normalized_code, name, name, ""),
+                project=BSEProject(0, "", name, name, "eastmoney_notice", "", publish_date, ""),
+            )
+            documents.append((mapping, DisclosureFile(
+                title=title, publish_date=publish_date, relative_path="",
+                full_url=f"https://pdf.dfcfw.com/pdf/H2_{art_code}_1.pdf",
+                bucket=bucket, bucket_label="东方财富公告备用源", document_type=document_type,
+                file_ext=".pdf", detail_url=f"https://data.eastmoney.com/notices/detail/{normalized_code}/{art_code}.html",
+                source="eastmoney",
+            )))
+        # Prefer the latest publication, including the final prospectus after registration.
+        return sorted(documents, key=lambda entry: (-_date_sort_key(entry[1].publish_date), entry[1].title))
+
+    def _resolve_stock_notice_attachment(self, code: str, disclosure: DisclosureFile) -> DisclosureFile:
+        art_code = Path(urllib.parse.urlsplit(disclosure.detail_url).path).stem
+        payload = self._request_json(
+            EASTMONEY_STOCK_NOTICE_DETAIL_URL,
+            params={"art_code": art_code, "client_source": "web", "page_index": 1},
+            headers=EASTMONEY_HEADERS,
+        )
+        data = payload.get("data")
+        if not isinstance(data, dict) or data.get("art_code") != art_code:
+            raise BSEOfficialError("东方财富公告详情与请求的公告编号不一致")
+        securities = data.get("security") or []
+        if not any(isinstance(item, dict) and str(item.get("stock")) == code for item in securities):
+            raise BSEOfficialError(f"东方财富公告详情未匹配证券代码 {code}")
+        attachment_url = str(data.get("attach_url") or data.get("attach_url_web") or "").strip()
+        parsed_url = urllib.parse.urlsplit(attachment_url)
+        if (
+            parsed_url.scheme != "https" or parsed_url.hostname != "pdf.dfcfw.com"
+            or not parsed_url.path.startswith(f"/pdf/H2_{art_code}_")
+            or not parsed_url.path.endswith(".pdf")
+        ):
+            raise BSEOfficialError("东方财富公告详情未提供可识别的 PDF 附件链接")
+        # Keep the publisher's complete URL, including its cache/version query.
+        return replace(disclosure, full_url=attachment_url)
+
+    def _resolve_announcement_with_stock_fallback(
+        self,
+        code: str,
+        resolver: Callable[[str], _AnnouncementResolutionT],
+        resolution_class: type[_AnnouncementResolutionT],
+        document_type: str,
+    ) -> _AnnouncementResolutionT:
+        try:
+            return resolver(code)
+        except BSEOfficialError as official_exc:
+            self._notify_status(f"官网{document_type}暂不可用，正在查询东方财富公告备用源...")
+            try:
+                documents = self._list_stock_notice_documents(code, document_type)
+            except BSEOfficialError as fallback_exc:
+                raise BSEOfficialError(f"{official_exc}；备用源查询失败：{fallback_exc}") from fallback_exc
+            if not documents:
+                raise BSEOfficialError(f"{official_exc}；备用源未找到 {code} 的{document_type}") from official_exc
+            mapping, disclosure = documents[0]
+            disclosure = self._resolve_stock_notice_attachment(code, disclosure)
+            return resolution_class(mapping=mapping, disclosure=disclosure)
+
     def _resolve_eastmoney_notice_pdf_url(self, art_code: str) -> str:
         normalized_art_code = str(art_code or "").strip()
         if not normalized_art_code:
@@ -1585,10 +1767,14 @@ class BSEOfficialClient:
         )
 
     def resolve_issue_announcement_by_post_listing_code(self, code: str) -> IssueAnnouncementResolution:
-        return self.resolve_issue_announcement_from_newshare_by_post_listing_code(code)
+        return self._resolve_announcement_with_stock_fallback(
+            code, self.resolve_issue_announcement_from_newshare_by_post_listing_code, IssueAnnouncementResolution, "发行公告"
+        )
 
     def resolve_issue_result_announcement_by_post_listing_code(self, code: str) -> IssueResultAnnouncementResolution:
-        return self.resolve_issue_result_announcement_from_newshare_by_post_listing_code(code)
+        return self._resolve_announcement_with_stock_fallback(
+            code, self.resolve_issue_result_announcement_from_newshare_by_post_listing_code, IssueResultAnnouncementResolution, "发行结果公告"
+        )
 
     def resolve_listing_announcement_by_post_listing_code(self, code: str) -> ListingAnnouncementResolution:
         mapping: PostListingCodeMapping | None = None
@@ -1684,10 +1870,11 @@ class BSEOfficialClient:
             headers = EASTMONEY_HEADERS
         elif disclosure.source == "bse_newshare":
             referer = disclosure.detail_url or "/newshare/listofissues.html"
-        self._notify_status(f"正在下载官网 PDF：{disclosure.title}")
+        source_label = "东方财富公告" if disclosure.source == "eastmoney" else "官网"
+        self._notify_status(f"正在下载{source_label} PDF：{disclosure.title}")
         binary = self._run_with_periodic_status(
             lambda: self._download_binary(disclosure.full_url, referer=referer, headers=headers),
-            "官网 PDF 仍在下载，请稍候...",
+            f"{source_label} PDF 仍在下载，请稍候...",
         )
         target_path.parent.mkdir(parents=True, exist_ok=True)
         _validate_pdf_binary(binary)
@@ -1807,7 +1994,7 @@ class BSEOfficialClient:
         output_dir: str | Path,
         overwrite: bool = False,
     ) -> tuple[IssueAnnouncementResolution, Path]:
-        resolution = self.resolve_issue_announcement_from_newshare_by_post_listing_code(code)
+        resolution = self.resolve_issue_announcement_by_post_listing_code(code)
         self._notify_status(
             f"已定位发行公告：{resolution.mapping.listed_company.post_listing_code} "
             f"{resolution.mapping.listed_company.short_name} / {resolution.disclosure.title}"
@@ -1826,7 +2013,7 @@ class BSEOfficialClient:
         output_dir: str | Path,
         overwrite: bool = False,
     ) -> tuple[IssueResultAnnouncementResolution, Path]:
-        resolution = self.resolve_issue_result_announcement_from_newshare_by_post_listing_code(code)
+        resolution = self.resolve_issue_result_announcement_by_post_listing_code(code)
         self._notify_status(
             f"已定位发行结果公告：{resolution.mapping.listed_company.post_listing_code} "
             f"{resolution.mapping.listed_company.short_name} / {resolution.disclosure.title}"
@@ -1845,7 +2032,9 @@ class BSEOfficialClient:
         output_dir: str | Path,
         overwrite: bool = False,
     ) -> tuple[ListingAnnouncementResolution, Path]:
-        resolution = self.resolve_listing_announcement_from_newshare_by_post_listing_code(code)
+        resolution = self._resolve_announcement_with_stock_fallback(
+            code, self.resolve_listing_announcement_from_newshare_by_post_listing_code, ListingAnnouncementResolution, "上市公告书"
+        )
         self._notify_status(
             f"已定位上市公告书：{resolution.mapping.listed_company.post_listing_code} "
             f"{resolution.mapping.listed_company.short_name} / {resolution.disclosure.title}"
