@@ -255,6 +255,29 @@ class FakeListingFailureClient:
         raise bse_ipo_valuation.bse_official_helper.BSEOfficialError("模拟未找到上市公告书")
 
 
+class FakeListingNotPublishedClient(FakeListingFailureClient):
+    def download_listing_announcement_from_newshare_by_post_listing_code(
+        self,
+        code: str,
+        output_dir: str | Path,
+        overwrite: bool = False,
+    ) -> tuple[None, Path]:
+        _ = (code, output_dir, overwrite)
+        type(self).listing_calls += 1
+        if self.status_callback is not None:
+            self.status_callback(f"resolved listing: {code}")
+        raise bse_ipo_valuation.bse_official_helper.BSEDisclosureNotPublishedError("上市公告书尚未发布")
+
+    def download_issue_result_announcement_from_newshare_by_post_listing_code(
+        self,
+        code: str,
+        output_dir: str | Path,
+        overwrite: bool = False,
+    ) -> tuple[None, Path]:
+        _ = (code, output_dir, overwrite)
+        raise bse_ipo_valuation.bse_official_helper.BSEDisclosureNotPublishedError("发行结果公告尚未发布")
+
+
 class FakeFailureClient:
     prospectus_calls = 0
     issue_calls = 0
@@ -326,6 +349,8 @@ def _run_case(
     expected_start_message: str,
     should_raise: bool,
     expect_listing_warning: bool,
+    expect_listing_skip: bool,
+    expect_issue_result_skip: bool,
     expect_prospectus_probe: bool,
     expect_issue_probe: bool,
     expect_listing_probe: bool,
@@ -447,6 +472,16 @@ def _run_case(
     )
     _assert(payload.get("listing_download_error") == expected_listing_error, "autodownload success: listing error text mismatch", failures)
     _assert(
+        bool(payload.get("listing_not_published")) == expect_listing_skip,
+        "autodownload success: listing not-published flag mismatch",
+        failures,
+    )
+    _assert(
+        bool(payload.get("issue_result_not_published")) == expect_issue_result_skip,
+        "autodownload success: issue-result not-published flag mismatch",
+        failures,
+    )
+    _assert(
         payload.get("issue_announcement_pdf_found") == (expected_issue_error == ""),
         "autodownload success: issue announcement found flag mismatch",
         failures,
@@ -456,6 +491,16 @@ def _run_case(
     _assert(
         any("上市公告书未下载，可手动补充" in item for item in messages) == expect_listing_warning,
         "autodownload success: listing warning mismatch",
+        failures,
+    )
+    _assert(
+        any("上市公告书尚未发布，已正常跳过" in item for item in messages) == expect_listing_skip,
+        "autodownload success: normal listing skip mismatch",
+        failures,
+    )
+    _assert(
+        any("发行结果公告尚未发布，已正常跳过" in item for item in messages) == expect_issue_result_skip,
+        "autodownload success: normal issue-result skip mismatch",
         failures,
     )
     _assert(len(list(TEMP_PDF_DIR.glob("*.pdf"))) == expected_pdf_count, "autodownload success: unexpected pdf count", failures)
@@ -614,6 +659,8 @@ def main() -> int:
         expected_start_message="招股说明书/发行公告/上市公告书探测中，请稍候。",
         should_raise=False,
         expect_listing_warning=False,
+        expect_listing_skip=False,
+        expect_issue_result_skip=False,
         expect_prospectus_probe=True,
         expect_issue_probe=True,
         expect_listing_probe=True,
@@ -628,6 +675,8 @@ def main() -> int:
         expected_start_message="招股说明书/发行公告/上市公告书探测中，请稍候。",
         should_raise=False,
         expect_listing_warning=True,
+        expect_listing_skip=False,
+        expect_issue_result_skip=False,
         expect_prospectus_probe=True,
         expect_issue_probe=True,
         expect_listing_probe=True,
@@ -642,6 +691,8 @@ def main() -> int:
         expected_start_message="发行公告/上市公告书探测中，请稍候。",
         should_raise=False,
         expect_listing_warning=True,
+        expect_listing_skip=False,
+        expect_issue_result_skip=False,
         expect_prospectus_probe=False,
         expect_issue_probe=True,
         expect_listing_probe=True,
@@ -650,12 +701,30 @@ def main() -> int:
         expected_listing_error="模拟未找到上市公告书",
     )
     _run_case(
+        FakeListingNotPublishedClient,
+        failures,
+        local_prospectus=False,
+        expected_start_message="招股说明书/发行公告/上市公告书探测中，请稍候。",
+        should_raise=False,
+        expect_listing_warning=False,
+        expect_listing_skip=True,
+        expect_issue_result_skip=True,
+        expect_prospectus_probe=True,
+        expect_issue_probe=True,
+        expect_listing_probe=True,
+        expected_pdf_count=2,
+        expected_issue_error="",
+        expected_listing_error="",
+    )
+    _run_case(
         FakeFailureClient,
         failures,
         local_prospectus=False,
         expected_start_message="招股说明书/发行公告/上市公告书探测中，请稍候。",
         should_raise=True,
         expect_listing_warning=False,
+        expect_listing_skip=False,
+        expect_issue_result_skip=False,
         expect_prospectus_probe=True,
         expect_issue_probe=False,
         expect_listing_probe=False,
@@ -672,7 +741,7 @@ def main() -> int:
             print(f"- {item}")
         return 1
 
-    print("\nProspectus autodownload validation passed: 6 cases")
+    print("\nProspectus autodownload validation passed: 7 cases")
     return 0
 
 

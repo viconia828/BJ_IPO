@@ -316,7 +316,37 @@ def _run_recent_market_level_ranking_case(failures: list[str]) -> None:
     _assert(
         tune_subscription_prediction._candidate_rank_key(adaptive)
         < tune_subscription_prediction._candidate_rank_key(stale),
-        "adaptive market level ranking: recent correction should enter scale loss",
+        "adaptive market level ranking: recent correction should lead ranking",
+        failures,
+    )
+    classification_first = {
+        **adaptive,
+        "top_apply_false_positive_codes": [],
+        "recent_guaranteed_mape": 0.10,
+        "recent_guaranteed_signed_bias": 0.02,
+    }
+    recent_first = {
+        **adaptive,
+        "top_apply_false_positive_codes": ["920099"],
+        "recent_guaranteed_mape": 0.08,
+        "recent_guaranteed_signed_bias": 0.01,
+    }
+    _assert(
+        tune_subscription_prediction._candidate_rank_key(recent_first)
+        < tune_subscription_prediction._candidate_rank_key(classification_first),
+        "adaptive market level ranking: one full-sample false positive must not override recent precision",
+        failures,
+    )
+    _assert(
+        tune_subscription_prediction._false_negative_guardrail_passed(
+            {"top_apply_false_negative_codes": ["1", "2"]},
+            max_false_negative_count=2,
+        )
+        and not tune_subscription_prediction._false_negative_guardrail_passed(
+            {"top_apply_false_negative_codes": ["1", "2", "3"]},
+            max_false_negative_count=2,
+        ),
+        "adaptive market level ranking: false-negative guardrail mismatch",
         failures,
     )
     ladder_only = {
@@ -518,10 +548,14 @@ def _run_auto_prior_branch_case(failures: list[str]) -> None:
         prior_min_source_sample_values=[3],
     )
     _assert(result.get("prior_candidate_count") == 1, "auto prior: candidate count mismatch", failures)
-    _assert(result.get("selected_branch") == "account_pool_prior", "auto prior: selected branch mismatch", failures)
-    selected = result.get("selected") or {}
-    _assert(selected.get("top_apply_false_negative_codes") == [], "auto prior: false negative not fixed", failures)
-    selected_params = selected.get("params") or {}
+    _assert(
+        result.get("selected_branch") == "none",
+        "auto prior: classification-only improvement must not override recent precision",
+        failures,
+    )
+    prior_best = ((result.get("account_pool_prior_branch") or {}).get("best") or {})
+    _assert(prior_best.get("top_apply_false_negative_codes") == [], "auto prior: false negative not fixed", failures)
+    selected_params = prior_best.get("params") or {}
     _assert_close(
         selected_params.get("subscription_prediction_account_pool_prior_weight"),
         1.0,

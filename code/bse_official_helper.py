@@ -90,6 +90,10 @@ class BSEOfficialError(RuntimeError):
     pass
 
 
+class BSEDisclosureNotPublishedError(BSEOfficialError):
+    """The optional disclosure is not expected to exist yet."""
+
+
 class _BSERedirectError(BSEOfficialError):
     pass
 
@@ -1588,6 +1592,8 @@ class BSEOfficialClient:
     ) -> _AnnouncementResolutionT:
         try:
             return resolver(code)
+        except BSEDisclosureNotPublishedError:
+            raise
         except BSEOfficialError as official_exc:
             self._notify_status(f"官网{document_type}暂不可用，正在查询东方财富公告备用源...")
             try:
@@ -1730,6 +1736,15 @@ class BSEOfficialClient:
         issue_detail = self.get_newshare_issue_detail(issue.issue_id)
         issue_files = self.list_newshare_listing_announcement_files(issue_detail, issue)
         if not issue_files:
+            listing_date = _normalize_date_text(issue.listing_date)
+            listing_not_reached = not listing_date
+            if listing_date:
+                try:
+                    listing_not_reached = date.fromisoformat(listing_date) >= date.today()
+                except ValueError:
+                    listing_not_reached = False
+            if listing_not_reached:
+                raise BSEDisclosureNotPublishedError("上市公告书尚未发布")
             raise BSEOfficialError("公开发行一览未找到上市公告书")
         return ListingAnnouncementResolution(
             mapping=mapping,
@@ -1760,6 +1775,15 @@ class BSEOfficialClient:
         issue_detail = self.get_newshare_issue_detail(issue.issue_id)
         issue_files = self.list_newshare_issue_result_announcement_files(issue_detail, issue)
         if not issue_files:
+            issue_result_date = _normalize_date_text(issue.issue_result_date)
+            result_not_reached = not issue_result_date
+            if issue_result_date:
+                try:
+                    result_not_reached = date.fromisoformat(issue_result_date) >= date.today()
+                except ValueError:
+                    result_not_reached = False
+            if result_not_reached:
+                raise BSEDisclosureNotPublishedError("发行结果公告尚未发布")
             raise BSEOfficialError("公开发行一览未找到发行结果公告")
         return IssueResultAnnouncementResolution(
             mapping=mapping,
@@ -1783,6 +1807,8 @@ class BSEOfficialClient:
             resolution = self.resolve_listing_announcement_from_newshare_by_post_listing_code(code)
             mapping = resolution.mapping
             return resolution
+        except BSEDisclosureNotPublishedError:
+            raise
         except BSEOfficialError as exc:
             newshare_error = str(exc)
 

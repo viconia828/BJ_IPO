@@ -1,3 +1,85 @@
+## 2026-09-17 19:22:56 申购资金自动调参（已接受）
+
+- 参数文件：D:\BJ_IPO\策略参数.txt
+- 历史样本：D:\BJ_IPO\data\offline_tuning\subscription_history_sample.csv
+- 主网格候选组数：197 / 计划 263
+- 主网格搜索模式：coarse_fine；细搜轮数 2
+- prior 分支候选组数：8
+- 选中分支：main_grid
+- baseline：MAE=28.3647 万元, MAPE=5.37%, 分档MAPE=13.01%, 近6 MAPE=3.92%, 近6偏差=0.97%, 水位因子=1.0450, 漏判=0, 误判=1, 评估=59
+- 主网格最优：MAE=28.9023 万元, MAPE=5.49%, 分档MAPE=13.37%, 近6 MAPE=3.84%, 近6偏差=0.06%, 水位因子=1.0450, 漏判=0, 误判=1, 评估=59
+- prior 分支最优：MAE=28.9023 万元, MAPE=5.49%, 分档MAPE=13.37%, 近6 MAPE=3.84%, 近6偏差=0.06%, 水位因子=1.0450, 漏判=0, 误判=1, 评估=59
+- 新参数：MAE=28.9023 万元, MAPE=5.49%, 分档MAPE=13.37%, 近6 MAPE=3.84%, 近6偏差=0.06%, 水位因子=1.0450, 漏判=0, 误判=1, 评估=59
+
+修改参数：
+- subscription_prediction_sample_decay_half_life_days: 6.25 -> 25
+- subscription_prediction_cap_factor_exponent: 0.45 -> 0.25
+- subscription_prediction_issue_factor_exponent: 0.65 -> 0.25
+- subscription_prediction_recent_market_level_adaptive_recent_samples: 4 -> 12
+- subscription_prediction_recent_market_level_adaptive_half_life_samples: 2 -> 4
+- subscription_prediction_similar_top_apply_frozen_weight: 0.85 -> 0.8
+
+## 2026-09-17 18:58:59 申购资金自动调参（已接受）
+
+- 参数文件：D:\BJ_IPO\策略参数.txt
+- 历史样本：D:\BJ_IPO\data\offline_tuning\subscription_history_sample.csv
+- 主网格候选组数：231 / 计划 259
+- 主网格搜索模式：coarse_fine；细搜轮数 2
+- prior 分支候选组数：8
+- 选中分支：main_grid
+- baseline：MAE=27.6190 万元, MAPE=4.99%, 分档MAPE=12.52%, 近6偏差=3.23%, 水位因子=1.0500, 漏判=0, 误判=1, 评估=59
+- 主网格最优：MAE=28.3647 万元, MAPE=5.37%, 分档MAPE=13.01%, 近6偏差=0.97%, 水位因子=1.0450, 漏判=0, 误判=1, 评估=59
+- prior 分支最优：MAE=28.3647 万元, MAPE=5.37%, 分档MAPE=13.01%, 近6偏差=0.97%, 水位因子=1.0450, 漏判=0, 误判=1, 评估=59
+- 新参数：MAE=28.3647 万元, MAPE=5.37%, 分档MAPE=13.01%, 近6偏差=0.97%, 水位因子=1.0450, 漏判=0, 误判=1, 评估=59
+
+修改参数：
+- subscription_prediction_issue_factor_exponent: 0.6 -> 0.65
+- subscription_prediction_recent_market_level_adaptive_weight: 1 -> 0.9
+- subscription_prediction_similar_top_apply_frozen_weight: 1 -> 0.85
+- subscription_prediction_similar_top_apply_frozen_bandwidth: 0.25 -> 0.19
+
+## 2026-09-17 18:55:52 自动调参（已接受）
+
+- 参数文件：D:\BJ_IPO\策略参数.txt
+- 评估范围：composite
+- 最终搜索轮次：第 5 轮
+- 方法三情绪样本窗口：30 天（recent_days）
+- 近期权重基准日：2026-09-16，评分权重衰减窗口：90 天
+- 最近 30 天样本最低总权重：0.5000
+- baseline 排序分：0.0285
+- 新参数排序分：0.0898
+- baseline 近期加权命中率：0.1668
+- 新参数近期加权命中率：0.2079
+- 新参数最近样本权重占比：0.8104
+- 新参数加权 MAE(涨幅)：59.0335
+- 正式写回安全门槛：通过
+- 三折时间切片门槛：暂时停用；状态：disabled_pending_calendar_walk_forward；路径：two_level
+- 时间切片报告：-
+- 全样本命中率 baseline / 新参数：0.2069 / 0.2241
+- 全样本 MAE baseline / 新参数：114.7821 / 110.0343
+- 全样本 P90 绝对误差 baseline / 新参数：274.2711 / 253.3500
+- 当前手动区间宽度诊断扣分：0.0500
+- 本地学习重排：已执行；是否改变核心最优：是
+- 综合学习分：0.1647
+- 保守动态区间加权命中率 / MAE / 平均宽度：0.3051 / 59.0335 / 10.74%
+- regime-break 加权命中率 / MAE / 平均宽度：0.3051 / 59.0335 / 10.74%
+- 滚动中枢加权命中率 / MAE / 平均宽度：0.4206 / 59.0335 / 18.07%
+- 本地学习重排作者输入：未使用
+
+修改参数：
+- bse_discount_factor: 0.7 -> 0.625
+- local_center_actual_cap_pct: 600 -> 450
+- local_center_alpha: 0.75 -> 0.6
+- local_center_history_window: 20 -> 17
+- local_center_slope_cap: 35 -> 32.5
+- method2_confidence_1_sample: 0.05 -> 0.25
+- method2_confidence_2_samples: 0.2 -> 0.5
+- method2_confidence_3_samples: 0.45 -> 0.75
+- method2_confidence_4plus_samples: 0.75 -> 1
+- sentiment_decay_half_life_days: 5 -> 10
+- sentiment_first_day_scale: 0.05 -> 0.225
+- sentiment_premium_cap_pct: 32.5 -> 20
+
 ## 2026-09-10 20:05:50 自动调参（已接受）
 
 - 参数文件：D:\BJ_IPO\策略参数.txt

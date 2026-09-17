@@ -10,7 +10,7 @@ CODE_DIR = ROOT_DIR / "code"
 if str(CODE_DIR) not in sys.path:
     sys.path.insert(0, str(CODE_DIR))
 
-from bse_official_helper import BSEOfficialClient, BSEOfficialError
+from bse_official_helper import BSEDisclosureNotPublishedError, BSEOfficialClient, BSEOfficialError
 
 
 DEFAULT_OUTPUT_DIR = ROOT_DIR / "公告文件"
@@ -115,6 +115,8 @@ def main() -> int:
         try:
             issue_result = client.resolve_issue_result_announcement_by_post_listing_code(args.code)
             _handle_resolution("发行结果公告", issue_result, client.build_issue_result_announcement_filename(issue_result))
+        except BSEDisclosureNotPublishedError as exc:
+            print(f"[发行结果公告] 正常跳过：{exc}")
         except BSEOfficialError as exc:
             print(f"[发行结果公告] 失败：{exc}")
             has_error = True
@@ -123,6 +125,8 @@ def main() -> int:
         try:
             listing = client.resolve_listing_announcement_by_post_listing_code(args.code)
             _handle_resolution("上市公告书", listing, client.build_listing_announcement_filename(listing))
+        except BSEDisclosureNotPublishedError as exc:
+            print(f"[上市公告书] 正常跳过：{exc}")
         except BSEOfficialError as exc:
             print(f"[上市公告书] 失败：{exc}")
             has_error = True

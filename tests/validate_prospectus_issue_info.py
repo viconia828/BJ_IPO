@@ -288,6 +288,7 @@ def _run_industry_mapping_case(failures: list[str]) -> None:
     chuangda_packaging = mapper.resolve_stock_industry("920012", {})
     _assert(chuangda_packaging.display_name == "信息技术 / 半导体制造", "industry mapping: 创达新材 semiconductor packaging materials should remain semiconductor", failures)
     confirmed_industries = {
+        "920025": "高端装备 / 机械设备",
         "920072": "医药生物 / 医疗器械",
         "920076": "化工新材 / 非金属材料",
         "920083": "化工新材 / 非金属材料",
@@ -306,6 +307,7 @@ def _run_industry_mapping_case(failures: list[str]) -> None:
         "920211": "高端装备 / 机械设备",
         "920218": "化工新材 / 橡胶和塑料制品业",
         "920222": "高端装备 / 电气设备",
+        "920229": "高端装备 / 机械设备",
         "920038": "化工新材 / 金属新材料",
         "920059": "高端装备 / 汽车零部件",
         "920065": "消费服务 / 商贸零售",

@@ -349,6 +349,43 @@ def _run_listing_download_case(failures: list[str]) -> None:
     print("OK newshare listing: downloaded official listing announcement from issue detail page")
 
 
+def _run_listing_not_published_case(failures: list[str]) -> None:
+    client = bse_official_helper.BSEOfficialClient(timeout=1)
+    client.resolve_newshare_issue_by_post_listing_code = lambda code: bse_official_helper.NewShareIssue(
+        issue_id=999,
+        post_listing_code=code,
+        pre_listing_code="874999",
+        stock_name="待上市公司",
+        company_name="待上市公司",
+        listing_date="",
+        issue_result_date="",
+    )
+    client.get_newshare_issue_detail = lambda issue_id: {"id": issue_id}
+    client.list_newshare_listing_announcement_files = lambda issue_detail, issue: []
+    client._list_stock_notice_documents = lambda code, document_type: (_ for _ in ()).throw(
+        AssertionError("not-yet-published listing must not query fallback feeds")
+    )
+
+    try:
+        client.download_listing_announcement_from_newshare_by_post_listing_code("920999", TEMP_DIR)
+    except bse_official_helper.BSEDisclosureNotPublishedError as exc:
+        _assert(str(exc) == "上市公告书尚未发布", "pending listing: error text mismatch", failures)
+    except Exception as exc:
+        failures.append(f"pending listing: unexpected error {exc}")
+    else:
+        failures.append("pending listing: expected not-published status")
+
+    try:
+        client.download_issue_result_announcement_from_newshare_by_post_listing_code("920999", TEMP_DIR)
+    except bse_official_helper.BSEDisclosureNotPublishedError as exc:
+        _assert(str(exc) == "发行结果公告尚未发布", "pending result: error text mismatch", failures)
+    except Exception as exc:
+        failures.append(f"pending result: unexpected error {exc}")
+    else:
+        failures.append("pending result: expected not-published status")
+    print("OK pending disclosures: unpublished result and listing skip fallback lookup")
+
+
 def main() -> int:
     failures: list[str] = []
     _run_issue_mapping_case(failures)
@@ -357,6 +394,7 @@ def main() -> int:
     _run_issue_announcement_download_case(failures)
     _run_issue_result_announcement_download_case(failures)
     _run_listing_download_case(failures)
+    _run_listing_not_published_case(failures)
 
     if failures:
         print("\nBSE newshare fallback validation failed:")
@@ -364,7 +402,7 @@ def main() -> int:
             print(f"- {item}")
         return 1
 
-    print("\nBSE newshare fallback validation passed: 6 cases")
+    print("\nBSE newshare fallback validation passed: 7 cases")
     return 0
 
 

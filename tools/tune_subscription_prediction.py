@@ -184,6 +184,7 @@ DEFAULT_ACCOUNT_POOL_PRIOR_BASE_PARAMS = {
 DEFAULT_ACCOUNT_POOL_PRIOR_WEIGHTS = [0.8, 1.0, 1.1, 1.2]
 DEFAULT_ACCOUNT_POOL_PRIOR_RECENT_SAMPLES = [8, 12]
 DEFAULT_ACCOUNT_POOL_PRIOR_HALF_LIVES = [4.0]
+MAX_FALSE_NEGATIVE_INCREASE = 1
 
 MAIN_TUNABLE_PARAM_KEYS = (
     tuple(DEFAULT_SEARCH_GRID.keys())
@@ -1403,19 +1404,27 @@ def _candidate_rank_key(summary: dict[str, Any]) -> tuple[float, ...]:
     resolved_mape = mape if mape is not None else 999.0
     resolved_recent_mape = recent_mape if recent_mape is not None else resolved_mape
     resolved_recent_bias = abs(recent_signed_bias) if recent_signed_bias is not None else resolved_recent_mape
-    # 规模主误差仍占多数权重，但近期 MAPE 与方向性偏差正式进入排名，
-    # 让资金水位突变能推动自适应候选胜出，而不是只出现在展示指标里。
-    scale_loss = 0.65 * resolved_mape + 0.25 * resolved_recent_mape + 0.10 * resolved_recent_bias
+    # 近期资金精度是主目标；全样本分类错误只在精度指标之后破同分。
+    # 漏判另由候选筛选的安全护栏限制，避免近期小样本导致分类明显失控。
+    recent_precision_loss = 0.75 * resolved_recent_mape + 0.25 * resolved_recent_bias
     return (
+        recent_precision_loss,
+        resolved_mape,
+        ladder_mape if ladder_mape is not None else 999.0,
         float(false_negative_count),
         float(false_positive_count),
-        scale_loss,
-        ladder_mape if ladder_mape is not None else 999.0,
-        resolved_recent_bias,
-        resolved_mape,
         mae if mae is not None else 999999.0,
         -metric_rows,
     )
+
+
+def _false_negative_guardrail_passed(
+    summary: dict[str, Any],
+    *,
+    max_false_negative_count: int,
+) -> bool:
+    false_negative_count = len(summary.get("top_apply_false_negative_codes") or [])
+    return false_negative_count <= max(max_false_negative_count, 0)
 
 
 def _summary_rank_key(summary: dict[str, Any]) -> tuple[float, ...]:
@@ -1523,6 +1532,8 @@ def evaluate_candidate_grid(
     )
     baseline["params"] = _main_tunable_snapshot(resolved_base_params)
     baseline["rank_key"] = _candidate_rank_key(baseline)
+    baseline_false_negative_count = len(baseline.get("top_apply_false_negative_codes") or [])
+    max_false_negative_count = baseline_false_negative_count + MAX_FALSE_NEGATIVE_INCREASE
 
     normalized_profile = str(search_profile or "coarse_fine").replace("-", "_").lower()
     use_coarse_fine = normalized_profile in {"coarse_fine", "coarsefine", "multi_round", "multiround"}
@@ -1580,15 +1591,20 @@ def evaluate_candidate_grid(
             )
             summary["params"] = _main_tunable_snapshot(params)
             summary["rank_key"] = _candidate_rank_key(summary)
+            summary["false_negative_guardrail_passed"] = _false_negative_guardrail_passed(
+                summary,
+                max_false_negative_count=max_false_negative_count,
+            )
             compact_summary = _compact_summary(summary)
             compact_summary["search_round"] = name
             ranked.append(compact_summary)
             round_count += 1
             evaluated_total += 1
-            if best_so_far is None or tuple(compact_summary.get("rank_key") or ()) < tuple(best_so_far.get("rank_key") or ()):
-                best_so_far = compact_summary
-            if round_best is None or tuple(compact_summary.get("rank_key") or ()) < tuple(round_best.get("rank_key") or ()):
-                round_best = compact_summary
+            if compact_summary.get("false_negative_guardrail_passed"):
+                if best_so_far is None or tuple(compact_summary.get("rank_key") or ()) < tuple(best_so_far.get("rank_key") or ()):
+                    best_so_far = compact_summary
+                if round_best is None or tuple(compact_summary.get("rank_key") or ()) < tuple(round_best.get("rank_key") or ()):
+                    round_best = compact_summary
             if progress_callback:
                 total_for_progress = planned_total if planned_total > 0 else evaluated_total
                 progress_interval = max(1, min(200, max(total_for_progress // 20, 1)))
@@ -1662,6 +1678,7 @@ def evaluate_candidate_grid(
         progress_callback(evaluated_total, evaluated_total, best_so_far)
 
     ranked.sort(key=lambda item: tuple(item.get("rank_key") or ()))
+    eligible_ranked = [item for item in ranked if item.get("false_negative_guardrail_passed")]
     return {
         "candidate_count": evaluated_total,
         "planned_candidate_count": planned_total,
@@ -1671,9 +1688,11 @@ def evaluate_candidate_grid(
         "top_n": max(top_n, 1),
         "min_history_samples": min_history_samples,
         "max_history_samples": max_history_samples,
+        "max_false_negative_count": max_false_negative_count,
+        "false_negative_guardrail_rejected_count": len(ranked) - len(eligible_ranked),
         "baseline": _compact_summary(baseline),
-        "best": ranked[0] if ranked else {},
-        "top_candidates": ranked[: max(top_n, 1)],
+        "best": eligible_ranked[0] if eligible_ranked else {},
+        "top_candidates": eligible_ranked[: max(top_n, 1)],
     }
 
 def _parse_int_values(text: str) -> list[int]:
@@ -1852,6 +1871,7 @@ def evaluate_account_pool_prior(
     min_uplift_ratio_values: list[float] | None = None,
     min_source_sample_values: list[int] | None = None,
     top_n: int = 5,
+    max_false_negative_count: int | None = None,
 ) -> dict[str, Any]:
     base_params = _resolve_subscription_base_params(base_params, DEFAULT_ACCOUNT_POOL_PRIOR_BASE_PARAMS)
     _preload_account_pool_rows_for_tuning(base_params)
@@ -1862,6 +1882,9 @@ def evaluate_account_pool_prior(
         params=base_params,
     )
     baseline["params"] = _subscription_auto_param_snapshot(base_params, include_prior=True)
+    if max_false_negative_count is None:
+        baseline_false_negative_count = len(baseline.get("top_apply_false_negative_codes") or [])
+        max_false_negative_count = baseline_false_negative_count + MAX_FALSE_NEGATIVE_INCREASE
 
     weight_values = weights or DEFAULT_ACCOUNT_POOL_PRIOR_WEIGHTS
     recent_values = recent_sample_values or DEFAULT_ACCOUNT_POOL_PRIOR_RECENT_SAMPLES
@@ -1893,22 +1916,29 @@ def evaluate_account_pool_prior(
         _attach_account_pool_prior_rollup(summary)
         summary["params"] = _subscription_auto_param_snapshot(params, include_prior=True)
         summary["rank_key"] = _candidate_rank_key(summary)
+        summary["false_negative_guardrail_passed"] = _false_negative_guardrail_passed(
+            summary,
+            max_false_negative_count=max_false_negative_count,
+        )
         ranked.append(_compact_summary(summary))
 
     ranked.sort(key=lambda item: tuple(item.get("rank_key") or ()))
-    minimal_trigger_ranked = sorted(ranked, key=_account_pool_prior_minimal_trigger_rank_key)
+    eligible_ranked = [item for item in ranked if item.get("false_negative_guardrail_passed")]
+    minimal_trigger_ranked = sorted(eligible_ranked, key=_account_pool_prior_minimal_trigger_rank_key)
     return {
         "candidate_count": len(ranked),
         "top_n": max(top_n, 1),
         "min_history_samples": min_history_samples,
         "max_history_samples": max_history_samples,
+        "max_false_negative_count": max_false_negative_count,
+        "false_negative_guardrail_rejected_count": len(ranked) - len(eligible_ranked),
         "min_uplift_ratio_values": min_uplift_values,
         "min_source_sample_values": min_source_values,
         "base_params": _main_tunable_snapshot(base_params),
         "baseline": _compact_summary(baseline),
-        "best": ranked[0] if ranked else {},
+        "best": eligible_ranked[0] if eligible_ranked else {},
         "minimal_trigger_best": minimal_trigger_ranked[0] if minimal_trigger_ranked else {},
-        "top_candidates": ranked[: max(top_n, 1)],
+        "top_candidates": eligible_ranked[: max(top_n, 1)],
     }
 
 
@@ -1960,6 +1990,10 @@ def evaluate_auto_with_prior_branch(
         min_uplift_ratio_values=prior_min_uplift_ratio_values,
         min_source_sample_values=prior_min_source_sample_values,
         top_n=top_n,
+        max_false_negative_count=(
+            len(baseline.get("top_apply_false_negative_codes") or [])
+            + MAX_FALSE_NEGATIVE_INCREASE
+        ),
     )
 
     prior_best = prior_result.get("best") or {}
@@ -2352,6 +2386,7 @@ def _format_metric_brief(summary: dict[str, Any]) -> str:
         f"MAE={_format_float(summary.get('guaranteed_amount_mae_wan'), 4)} 万元, "
         f"MAPE={_format_float((summary.get('guaranteed_amount_mape') or 0) * 100 if summary.get('guaranteed_amount_mape') is not None else None, 2)}%, "
         f"分档MAPE={_format_float((summary.get('manual_ladder_amount_mape') or 0) * 100 if summary.get('manual_ladder_amount_mape') is not None else None, 2)}%, "
+        f"近6 MAPE={_format_float((summary.get('recent_guaranteed_mape') or 0) * 100 if summary.get('recent_guaranteed_mape') is not None else None, 2)}%, "
         f"近6偏差={_format_float((summary.get('recent_guaranteed_signed_bias') or 0) * 100 if summary.get('recent_guaranteed_signed_bias') is not None else None, 2)}%, "
         f"水位因子={_format_float(summary.get('latest_recent_market_level_factor'), 4)}, "
         f"漏判={len(summary.get('top_apply_false_negative_codes') or [])}, "
@@ -2535,6 +2570,11 @@ def _print_subscription_auto_summary(result: dict[str, Any], *, best_beats_basel
         f"prior 分支 {result.get('prior_candidate_count', 0)}"
     )
     print(f"- 搜索模式：{result.get('search_profile') or 'base'}；细搜轮数 {result.get('fine_rounds', 0)}")
+    print(
+        f"- 排序口径：近6精度优先；漏判安全上限={result.get('max_false_negative_count', 0)}，"
+        f"主网格剔除={result.get('false_negative_guardrail_rejected_count', 0)}，"
+        f"prior 剔除={prior_branch.get('false_negative_guardrail_rejected_count', 0)}"
+    )
     print(f"- 当前参数：{_format_metric_brief(baseline)}")
     print(f"- 主网格最优：{_format_metric_brief(best)}")
     if prior_best:
@@ -2560,7 +2600,7 @@ def _run_auto_mode(
     rows: list[dict[str, Any]],
     strategy_params: dict[str, Any],
 ) -> int:
-    print("开始申购资金自动调参：按正股门槛、手工分档误差和抢时间漏判排序候选参数。", flush=True)
+    print("开始申购资金自动调参：近期资金精度优先，全样本精度其次，漏判设安全护栏。", flush=True)
     result = evaluate_auto_with_prior_branch(
         rows,
         min_history_samples=max(args.min_history_samples, 1),

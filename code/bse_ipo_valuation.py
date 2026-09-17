@@ -889,12 +889,12 @@ def _ensure_local_official_documents(
     directory: Path,
     code: str,
     progress_callback: Callable[[str], None] | None = None,
-) -> tuple[Path | None, str, Path | None, str, Path | None, str]:
+) -> tuple[Path | None, str, Path | None, str, Path | None, str, bool]:
     existing_prospectus = _pick_prospectus_pdf(directory, code, "old_shares")
     existing_issue_announcement = _find_pdf(directory, code, "发行公告")
     existing_listing = _find_pdf(directory, code, "上市公告书")
     if existing_prospectus is not None and existing_issue_announcement is not None and existing_listing is not None:
-        return existing_prospectus, "", existing_issue_announcement, "", existing_listing, ""
+        return existing_prospectus, "", existing_issue_announcement, "", existing_listing, "", False
 
     if progress_callback is not None:
         pending_labels: list[str] = []
@@ -914,6 +914,7 @@ def _ensure_local_official_documents(
     prospectus_download_error = ""
     issue_announcement_download_error = ""
     listing_download_error = ""
+    listing_not_published = False
     downloaded_path: Path | None = None
 
     if existing_prospectus is None:
@@ -932,7 +933,7 @@ def _ensure_local_official_documents(
         if existing_prospectus is None:
             if not prospectus_download_error:
                 prospectus_download_error = "招股说明书下载后仍未在本地找到可用文件"
-            return None, prospectus_download_error, existing_issue_announcement, "", existing_listing, ""
+            return None, prospectus_download_error, existing_issue_announcement, "", existing_listing, "", False
 
     if existing_issue_announcement is None:
         try:
@@ -951,6 +952,8 @@ def _ensure_local_official_documents(
                 directory,
                 overwrite=False,
             )
+        except bse_official_helper.BSEDisclosureNotPublishedError:
+            listing_not_published = True
         except bse_official_helper.BSEOfficialError as exc:
             listing_download_error = str(exc)
 
@@ -965,6 +968,7 @@ def _ensure_local_official_documents(
             issue_announcement_download_error,
             refreshed_listing or existing_listing,
             listing_download_error,
+            listing_not_published,
         )
     if existing_prospectus is not None:
         return (
@@ -974,6 +978,7 @@ def _ensure_local_official_documents(
             issue_announcement_download_error,
             refreshed_listing or existing_listing,
             listing_download_error,
+            listing_not_published,
         )
     if not prospectus_download_error and downloaded_path is not None and downloaded_path.exists():
         prospectus_download_error = f"招股说明书已下载到本地，但未识别为可用文件：{downloaded_path.name}"
@@ -986,6 +991,7 @@ def _ensure_local_official_documents(
         issue_announcement_download_error,
         refreshed_listing or existing_listing,
         listing_download_error,
+        listing_not_published,
     )
 
 
@@ -993,26 +999,28 @@ def _ensure_local_issue_result_announcement_pdf(
     directory: Path,
     code: str,
     progress_callback: Callable[[str], None] | None = None,
-) -> tuple[Path | None, str]:
+) -> tuple[Path | None, str, bool]:
     existing = _find_pdf(directory, code, "发行结果公告")
     if existing is not None:
-        return existing, ""
+        return existing, "", False
 
     try:
         client = bse_official_helper.BSEOfficialClient(status_callback=progress_callback)
         downloader = getattr(client, "download_issue_result_announcement_from_newshare_by_post_listing_code", None)
         if downloader is None:
-            return None, "当前下载客户端不支持发行结果公告"
+            return None, "当前下载客户端不支持发行结果公告", False
         _, downloaded_path = downloader(code, directory, overwrite=False)
+    except bse_official_helper.BSEDisclosureNotPublishedError:
+        return None, "", True
     except bse_official_helper.BSEOfficialError as exc:
-        return None, str(exc)
+        return None, str(exc), False
 
     refreshed = _find_pdf(directory, code, "发行结果公告")
     if refreshed is not None:
-        return refreshed, ""
+        return refreshed, "", False
     if downloaded_path.exists():
-        return None, f"发行结果公告已下载到本地，但未识别为可用文件：{downloaded_path.name}"
-    return None, "发行结果公告下载后仍未在本地找到可用文件"
+        return None, f"发行结果公告已下载到本地，但未识别为可用文件：{downloaded_path.name}", False
+    return None, "发行结果公告下载后仍未在本地找到可用文件", False
 
 
 def build_analysis_data(
@@ -1042,7 +1050,9 @@ def build_analysis_data(
     prospectus_download_error = ""
     issue_announcement_download_error = ""
     issue_result_announcement_download_error = ""
+    issue_result_not_published = False
     listing_download_error = ""
+    listing_not_published = False
     prospectus_issue_parse_error = ""
     issue_announcement_parse_error = ""
     issue_result_parse_error = ""
@@ -1056,6 +1066,7 @@ def build_analysis_data(
             issue_announcement_download_error,
             listing_pdf,
             listing_download_error,
+            listing_not_published,
         ) = _ensure_local_official_documents(
             pdf_dir,
             code,
@@ -1074,17 +1085,26 @@ def build_analysis_data(
             raise RequiredProspectusNotFoundError(f"未取到招股说明书，生成报告失败：{detail}")
 
         if listing_pdf is None and progress_callback is not None:
-            message = "上市公告书未下载，可手动补充；本次将按无上市公告书方式继续生成估值报告。"
-            if listing_download_error:
-                message = f"{message} 原因：{listing_download_error}"
+            if listing_not_published:
+                message = "上市公告书尚未发布，已正常跳过。"
+            else:
+                message = "上市公告书未下载，可手动补充；本次将按无上市公告书方式继续生成估值报告。"
+                if listing_download_error:
+                    message = f"{message} 原因：{listing_download_error}"
             progress_callback(message)
 
     if issue_result_announcement_pdf is None:
-        issue_result_announcement_pdf, issue_result_announcement_download_error = _ensure_local_issue_result_announcement_pdf(
+        (
+            issue_result_announcement_pdf,
+            issue_result_announcement_download_error,
+            issue_result_not_published,
+        ) = _ensure_local_issue_result_announcement_pdf(
             pdf_dir,
             code,
             progress_callback=progress_callback,
         )
+        if issue_result_not_published and progress_callback is not None:
+            progress_callback("发行结果公告尚未发布，已正常跳过。")
 
     prospectus_issue_pdf = old_shares_fallback_pdf or comparable_pdf or business_pdf
     if prospectus_issue_pdf:
@@ -1281,7 +1301,9 @@ def build_analysis_data(
         "prospectus_download_error": prospectus_download_error,
         "issue_announcement_download_error": issue_announcement_download_error,
         "issue_result_announcement_download_error": issue_result_announcement_download_error,
+        "issue_result_not_published": issue_result_not_published,
         "listing_download_error": listing_download_error,
+        "listing_not_published": listing_not_published,
         "issue_announcement_pdf_found": issue_announcement_pdf is not None,
         "issue_result_announcement_pdf_found": issue_result_announcement_pdf is not None,
         "listing_pdf_found": listing_pdf is not None,

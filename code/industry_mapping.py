@@ -4,11 +4,12 @@ from dataclasses import dataclass
 from typing import Any
 
 
-INDUSTRY_CLASSIFICATION_VERSION = 2
+INDUSTRY_CLASSIFICATION_VERSION = 3
 
 KNOWN_BSE_INDUSTRY_MAP: dict[str, tuple[str, str]] = {
     "920011": ("高端装备", "机械设备"),
     "920012": ("信息技术", "半导体制造"),
+    "920025": ("高端装备", "机械设备"),
     "920028": ("化工新材", "橡胶和塑料制品业"),
     "920036": ("消费服务", "消费电子"),
     "920050": ("医药生物", "医疗器械"),
@@ -47,6 +48,7 @@ KNOWN_BSE_INDUSTRY_MAP: dict[str, tuple[str, str]] = {
     "920218": ("化工新材", "橡胶和塑料制品业"),
     "920220": ("高端装备", "汽车零部件"),
     "920222": ("高端装备", "电气设备"),
+    "920229": ("高端装备", "机械设备"),
     # 2026-09-03 classification audit: legal industry is retained separately;
     # these are the peer groups used by valuation method 2.
     "920038": ("化工新材", "金属新材料"),
@@ -69,15 +71,18 @@ KNOWN_BSE_INDUSTRY_MAP: dict[str, tuple[str, str]] = {
 }
 
 KNOWN_BSE_BUSINESS_TAGS: dict[str, tuple[str, ...]] = {
+    "920025": ("轧辊", "热轧型钢关键部件"),
     "920038": ("贵金属选矿剂", "矿业化学品"),
     "920165": ("天然及发酵原料", "化妆品功效原料"),
     "920176": ("活性多肽", "化妆品功效原料"),
     "920201": ("生物医用材料", "植入耗材"),
+    "920229": ("工业数字印刷", "喷墨打印设备"),
     "920268": ("手术缝线", "介入耗材", "制药设备"),
 }
 
 MANUALLY_REVIEWED_BSE_CODES = frozenset(
     {
+        "920025",
         "920038",
         "920059",
         "920065",
@@ -90,6 +95,7 @@ MANUALLY_REVIEWED_BSE_CODES = frozenset(
         "920165",
         "920176",
         "920201",
+        "920229",
         "920238",
         "920258",
         "920268",
