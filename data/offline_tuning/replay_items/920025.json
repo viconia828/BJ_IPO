@@ -1,7 +1,7 @@
 {
   "schema": "offline_tuning_replay_item_v1",
   "cache_version": 9,
-  "generated_at": "2026-09-15 19:50:03",
+  "generated_at": "2026-09-21 22:47:04",
   "code": "920025",
   "listing_date": "2026-09-14",
   "record_signature": {
@@ -32,13 +32,13 @@
     "INDUSTRY_CODE": "C35",
     "industry_primary": "高端装备",
     "industry_secondary": "机械设备",
-    "industry_source": "record_mapping",
+    "industry_source": "built_in_sample_map",
     "statutory_industry": "专用设备制造业",
     "statutory_industry_code": "C35",
     "valuation_peer_group": "高端装备 / 机械设备",
-    "business_tags": "[]",
-    "industry_confidence": 0.8,
-    "industry_evidence": "['SW_INDUSTRY:专用设备制造业']"
+    "business_tags": "['轧辊', '热轧型钢关键部件']",
+    "industry_confidence": 1.0,
+    "industry_evidence": "['manual_review_2026-09-03']"
   },
   "pdf_signature": {
     "files": {
@@ -93,14 +93,17 @@
     "INDUSTRY_CODE": "C35",
     "industry_primary": "高端装备",
     "industry_secondary": "机械设备",
-    "industry_source": "record_mapping",
+    "industry_source": "built_in_sample_map",
     "statutory_industry": "专用设备制造业",
     "statutory_industry_code": "C35",
     "valuation_peer_group": "高端装备 / 机械设备",
-    "business_tags": [],
-    "industry_confidence": 0.8,
+    "business_tags": [
+      "轧辊",
+      "热轧型钢关键部件"
+    ],
+    "industry_confidence": 1.0,
     "industry_evidence": [
-      "SW_INDUSTRY:专用设备制造业"
+      "manual_review_2026-09-03"
     ],
     "old_shares": 0.0,
     "old_shares_desc": "待确认（当前按 0 万股计）",
@@ -165,13 +168,17 @@
       "INDUSTRY_PE_NEW": "issue_announcement:全文",
       "TOP_APPLY_MARKETCAP": "issue_announcement:全文",
       "SUBSCRIPTION_LIMIT_WAN_SHARES": "issue_announcement:全文",
-      "ONLINE_ISSUE_NUM": "issue_announcement:全文"
+      "ONLINE_ISSUE_NUM": "issue_announcement:全文",
+      "ONLINE_VA_NUM": "issue_result:result",
+      "ONLINE_ALLOCATED_ACCOUNTS": "issue_result:result",
+      "ONLINE_VA_SHARES": "issue_result:result",
+      "ONLINE_ES_MULTIPLE": "issue_result:result"
     },
     "announcement_fallback_parse_errors": [],
     "announcement_fallback_pdf_files": {
       "prospectus": "920025_凯达重工_招股说明书.pdf",
       "issue": "920025_凯达重工_发行公告.pdf",
-      "result": "",
+      "result": "920025_凯达重工_发行结果公告.pdf",
       "listing": ""
     }
   }

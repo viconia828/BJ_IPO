@@ -312,33 +312,6 @@ def _account_pool_basis_is_usable(value: Any) -> bool:
     return str(value or "").strip() not in ACCOUNT_POOL_UNINFORMATIVE_BASES
 
 
-def _account_pool_basis_is_calibrated(value: Any) -> bool:
-    return str(value or "").strip().startswith("calibrated_")
-
-
-def _row_has_account_pool_values(row: dict[str, Any], thresholds: list[float]) -> bool:
-    for threshold in thresholds:
-        prefix = _account_pool_column_prefix(threshold)
-        estimate = _safe_float(row.get(f"{prefix}_estimate"))
-        basis = row.get(f"{prefix}_basis")
-        if estimate is not None and _account_pool_basis_is_usable(basis):
-            return True
-    return False
-
-
-def _row_has_calibrated_account_pool(row: dict[str, Any], thresholds: list[float]) -> bool:
-    for threshold in thresholds:
-        prefix = _account_pool_column_prefix(threshold)
-        estimate = _safe_float(row.get(f"{prefix}_estimate"))
-        basis = row.get(f"{prefix}_basis")
-        if estimate is not None and _account_pool_basis_is_usable(basis) and _account_pool_basis_is_calibrated(basis):
-            return True
-    return False
-
-
-def _row_is_account_pool_snapshot(row: dict[str, Any]) -> bool:
-    return _is_enabled(row.get("account_pool_snapshot_state"), default=False)
-
 def _account_pool_runtime_cache(settings: dict[str, Any]) -> dict[str, Any]:
     cache = settings.get(ACCOUNT_POOL_RUNTIME_CACHE_KEY)
     if not isinstance(cache, dict):
@@ -388,7 +361,6 @@ def _build_account_pool_index(
     indexed_rows: list[dict[str, Any]] = []
     for row in clean_rows:
         points: list[tuple[float, float]] = []
-        has_calibrated = False
         for threshold in threshold_values:
             prefix = _account_pool_column_prefix(threshold)
             estimate = _safe_float(row.get(f"{prefix}_estimate"))
@@ -396,17 +368,12 @@ def _build_account_pool_index(
             if estimate is None or not _account_pool_basis_is_usable(basis):
                 continue
             points.append((threshold, max(float(estimate), 0.0)))
-            if _account_pool_basis_is_calibrated(basis):
-                has_calibrated = True
         points.sort(key=lambda item: item[0])
         indexed_rows.append(
             {
                 "row": row,
                 "code": str(row.get("security_code") or ""),
                 "sort_key": (str(row.get("apply_date") or ""), str(row.get("security_code") or "")),
-                "is_snapshot": _row_is_account_pool_snapshot(row),
-                "has_values": bool(points),
-                "has_calibrated": has_calibrated,
                 "point_amounts": [amount for amount, _ in points],
                 "point_estimates": [estimate for _, estimate in points],
             }
@@ -469,34 +436,6 @@ def _estimate_account_pool_accounts_ge_indexed(
     half_life: float,
 ) -> dict[str, Any]:
     sorted_rows = account_pool_index.get("sorted_rows") or []
-
-    for indexed_row in reversed(sorted_rows):
-        if not indexed_row.get("has_calibrated"):
-            continue
-        estimate = _indexed_row_estimate_accounts_ge(indexed_row, amount_wan)
-        if estimate is None:
-            continue
-        code = str(indexed_row.get("code") or "")
-        return {
-            "estimate": estimate,
-            "sample_count": 1,
-            "source_codes": [code] if code else [],
-            "basis": "latest_calibrated_account_pool_snapshot",
-        }
-
-    for indexed_row in reversed(sorted_rows):
-        if not indexed_row.get("is_snapshot") or not indexed_row.get("has_values"):
-            continue
-        estimate = _indexed_row_estimate_accounts_ge(indexed_row, amount_wan)
-        if estimate is None:
-            continue
-        code = str(indexed_row.get("code") or "")
-        return {
-            "estimate": estimate,
-            "sample_count": 1,
-            "source_codes": [code] if code else [],
-            "basis": "latest_account_pool_snapshot",
-        }
 
     samples: list[tuple[float, float, str]] = []
     for indexed_row in reversed(sorted_rows):
@@ -602,36 +541,6 @@ def _estimate_account_pool_accounts_ge(
         rows,
         key=lambda row: (str(row.get("apply_date") or ""), str(row.get("security_code") or "")),
     )
-
-    for row in reversed(sorted_rows):
-        if not _row_has_calibrated_account_pool(row, thresholds):
-            continue
-        estimate = _row_estimate_accounts_ge(row, amount_wan, thresholds)
-        if estimate is None:
-            continue
-        code = str(row.get("security_code") or "")
-        return {
-            "estimate": estimate,
-            "sample_count": 1,
-            "source_codes": [code] if code else [],
-            "basis": "latest_calibrated_account_pool_snapshot",
-        }
-
-    for row in reversed(sorted_rows):
-        if not _row_is_account_pool_snapshot(row):
-            continue
-        if not _row_has_account_pool_values(row, thresholds):
-            continue
-        estimate = _row_estimate_accounts_ge(row, amount_wan, thresholds)
-        if estimate is None:
-            continue
-        code = str(row.get("security_code") or "")
-        return {
-            "estimate": estimate,
-            "sample_count": 1,
-            "source_codes": [code] if code else [],
-            "basis": "latest_account_pool_snapshot",
-        }
 
     samples: list[tuple[float, float, str]] = []
     for row in reversed(sorted_rows):

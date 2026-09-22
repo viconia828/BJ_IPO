@@ -800,35 +800,70 @@ def _run_account_pool_runtime_index_cache_case(failures: list[str]) -> None:
         "account pool cache: prediction amount changed",
         failures,
     )
-def _run_latest_calibrated_account_pool_snapshot_case(failures: list[str]) -> None:
+def _run_recent_account_pool_aggregation_case(failures: list[str]) -> None:
     older_row = {
         "security_code": "920800",
-        "apply_date": "2026-06-20",
-        "accounts_ge_1w_estimate": 10,
+        "apply_date": "2026-06-10",
+        "accounts_ge_1w_estimate": 100,
         "accounts_ge_1w_basis": "exact_observed_threshold",
     }
-    latest_row = {
+    middle_row = {
         "security_code": "920801",
+        "apply_date": "2026-06-20",
+        "account_pool_snapshot_state": "true",
+        "accounts_ge_1w_estimate": 110,
+        "accounts_ge_1w_basis": "observed_threshold",
+    }
+    latest_row = {
+        "security_code": "920802",
         "apply_date": "2026-06-30",
-        "accounts_ge_1w_estimate": 90,
+        "account_pool_snapshot_state": "true",
+        "accounts_ge_1w_estimate": 20,
         "accounts_ge_1w_basis": "calibrated_exact_observed_threshold",
+    }
+    rows = [older_row, middle_row, latest_row]
+    settings = {
+        "subscription_prediction_account_pool_recent_samples": 3,
+        "subscription_prediction_account_pool_half_life_samples": 2,
     }
     estimate = subscription_predictor._estimate_account_pool_accounts_ge(
         amount_wan=1.0,
-        rows=[older_row, latest_row],
+        rows=rows,
         thresholds=[1.0],
         top_apply_amount_wan=2.0,
-        settings={},
+        settings=settings,
     )
-    _assert_close(estimate.get("estimate"), 90.0, "latest calibrated account pool: estimate mismatch", failures)
+    _assert_close(estimate.get("estimate"), 100.0, "recent account pool: estimate mismatch", failures)
     _assert(
-        estimate.get("basis") == "latest_calibrated_account_pool_snapshot",
-        "latest calibrated account pool: basis mismatch",
+        estimate.get("basis") == "recent_account_pool_thresholds",
+        "recent account pool: basis mismatch",
         failures,
     )
     _assert(
-        estimate.get("source_codes") == ["920801"],
-        "latest calibrated account pool: source code mismatch",
+        estimate.get("source_codes") == ["920802", "920801", "920800"],
+        "recent account pool: source code mismatch",
+        failures,
+    )
+    _assert(estimate.get("sample_count") == 3, "recent account pool: sample count mismatch", failures)
+
+    index = subscription_predictor._build_account_pool_index(
+        rows,
+        [1.0],
+        source="test",
+        signature=("test",),
+    )
+    indexed_estimate = subscription_predictor._estimate_account_pool_accounts_ge(
+        amount_wan=1.0,
+        rows=rows,
+        thresholds=[1.0],
+        top_apply_amount_wan=2.0,
+        settings=settings,
+        account_pool_index=index,
+    )
+    _assert_close(indexed_estimate.get("estimate"), 100.0, "indexed recent account pool: estimate mismatch", failures)
+    _assert(
+        indexed_estimate.get("source_codes") == ["920802", "920801", "920800"],
+        "indexed recent account pool: source code mismatch",
         failures,
     )
 
@@ -853,7 +888,7 @@ def _run_observed_account_pool_snapshot_runtime_interpolation_case(failures: lis
     )
     _assert_close(estimate.get("estimate"), 70.0, "observed snapshot interpolation: estimate mismatch", failures)
     _assert(
-        estimate.get("basis") == "latest_account_pool_snapshot",
+        estimate.get("basis") == "recent_account_pool_thresholds",
         "observed snapshot interpolation: basis mismatch",
         failures,
     )
@@ -1133,7 +1168,7 @@ def main() -> int:
     _run_historical_sample_date_order_case(failures)
     _run_account_pool_fractional_threshold_case(failures)
     _run_account_pool_runtime_index_cache_case(failures)
-    _run_latest_calibrated_account_pool_snapshot_case(failures)
+    _run_recent_account_pool_aggregation_case(failures)
     _run_observed_account_pool_snapshot_runtime_interpolation_case(failures)
     _run_account_pool_fully_covered_fractional_case(failures)
     _run_top_apply_below_guaranteed_case(failures)
