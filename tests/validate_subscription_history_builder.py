@@ -117,6 +117,19 @@ def _run_missing_result_case(failures: list[str]) -> None:
     _assert_close(row.get("issue_amount_yi"), 0.1, "missing result: issue amount mismatch", failures)
     _assert("ONLINE_VA_SHARES/FROZEN_FUNDS_YI" in str(row.get("missing_fields")), "missing result: missing field absent", failures)
 
+    placeholder_rows = build_subscription_history.build_subscription_history_rows(
+        [{
+            "SECURITY_CODE": "920202",
+            "SECURITY_NAME_ABBR": "安达股份",
+            "APPLY_DATE": "2026-09-16",
+            "LISTING_DATE": "2026-09-16",
+            "ISSUE_PRICE": 7.55,
+            "TOTAL_ISSUE_NUM": 2800.0,
+        }],
+        pdf_dir=Path(tempfile.gettempdir()) / "missing_subscription_history_pdf_dir",
+    )
+    _assert(placeholder_rows[0].get("listing_date") == "", "subscription date placeholder must not be exported as listing date", failures)
+
 
 def _run_download_skip_codes_case(failures: list[str]) -> None:
     calls: list[tuple[str, str]] = []

@@ -134,6 +134,7 @@ BUSINESS_TRIM_MARKERS = (
     "二、控股股东",
     "二、 控股股东",
     "（一）技术创新",
+    "基于所处行业、业务性质",
 )
 PROSPECTUS_ISSUE_SECTION_PATTERNS = (
     "本次发行概况",
@@ -358,6 +359,17 @@ PROSPECTUS_ISSUE_PRICE_PATTERNS = (
     re.compile(rf"(?:每股发行价格|发行价格|发行价)[^0-9]{{0,24}}(?P<value>{NUMERIC_TOKEN_PATTERN})元(?:/股)?"),
     re.compile(rf"(?P<value>{NUMERIC_TOKEN_PATTERN})元/股"),
 )
+PROSPECTUS_SECURITY_NAME_PATTERNS = (
+    re.compile(
+        r"(?:发行人的?)?(?:股票|证券)简称(?:为|:)?[\"“']"
+        r"(?P<name>[\u4e00-\u9fffA-Za-z0-9]{2,16})[\"”']"
+    ),
+    re.compile(
+        r"(?:发行人的?)?(?:股票|证券)简称(?:为|:)?"
+        r"(?P<name>[\u4e00-\u9fffA-Za-z0-9]{2,16}?)"
+        r"(?=证券代码|股票代码|定价方式|发行方式|每股发行价格|发行价格|发行市盈率|$)"
+    ),
+)
 PROSPECTUS_TOTAL_ISSUE_PATTERNS = (
     re.compile(
         rf"(?:本次公开发行股票数量|本次公开发行股份数量|本次发行股票数量|本次发行股份数量|"
@@ -493,11 +505,11 @@ PROSPECTUS_INDUSTRY_PATTERNS = (
 )
 PARSE_CACHE_SCHEMA = "pdf_parse_cache_v1"
 PARSE_CACHE_KIND_VERSIONS = {
-    "prospectus_issue_info": 8,
-    "issue_announcement_info": 6,
+    "prospectus_issue_info": 10,
+    "issue_announcement_info": 8,
     "issue_result_info": 5,
-    "comparable_companies": 22,
-    "business_desc": 4,
+    "comparable_companies": 25,
+    "business_desc": 7,
 }
 PARSE_CACHE_DIR = Path(__file__).resolve().parents[1] / "data" / "pdf_parse_cache"
 _CACHE_MISSING = object()
@@ -646,7 +658,8 @@ def _extract_compact_section(
         for item in _find_anchor_positions(compact_text, stop_anchors, start=section_index + len(section_anchor))
         if item[0] > section_index
     ]
-    section_end = min((index for index, _ in stop_positions), default=min(len(compact_text), section_index + fallback_radius))
+    radius_end = min(len(compact_text), section_index + fallback_radius)
+    section_end = min([radius_end, *(index for index, _ in stop_positions)])
     return compact_text[section_index:section_end], section_anchor
 
 
@@ -797,6 +810,31 @@ def _extract_price_way_from_prospectus_text(result: dict[str, dict[str, object]]
         if keyword == "直接定价" or any(marker in context for marker in ("定价方式", "发行价格", "确定发行价格", "发行方式")):
             _set_prospectus_issue_field(result, "PRICE_WAY", label, rule, search_text, index)
             return
+
+
+def _extract_security_name_from_prospectus_text(
+    result: dict[str, dict[str, object]],
+    search_text: str,
+    rule: str,
+) -> None:
+    if "SECURITY_NAME_ABBR" in result["fields"]:
+        return
+    for pattern in PROSPECTUS_SECURITY_NAME_PATTERNS:
+        match = pattern.search(search_text)
+        if not match:
+            continue
+        name = str(match.group("name") or "").strip()
+        if not name or name.isdigit():
+            continue
+        _set_prospectus_issue_field(
+            result,
+            "SECURITY_NAME_ABBR",
+            name,
+            rule,
+            search_text,
+            match.start(),
+        )
+        return
 
 
 def _extract_industry_from_prospectus_text(result: dict[str, dict[str, object]], search_text: str, rule: str) -> None:
@@ -1016,6 +1054,7 @@ def _extract_prospectus_issue_info_from_text(text: str) -> dict[str, object]:
         "raw_snippets": {},
     }
     for search_text, rule in _build_prospectus_issue_search_targets(text):
+        _extract_security_name_from_prospectus_text(result, search_text, rule)
         _extract_price_way_from_prospectus_text(result, search_text, rule)
         _extract_industry_from_prospectus_text(result, search_text, rule)
         _extract_numeric_patterns(result, search_text, rule, "ISSUE_PRICE", PROSPECTUS_ISSUE_PRICE_PATTERNS)
@@ -1657,6 +1696,11 @@ def _extract_explicit_selection_codes(text: str) -> list[str]:
                 if match_with_code:
                     corrections[_normalize_code(match_with_code.group("code"))] = canonical_code
             direct_codes = [corrections.get(code, code) for code in direct_codes]
+            if re.search(r"等[一二三四五六七八九十百0-9]+家", sentence) or "具体情况如下" in sentence:
+                evidence = text[left : min(len(text), right + 3600)]
+                table_codes = CODE_PATTERN.findall(evidence)
+                if len(_dedupe_codes(table_codes)) > len(_dedupe_codes(direct_codes)):
+                    direct_codes = table_codes
             codes.extend(direct_codes)
             continue
 
@@ -1672,6 +1716,16 @@ def _extract_explicit_selection_codes(text: str) -> list[str]:
             if code:
                 sentence_codes.append(code)
         if sentence_codes:
+            # The prose can name only representative peers ("A、B、C 等十家")
+            # while the immediately following table contains the complete set.
+            # Preserve those explicit table codes instead of returning the
+            # partial name-based match.
+            if re.search(r"等[一二三四五六七八九十百0-9]+家", sentence) or "具体情况如下" in sentence:
+                evidence = text[left : min(len(text), right + 3600)]
+                table_codes = CODE_PATTERN.findall(evidence)
+                if table_codes:
+                    codes.extend(table_codes)
+                    continue
             codes.extend(sentence_codes)
             continue
 
@@ -1915,6 +1969,11 @@ def _clean_business_desc(text: str) -> str:
         "公司",
         cleaned,
     )
+    cleaned = re.split(
+        r"[，,]\s*不属于(?:矿山企业|建筑施工企业|危险化学品)",
+        cleaned,
+        maxsplit=1,
+    )[0]
     for marker in BUSINESS_TRIM_MARKERS:
         idx = cleaned.find(marker)
         if idx > 20:
@@ -1979,12 +2038,16 @@ def _score_business_desc(text: str) -> tuple[int, int]:
         score += 2
     if "解决方案" in current:
         score += 2
+    if "主要产品包括" in current:
+        score += 3
     if "研发、生产和销售" in current or "研发、制造和销售" in current:
         score += 1
     if 30 <= len(current) <= 180:
         score += 1
     if re.search(r"20\d{2}\s*年", current):
         score -= 2
+    if any(marker in current for marker in ("所得税", "减免政策", "关联交易", "；2）", "；3）")):
+        score -= 5
     if any(name in current for name in COMPARABLE_NAME_CODE_FALLBACKS):
         score -= 4
     for marker in BUSINESS_NOISE_MARKERS:

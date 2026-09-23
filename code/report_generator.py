@@ -142,6 +142,14 @@ def _filter_recent_items_by_days(
         listing_date = _parse_date(item.get("LISTING_DATE"))
         if listing_date is None:
             continue
+        if str(item.get("LISTING_DATE_SOURCE") or "").strip() == "apply_date_fallback":
+            continue
+        if listing_date == _parse_date(item.get("APPLY_DATE")):
+            continue
+        close_price = _safe_float(item.get("CLOSE_PRICE"))
+        average_price = _safe_float(item.get("AVERAGE_PRICE"))
+        if not ((close_price is not None and close_price > 0) or (average_price is not None and average_price > 0)):
+            continue
         if start_date <= listing_date <= end_date:
             filtered.append(item)
 
@@ -840,6 +848,10 @@ def _build_report_html(context: dict[str, Any]) -> str:
       color: #64748b;
       font-size: 10px;
     }}
+    .recent-listings {{
+      break-inside: avoid;
+      page-break-inside: avoid;
+    }}
   </style>
 </head>
 <body>
@@ -879,10 +891,11 @@ def _build_report_html(context: dict[str, Any]) -> str:
   <h2>五、关注提示</h2>
   <ul>{notes_html}</ul>
 
-  <h2>近期北交所新股首日表现一览（近{html.escape(str(context['recent_days']))}天）</h2>
-  {recent_table}
-
-  <p class="footnote">以上分析基于历史数据统计和公开数据整理，仅供参考，不构成投资建议。</p>
+  <section class="recent-listings">
+    <h2>近期北交所新股首日表现一览（近{html.escape(str(context['recent_days']))}天）</h2>
+    {recent_table}
+    <p class="footnote">以上分析基于历史数据统计和公开数据整理，仅供参考，不构成投资建议。</p>
+  </section>
 </body>
 </html>
 """

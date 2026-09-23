@@ -20,6 +20,7 @@ import report_source_helper
 
 PROSPECTUS_TEXT = """
 本次发行概况
+证券简称：金戈新材
 定价方式 发行人和主承销商采用直接定价的方式确定发行价格
 每股发行价格 9.65 元/股
 发行后市盈率（倍） 14.93
@@ -32,6 +33,7 @@ PROSPECTUS_TEXT = """
 
 ISSUE_ANNOUNCEMENT_TEXT = """
 发行公告
+发行人的股票简称为“金戈新材”，证券代码“920083”。
 发行方式 发行人和主承销商采用直接定价方式发行
 发行价格为 9.65 元/股
 发行后市盈率 14.93 倍
@@ -89,6 +91,7 @@ def _assert_close(actual: Any, expected: float, message: str, failures: list[str
 def _run_parser_case(failures: list[str]) -> dict[str, Any]:
     result = pdf_parser._extract_prospectus_issue_info_from_text(PROSPECTUS_TEXT)
     fields = result.get("fields") or {}
+    _assert(fields.get("SECURITY_NAME_ABBR") == "金戈新材", "parser: SECURITY_NAME_ABBR mismatch", failures)
     _assert(fields.get("PRICE_WAY") == "直接定价", "parser: PRICE_WAY mismatch", failures)
     _assert(fields.get("INDUSTRY") == "非金属矿物制品业", "parser: INDUSTRY mismatch", failures)
     _assert(fields.get("INDUSTRY_CODE") == "C30", "parser: INDUSTRY_CODE mismatch", failures)
@@ -173,6 +176,11 @@ def _run_issue_announcement_fallback_case(failures: list[str]) -> None:
     result = pdf_parser._extract_issue_announcement_info_from_text(ISSUE_ANNOUNCEMENT_TEXT)
     fields = result.get("fields") or {}
     sources = result.get("field_sources") or {}
+    _assert(
+        fields.get("SECURITY_NAME_ABBR") == "金戈新材",
+        "issue announcement parser: SECURITY_NAME_ABBR mismatch",
+        failures,
+    )
     _assert(fields.get("PRICE_WAY") == "直接定价", "issue announcement parser: PRICE_WAY mismatch", failures)
     _assert(fields.get("APPLY_DATE") == "2026-06-01", "issue announcement parser: APPLY_DATE mismatch", failures)
     _assert_close(fields.get("ISSUE_PRICE"), 9.65, "issue announcement parser: ISSUE_PRICE mismatch", failures)
@@ -199,7 +207,7 @@ def _run_issue_announcement_fallback_case(failures: list[str]) -> None:
 
     ipo_info = {
         "SECURITY_CODE": "920083",
-        "SECURITY_NAME_ABBR": "金戈新材",
+        "SECURITY_NAME_ABBR": None,
         "ISSUE_PRICE": None,
         "AFTER_ISSUE_PE": None,
         "TOP_APPLY_MARKETCAP": None,
@@ -214,6 +222,11 @@ def _run_issue_announcement_fallback_case(failures: list[str]) -> None:
     )
     _assert("ISSUE_PRICE" in applied, "issue announcement apply: ISSUE_PRICE not applied", failures)
     _assert("TOP_APPLY_MARKETCAP" in applied, "issue announcement apply: TOP_APPLY_MARKETCAP not applied", failures)
+    _assert(
+        ipo_info.get("SECURITY_NAME_ABBR") == "金戈新材",
+        "issue announcement apply: SECURITY_NAME_ABBR missing",
+        failures,
+    )
     _assert(summary.get("issue_announcement_supplement_used") is True, "issue announcement apply: summary flag missing", failures)
 
     source_text = report_source_helper.build_ipo_source_text(
@@ -320,6 +333,7 @@ def _run_industry_mapping_case(failures: list[str]) -> None:
         "920165": "医药生物 / 生物制品",
         "920176": "医药生物 / 生物制品",
         "920201": "医药生物 / 医疗器械",
+        "920202": "高端装备 / 汽车零部件",
         "920238": "高端装备 / 金属制品业",
         "920258": "化工新材 / 化学制品",
         "920268": "医药生物 / 医疗器械",

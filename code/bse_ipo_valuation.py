@@ -242,6 +242,7 @@ def _load_comparable_codes(params: dict[str, Any], prospectus_pdf: Path | None) 
 
 
 ISSUE_DOCUMENT_SUPPLEMENT_FIELDS = (
+    "SECURITY_NAME_ABBR",
     "PRICE_WAY",
     "APPLY_DATE",
     "ISSUE_PRICE",
@@ -321,6 +322,13 @@ def _build_subscription_history_overlay(row: dict[str, Any]) -> dict[str, Any] |
     for csv_field, target_field in text_fields:
         value = _history_text(row, csv_field)
         if value is not None:
+            if (
+                target_field == "LISTING_DATE"
+                and value == _history_text(row, "apply_date")
+            ):
+                # Offline replay may use the subscription date only as a
+                # chronology placeholder. It is not a verified listing date.
+                continue
             overlay[target_field] = value
 
     if overlay.get("ISSUE_RESULT_DATE"):
@@ -403,6 +411,10 @@ def _overlay_subscription_history_recent_ipos(
             applied_fields: list[str] = []
             for field_name, value in overlay.items():
                 if _value_is_missing(value):
+                    continue
+                if field_name == "LISTING_DATE" and not _value_is_missing(merged.get(field_name)):
+                    # A live market record's listing date outranks the
+                    # subscription-history snapshot.
                     continue
                 if merged.get(field_name) != value:
                     applied_fields.append(field_name)
@@ -572,6 +584,12 @@ TARGET_SUBSCRIPTION_HISTORY_OVERWRITE_FIELDS = {
 
 def _target_code(ipo_info: dict[str, Any]) -> str:
     return str(ipo_info.get("SECURITY_CODE") or ipo_info.get("code") or "").strip()
+
+
+def _local_center_history_cutoff_date(ipo_info: dict[str, Any]) -> Any:
+    # An unknown listing date must not be replaced in the IPO record itself.
+    # The future application date can still bound completed history samples.
+    return ipo_info.get("LISTING_DATE") or ipo_info.get("APPLY_DATE")
 
 
 def _overlay_subscription_history_target_ipo(
@@ -1239,6 +1257,7 @@ def build_analysis_data(
         target_listing_date=ipo_info.get("LISTING_DATE"),
     )
     final = valuation_engine.composite_valuation(method1, method2, params, method3=method3)
+    local_center_reference_date = _local_center_history_cutoff_date(ipo_info)
     final = valuation_engine.apply_local_center_overlay(
         final,
         issue_price=issue_price,
@@ -1250,7 +1269,7 @@ def build_analysis_data(
         recent_ipos=recent_ipos,
         params=params,
         target_code=code,
-        target_listing_date=ipo_info.get("LISTING_DATE"),
+        target_listing_date=local_center_reference_date,
         online_issue_num=_safe_float(ipo_info.get("ONLINE_ISSUE_NUM")),
         top_apply_marketcap=_safe_float(ipo_info.get("TOP_APPLY_MARKETCAP")),
     )

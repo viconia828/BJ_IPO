@@ -4,6 +4,7 @@ from typing import Any
 
 
 SUPPLEMENT_FIELD_LABELS = {
+    "SECURITY_NAME_ABBR": "股票简称",
     "APPLY_DATE": "申购日期",
     "PRICE_WAY": "定价方式",
     "ISSUE_PRICE": "发行价格",

@@ -33,6 +33,7 @@ def generate_notes(data_dict: dict[str, Any], params: dict[str, Any]) -> list[st
     method1 = data_dict.get("method1", {}) or {}
     method3 = data_dict.get("method3", {}) or {}
     old_shares_meta = data_dict.get("old_shares_meta", {}) or {}
+    subscription_prediction = data_dict.get("subscription_prediction", {}) or {}
 
     if industry.get("primary") == "\u672a\u5206\u7c7b" or industry.get("secondary") == "\u672a\u5206\u7c7b":
         notes.append("当前标的尚未完成二级行业映射，方法二不再回退一级行业或全市场样本。")
@@ -42,7 +43,11 @@ def generate_notes(data_dict: dict[str, Any], params: dict[str, Any]) -> list[st
         if ratio < float(params.get("pe_low_threshold", 0.3)):
             notes.append("发行 PE 明显低于披露的行业 PE，方法一已计入有限的低估修正。")
         elif ratio > float(params.get("pe_high_threshold", 0.6)):
-            notes.append("发行 PE 相对行业 PE 偏高；EPS 已反映该影响，当前不再重复施加高 PE 惩罚。")
+            threshold = float(params.get("pe_high_threshold", 0.6))
+            notes.append(
+                f"发行 PE / 行业 PE 已高于参数设定的 {threshold:.0%} 关注阈值；"
+                "EPS 已反映该影响，当前不再重复施加高 PE 惩罚。"
+            )
 
     if float_shares is not None and float_shares < float(params.get("float_size_threshold", 2000)):
         notes.append("首日流通盘偏小，方法一已连续计入流通盘溢价；方法二仍保持纯行业口径。")
@@ -63,5 +68,24 @@ def generate_notes(data_dict: dict[str, Any], params: dict[str, Any]) -> list[st
     )
     if old_shares_note:
         notes.append(old_shares_note)
+
+    account_pool_estimate = subscription_prediction.get("account_pool_fractional_estimate") or {}
+    effective_source_count = int(account_pool_estimate.get("effective_source_count") or 0)
+    if (
+        account_pool_estimate.get("cutoff_basis") == "interpolated_account_pool_cutoff"
+        and 0 < effective_source_count < 3
+    ):
+        threshold = _safe_float(subscription_prediction.get("fractional_threshold_amount_wan"))
+        raw_cutoff = _safe_float(account_pool_estimate.get("raw_cutoff_amount_wan"))
+        snapshot_count = int(account_pool_estimate.get("sample_count") or 0)
+        source_codes = [str(code) for code in account_pool_estimate.get("effective_source_codes") or [] if str(code)]
+        if threshold is not None and raw_cutoff is not None:
+            source_text = f"（{'、'.join(source_codes)}）" if source_codes else ""
+            notes.append(
+                f"碎股门槛 {threshold:.2f} 万元为账户池插值：原始交点约 {raw_cutoff:.2f} 万元，"
+                f"按 100 股申购单位向上取整。虽然参考了近期 {snapshot_count} 期账户池快照，"
+                f"该金额附近只有 {effective_source_count} 个独立历史来源{source_text}，"
+                "其余快照沿用既有曲线；该数值仅作低置信度参考。"
+            )
 
     return notes

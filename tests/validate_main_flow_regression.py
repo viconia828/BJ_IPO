@@ -433,6 +433,49 @@ def _assert_unlisted_issue_result_overlay(failures: list[str]) -> None:
         failures.append(f"unlisted issue result overlay: summary mismatch {summary}")
 
 
+def _assert_subscription_date_is_not_listing_date(failures: list[str]) -> None:
+    if bse_ipo_valuation._local_center_history_cutoff_date({"APPLY_DATE": "2026-09-28"}) != "2026-09-28":
+        failures.append("local center cutoff: unlisted target must use the application date for completed history")
+    if bse_ipo_valuation._local_center_history_cutoff_date({"APPLY_DATE": "2026-09-28", "LISTING_DATE": "2026-10-12"}) != "2026-10-12":
+        failures.append("local center cutoff: verified listing date must take precedence")
+    with TemporaryDirectory() as temp_dir:
+        history_path = Path(temp_dir) / "subscription_history_sample.csv"
+        history_path.write_text(
+            "security_code,security_name_abbr,apply_date,issue_result_date,listing_date,listing_pdf_found,online_valid_shares\n"
+            "920025,凯达重工,2026-09-14,2026-09-17,2026-09-14,false,1000000000\n"
+            "920201,百瑞吉,2026-09-07,2026-09-10,2026-09-07,false,1000000000\n"
+            "920202,安达股份,2026-09-16,2026-09-21,2026-09-16,false,1000000000\n",
+            encoding="utf-8",
+        )
+        recent_ipos = [{
+            "SECURITY_CODE": "920025",
+            "APPLY_DATE": "2026-09-14",
+            "LISTING_DATE": "2026-09-23",
+            "CLOSE_PRICE": 29.0,
+        }]
+        overlaid, _ = bse_ipo_valuation._overlay_subscription_history_recent_ipos(
+            recent_ipos,
+            history_path,
+            include_unlisted_results=True,
+            target_apply_date="2026-09-28",
+            recent_days=30,
+            as_of_date=date(2026, 9, 23),
+        )
+    by_code = {item["SECURITY_CODE"]: item for item in overlaid}
+    if by_code["920025"].get("LISTING_DATE") != "2026-09-23":
+        failures.append("subscription date overlay: overwritten verified listing date")
+    if by_code["920201"].get("LISTING_DATE") or by_code["920202"].get("LISTING_DATE"):
+        failures.append("subscription date overlay: copied apply date into unlisted sample")
+    display_candidates = overlaid + [
+        {"SECURITY_CODE": "920204", "APPLY_DATE": "2026-09-22", "LISTING_DATE": "2026-09-22", "CLOSE_PRICE": 10.0},
+        {"SECURITY_CODE": "920205", "APPLY_DATE": "2026-09-16", "LISTING_DATE": "2026-09-24", "CLOSE_PRICE": 10.0},
+        {"SECURITY_CODE": "920206", "APPLY_DATE": "2026-09-10", "LISTING_DATE": "2026-09-20"},
+    ]
+    displayed = report_generator._filter_recent_items_by_days(display_candidates, 30, date(2026, 9, 23))
+    if [item["SECURITY_CODE"] for item in displayed] != ["920025"]:
+        failures.append(f"recent first-day display: unlisted samples leaked into table: {displayed}")
+
+
 def _assert_target_subscription_overlays(failures: list[str]) -> None:
     with TemporaryDirectory() as temp_dir:
         temp_root = Path(temp_dir)
@@ -908,7 +951,7 @@ def _assert_note_builder_focus_scope(params: dict[str, Any], failures: list[str]
     )
     expected_notes = [
         "当前标的尚未完成二级行业映射，方法二不再回退一级行业或全市场样本。",
-        "发行 PE 相对行业 PE 偏高；EPS 已反映该影响，当前不再重复施加高 PE 惩罚。",
+        "发行 PE / 行业 PE 已高于参数设定的 60% 关注阈值；EPS 已反映该影响，当前不再重复施加高 PE 惩罚。",
         "首日流通盘偏小，方法一已连续计入流通盘溢价；方法二仍保持纯行业口径。",
         "首日流通老股数据待确认，原因：未找到上市公告书，且未找到可用招股文件。当前首日流通盘按仅新增发行量估算。",
     ]
@@ -930,6 +973,26 @@ def _assert_note_builder_focus_scope(params: dict[str, Any], failures: list[str]
     )
     if low_pe_notes != ["发行 PE 明显低于披露的行业 PE，方法一已计入有限的低估修正。"]:
         failures.append(f"note_builder low PE mismatch: {low_pe_notes}")
+
+    sparse_fractional_notes = note_builder.generate_notes(
+        {
+            "ipo_info": {},
+            "industry": {"primary": "消费服务", "secondary": "食品饮料"},
+            "subscription_prediction": {
+                "fractional_threshold_amount_wan": 1609.7088,
+                "account_pool_fractional_estimate": {
+                    "cutoff_basis": "interpolated_account_pool_cutoff",
+                    "raw_cutoff_amount_wan": 1609.5889,
+                    "sample_count": 8,
+                    "effective_source_count": 2,
+                    "effective_source_codes": ["920298", "920093"],
+                },
+            },
+        },
+        note_params,
+    )
+    if len(sparse_fractional_notes) != 1 or "低置信度参考" not in sparse_fractional_notes[0] or "只有 2 个独立历史来源" not in sparse_fractional_notes[0]:
+        failures.append(f"note_builder sparse fractional evidence mismatch: {sparse_fractional_notes}")
 
 
 def _resolve_case_inputs(code: str, params: dict[str, Any]) -> dict[str, Any]:
@@ -959,6 +1022,7 @@ def main() -> int:
     failures: list[str] = []
     _assert_subscription_history_overlay(failures)
     _assert_unlisted_issue_result_overlay(failures)
+    _assert_subscription_date_is_not_listing_date(failures)
     _assert_target_subscription_overlays(failures)
     _assert_missing_online_va_num_placeholder(failures)
     _assert_recent_table_time_window(failures)

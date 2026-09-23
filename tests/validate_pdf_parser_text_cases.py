@@ -64,6 +64,25 @@ COMPARABLE_BUSINESS_TEXT = """
 四、主要产品情况
 """
 
+SOUTH_DAIRY_COMPARABLE_TEXT = """
+第五节 业务和技术
+2、行业内的主要企业
+公司主要从事乳制品及含乳饮料的制造与销售业务，基于所处行业、业务性质及财务数据的可比性，
+公司主要选取了伊利股份、蒙牛乳业、光明乳业等十家在中国范围内从事乳制品生产销售的上市企业作为同行业可比公司，具体情况如下：
+序号 证券代码 上市公司
+1 600887.SH 伊利股份
+2 02319.HK 蒙牛乳业
+3 600597.SH 光明乳业
+4 002946.SZ 新乳业
+5 600429.SH 三元股份
+6 002329.SZ 皇氏集团
+7 600419.SH 天润乳业
+8 002732.SZ 燕塘乳业
+9 002910.SZ 庄园牧场
+10 001318.SZ 阳光乳业
+3、公司的市场地位
+"""
+
 
 def main() -> int:
     failures: list[str] = []
@@ -100,6 +119,30 @@ def main() -> int:
         "920268",
     ):
         failures.append("business subject guard: failed to detect another listed-company code")
+
+    south_dairy_codes = pdf_parser._extract_comparable_companies_from_text(
+        SOUTH_DAIRY_COMPARABLE_TEXT,
+        target_code="920196",
+    )
+    expected_south_dairy_codes = [
+        "600887.SH",
+        "600597.SH",
+        "002946.SZ",
+        "600429.SH",
+        "002329.SZ",
+        "600419.SH",
+        "002732.SZ",
+        "002910.SZ",
+        "001318.SZ",
+    ]
+    if south_dairy_codes != expected_south_dairy_codes:
+        failures.append(
+            f"920196 comparable table: expected {expected_south_dairy_codes}, got {south_dairy_codes}"
+        )
+
+    south_dairy_description = pdf_parser._extract_business_desc_from_text(SOUTH_DAIRY_COMPARABLE_TEXT)
+    if south_dairy_description != "公司主要从事乳制品及含乳饮料的制造与销售业务":
+        failures.append(f"920196 business text: trailing peer-selection text was not trimmed, got {south_dairy_description}")
 
     if failures:
         for failure in failures:

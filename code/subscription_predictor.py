@@ -3,6 +3,7 @@ from __future__ import annotations
 import bisect
 import csv
 from datetime import date
+import json
 import math
 from pathlib import Path
 import statistics
@@ -361,6 +362,13 @@ def _build_account_pool_index(
     indexed_rows: list[dict[str, Any]] = []
     for row in clean_rows:
         points: list[tuple[float, float]] = []
+        try:
+            snapshot = json.loads(str(row.get("account_pool_snapshot_json") or "{}"))
+        except (TypeError, ValueError):
+            snapshot = {}
+        if not isinstance(snapshot, dict):
+            snapshot = {}
+        point_origins: dict[float, str] = {}
         for threshold in threshold_values:
             prefix = _account_pool_column_prefix(threshold)
             estimate = _safe_float(row.get(f"{prefix}_estimate"))
@@ -368,6 +376,9 @@ def _build_account_pool_index(
             if estimate is None or not _account_pool_basis_is_usable(basis):
                 continue
             points.append((threshold, max(float(estimate), 0.0)))
+            snapshot_point = snapshot.get(str(threshold)) or {}
+            origin = snapshot_point.get("last_update_code") if isinstance(snapshot_point, dict) else None
+            point_origins[threshold] = str(origin or row.get("security_code") or "")
         points.sort(key=lambda item: item[0])
         indexed_rows.append(
             {
@@ -376,6 +387,7 @@ def _build_account_pool_index(
                 "sort_key": (str(row.get("apply_date") or ""), str(row.get("security_code") or "")),
                 "point_amounts": [amount for amount, _ in points],
                 "point_estimates": [estimate for _, estimate in points],
+                "point_origin_codes": [point_origins[amount] for amount, _ in points],
             }
         )
     indexed_rows.sort(key=lambda item: item["sort_key"])
@@ -426,6 +438,28 @@ def _indexed_row_estimate_accounts_ge(indexed_row: dict[str, Any], amount_wan: f
     if nearest_upper is not None:
         return max(float(estimates[nearest_upper]), 0.0)
     return None
+
+
+def _account_pool_effective_sources_at_amount(
+    account_pool_index: dict[str, Any], amount_wan: float, source_codes: list[str]
+) -> list[str]:
+    selected = set(source_codes)
+    effective: list[str] = []
+    for indexed_row in reversed(account_pool_index.get("sorted_rows") or []):
+        if indexed_row.get("code") not in selected:
+            continue
+        amounts = indexed_row.get("point_amounts") or []
+        origins = indexed_row.get("point_origin_codes") or []
+        if not amounts or len(amounts) != len(origins):
+            continue
+        position = bisect.bisect_left(amounts, amount_wan)
+        positions = [position] if position < len(amounts) and abs(amounts[position] - amount_wan) < 1e-6 else [position - 1, position]
+        for point_index in positions:
+            if 0 <= point_index < len(origins):
+                origin = str(origins[point_index] or "").strip()
+                if origin and origin not in effective:
+                    effective.append(origin)
+    return effective
 
 
 def _estimate_account_pool_accounts_ge_indexed(
@@ -726,6 +760,10 @@ def _estimate_account_pool_fractional_cutoff(
     if cutoff_shares is None:
         return None
     cutoff_shares = min(cutoff_shares, top_apply_shares)
+    source_codes = [str(code) for code in (cutoff.get("source_codes") or []) if str(code)]
+    effective_source_codes = _account_pool_effective_sources_at_amount(
+        account_pool_index, float(cutoff_amount), source_codes
+    )
     accounts_ge_cutoff = _safe_float(cutoff.get("accounts_ge_cutoff"))
     cutoff_fill_rate = leftover_lots / accounts_ge_cutoff if accounts_ge_cutoff and accounts_ge_cutoff > 0 else None
 
@@ -761,7 +799,9 @@ def _estimate_account_pool_fractional_cutoff(
         "top_apply_accounts_source_codes": top_apply_account_estimate.get("source_codes") or [],
         "cutoff_basis": cutoff.get("basis"),
         "sample_count": cutoff.get("sample_count"),
-        "source_codes": cutoff.get("source_codes") or [],
+        "source_codes": source_codes,
+        "effective_source_count": len(effective_source_codes),
+        "effective_source_codes": effective_source_codes,
         "guaranteed_counts": guaranteed_counts,
     }
 

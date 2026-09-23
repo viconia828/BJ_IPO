@@ -923,12 +923,17 @@ def build_subscription_history_rows(
         )
 
         missing_fields = _model_missing_fields(values, prediction, online_issue_source)
+        apply_date = _clean_date(values.get("APPLY_DATE"))
+        listing_date = _clean_date(values.get("LISTING_DATE"))
+        if listing_date == apply_date:
+            # Replay may copy the application date before listing is known.
+            listing_date = ""
         row = {
             "security_code": code,
             "security_name_abbr": name,
-            "apply_date": _clean_date(values.get("APPLY_DATE")),
+            "apply_date": apply_date,
             "issue_result_date": _clean_date(values.get("ISSUE_RESULT_DATE") or values.get("BALLOT_NUM_DATE")),
-            "listing_date": _clean_date(values.get("LISTING_DATE")),
+            "listing_date": listing_date,
             "issue_price": _safe_float(values.get("ISSUE_PRICE")),
             "total_issue_num_wan": _safe_float(values.get("TOTAL_ISSUE_NUM")),
             "online_issue_shares": online_issue_shares,

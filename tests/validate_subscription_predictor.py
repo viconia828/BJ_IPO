@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from pathlib import Path
 import sys
 from typing import Any
@@ -752,6 +753,31 @@ def _run_account_pool_fractional_threshold_case(failures: list[str]) -> None:
     _assert_close(pool_estimate.get("leftover_lots"), 10.0, "account pool: leftover lots mismatch", failures)
 
 
+def _run_account_pool_independent_source_case(failures: list[str]) -> None:
+    shared_snapshot = {
+        "1.0": {"last_update_code": "920900"},
+        "2.0": {"last_update_code": "920900"},
+    }
+    rows = []
+    for index in range(3):
+        rows.append({
+            "security_code": f"92090{index}",
+            "apply_date": f"2026-07-0{index + 1}",
+            "account_pool_snapshot_json": json.dumps(shared_snapshot),
+            "accounts_ge_1w_estimate": 30,
+            "accounts_ge_1w_basis": "carry_forward",
+            "accounts_ge_2w_estimate": 20,
+            "accounts_ge_2w_basis": "carry_forward",
+        })
+    pool_index = subscription_predictor._prepare_account_pool_index({
+        "subscription_prediction_account_pool_rows": rows,
+    })
+    effective = subscription_predictor._account_pool_effective_sources_at_amount(
+        pool_index, 1.5, [row["security_code"] for row in rows]
+    )
+    _assert(effective == ["920900"], f"account pool: duplicated snapshots counted as independent: {effective}", failures)
+
+
 
 def _run_account_pool_runtime_index_cache_case(failures: list[str]) -> None:
     account_pool_row: dict[str, Any] = {
@@ -1167,6 +1193,7 @@ def main() -> int:
     _run_adaptive_recent_market_level_case(failures)
     _run_historical_sample_date_order_case(failures)
     _run_account_pool_fractional_threshold_case(failures)
+    _run_account_pool_independent_source_case(failures)
     _run_account_pool_runtime_index_cache_case(failures)
     _run_recent_account_pool_aggregation_case(failures)
     _run_observed_account_pool_snapshot_runtime_interpolation_case(failures)
