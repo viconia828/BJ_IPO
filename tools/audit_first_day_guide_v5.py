@@ -14,7 +14,7 @@ from pathlib import Path
 import analyze_turnover_halt_paths as a
 
 ROOT = Path(__file__).resolve().parents[1]
-OUT = ROOT / 'outputs/guide_v5_audit_20260923'
+OUT = ROOT / 'outputs/研究产物/最新/guide_v5_audit_20260923'
 NODES = ['09:35', '09:45', '10:00', '10:30', '11:00', '11:30']
 POLICY = ['09:35', '09:45', '10:00', '11:00', '11:30']
 EXTERNAL = {'920176', '920059'}  # frozen original labels, never label ex post
@@ -48,7 +48,7 @@ def summarize(rows):
 
 
 def run():
-    base = a.read_json(ROOT / 'outputs/turnover_halt_study_20260923/analysis.json')
+    base = a.read_json(ROOT / 'outputs/研究产物/最新/turnover_halt_study_20260923/analysis.json')
     items = {r['SECURITY_CODE']: r for r in a.read_json(ROOT / 'data/offline_tuning/replay_dataset.json')['items']}
     rows = []
     hashes = []

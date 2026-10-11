@@ -28,6 +28,7 @@ DEFAULT_DATASET_PATH = ROOT_DIR / "data" / "offline_tuning" / "replay_dataset.js
 DEFAULT_LADDER_LABEL_PATH = ROOT_DIR / "data" / "offline_tuning" / "subscription_ladder_labels.csv"
 DEFAULT_PARAMS_PATH = ROOT_DIR / "策略参数.txt"
 DEFAULT_AUTO_RECORD_PATH = ROOT_DIR / "自动调参记录.txt"
+MAX_AUTO_REFINE_STAGES = 5
 
 DEFAULT_ACCOUNT_POOL_THRESHOLDS_WAN = [300, 500, 800, 1000, 1500, 2000]
 
@@ -1520,6 +1521,8 @@ def evaluate_candidate_grid(
     base_params: dict[str, Any] | None = None,
     search_profile: str = "coarse_fine",
     fine_rounds: int = 2,
+    include_coarse: bool = True,
+    max_false_negative_count: int | None = None,
     progress_callback: Callable[[int, int, dict[str, Any] | None], None] | None = None,
 ) -> dict[str, Any]:
     resolved_base_params = _resolve_subscription_base_params(base_params)
@@ -1533,7 +1536,8 @@ def evaluate_candidate_grid(
     baseline["params"] = _main_tunable_snapshot(resolved_base_params)
     baseline["rank_key"] = _candidate_rank_key(baseline)
     baseline_false_negative_count = len(baseline.get("top_apply_false_negative_codes") or [])
-    max_false_negative_count = baseline_false_negative_count + MAX_FALSE_NEGATIVE_INCREASE
+    if max_false_negative_count is None:
+        max_false_negative_count = baseline_false_negative_count + MAX_FALSE_NEGATIVE_INCREASE
 
     normalized_profile = str(search_profile or "coarse_fine").replace("-", "_").lower()
     use_coarse_fine = normalized_profile in {"coarse_fine", "coarsefine", "multi_round", "multiround"}
@@ -1550,10 +1554,11 @@ def evaluate_candidate_grid(
 
     if use_coarse_fine:
         planning_base = resolved_base_params
-        planned_total = _planned_block_count(_core_coarse_block_grids(planning_base), planning_base)
+        planned_total = _planned_block_count(_core_coarse_block_grids(planning_base), planning_base) if include_coarse else 0
         for _ in range(fine_round_count):
             planned_total += _planned_block_count(_core_fine_block_grids(planning_base), planning_base)
-        planned_total += _planned_block_count(DEFAULT_SIMILAR_TOP_APPLY_FROZEN_COARSE_BLOCK_GRIDS, planning_base)
+        if include_coarse:
+            planned_total += _planned_block_count(DEFAULT_SIMILAR_TOP_APPLY_FROZEN_COARSE_BLOCK_GRIDS, planning_base)
         for _ in range(fine_round_count):
             planned_total += _planned_block_count(_similar_top_apply_frozen_fine_block_grids(planning_base), planning_base)
     else:
@@ -1628,7 +1633,8 @@ def evaluate_candidate_grid(
         progress_callback(0, planned_total, None)
 
     if use_coarse_fine:
-        for name, grid in _core_coarse_block_grids(resolved_base_params):
+        coarse_blocks = _core_coarse_block_grids(resolved_base_params) if include_coarse else ()
+        for name, grid in coarse_blocks:
             if not _budget_available():
                 break
             round_base = _params_from_summary(resolved_base_params, best_so_far)
@@ -1650,7 +1656,8 @@ def evaluate_candidate_grid(
             if not pass_improved:
                 break
 
-        for name, grid in DEFAULT_SIMILAR_TOP_APPLY_FROZEN_COARSE_BLOCK_GRIDS:
+        similar_coarse_blocks = DEFAULT_SIMILAR_TOP_APPLY_FROZEN_COARSE_BLOCK_GRIDS if include_coarse else ()
+        for name, grid in similar_coarse_blocks:
             if not _budget_available():
                 break
             round_base = _params_from_summary(resolved_base_params, best_so_far)
@@ -1957,6 +1964,8 @@ def evaluate_auto_with_prior_branch(
     prior_min_source_sample_values: list[int] | None = None,
     search_profile: str = 'coarse_fine',
     fine_rounds: int = 2,
+    include_coarse: bool = True,
+    max_false_negative_count: int | None = None,
     progress_callback: Callable[[int, int, dict[str, Any] | None], None] | None = None,
 ) -> dict[str, Any]:
     result = evaluate_candidate_grid(
@@ -1968,6 +1977,8 @@ def evaluate_auto_with_prior_branch(
         base_params=base_params,
         search_profile=search_profile,
         fine_rounds=fine_rounds,
+        include_coarse=include_coarse,
+        max_false_negative_count=max_false_negative_count,
         progress_callback=progress_callback,
     )
     baseline = result.get("baseline") or {}
@@ -1990,10 +2001,7 @@ def evaluate_auto_with_prior_branch(
         min_uplift_ratio_values=prior_min_uplift_ratio_values,
         min_source_sample_values=prior_min_source_sample_values,
         top_n=top_n,
-        max_false_negative_count=(
-            len(baseline.get("top_apply_false_negative_codes") or [])
-            + MAX_FALSE_NEGATIVE_INCREASE
-        ),
+        max_false_negative_count=result["max_false_negative_count"],
     )
 
     prior_best = prior_result.get("best") or {}
@@ -2500,20 +2508,30 @@ def _format_subscription_change_lines(base_params: dict[str, Any], updates: dict
     return lines
 
 
-def _prompt_accept_subscription_auto(can_accept: bool) -> bool:
+def _prompt_subscription_auto_stage_action(stage_level: int, *, has_next_stage: bool, can_accept: bool) -> str:
     print("")
-    print("请选择下一步：")
+    print(f"第 {stage_level} 轮后请选择下一步：")
     if can_accept:
-        print("1. 接受本次申购资金最优参数，并写入 策略参数.txt")
+        print("1. 接受本轮累计最优申购资金参数，并写入 策略参数.txt")
     else:
         print("1. 当前未产生可写入的参数修改")
-    print("2. 暂不写入并退出")
+    if has_next_stage:
+        print(f"2. 进入第 {stage_level + 1} 轮，围绕当前最优参数继续细步长调参")
+    print("3. 暂不写入并退出")
+    default_choice = "2" if has_next_stage else "3"
     try:
-        raw_value = input("请输入选项 [默认 2]：").strip()
+        raw_value = input(f"请输入选项 [默认 {default_choice}]：").strip()
     except EOFError:
-        return False
-    choice = raw_value or "2"
-    return can_accept and choice.lower() in {"1", "y", "yes", "是", "接受"}
+        return "cancel"
+    choice = (raw_value or default_choice).lower()
+    if choice in {"1", "y", "yes", "是", "接受"}:
+        if can_accept:
+            return "accept"
+        print("当前没有可写入的申购资金参数修改。")
+        return "continue" if has_next_stage else "cancel"
+    if has_next_stage and choice in {"2", "继续", "next"}:
+        return "continue"
+    return "cancel"
 
 
 def _prepend_subscription_auto_record(
@@ -2536,6 +2554,9 @@ def _prepend_subscription_auto_record(
         "",
         f"- 参数文件：{Path(params_path)}",
         f"- 历史样本：{result.get('history_path') or DEFAULT_HISTORY_PATH}",
+        f"- 执行轮数：{result.get('auto_stage_level', 1)} / {result.get('auto_max_refine_stages', 1)}；"
+        f"累计最优来自第 {result.get('selected_stage_level', 1)} 轮",
+        f"- 累计候选组数：{result.get('auto_total_candidate_count', result.get('total_candidate_count', 0))}",
         f"- 主网格候选组数：{result.get('candidate_count', 0)} / 计划 "
         f"{result.get('planned_candidate_count', result.get('candidate_count', 0))}",
         f"- 主网格搜索模式：{result.get('search_profile') or 'base'}；细搜轮数 {result.get('fine_rounds', 0)}",
@@ -2575,7 +2596,7 @@ def _print_subscription_auto_summary(result: dict[str, Any], *, best_beats_basel
         f"主网格剔除={result.get('false_negative_guardrail_rejected_count', 0)}，"
         f"prior 剔除={prior_branch.get('false_negative_guardrail_rejected_count', 0)}"
     )
-    print(f"- 当前参数：{_format_metric_brief(baseline)}")
+    print(f"- 本轮起点：{_format_metric_brief(baseline)}")
     print(f"- 主网格最优：{_format_metric_brief(best)}")
     if prior_best:
         print(
@@ -2601,69 +2622,100 @@ def _run_auto_mode(
     strategy_params: dict[str, Any],
 ) -> int:
     print("开始申购资金自动调参：近期资金精度优先，全样本精度其次，漏判设安全护栏。", flush=True)
-    result = evaluate_auto_with_prior_branch(
-        rows,
-        min_history_samples=max(args.min_history_samples, 1),
-        max_history_samples=args.max_history_samples,
-        top_n=max(args.top_n, 1),
-        max_candidates=args.max_candidates,
-        base_params=strategy_params,
-        prior_weights=_parse_float_values(args.account_pool_prior_weights),
-        prior_recent_sample_values=_parse_int_values(args.account_pool_prior_recent_samples),
-        prior_half_life_values=_parse_float_values(args.account_pool_prior_half_lives),
-        prior_min_uplift_ratio_values=_parse_float_values(args.account_pool_prior_min_uplift_ratios),
-        prior_min_source_sample_values=_parse_int_values(args.account_pool_prior_min_source_samples),
-        search_profile=args.search_profile,
-        fine_rounds=max(args.fine_rounds, 0),
-        progress_callback=_candidate_progress_printer("申购资金自动调参"),
-    )
-    result["history_path"] = str(args.history_path)
+    max_refine_stages = min(max(int(args.auto_max_refine_stages), 1), MAX_AUTO_REFINE_STAGES)
+    print(f"本次最多运行 {max_refine_stages} 轮；每轮结束后可接受写入、继续搜索或退出。", flush=True)
+    center_params = dict(strategy_params)
+    original_baseline: dict[str, Any] | None = None
+    best_result: dict[str, Any] | None = None
+    updates: dict[str, Any] = {}
+    max_false_negative_count: int | None = None
+    total_candidate_count = 0
 
-    baseline = result.get("baseline") or {}
-    selected = result.get("selected") or {}
-    baseline_rank = _summary_rank_key(baseline)
-    selected_rank = _summary_rank_key(selected) if selected else baseline_rank
-    selected_params = dict(selected.get("params") or {})
-    best_beats_baseline = bool(selected and selected_rank < baseline_rank)
-    updates = (
-        _changed_subscription_auto_params(
-            strategy_params,
-            selected_params,
-            include_prior=result.get("selected_branch") == "account_pool_prior",
+    for stage_level in range(1, max_refine_stages + 1):
+        print(f"\n开始第 {stage_level} / {max_refine_stages} 轮申购资金自动调参。", flush=True)
+        result = evaluate_auto_with_prior_branch(
+            rows,
+            min_history_samples=max(args.min_history_samples, 1),
+            max_history_samples=args.max_history_samples,
+            top_n=max(args.top_n, 1),
+            max_candidates=args.max_candidates,
+            base_params=center_params,
+            prior_weights=_parse_float_values(args.account_pool_prior_weights),
+            prior_recent_sample_values=_parse_int_values(args.account_pool_prior_recent_samples),
+            prior_half_life_values=_parse_float_values(args.account_pool_prior_half_lives),
+            prior_min_uplift_ratio_values=_parse_float_values(args.account_pool_prior_min_uplift_ratios),
+            prior_min_source_sample_values=_parse_int_values(args.account_pool_prior_min_source_samples),
+            search_profile=args.search_profile,
+            fine_rounds=max(args.fine_rounds, 0),
+            include_coarse=stage_level == 1,
+            max_false_negative_count=max_false_negative_count,
+            progress_callback=_candidate_progress_printer(f"申购资金自动调参第 {stage_level} 轮"),
         )
-        if best_beats_baseline
-        else {}
-    )
-    _print_subscription_auto_summary(result, best_beats_baseline=best_beats_baseline)
+        if original_baseline is None:
+            original_baseline = dict(result.get("baseline") or {})
+            # 整次运行沿用初始漏判上限，避免每轮多放宽一次护栏。
+            max_false_negative_count = int(result["max_false_negative_count"])
+        total_candidate_count += int(result.get("total_candidate_count") or 0)
+        selected = result.get("selected") or {}
+        best_so_far = (best_result or {}).get("selected") or original_baseline
+        best_beats_baseline = bool(selected and _summary_rank_key(selected) < _summary_rank_key(best_so_far))
+        if best_beats_baseline:
+            stage_updates = _changed_subscription_auto_params(
+                center_params,
+                dict(selected.get("params") or {}),
+                include_prior=result.get("selected_branch") == "account_pool_prior",
+            )
+            if stage_updates:
+                center_params.update(stage_updates)
+                updates = _changed_subscription_auto_params(strategy_params, center_params, include_prior=True)
+                best_result = dict(result)
+                best_result["baseline"] = original_baseline
+                best_result["selected"] = dict(selected)
+                best_result["selected"]["params"] = _subscription_auto_param_snapshot(center_params, include_prior=True)
+                best_result["selected_stage_level"] = stage_level
+                best_result["history_path"] = str(args.history_path)
 
-    if updates:
-        print("")
-        print("本次建议修改的申购资金参数：")
-        for line in _format_subscription_change_lines(strategy_params, updates):
-            print(f"- {line}")
-    else:
-        print("")
-        print("本轮未找到需要写回的申购资金参数。")
+        _print_subscription_auto_summary(result, best_beats_baseline=best_beats_baseline)
+        if updates and best_result:
+            print(f"- 当前累计最优（第 {best_result['selected_stage_level']} 轮）：{_format_metric_brief(best_result['selected'])}")
+            print("\n本次累计建议修改的申购资金参数：")
+            for line in _format_subscription_change_lines(strategy_params, updates):
+                print(f"- {line}")
+        else:
+            print("\n本轮未找到需要写回的申购资金参数。")
 
-    if not _prompt_accept_subscription_auto(bool(updates)):
-        print("已退出申购资金自动调参，未写入参数。")
-        return 0
+        has_next_stage = stage_level < max_refine_stages
+        action = _prompt_subscription_auto_stage_action(
+            stage_level,
+            has_next_stage=has_next_stage,
+            can_accept=bool(updates),
+        )
+        if action == "accept" and updates and best_result:
+            best_result["auto_stage_level"] = stage_level
+            best_result["auto_max_refine_stages"] = max_refine_stages
+            best_result["auto_total_candidate_count"] = total_candidate_count
+            params_path = _write_param_updates(args.params_file, updates)
+            config_loader.load_params(params_path)
+            record_path = _prepend_subscription_auto_record(
+                args.auto_record_path,
+                best_result,
+                strategy_params,
+                updates,
+                params_path,
+            )
+            print(f"已写入参数文件：{params_path}")
+            print(f"已更新自动调参记录：{record_path}")
+            return 0
+        if action != "continue":
+            if not has_next_stage:
+                print("已达到申购资金自动调参最大轮数。")
+            print("已退出申购资金自动调参，未写入参数。")
+            return 0
 
-    params_path = _write_param_updates(args.params_file, updates)
-    config_loader.load_params(params_path)
-    record_path = _prepend_subscription_auto_record(
-        args.auto_record_path,
-        result,
-        strategy_params,
-        updates,
-        params_path,
-    )
-    print(f"已写入参数文件：{params_path}")
-    print(f"已更新自动调参记录：{record_path}")
     return 0
 
 
-def parse_args() -> argparse.Namespace:
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Evaluate baseline subscription allocation prediction metrics.")
     parser.add_argument("--dataset-path", type=Path, default=DEFAULT_DATASET_PATH)
     parser.add_argument("--history-path", type=Path, default=DEFAULT_HISTORY_PATH)
@@ -2691,6 +2743,13 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--max-candidates", type=int, default=None)
     parser.add_argument("--search-profile", choices=("base", "coarse-fine"), default="coarse-fine")
     parser.add_argument("--fine-rounds", type=int, default=2)
+    parser.add_argument(
+        "--auto-max-refine-stages",
+        type=int,
+        choices=range(1, MAX_AUTO_REFINE_STAGES + 1),
+        default=MAX_AUTO_REFINE_STAGES,
+        help="申购资金自动调参单次运行最多轮数，默认 5；每轮结束后可接受、继续或退出。",
+    )
     parser.add_argument("--robust-min-history-samples", default="3,5,8")
     parser.add_argument("--robust-history-windows", default="all,8,12,16")
     parser.add_argument("--robust-account-pool-prior-weights", default="1.0,1.1,1.2")
@@ -2707,7 +2766,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--account-pool-prior-min-uplift-ratios", default="0")
     parser.add_argument("--account-pool-prior-min-source-samples", default="1")
     parser.add_argument("--json", action="store_true", help="Print machine-readable JSON instead of text summary.")
-    return parser.parse_args()
+    return parser.parse_args(argv)
 
 
 def main() -> int:

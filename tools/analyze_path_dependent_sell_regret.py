@@ -14,7 +14,7 @@ import evaluate_intraday_valuation_guidance as guidance
 
 
 ROOT_DIR = Path(__file__).resolve().parents[1]
-DEFAULT_OUTPUT_DIR = ROOT_DIR / "outputs"
+DEFAULT_OUTPUT_DIR = ROOT_DIR / "outputs" / "研究产物" / "最新"
 DEFAULT_CUTOFF = "2026-07-14"
 EXTERNAL_EVENT_SAMPLES = {"920176", "920059"}
 POLICY_NODES = ("09:35", "09:45", "10:00", "11:00", "11:30")

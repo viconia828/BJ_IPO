@@ -21,8 +21,8 @@ import param_tuning
 
 DEFAULT_DATASET = ROOT_DIR / "data" / "offline_tuning" / "replay_dataset.json"
 DEFAULT_PARAMS = ROOT_DIR / "策略参数.txt"
-DEFAULT_TRADEOFF = ROOT_DIR / "outputs" / "latest_valuation_tradeoff_analysis_20260712_182517.json"
-DEFAULT_OUTPUT_DIR = ROOT_DIR / "outputs"
+DEFAULT_TRADEOFF = ROOT_DIR / "outputs" / "研究产物" / "最新" / "latest_valuation_tradeoff_analysis_20260712_182517.json"
+DEFAULT_OUTPUT_DIR = ROOT_DIR / "outputs" / "研究产物" / "最新"
 
 
 def _load_module(name: str, path: Path):

@@ -22,7 +22,7 @@ import listing_average_price_helper
 DEFAULT_CORPUS_INDEX = ROOT_DIR / "data" / "xueqiu_corpus" / "index.json"
 DEFAULT_DATASET = ROOT_DIR / "data" / "offline_tuning" / "replay_dataset.json"
 DEFAULT_SCAN_REPORT = ROOT_DIR / "调参" / "valuation_hit_rate_scan_202603plus_20260710_001437.json"
-DEFAULT_OUTPUT_DIR = ROOT_DIR / "outputs"
+DEFAULT_OUTPUT_DIR = ROOT_DIR / "outputs" / "研究产物" / "最新"
 
 
 LOCAL_SAMPLE_ALIASES = {

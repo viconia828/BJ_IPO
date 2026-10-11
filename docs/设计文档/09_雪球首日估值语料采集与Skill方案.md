@@ -18,7 +18,7 @@
 探测产物：
 
 - `tools/xueqiu_access_probe.cjs`
-- `outputs/xueqiu_access_probe.json`
+- `outputs/研究产物/最新/xueqiu_access_probe.json`
 
 首轮命中概况：
 
@@ -73,7 +73,7 @@
 - `data/xueqiu_corpus/articles/`：单篇文章 JSON。
 - `data/xueqiu_corpus/articles.jsonl`：所有文章的 JSONL 汇总，便于后续批处理。
 - `data/xueqiu_corpus/index.json`：采集批次、作者、关键词、文章清单和质量统计。
-- `outputs/xueqiu_corpus_collect_*.json`：每次采集运行报告。
+- `outputs/研究产物/最新/xueqiu_corpus_collect_*.json`：每次采集运行报告。
 
 后续 skill 目录：
 
@@ -225,8 +225,8 @@
 
 最新验证报告：
 
-- `outputs/xueqiu_author_range_validation_20260711_154243.md`
-- `outputs/xueqiu_author_range_validation_20260711_154243.json`
+- `outputs/研究产物/历史引用/xueqiu_author_range_validation_20260711_154243.md`
+- `outputs/研究产物/历史引用/xueqiu_author_range_validation_20260711_154243.json`
 
 验证口径：
 
@@ -261,11 +261,11 @@ C:\Users\Ai\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\bin\no
 
 扩展采集产物：
 
-- `outputs/xueqiu_corpus_collect_20260711_155804.json`
-- `outputs/xueqiu_local_sample_coverage_20260711_155832.md`
-- `outputs/xueqiu_local_sample_coverage_20260711_155832.json`
-- `outputs/xueqiu_author_rule_score_20260711_160221.md`
-- `outputs/xueqiu_author_rule_score_20260711_160221.json`
+- `outputs/研究产物/最新/xueqiu_corpus_collect_20260711_155804.json`
+- `outputs/研究产物/历史引用/xueqiu_local_sample_coverage_20260711_155832.md`
+- `outputs/研究产物/历史引用/xueqiu_local_sample_coverage_20260711_155832.json`
+- `outputs/研究产物/历史引用/xueqiu_author_rule_score_20260711_160221.md`
+- `outputs/研究产物/历史引用/xueqiu_author_rule_score_20260711_160221.json`
 
 覆盖审计结论：
 
@@ -333,9 +333,9 @@ Author-rule score 首版结果：
 
 核心报告：
 
-- `outputs/xueqiu_author_model_blend_scan_sample_20260711_161509_496929.md`
-- `outputs/xueqiu_author_model_blend_author_scored_20260711_161515_071510.md`
-- `outputs/xueqiu_author_model_blend_all_actual_20260711_161521_340317.md`
+- `outputs/研究产物/历史引用/xueqiu_author_model_blend_scan_sample_20260711_161509_496929.md`
+- `outputs/研究产物/历史引用/xueqiu_author_model_blend_author_scored_20260711_161515_071510.md`
+- `outputs/研究产物/历史引用/xueqiu_author_model_blend_all_actual_20260711_161521_340317.md`
 
 2026-03 起扫描样本（31 只）：
 
@@ -382,7 +382,7 @@ Author-rule score 首版结果：
 
 最终导入报告：
 
-- `outputs/xueqiu_manual_mhtml_import_20260711_163150.json`
+- `outputs/研究产物/最新/xueqiu_manual_mhtml_import_20260711_163150.json`
 
 导入结果：
 
@@ -394,15 +394,15 @@ Author-rule score 首版结果：
 
 复核报告：
 
-- `outputs/xueqiu_local_sample_coverage_20260711_163201.md`
-- `outputs/xueqiu_local_sample_coverage_20260711_163201.json`
-- `outputs/xueqiu_author_range_validation_20260711_163201.md`
-- `outputs/xueqiu_author_range_validation_20260711_163201.json`
-- `outputs/xueqiu_author_rule_score_20260711_163211.md`
-- `outputs/xueqiu_author_rule_score_20260711_163211.json`
-- `outputs/xueqiu_author_model_blend_scan_sample_20260711_163212_001691.md`
-- `outputs/xueqiu_author_model_blend_author_scored_20260711_163211_983588.md`
-- `outputs/xueqiu_author_model_blend_all_actual_20260711_163212_003480.md`
+- `outputs/研究产物/历史引用/xueqiu_local_sample_coverage_20260711_163201.md`
+- `outputs/研究产物/历史引用/xueqiu_local_sample_coverage_20260711_163201.json`
+- `outputs/研究产物/历史引用/xueqiu_author_range_validation_20260711_163201.md`
+- `outputs/研究产物/历史引用/xueqiu_author_range_validation_20260711_163201.json`
+- `outputs/研究产物/历史引用/xueqiu_author_rule_score_20260711_163211.md`
+- `outputs/研究产物/历史引用/xueqiu_author_rule_score_20260711_163211.json`
+- `outputs/研究产物/历史引用/xueqiu_author_model_blend_scan_sample_20260711_163212_001691.md`
+- `outputs/研究产物/历史引用/xueqiu_author_model_blend_author_scored_20260711_163211_983588.md`
+- `outputs/研究产物/历史引用/xueqiu_author_model_blend_all_actual_20260711_163212_003480.md`
 
 覆盖复核结论：
 
@@ -559,9 +559,9 @@ author_proxy_score =
 
 核心报告：
 
-- `outputs/xueqiu_author_logic_distillation_all_actual_20260711_165001_537058.md`
-- `outputs/xueqiu_author_logic_distillation_scan_sample_20260711_165020_731086.md`
-- `outputs/xueqiu_author_logic_distillation_author_scored_20260711_165032_647799.md`
+- `outputs/研究产物/历史引用/xueqiu_author_logic_distillation_all_actual_20260711_165001_537058.md`
+- `outputs/研究产物/历史引用/xueqiu_author_logic_distillation_scan_sample_20260711_165020_731086.md`
+- `outputs/研究产物/历史引用/xueqiu_author_logic_distillation_author_scored_20260711_165032_647799.md`
 
 三组结果：
 
@@ -605,27 +605,27 @@ author_proxy_score =
 
 导入与覆盖：
 
-- 导入报告：`outputs/xueqiu_manual_article_import_20260711_174431.json`。
+- 导入报告：`outputs/研究产物/历史引用/xueqiu_manual_article_import_20260711_174431.json`。
 - 文件数：59，MHTML 49，TXT 10，导入成功 59，错误 0。
 - 语料索引：184 篇文章，182 篇可读，2 篇验证/阻断页，85 篇抽到价格区间，94 篇抽到 target PE。
-- 最新覆盖表：`outputs/xueqiu_author_coverage_table_20260711_174807.md/json/csv`。
+- 最新覆盖表：`outputs/研究产物/历史引用/xueqiu_author_coverage_table_20260711_174807.md/json/csv`。
 - 本地样本 42 只；除 `920117 龙鑫智能` 外，41 只有上市前可读预测且均有可评分区间。
 - 重点状态：`920050 爱伦医疗/爱舍伦` 已补齐兔子兔888和月半928可评分区间；`920183 海菲曼` 已补齐条条道路通罗马Lee和月半928上市前预测；`920117 龙鑫智能` 仍仅为非上市前/非预测证据。
 
 最新验证：
 
-- 可抽取区间验证：`outputs/xueqiu_author_range_validation_20260711_174806.md/json`。
+- 可抽取区间验证：`outputs/研究产物/历史引用/xueqiu_author_range_validation_20260711_174806.md/json`。
 - 可评估预测行：114，行级命中 38/114，命中率 33.3%。
 - 覆盖有实际均价代码：40；至少一位作者命中的代码 25，代码级命中率 62.5%。
-- Author-rule score：`outputs/xueqiu_author_rule_score_20260711_174807.md/json`。
+- Author-rule score：`outputs/研究产物/历史引用/xueqiu_author_rule_score_20260711_174807.md/json`。
 - 可评分代码：41；有实际均价 40；作者原始加权区间命中 18/40，命中率 45.0%；作者中枢 ±10% 命中 16/40，命中率 40.0%。
 - 调参样本交集 31 只中，作者原始加权区间命中 16/31，当前 baseline 3/31，扫描最优 8/31。
 - 作者 score 与实际首日均价涨幅 Spearman 提升到 0.886。
 
 最新组合与本地蒸馏：
 
-- Scan sample 最佳融合：`outputs/xueqiu_author_model_blend_scan_sample_20260711_174819_193571.md/json`，`current_params_author_blend_a0.9_w0.20_fallback` 命中 20/31，命中率 64.5%，Spearman 0.890。
-- All actual 最佳融合：`outputs/xueqiu_author_model_blend_all_actual_20260711_174819_275061.md/json`，同类候选命中 23/39，命中率 59.0%，Spearman 0.864。
+- Scan sample 最佳融合：`outputs/研究产物/历史引用/xueqiu_author_model_blend_scan_sample_20260711_174819_193571.md/json`，`current_params_author_blend_a0.9_w0.20_fallback` 命中 20/31，命中率 64.5%，Spearman 0.890。
+- All actual 最佳融合：`outputs/研究产物/历史引用/xueqiu_author_model_blend_all_actual_20260711_174819_275061.md/json`，同类候选命中 23/39，命中率 59.0%，Spearman 0.864。
 - 本地-only proxy 最新结果：scan sample 13/31，全量 16/39，与上一轮基本一致。
 
 阶段判断：
@@ -690,13 +690,13 @@ author_proxy_score =
 
 最新输出：
 
-- `outputs/local_proxy_strategy_scan_sample_20260711_180454_136649.md/json`
-- `outputs/local_proxy_strategy_author_scored_20260711_180454_203828.md/json`
-- `outputs/local_proxy_strategy_all_actual_20260711_180454_227200.md/json`
+- `outputs/研究产物/历史引用/local_proxy_strategy_scan_sample_20260711_180454_136649.md/json`
+- `outputs/研究产物/历史引用/local_proxy_strategy_author_scored_20260711_180454_203828.md/json`
+- `outputs/研究产物/历史引用/local_proxy_strategy_all_actual_20260711_180454_227200.md/json`
 - 修正后的 distillation：
-  - `outputs/xueqiu_author_logic_distillation_scan_sample_20260711_180213_160179.md/json`
-  - `outputs/xueqiu_author_logic_distillation_author_scored_20260711_180331_854893.md/json`
-  - `outputs/xueqiu_author_logic_distillation_all_actual_20260711_180213_190750.md/json`
+  - `outputs/研究产物/历史引用/xueqiu_author_logic_distillation_scan_sample_20260711_180213_160179.md/json`
+  - `outputs/研究产物/历史引用/xueqiu_author_logic_distillation_author_scored_20260711_180331_854893.md/json`
+  - `outputs/研究产物/历史引用/xueqiu_author_logic_distillation_all_actual_20260711_180213_190750.md/json`
 
 严格三件套结果（不改可用模型中枢）：
 

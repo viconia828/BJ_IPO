@@ -20,8 +20,8 @@ import pdf_parser
 
 
 DEFAULT_INPUT_DIR = ROOT_DIR / "公告文件"
-DEFAULT_JSON = ROOT_DIR / "outputs" / "comparable_parser_coverage_audit_latest.json"
-DEFAULT_MARKDOWN = ROOT_DIR / "outputs" / "comparable_parser_coverage_audit_latest.md"
+DEFAULT_JSON = ROOT_DIR / "outputs" / "研究产物" / "最新" / "comparable_parser_coverage_audit_latest.json"
+DEFAULT_MARKDOWN = ROOT_DIR / "outputs" / "研究产物" / "最新" / "comparable_parser_coverage_audit_latest.md"
 VALID_CODE_PATTERN = re.compile(r"^\d{6}\.(?:SH|SZ|BJ|NQ)$", re.IGNORECASE)
 SELECTION_SENTENCE_PATTERN = re.compile(
     r"[^。；\n]{0,100}(?:选取|选择|确定)[^。；\n]{0,260}(?:作为|确定为)[^。；\n]{0,30}(?:同行业)?可比公司[^。；\n]{0,80}",

@@ -16,7 +16,7 @@ import analyze_turnover_halt_paths as a
 from probe_ifind_intraday import post, refresh_access
 
 ROOT = Path(__file__).resolve().parents[1]
-OUT = ROOT / 'outputs/ifind_auction_snapshots_20260923'
+OUT = ROOT / 'outputs/研究产物/最新/ifind_auction_snapshots_20260923'
 
 
 def extract(stock, payload):
@@ -52,7 +52,7 @@ def main():
     parser.add_argument('--codes',default='920229,920025,920086,920288')
     parser.add_argument('--all',action='store_true')
     args=parser.parse_args()
-    stocks=a.read_json(ROOT/'outputs/turnover_halt_study_20260923/analysis.json')['stocks']
+    stocks=a.read_json(ROOT/'outputs/研究产物/最新/turnover_halt_study_20260923/analysis.json')['stocks']
     selected=stocks if args.all else [s for s in stocks if s['code'] in args.codes.split(',')]
     OUT.mkdir(parents=True,exist_ok=True)
     missing=[s for s in selected if not (OUT/f"{s['code']}_{s['date']}.json").exists()]

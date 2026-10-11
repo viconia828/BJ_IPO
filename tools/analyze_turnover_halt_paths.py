@@ -17,7 +17,7 @@ from pathlib import Path
 from statistics import median
 
 ROOT = Path(__file__).resolve().parents[1]
-OUT = ROOT / 'outputs' / 'turnover_halt_study_20260923'
+OUT = ROOT / "outputs" / "研究产物" / "最新" / "turnover_halt_study_20260923"
 TARGETS = {'920229', '920025'}
 NODES = ['09:35', '09:45', '10:00', '10:30', '11:00', '11:30', '13:05', '13:10', '13:20', '13:30', '14:00', '14:30']
 LABELS = {'double_fly': '二停后大涨且收盘仍高于二停价20%', 'halt_fade': '触发临停后明显回落',

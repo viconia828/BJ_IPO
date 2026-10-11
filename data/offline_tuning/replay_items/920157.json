@@ -1,7 +1,7 @@
 {
   "schema": "offline_tuning_replay_item_v1",
   "cache_version": 9,
-  "generated_at": "2026-09-22 18:14:45",
+  "generated_at": "2026-09-24 20:55:15",
   "code": "920157",
   "listing_date": "2026-09-21",
   "record_signature": {
@@ -55,11 +55,11 @@
       }
     },
     "pdf_parser_versions": {
-      "prospectus_issue_info": 8,
-      "issue_announcement_info": 6,
+      "prospectus_issue_info": 10,
+      "issue_announcement_info": 8,
       "issue_result_info": 5,
-      "comparable_companies": 22,
-      "business_desc": 4
+      "comparable_companies": 25,
+      "business_desc": 7
     }
   },
   "item": {
@@ -156,20 +156,25 @@
       "APPLY_DATE": "issue_announcement:全文",
       "ISSUE_PRICE": "issue_announcement:全文",
       "AFTER_ISSUE_PE": "prospectus:全文",
+      "TOTAL_SHARE_CAPITAL_AFTER_ISSUE": "issue_announcement:全文",
+      "SECURITY_NAME_ABBR": "issue_announcement:全文",
+      "INDUSTRY_PE_NEW": "issue_announcement:全文",
       "TOTAL_ISSUE_NUM": "issue_announcement:全文",
+      "TOP_APPLY_MARKETCAP": "issue_announcement:全文",
       "INDUSTRY": "issue_announcement:全文",
       "INDUSTRY_CODE": "issue_announcement:全文",
-      "TOTAL_SHARE_CAPITAL_AFTER_ISSUE": "issue_announcement:全文",
-      "INDUSTRY_PE_NEW": "issue_announcement:全文",
-      "TOP_APPLY_MARKETCAP": "issue_announcement:全文",
       "SUBSCRIPTION_LIMIT_WAN_SHARES": "issue_announcement:全文",
-      "ONLINE_ISSUE_NUM": "issue_announcement:全文"
+      "ONLINE_ISSUE_NUM": "issue_announcement:全文",
+      "ONLINE_VA_NUM": "issue_result:result",
+      "ONLINE_ALLOCATED_ACCOUNTS": "issue_result:result",
+      "ONLINE_VA_SHARES": "issue_result:result",
+      "ONLINE_ES_MULTIPLE": "issue_result:result"
     },
     "announcement_fallback_parse_errors": [],
     "announcement_fallback_pdf_files": {
       "prospectus": "920157_宇特光电_向不特定合格投资者公开发行股票并在北京证券交易所上市招股说明书.pdf",
       "issue": "920157_宇特光电_发行公告.pdf",
-      "result": "",
+      "result": "920157_宇特光电_发行结果公告.pdf",
       "listing": ""
     }
   }

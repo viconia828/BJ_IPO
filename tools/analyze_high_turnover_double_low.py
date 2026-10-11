@@ -12,7 +12,7 @@ from pathlib import Path
 import analyze_turnover_halt_paths as a
 
 ROOT = Path(__file__).resolve().parents[1]
-OUT = ROOT / 'outputs/high_turnover_double_low_20260923'
+OUT = ROOT / 'outputs/研究产物/最新/high_turnover_double_low_20260923'
 
 
 def summary(rows):
@@ -26,10 +26,10 @@ def summary(rows):
 
 
 def run():
-    src = ROOT / 'outputs/turnover_halt_study_20260923/analysis.json'
+    src = ROOT / 'outputs/研究产物/最新/turnover_halt_study_20260923/analysis.json'
     base = a.read_json(src)
     stocks = base['stocks']
-    auction_manifest = a.read_json(ROOT / 'outputs/ifind_auction_snapshots_20260923/manifest.json')
+    auction_manifest = a.read_json(ROOT / 'outputs/研究产物/最新/ifind_auction_snapshots_20260923/manifest.json')
     auctions = {r['code']: r for r in auction_manifest.get('rows', []) if r['status']=='verified'}
     old = [s for s in stocks if s['date'] <= '2026-07-14']
     history = [s for s in stocks if s['code'] not in a.TARGETS]

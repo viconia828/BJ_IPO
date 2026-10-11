@@ -1,7 +1,7 @@
 {
   "schema": "offline_tuning_replay_item_v1",
   "cache_version": 9,
-  "generated_at": "2026-09-03 19:20:12",
+  "generated_at": "2026-09-24 20:53:09",
   "code": "920138",
   "listing_date": "2026-08-12 00:00:00",
   "record_signature": {
@@ -55,11 +55,11 @@
       }
     },
     "pdf_parser_versions": {
-      "prospectus_issue_info": 8,
-      "issue_announcement_info": 6,
+      "prospectus_issue_info": 10,
+      "issue_announcement_info": 8,
       "issue_result_info": 5,
-      "comparable_companies": 22,
-      "business_desc": 4
+      "comparable_companies": 25,
+      "business_desc": 7
     }
   },
   "item": {
@@ -121,112 +121,17 @@
     },
     "float_shares": 3300.0,
     "has_intraday_file": true,
-    "comparable_codes": [
-      "688608.SH",
-      "688332.SH",
-      "688049.SH",
-      "603068.SH",
-      "688591.SH"
-    ],
-    "comparable_data": [
-      {
-        "code": "688608.SH",
-        "name": "688608.SH",
-        "close": 114.64,
-        "pe_ttm": 55.138,
-        "pb_lf": 3.798,
-        "mkt_cap": 271.56611039999996,
-        "trade_date": "20260811",
-        "source": "tushare_historical",
-        "close_source": "tushare_historical",
-        "pe_source": "tushare_historical",
-        "pb_source": "tushare_historical",
-        "mkt_cap_source": "tushare_historical"
-      },
-      {
-        "code": "688332.SH",
-        "name": "688332.SH",
-        "close": 89.18,
-        "pe_ttm": 11.6636,
-        "pb_lf": 3.0149,
-        "mkt_cap": 159.17319054,
-        "trade_date": "20260811",
-        "source": "tushare_historical",
-        "close_source": "tushare_historical",
-        "pe_source": "tushare_historical",
-        "pb_source": "tushare_historical",
-        "mkt_cap_source": "tushare_historical"
-      },
-      {
-        "code": "688049.SH",
-        "name": "688049.SH",
-        "close": 42.4,
-        "pe_ttm": 35.0605,
-        "pb_lf": 3.5468,
-        "mkt_cap": 74.27110479999999,
-        "trade_date": "20260811",
-        "source": "tushare_historical",
-        "close_source": "tushare_historical",
-        "pe_source": "tushare_historical",
-        "pb_source": "tushare_historical",
-        "mkt_cap_source": "tushare_historical"
-      },
-      {
-        "code": "603068.SH",
-        "name": "603068.SH",
-        "close": 40.53,
-        "pe_ttm": 279.9088,
-        "pb_lf": 3.5045,
-        "mkt_cap": 61.51939269,
-        "trade_date": "20260811",
-        "source": "tushare_historical",
-        "close_source": "tushare_historical",
-        "pe_source": "tushare_historical",
-        "pb_source": "tushare_historical",
-        "mkt_cap_source": "tushare_historical"
-      },
-      {
-        "code": "688591.SH",
-        "name": "688591.SH",
-        "close": 28.29,
-        "pe_ttm": 68.4368,
-        "pb_lf": 2.7832,
-        "mkt_cap": 68.33842731,
-        "trade_date": "20260811",
-        "source": "tushare_historical",
-        "close_source": "tushare_historical",
-        "pe_source": "tushare_historical",
-        "pb_source": "tushare_historical",
-        "mkt_cap_source": "tushare_historical"
-      }
-    ],
+    "comparable_codes": [],
+    "comparable_data": [],
     "comparable_summary": {
       "provider": "tushare_historical",
-      "requested_codes": [
-        "688608.SH",
-        "688332.SH",
-        "688049.SH",
-        "603068.SH",
-        "688591.SH"
-      ],
-      "returned_codes": [
-        "688608.SH",
-        "688332.SH",
-        "688049.SH",
-        "603068.SH",
-        "688591.SH"
-      ],
+      "requested_codes": [],
+      "returned_codes": [],
       "cache_hits": [],
-      "api_fetched": [
-        "688608.SH",
-        "688332.SH",
-        "688049.SH",
-        "603068.SH",
-        "688591.SH"
-      ],
+      "api_fetched": [],
       "skipped_unsupported": [],
       "reference_trade_date": "20260811",
-      "reason": ""
+      "reason": "未提取到可比公司代码。"
     },
     "method1_replay_available": true,
     "average_price_source": "intraday_csv",

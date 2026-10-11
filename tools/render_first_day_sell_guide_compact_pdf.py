@@ -24,15 +24,15 @@ from reportlab.platypus import (
 
 
 ROOT_DIR = Path(__file__).resolve().parents[1]
-DEFAULT_OUTPUT = ROOT_DIR / "outputs" / "pdf" / "北交所新股首日卖出指南_简洁版_v5_2_20260923.pdf"
+DEFAULT_OUTPUT = ROOT_DIR / "outputs" / "定稿" / "北交所新股首日卖出指南_简洁版_v5_2_20260923.pdf"
 VERSION_DATE = "2026-09-23"
 PAGE_COUNT = 4
-AUDIT_PATH = ROOT_DIR / "outputs/guide_v5_audit_20260923/audit.json"
+AUDIT_PATH = ROOT_DIR / "outputs/研究产物/最新/guide_v5_audit_20260923/audit.json"
 AUDIT = json.loads(AUDIT_PATH.read_text(encoding="utf-8"))
 assert AUDIT["n"] == 60 and AUDIT["as_of"] == VERSION_DATE
-REPAIR = json.loads((ROOT_DIR / "outputs/high_turnover_double_low_20260923/analysis.json").read_text(encoding="utf-8"))
+REPAIR = json.loads((ROOT_DIR / "outputs/研究产物/最新/high_turnover_double_low_20260923/analysis.json").read_text(encoding="utf-8"))
 assert REPAIR["as_of"] == VERSION_DATE
-AUCTION = json.loads((ROOT_DIR / "outputs/opening_auction_wait_20260923/analysis.json").read_text(encoding="utf-8"))
+AUCTION = json.loads((ROOT_DIR / "outputs/研究产物/最新/opening_auction_wait_20260923/analysis.json").read_text(encoding="utf-8"))
 assert AUCTION["groups"]["verified_auction"]["summary"]["n"] == 60
 
 NAVY = colors.HexColor("#0B2A4A")

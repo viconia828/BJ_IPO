@@ -21,10 +21,10 @@ import param_tuning
 
 DEFAULT_DATASET = ROOT_DIR / "data" / "offline_tuning" / "replay_dataset.json"
 DEFAULT_PARAMS = ROOT_DIR / "策略参数.txt"
-DEFAULT_REVALIDATION = ROOT_DIR / "outputs" / "latest_valuation_auto_optimization_revalidation_20260712_180703.json"
-DEFAULT_AUTHOR = ROOT_DIR / "outputs" / "xueqiu_author_rule_score_20260711_192956.json"
+DEFAULT_REVALIDATION = ROOT_DIR / "outputs" / "研究产物" / "历史引用" / "latest_valuation_auto_optimization_revalidation_20260712_180703.json"
+DEFAULT_AUTHOR = ROOT_DIR / "outputs" / "研究产物" / "历史引用" / "xueqiu_author_rule_score_20260711_192956.json"
 DEFAULT_INTRADAY = ROOT_DIR / "首日分时走势"
-DEFAULT_OUTPUT = ROOT_DIR / "outputs"
+DEFAULT_OUTPUT = ROOT_DIR / "outputs" / "研究产物" / "最新"
 RETURN_BUCKETS = (
     ("低于100%", -math.inf, 100.0),
     ("100%-200%", 100.0, 200.0),

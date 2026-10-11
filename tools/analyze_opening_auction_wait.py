@@ -14,7 +14,7 @@ from pathlib import Path
 import analyze_turnover_halt_paths as a
 
 ROOT = Path(__file__).resolve().parents[1]
-OUT = ROOT / 'outputs/opening_auction_wait_20260923'
+OUT = ROOT / 'outputs/研究产物/最新/opening_auction_wait_20260923'
 BANDS = [(0, 3, '<3%'), (3, 4, '3%-4%'), (4, 5, '4%-5%'), (5, 6, '5%-6%'), (6, float('inf'), '>=6%')]
 NODES = ['09:35', '09:45', '10:00']
 
@@ -38,7 +38,7 @@ def summarize(rows):
 
 
 def run():
-    source = ROOT / 'outputs/turnover_halt_study_20260923/analysis.json'
+    source = ROOT / 'outputs/研究产物/最新/turnover_halt_study_20260923/analysis.json'
     base = a.read_json(source)
     stocks = sorted(base['stocks'], key=lambda s: (s['date'], s['code']))
     rows = []
@@ -103,7 +103,7 @@ def run():
             assert all(x['date'] < s['date'] for x in selected)
             checks += 1
         rows.append(r)
-    manifest_path=ROOT/'outputs/ifind_auction_snapshots_20260923/manifest.json'
+    manifest_path=ROOT/'outputs/研究产物/最新/ifind_auction_snapshots_20260923/manifest.json'
     manifest=a.read_json(manifest_path)
     assert manifest['verified_n']==manifest['requested_n']==60
     auctions={r['code']:r for r in manifest['rows']}

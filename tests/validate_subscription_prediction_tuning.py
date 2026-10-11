@@ -1,12 +1,16 @@
 from __future__ import annotations
 
 import csv
+from contextlib import redirect_stderr, redirect_stdout
+import io
 import json
 from pathlib import Path
 import shutil
 import sys
+import tempfile
 from types import SimpleNamespace
 from typing import Any
+from unittest.mock import patch
 
 
 CURRENT_DIR = Path(__file__).resolve().parent
@@ -564,6 +568,140 @@ def _run_auto_prior_branch_case(failures: list[str]) -> None:
     )
 
 
+def _run_auto_refine_search_case(failures: list[str]) -> None:
+    rows = [_sample_prior_row(f"92000{index}", f"2026-06-0{index}") for index in range(1, 5)]
+    result = tune_subscription_prediction.evaluate_auto_with_prior_branch(
+        rows,
+        max_candidates=3,
+        fine_rounds=1,
+        include_coarse=False,
+        max_false_negative_count=0,
+        prior_weights=[1.0],
+        prior_recent_sample_values=[3],
+        prior_half_life_values=[2.0],
+        prior_min_uplift_ratio_values=[1.1],
+        prior_min_source_sample_values=[3],
+    )
+    rounds = result.get("rounds") or []
+    _assert(rounds and rounds[0]["name"].startswith("core_fine_1_"), "auto refine: should start with fine search", failures)
+    _assert(not any("coarse" in item["name"] for item in rounds), "auto refine: should skip coarse search", failures)
+    _assert(result["max_false_negative_count"] == 0, "auto refine: main guardrail changed", failures)
+    _assert(result["account_pool_prior_branch"]["max_false_negative_count"] == 0, "auto refine: prior guardrail changed", failures)
+
+
+def _run_auto_multistage_case(failures: list[str]) -> None:
+    decay_key = "subscription_prediction_sample_decay_half_life_days"
+    scale_key = "subscription_prediction_multiple_scale"
+    prior_key = "subscription_prediction_account_pool_prior_weight"
+    strategy_params = {decay_key: 5.0, scale_key: 1.0, prior_key: 0.8}
+
+    def summary(loss: float, params: dict[str, Any]) -> dict[str, Any]:
+        return {"rank_key": [loss], "params": dict(params), "guaranteed_amount_mape": loss / 100.0}
+
+    initial_baseline = summary(10.0, strategy_params)
+    first_selected = summary(9.0, {decay_key: 4.0, scale_key: 1.0, prior_key: 1.1})
+    second_selected = summary(8.0, {decay_key: 4.0, scale_key: 1.05})
+    centers: list[dict[str, Any]] = []
+    guards: list[int | None] = []
+    coarse_flags: list[bool] = []
+
+    def evaluate(_rows: list[dict[str, Any]], **kwargs: Any) -> dict[str, Any]:
+        centers.append(dict(kwargs["base_params"]))
+        guards.append(kwargs["max_false_negative_count"])
+        coarse_flags.append(kwargs["include_coarse"])
+        stage = len(centers)
+        baseline = initial_baseline if stage == 1 else first_selected if stage == 2 else second_selected
+        selected = first_selected if stage == 1 else second_selected if stage == 2 else {}
+        return {
+            "baseline": baseline,
+            "best": selected,
+            "selected": selected,
+            "selected_branch": "account_pool_prior" if stage == 1 else "main_grid" if stage == 2 else "none",
+            "candidate_count": 3,
+            "total_candidate_count": 4,
+            "max_false_negative_count": 1,
+        }
+
+    temp_root = ROOT_DIR / ".tmp"
+    temp_root.mkdir(exist_ok=True)
+    with tempfile.TemporaryDirectory(prefix="subscription_auto_stages_", dir=temp_root) as temp_name:
+        params_path = Path(temp_name) / "params.txt"
+        record_path = Path(temp_name) / "record.txt"
+        original_text = f"{decay_key} = 5\n{scale_key} = 1\n{prior_key} = 0.8\nwsi_weight_close_vwap = 1\nprice_range_width = 0.1 # keep\n"
+        params_path.write_text(original_text, encoding="utf-8")
+        record_path.write_text("existing record\n", encoding="utf-8")
+        args = tune_subscription_prediction.parse_args([
+            "--mode", "auto", "--params-file", str(params_path), "--auto-record-path", str(record_path),
+        ])
+
+        def choose(_prompt: str) -> str:
+            _assert(params_path.read_text(encoding="utf-8") == original_text, "auto stages: wrote before acceptance", failures)
+            _assert(record_path.read_text(encoding="utf-8") == "existing record\n", "auto stages: recorded before acceptance", failures)
+            return "1" if len(centers) == 3 else "2"
+
+        output = io.StringIO()
+        with patch.object(tune_subscription_prediction, "evaluate_auto_with_prior_branch", side_effect=evaluate), \
+             patch("builtins.input", side_effect=choose), \
+             patch.object(tune_subscription_prediction, "_prepend_subscription_auto_record", wraps=tune_subscription_prediction._prepend_subscription_auto_record) as record, \
+             redirect_stdout(output):
+            exit_code = tune_subscription_prediction._run_auto_mode(args, [], strategy_params)
+        _assert(exit_code == 0 and len(centers) == 3, "auto stages: should accept after third round", failures)
+        _assert(centers[1].get(decay_key) == 4.0 and centers[1].get(prior_key) == 1.1, "auto stages: first winner not carried forward", failures)
+        _assert(centers[2].get(scale_key) == 1.05 and centers[2].get(prior_key) == 1.1, "auto stages: prior changes lost after main-grid winner", failures)
+        _assert(guards == [None, 1, 1], "auto stages: guardrail should stay fixed", failures)
+        _assert(coarse_flags == [True, False, False], "auto stages: later rounds should refine", failures)
+        written = tune_subscription_prediction.config_loader.load_params(params_path)
+        _assert(written.get(decay_key) == 4.0 and written.get(scale_key) == 1.05 and written.get(prior_key) == 1.1, "auto stages: cumulative writes mismatch", failures)
+        _assert("price_range_width = 0.1 # keep" in params_path.read_text(encoding="utf-8"), "auto stages: unrelated setting changed", failures)
+        accepted_result = record.call_args.args[1]
+        _assert(accepted_result["baseline"] == initial_baseline, "auto stages: accepted baseline must be original", failures)
+        _assert(accepted_result["selected"]["params"].get(prior_key) == 1.1, "auto stages: accepted snapshot must include carried prior", failures)
+        record_text = record_path.read_text(encoding="utf-8")
+        _assert("执行轮数：3 / 5；累计最优来自第 2 轮" in record_text, "auto stages: execution history missing", failures)
+        _assert("累计候选组数：12" in record_text and record_text.endswith("existing record\n"), "auto stages: cumulative count or old record lost", failures)
+        _assert(f"{decay_key}: 5 -> 4" in record_text, "auto stages: record should compare against original params", failures)
+        _assert(strategy_params == {decay_key: 5.0, scale_key: 1.0, prior_key: 0.8}, "auto stages: original params mutated", failures)
+
+
+def _run_auto_stage_limit_and_cancel_case(failures: list[str]) -> None:
+    default_args = tune_subscription_prediction.parse_args(["--mode", "auto"])
+    _assert(default_args.auto_max_refine_stages == 5, "auto limit: default should be five rounds", failures)
+    with redirect_stderr(io.StringIO()):
+        try:
+            tune_subscription_prediction.parse_args(["--auto-max-refine-stages", "6"])
+        except SystemExit as exc:
+            _assert(exc.code == 2, "auto limit: invalid cap should be rejected", failures)
+        else:
+            failures.append("auto limit: should reject more than five rounds")
+
+    cases = [
+        (5, [""] * 5, 5, False, False),
+        (5, ["2"] * 5, 5, True, False),
+        (2, [""] * 2, 2, False, False),
+        (5, ["3"], 1, True, False),
+        (5, EOFError, 1, True, False),
+        (5, [""] * 4 + ["1"], 5, True, True),
+        (5, ["1"], 1, True, True),
+        (5, ["1"] * 5, 5, False, False),
+    ]
+    for limit, choices, expected_rounds, has_winner, should_write in cases:
+        args = tune_subscription_prediction.parse_args(["--mode", "auto", "--auto-max-refine-stages", str(limit)])
+        selected = {"rank_key": [0.5], "params": {"subscription_prediction_sample_decay_half_life_days": 4.0}} if has_winner else {}
+        result = {"baseline": {"rank_key": [1.0]}, "selected": selected, "max_false_negative_count": 1}
+        with patch.object(tune_subscription_prediction, "evaluate_auto_with_prior_branch", return_value=result) as evaluate, \
+             patch("builtins.input", side_effect=choices), \
+             patch.object(tune_subscription_prediction, "_write_param_updates", return_value=args.params_file) as write, \
+             patch.object(tune_subscription_prediction.config_loader, "load_params", return_value={}), \
+             patch.object(tune_subscription_prediction, "_prepend_subscription_auto_record", return_value=args.auto_record_path) as record, \
+             redirect_stdout(io.StringIO()):
+            exit_code = tune_subscription_prediction._run_auto_mode(args, [], {})
+        _assert(exit_code == 0 and evaluate.call_count == expected_rounds, f"auto limit: unexpected rounds for {choices!r}", failures)
+        _assert(write.call_count == int(should_write) and record.call_count == int(should_write), "auto action: should write exactly once on acceptance only", failures)
+        if should_write:
+            accepted_result = record.call_args.args[1]
+            _assert(accepted_result["auto_stage_level"] == expected_rounds and accepted_result["selected_stage_level"] == 1, "auto limit: should retain first winner through final acceptance", failures)
+
+
 def _run_manual_ladder_label_case(failures: list[str]) -> None:
     rows = [
         _sample_row("920001", "2026-06-01"),
@@ -758,9 +896,12 @@ def main() -> int:
     _run_account_pool_prior_case(failures)
     _run_account_pool_manual_ladder_override_case(failures)
     _run_auto_prior_branch_case(failures)
+    _run_auto_refine_search_case(failures)
     _run_manual_ladder_label_case(failures)
     _run_ladder_label_gb18030_fill_case(failures)
     _run_auto_refresh_history_case(failures)
+    _run_auto_multistage_case(failures)
+    _run_auto_stage_limit_and_cancel_case(failures)
     if failures:
         for failure in failures:
             print(f"FAIL: {failure}")

@@ -16,7 +16,7 @@ ROOT_DIR = Path(__file__).resolve().parents[1]
 DEFAULT_DATASET = ROOT_DIR / "data" / "offline_tuning" / "replay_dataset.json"
 DEFAULT_INTRADAY_DIR = ROOT_DIR / "首日分时走势"
 DEFAULT_TUSHARE_DIR = ROOT_DIR / "data" / "tushare_db"
-DEFAULT_OUTPUT_DIR = ROOT_DIR / "outputs"
+DEFAULT_OUTPUT_DIR = ROOT_DIR / "outputs" / "研究产物" / "最新"
 DEFAULT_CUTOFF = "2026-07-14"
 
 EXTERNAL_EVENT_SAMPLES = {

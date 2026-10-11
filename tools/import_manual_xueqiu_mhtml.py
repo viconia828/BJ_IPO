@@ -17,7 +17,7 @@ from typing import Any
 ROOT_DIR = Path(__file__).resolve().parents[1]
 DEFAULT_INPUT_DIR = ROOT_DIR / "新建文件夹"
 DEFAULT_CORPUS_DIR = ROOT_DIR / "data" / "xueqiu_corpus"
-DEFAULT_OUTPUT_DIR = ROOT_DIR / "outputs"
+DEFAULT_OUTPUT_DIR = ROOT_DIR / "outputs" / "研究产物" / "最新"
 DEFAULT_DATASET = ROOT_DIR / "data" / "offline_tuning" / "replay_dataset.json"
 
 KEYWORDS = ["上市估值", "上市前瞻", "首日价格分析", "首日股价"]

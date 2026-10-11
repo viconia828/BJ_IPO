@@ -1,14 +1,14 @@
 {
   "schema": "offline_tuning_replay_item_v1",
   "cache_version": 9,
-  "generated_at": "2026-09-21 22:47:04",
+  "generated_at": "2026-09-24 20:23:48",
   "code": "920025",
-  "listing_date": "2026-09-14",
+  "listing_date": "2026-09-23 00:00:00",
   "record_signature": {
     "SECURITY_CODE": "920025",
     "SECURITY_NAME_ABBR": "凯达重工",
-    "APPLY_DATE": "2026-09-14",
-    "LISTING_DATE": "2026-09-14",
+    "APPLY_DATE": "2026-09-14 00:00:00",
+    "LISTING_DATE": "2026-09-23 00:00:00",
     "ISSUE_PRICE": 4.26,
     "AFTER_ISSUE_PE": 13.76,
     "INDUSTRY_PE_NEW": 45.86,
@@ -16,9 +16,9 @@
     "ISSUE_NUM": 6000.0,
     "ONLINE_ISSUE_NUM": 51000000.0,
     "TOP_APPLY_MARKETCAP": 1086.3,
-    "SUBSCRIPTION_LIMIT_WAN_SHARES": 255.0,
-    "CLOSE_PRICE": null,
-    "LD_CLOSE_CHANGE": null,
+    "SUBSCRIPTION_LIMIT_WAN_SHARES": null,
+    "CLOSE_PRICE": 29.0,
+    "LD_CLOSE_CHANGE": 580.7512,
     "NEXT_DAY_CLOSE": null,
     "THIRD_DAY_CLOSE": null,
     "NEXT_DAY_CLOSE_CHANGE": null,
@@ -26,8 +26,8 @@
     "NEXT_DAY_FROM_LISTING_CLOSE_PCT": null,
     "THIRD_DAY_FROM_LISTING_CLOSE_PCT": null,
     "POST_LISTING_PROFIT_EFFECT_PCT": null,
-    "TURNOVERRATE": null,
-    "SW_INDUSTRY": "专用设备制造业",
+    "TURNOVERRATE": 96.7662,
+    "SW_INDUSTRY": null,
     "INDUSTRY": "专用设备制造业",
     "INDUSTRY_CODE": "C35",
     "industry_primary": "高端装备",
@@ -55,40 +55,40 @@
       }
     },
     "pdf_parser_versions": {
-      "prospectus_issue_info": 8,
-      "issue_announcement_info": 6,
+      "prospectus_issue_info": 10,
+      "issue_announcement_info": 8,
       "issue_result_info": 5,
-      "comparable_companies": 22,
-      "business_desc": 4
+      "comparable_companies": 25,
+      "business_desc": 7
     }
   },
   "item": {
     "SECURITY_CODE": "920025",
     "SECURITY_NAME_ABBR": "凯达重工",
-    "APPLY_DATE": "2026-09-14",
-    "LISTING_DATE": "2026-09-14",
+    "APPLY_DATE": "2026-09-14 00:00:00",
+    "LISTING_DATE": "2026-09-23 00:00:00",
     "ISSUE_PRICE": 4.26,
     "AFTER_ISSUE_PE": 13.76,
     "INDUSTRY_PE_NEW": 45.86,
     "TOTAL_ISSUE_NUM": 6000.0,
     "ONLINE_ISSUE_NUM": 51000000.0,
     "TOP_APPLY_MARKETCAP": 1086.3,
-    "SUBSCRIPTION_LIMIT_WAN_SHARES": 255.0,
-    "CLOSE_PRICE": null,
-    "AVERAGE_PRICE": null,
-    "LD_CLOSE_CHANGE": null,
-    "LD_AVERAGE_CHANGE": null,
-    "NEXT_DAY_CLOSE": null,
+    "SUBSCRIPTION_LIMIT_WAN_SHARES": null,
+    "CLOSE_PRICE": 29.0,
+    "AVERAGE_PRICE": 31.421728115398228,
+    "LD_CLOSE_CHANGE": 580.7512,
+    "LD_AVERAGE_CHANGE": 637.5992515351697,
+    "NEXT_DAY_CLOSE": 20.3,
     "THIRD_DAY_CLOSE": null,
-    "NEXT_DAY_CLOSE_CHANGE": null,
+    "NEXT_DAY_CLOSE_CHANGE": 376.5258215962442,
     "THIRD_DAY_CLOSE_CHANGE": null,
-    "NEXT_DAY_FROM_LISTING_CLOSE_PCT": null,
+    "NEXT_DAY_FROM_LISTING_CLOSE_PCT": -29.999999999999993,
     "THIRD_DAY_FROM_LISTING_CLOSE_PCT": null,
-    "POST_LISTING_PROFIT_EFFECT_PCT": null,
-    "post_listing_performance_source": "",
-    "post_listing_performance_reason": "Missing listing date; post-listing performance cannot be calculated.",
-    "TURNOVERRATE": null,
-    "SW_INDUSTRY": "专用设备制造业",
+    "POST_LISTING_PROFIT_EFFECT_PCT": -29.999999999999993,
+    "post_listing_performance_source": "tushare_daily",
+    "post_listing_performance_reason": "",
+    "TURNOVERRATE": 96.7662,
+    "SW_INDUSTRY": "",
     "INDUSTRY": "专用设备制造业",
     "INDUSTRY_CODE": "C35",
     "industry_primary": "高端装备",
@@ -123,7 +123,7 @@
       "pending_reason": "未找到上市公告书，且招股文件未提取到有效老股数据"
     },
     "float_shares": 6000.0,
-    "has_intraday_file": false,
+    "has_intraday_file": true,
     "comparable_codes": [
       "872643.NQ",
       "873650.NQ",
@@ -131,7 +131,36 @@
       "603917.SH",
       "002760.SZ"
     ],
-    "comparable_data": [],
+    "comparable_data": [
+      {
+        "code": "603917.SH",
+        "name": "603917.SH",
+        "close": 14.36,
+        "pe_ttm": 185.0717,
+        "pb_lf": 1.773,
+        "mkt_cap": 29.271424,
+        "trade_date": "20260922",
+        "source": "tushare_historical",
+        "close_source": "tushare_historical",
+        "pe_source": "tushare_historical",
+        "pb_source": "tushare_historical",
+        "mkt_cap_source": "tushare_historical"
+      },
+      {
+        "code": "002760.SZ",
+        "name": "002760.SZ",
+        "close": 17.62,
+        "pe_ttm": 92.0389,
+        "pb_lf": 2.2697,
+        "mkt_cap": 19.02760894,
+        "trade_date": "20260922",
+        "source": "tushare_historical",
+        "close_source": "tushare_historical",
+        "pe_source": "tushare_historical",
+        "pb_source": "tushare_historical",
+        "mkt_cap_source": "tushare_historical"
+      }
+    ],
     "comparable_summary": {
       "provider": "tushare_historical",
       "requested_codes": [
@@ -141,45 +170,30 @@
         "603917.SH",
         "002760.SZ"
       ],
-      "returned_codes": [],
+      "returned_codes": [
+        "603917.SH",
+        "002760.SZ"
+      ],
       "cache_hits": [],
-      "api_fetched": [],
-      "skipped_unsupported": [],
-      "reference_trade_date": null,
-      "reason": "上市日期缺失，无法构建方法一历史快照。"
+      "api_fetched": [
+        "603917.SH",
+        "002760.SZ"
+      ],
+      "skipped_unsupported": [
+        "872643.NQ",
+        "873650.NQ",
+        "874437.NQ"
+      ],
+      "reference_trade_date": "20260922",
+      "reason": ""
     },
     "method1_replay_available": true,
-    "average_price_source": "",
-    "average_price_reason": "本地首日分时 CSV 不存在",
+    "average_price_source": "intraday_csv",
+    "average_price_reason": "",
     "average_price_calc_version": 3,
-    "average_price_unit_mode": "",
-    "average_price_reference": null,
-    "replay_record_source": "announcement_pdf_fallback",
-    "listing_date_source": "apply_date_fallback",
-    "announcement_fallback_field_sources": {
-      "PRICE_WAY": "issue_announcement:全文",
-      "APPLY_DATE": "issue_announcement:全文",
-      "ISSUE_PRICE": "issue_announcement:全文",
-      "AFTER_ISSUE_PE": "prospectus:全文",
-      "TOTAL_ISSUE_NUM": "issue_announcement:全文",
-      "INDUSTRY": "issue_announcement:全文",
-      "INDUSTRY_CODE": "issue_announcement:全文",
-      "TOTAL_SHARE_CAPITAL_AFTER_ISSUE": "issue_announcement:全文",
-      "INDUSTRY_PE_NEW": "issue_announcement:全文",
-      "TOP_APPLY_MARKETCAP": "issue_announcement:全文",
-      "SUBSCRIPTION_LIMIT_WAN_SHARES": "issue_announcement:全文",
-      "ONLINE_ISSUE_NUM": "issue_announcement:全文",
-      "ONLINE_VA_NUM": "issue_result:result",
-      "ONLINE_ALLOCATED_ACCOUNTS": "issue_result:result",
-      "ONLINE_VA_SHARES": "issue_result:result",
-      "ONLINE_ES_MULTIPLE": "issue_result:result"
-    },
-    "announcement_fallback_parse_errors": [],
-    "announcement_fallback_pdf_files": {
-      "prospectus": "920025_凯达重工_招股说明书.pdf",
-      "issue": "920025_凯达重工_发行公告.pdf",
-      "result": "920025_凯达重工_发行结果公告.pdf",
-      "listing": ""
-    }
+    "average_price_unit_mode": "volume_shares_amount_yuan",
+    "average_price_reference": 32.05,
+    "replay_record_source": "",
+    "listing_date_source": ""
   }
 }

@@ -1,24 +1,24 @@
 {
   "schema": "offline_tuning_replay_item_v1",
   "cache_version": 9,
-  "generated_at": "2026-09-17 18:52:32",
+  "generated_at": "2026-09-29 20:13:52",
   "code": "920202",
-  "listing_date": "2026-09-16",
+  "listing_date": "2026-09-29 00:00:00",
   "record_signature": {
     "SECURITY_CODE": "920202",
     "SECURITY_NAME_ABBR": "安达股份",
-    "APPLY_DATE": "2026-09-16",
-    "LISTING_DATE": "2026-09-16",
+    "APPLY_DATE": "2026-09-16 00:00:00",
+    "LISTING_DATE": "2026-09-29 00:00:00",
     "ISSUE_PRICE": 7.55,
     "AFTER_ISSUE_PE": 13.5,
     "INDUSTRY_PE_NEW": 22.75,
     "TOTAL_ISSUE_NUM": 2800.0,
     "ISSUE_NUM": 2800.0,
     "ONLINE_ISSUE_NUM": 23800000.0,
-    "TOP_APPLY_MARKETCAP": 898.4499999999999,
-    "SUBSCRIPTION_LIMIT_WAN_SHARES": 119.0,
-    "CLOSE_PRICE": null,
-    "LD_CLOSE_CHANGE": null,
+    "TOP_APPLY_MARKETCAP": 898.45,
+    "SUBSCRIPTION_LIMIT_WAN_SHARES": null,
+    "CLOSE_PRICE": 26.16,
+    "LD_CLOSE_CHANGE": 246.4901,
     "NEXT_DAY_CLOSE": null,
     "THIRD_DAY_CLOSE": null,
     "NEXT_DAY_CLOSE_CHANGE": null,
@@ -26,23 +26,27 @@
     "NEXT_DAY_FROM_LISTING_CLOSE_PCT": null,
     "THIRD_DAY_FROM_LISTING_CLOSE_PCT": null,
     "POST_LISTING_PROFIT_EFFECT_PCT": null,
-    "TURNOVERRATE": null,
-    "SW_INDUSTRY": "汽车制造业",
+    "TURNOVERRATE": 96.7012,
+    "SW_INDUSTRY": null,
     "INDUSTRY": "汽车制造业",
     "INDUSTRY_CODE": "C36",
     "industry_primary": "高端装备",
     "industry_secondary": "汽车零部件",
-    "industry_source": "industry_code_mapping",
+    "industry_source": "built_in_sample_map",
     "statutory_industry": "汽车制造业",
     "statutory_industry_code": "C36",
     "valuation_peer_group": "高端装备 / 汽车零部件",
-    "business_tags": "[]",
-    "industry_confidence": 0.6,
-    "industry_evidence": "['INDUSTRY_CODE:C36']"
+    "business_tags": "['汽车铝合金精密压铸件', '汽车零部件']",
+    "industry_confidence": 1.0,
+    "industry_evidence": "['manual_review_2026-09-03']"
   },
   "pdf_signature": {
     "files": {
-      "listing": null,
+      "listing": {
+        "name": "920202_安达股份_上市公告书.pdf",
+        "size": 1802705,
+        "mtime_ns": 1790258961797192300
+      },
       "old_shares": {
         "name": "920202_安达股份_招股说明书.pdf",
         "size": 6169864,
@@ -55,29 +59,29 @@
       }
     },
     "pdf_parser_versions": {
-      "prospectus_issue_info": 8,
-      "issue_announcement_info": 6,
+      "prospectus_issue_info": 10,
+      "issue_announcement_info": 8,
       "issue_result_info": 5,
-      "comparable_companies": 22,
-      "business_desc": 4
+      "comparable_companies": 25,
+      "business_desc": 7
     }
   },
   "item": {
     "SECURITY_CODE": "920202",
     "SECURITY_NAME_ABBR": "安达股份",
-    "APPLY_DATE": "2026-09-16",
-    "LISTING_DATE": "2026-09-16",
+    "APPLY_DATE": "2026-09-16 00:00:00",
+    "LISTING_DATE": "2026-09-29 00:00:00",
     "ISSUE_PRICE": 7.55,
     "AFTER_ISSUE_PE": 13.5,
     "INDUSTRY_PE_NEW": 22.75,
     "TOTAL_ISSUE_NUM": 2800.0,
     "ONLINE_ISSUE_NUM": 23800000.0,
-    "TOP_APPLY_MARKETCAP": 898.4499999999999,
-    "SUBSCRIPTION_LIMIT_WAN_SHARES": 119.0,
-    "CLOSE_PRICE": null,
-    "AVERAGE_PRICE": null,
-    "LD_CLOSE_CHANGE": null,
-    "LD_AVERAGE_CHANGE": null,
+    "TOP_APPLY_MARKETCAP": 898.45,
+    "SUBSCRIPTION_LIMIT_WAN_SHARES": null,
+    "CLOSE_PRICE": 26.16,
+    "AVERAGE_PRICE": 27.993502245167278,
+    "LD_CLOSE_CHANGE": 246.4901,
+    "LD_AVERAGE_CHANGE": 270.77486417440105,
     "NEXT_DAY_CLOSE": null,
     "THIRD_DAY_CLOSE": null,
     "NEXT_DAY_CLOSE_CHANGE": null,
@@ -85,22 +89,25 @@
     "NEXT_DAY_FROM_LISTING_CLOSE_PCT": null,
     "THIRD_DAY_FROM_LISTING_CLOSE_PCT": null,
     "POST_LISTING_PROFIT_EFFECT_PCT": null,
-    "post_listing_performance_source": "",
-    "post_listing_performance_reason": "Missing listing date; post-listing performance cannot be calculated.",
-    "TURNOVERRATE": null,
-    "SW_INDUSTRY": "汽车制造业",
+    "post_listing_performance_source": "tushare_daily",
+    "post_listing_performance_reason": "",
+    "TURNOVERRATE": 96.7012,
+    "SW_INDUSTRY": "",
     "INDUSTRY": "汽车制造业",
     "INDUSTRY_CODE": "C36",
     "industry_primary": "高端装备",
     "industry_secondary": "汽车零部件",
-    "industry_source": "industry_code_mapping",
+    "industry_source": "built_in_sample_map",
     "statutory_industry": "汽车制造业",
     "statutory_industry_code": "C36",
     "valuation_peer_group": "高端装备 / 汽车零部件",
-    "business_tags": [],
-    "industry_confidence": 0.6,
+    "business_tags": [
+      "汽车铝合金精密压铸件",
+      "汽车零部件"
+    ],
+    "industry_confidence": 1.0,
     "industry_evidence": [
-      "INDUSTRY_CODE:C36"
+      "manual_review_2026-09-03"
     ],
     "old_shares": 0.0,
     "old_shares_desc": "待确认（当前按 0 万股计）",
@@ -113,21 +120,78 @@
       "confidence": 0.0,
       "unit": "万股",
       "pre_unrestricted_wan_shares": null,
-      "listing_pdf_found": false,
+      "listing_pdf_found": true,
       "prospectus_pdf_found": true,
       "selected_source_label": "",
       "fallback_used": false,
-      "pending_reason": "未找到上市公告书，且招股文件未提取到有效老股数据"
+      "pending_reason": "上市公告书与招股文件均未提取到有效老股数据"
     },
     "float_shares": 2800.0,
-    "has_intraday_file": false,
+    "has_intraday_file": true,
     "comparable_codes": [
       "600933.SH",
       "603211.SH",
       "603305.SH",
       "605133.SH"
     ],
-    "comparable_data": [],
+    "comparable_data": [
+      {
+        "code": "600933.SH",
+        "name": "600933.SH",
+        "close": 13.52,
+        "pe_ttm": 12.9448,
+        "pb_lf": 1.4472,
+        "mkt_cap": 139.25861626,
+        "trade_date": "20260928",
+        "source": "tushare_historical",
+        "close_source": "tushare_historical",
+        "pe_source": "tushare_historical",
+        "pb_source": "tushare_historical",
+        "mkt_cap_source": "tushare_historical"
+      },
+      {
+        "code": "603211.SH",
+        "name": "603211.SH",
+        "close": 18.96,
+        "pe_ttm": 94.8391,
+        "pb_lf": 4.0931,
+        "mkt_cap": 51.5347968,
+        "trade_date": "20260928",
+        "source": "tushare_historical",
+        "close_source": "tushare_historical",
+        "pe_source": "tushare_historical",
+        "pb_source": "tushare_historical",
+        "mkt_cap_source": "tushare_historical"
+      },
+      {
+        "code": "603305.SH",
+        "name": "603305.SH",
+        "close": 11.1,
+        "pe_ttm": 31.8953,
+        "pb_lf": 1.3804,
+        "mkt_cap": 128.2836546,
+        "trade_date": "20260928",
+        "source": "tushare_historical",
+        "close_source": "tushare_historical",
+        "pe_source": "tushare_historical",
+        "pb_source": "tushare_historical",
+        "mkt_cap_source": "tushare_historical"
+      },
+      {
+        "code": "605133.SH",
+        "name": "605133.SH",
+        "close": 24.26,
+        "pe_ttm": 38.256,
+        "pb_lf": 1.8077,
+        "mkt_cap": 69.20773926,
+        "trade_date": "20260928",
+        "source": "tushare_historical",
+        "close_source": "tushare_historical",
+        "pe_source": "tushare_historical",
+        "pb_source": "tushare_historical",
+        "mkt_cap_source": "tushare_historical"
+      }
+    ],
     "comparable_summary": {
       "provider": "tushare_historical",
       "requested_codes": [
@@ -136,41 +200,30 @@
         "603305.SH",
         "605133.SH"
       ],
-      "returned_codes": [],
+      "returned_codes": [
+        "600933.SH",
+        "603211.SH",
+        "603305.SH",
+        "605133.SH"
+      ],
       "cache_hits": [],
-      "api_fetched": [],
+      "api_fetched": [
+        "600933.SH",
+        "603211.SH",
+        "603305.SH",
+        "605133.SH"
+      ],
       "skipped_unsupported": [],
-      "reference_trade_date": null,
-      "reason": "上市日期缺失，无法构建方法一历史快照。"
+      "reference_trade_date": "20260928",
+      "reason": ""
     },
     "method1_replay_available": true,
-    "average_price_source": "",
-    "average_price_reason": "本地首日分时 CSV 不存在",
+    "average_price_source": "intraday_csv",
+    "average_price_reason": "",
     "average_price_calc_version": 3,
-    "average_price_unit_mode": "",
-    "average_price_reference": null,
-    "replay_record_source": "announcement_pdf_fallback",
-    "listing_date_source": "apply_date_fallback",
-    "announcement_fallback_field_sources": {
-      "PRICE_WAY": "issue_announcement:全文",
-      "APPLY_DATE": "issue_announcement:全文",
-      "ISSUE_PRICE": "issue_announcement:全文",
-      "AFTER_ISSUE_PE": "prospectus:全文",
-      "TOTAL_ISSUE_NUM": "issue_announcement:全文",
-      "INDUSTRY": "issue_announcement:全文",
-      "INDUSTRY_CODE": "issue_announcement:全文",
-      "TOTAL_SHARE_CAPITAL_AFTER_ISSUE": "issue_announcement:全文",
-      "INDUSTRY_PE_NEW": "issue_announcement:全文",
-      "TOP_APPLY_MARKETCAP": "issue_announcement:全文",
-      "SUBSCRIPTION_LIMIT_WAN_SHARES": "issue_announcement:全文",
-      "ONLINE_ISSUE_NUM": "issue_announcement:全文"
-    },
-    "announcement_fallback_parse_errors": [],
-    "announcement_fallback_pdf_files": {
-      "prospectus": "920202_安达股份_招股说明书.pdf",
-      "issue": "920202_安达股份_发行公告.pdf",
-      "result": "",
-      "listing": ""
-    }
+    "average_price_unit_mode": "volume_shares_amount_yuan",
+    "average_price_reference": 28.7,
+    "replay_record_source": "",
+    "listing_date_source": ""
   }
 }

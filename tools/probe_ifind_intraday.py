@@ -12,7 +12,7 @@ from datetime import datetime
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-OUT = ROOT / 'outputs/ifind_auction_probe_20260923'
+OUT = ROOT / 'outputs/研究产物/最新/ifind_auction_probe_20260923'
 
 
 class NoRedirect(urllib.request.HTTPRedirectHandler):

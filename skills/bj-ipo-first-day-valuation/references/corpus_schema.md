@@ -7,9 +7,9 @@ Use this reference when collecting, validating, or repairing `data/xueqiu_corpus
 - `data/xueqiu_corpus/articles/<user_id>_<status_id>.json`: one article per file.
 - `data/xueqiu_corpus/articles.jsonl`: readable article records plus any explicit blocked boundary records included by the latest collector run.
 - `data/xueqiu_corpus/index.json`: run options, author stats, quality stats, and article index.
-- `outputs/xueqiu_corpus_collect_*.json`: full run reports.
-- `outputs/xueqiu_manual_mhtml_import_*.json`: legacy reports for manually imported MHTML captures.
-- `outputs/xueqiu_manual_article_import_*.json`: reports for manually imported MHTML/TXT captures.
+- `outputs/研究产物/最新/xueqiu_corpus_collect_*.json`: full run reports.
+- `outputs/研究产物/最新/xueqiu_manual_mhtml_import_*.json`: legacy reports for manually imported MHTML captures.
+- `outputs/研究产物/最新/xueqiu_manual_article_import_*.json`: reports for manually imported MHTML/TXT captures.
 
 ## Article Fields
 

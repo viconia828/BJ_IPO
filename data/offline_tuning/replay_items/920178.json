@@ -1,7 +1,7 @@
 {
   "schema": "offline_tuning_replay_item_v1",
   "cache_version": 9,
-  "generated_at": "2026-09-03 19:23:17",
+  "generated_at": "2026-09-24 21:05:46",
   "code": "920178",
   "listing_date": "2026-05-15 00:00:00",
   "record_signature": {
@@ -59,11 +59,11 @@
       }
     },
     "pdf_parser_versions": {
-      "prospectus_issue_info": 8,
-      "issue_announcement_info": 6,
+      "prospectus_issue_info": 10,
+      "issue_announcement_info": 8,
       "issue_result_info": 5,
-      "comparable_companies": 22,
-      "business_desc": 4
+      "comparable_companies": 25,
+      "business_desc": 7
     }
   },
   "item": {
@@ -127,8 +127,7 @@
     "comparable_codes": [
       "002384.SZ",
       "603228.SH",
-      "002475.SZ",
-      "002938.SZ"
+      "002475.SZ"
     ],
     "comparable_data": [
       {
@@ -172,20 +171,6 @@
         "pe_source": "tushare_historical",
         "pb_source": "tushare_historical",
         "mkt_cap_source": "tushare_historical"
-      },
-      {
-        "code": "002938.SZ",
-        "name": "002938.SZ",
-        "close": 84.17,
-        "pe_ttm": 52.556,
-        "pb_lf": 5.6309,
-        "mkt_cap": 1951.10354017,
-        "trade_date": "20260514",
-        "source": "tushare_historical",
-        "close_source": "tushare_historical",
-        "pe_source": "tushare_historical",
-        "pb_source": "tushare_historical",
-        "mkt_cap_source": "tushare_historical"
       }
     ],
     "comparable_summary": {
@@ -193,21 +178,18 @@
       "requested_codes": [
         "002384.SZ",
         "603228.SH",
-        "002475.SZ",
-        "002938.SZ"
+        "002475.SZ"
       ],
       "returned_codes": [
         "002384.SZ",
         "603228.SH",
-        "002475.SZ",
-        "002938.SZ"
+        "002475.SZ"
       ],
       "cache_hits": [],
       "api_fetched": [
         "002384.SZ",
         "603228.SH",
-        "002475.SZ",
-        "002938.SZ"
+        "002475.SZ"
       ],
       "skipped_unsupported": [],
       "reference_trade_date": "20260514",
