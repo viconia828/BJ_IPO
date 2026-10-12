@@ -5,6 +5,8 @@ import os
 import shutil
 import sys
 from typing import Any
+from datetime import date
+from unittest.mock import patch
 
 CURRENT_DIR = Path(__file__).resolve().parent
 ROOT_DIR = CURRENT_DIR.parent if CURRENT_DIR.name == "tests" else CURRENT_DIR
@@ -19,6 +21,12 @@ import tushare_ipo_helper
 
 TEMP_ROOT = ROOT_DIR / "tests" / "_tmp" / "tushare_ipo_bse_target_fallback"
 TOKEN_ENV = "TUSHARE_TEST_TOKEN_FOR_BSE_FALLBACK"
+
+
+class FixtureDate(date):
+    @classmethod
+    def today(cls):
+        return cls(2026, 4, 20)
 
 _ORIGINAL_FETCH_IPO_INFO = data_fetcher.fetch_ipo_info
 _ORIGINAL_FETCH_RECENT_IPOS_BY_DAYS = data_fetcher.fetch_recent_ipos_by_days
@@ -154,7 +162,12 @@ def _run_tushare_target_bse_fallback_case(failures: list[str]) -> None:
     tushare_ipo_helper._get_industry_pe_snapshot = _fake_get_industry_pe_snapshot
 
     try:
-        result = tushare_ipo_helper.prepare_ipo_data("920220", 3, params=_make_params())
+        # The April fixture must remain within the recent-listing window even
+        # when this regression is run months later; no live prices are needed.
+        with patch.object(tushare_ipo_helper, "date", FixtureDate), patch.object(
+            tushare_ipo_helper, "_get_post_listing_performance", return_value={}
+        ):
+            result = tushare_ipo_helper.prepare_ipo_data("920220", 3, params=_make_params())
     finally:
         data_fetcher.fetch_ipo_info = _ORIGINAL_FETCH_IPO_INFO
         data_fetcher.fetch_recent_ipos_by_days = _ORIGINAL_FETCH_RECENT_IPOS_BY_DAYS

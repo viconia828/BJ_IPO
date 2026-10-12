@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import html
+import math
 import report_source_helper
 import shutil
 import statistics
@@ -219,6 +220,16 @@ def _build_comparable_items(comparable_data: list[dict[str, Any]]) -> tuple[list
     return rows, pe_median, pb_median
 
 
+def _display_industry(item: dict[str, Any]) -> str:
+    primary = str(item.get("industry_primary") or "未分类")
+    secondary = str(item.get("industry_secondary") or "")
+    display = str(item.get("valuation_peer_group") or "")
+    if not display:
+        display = primary if secondary in {"", "未分类", primary} else f"{primary} / {secondary}"
+    tags = [str(value) for value in item.get("chain_tags") or []]
+    return f"{display}（{'、'.join(tags)}）" if tags else display
+
+
 def _build_recent_items(recent_ipos: list[dict[str, Any]]) -> list[list[str]]:
     if not recent_ipos:
         return [["暂无近期样本", "-", "-", "-", "-", "-", "-"]]
@@ -239,7 +250,7 @@ def _build_recent_items(recent_ipos: list[dict[str, Any]]) -> list[list[str]]:
                 _fmt_number(item.get("ISSUE_PRICE")),
                 _fmt_number(display_price),
                 _fmt_pct(display_change, 2),
-                str(item.get("industry_primary", "未分类")),
+                _display_industry(item),
             ]
         )
     return rows
@@ -265,6 +276,12 @@ def _build_user_valuation_ranges(
     issue_price: float | None,
     width: float,
 ) -> dict[str, Any]:
+    quality = final.get("quality_sentiment") or {}
+    if quality.get("mode") == "active":
+        anchor, sentiment = quality.get("anchor", {}), quality.get("sentiment", {})
+        return {"baseline_center": anchor.get("center"), "baseline_low": anchor.get("low"), "baseline_high": anchor.get("high"),
+                "rolling_center": sentiment.get("center"), "rolling_low": sentiment.get("low"), "rolling_high": sentiment.get("high"),
+                "formal_low": final.get("range_low"), "formal_high": final.get("range_high")}
     pre_local_center = _safe_float(final.get("pre_local_center_target_price"))
     if pre_local_center is not None:
         baseline_low, baseline_high = _center_interval(pre_local_center, width)
@@ -294,6 +311,8 @@ def _build_user_valuation_ranges(
 def _build_time_priority_text(prediction: dict[str, Any], key: str, *, overview: bool = False) -> str:
     if not prediction.get("available"):
         return "" if overview else DISPLAY_MISSING_TEXT
+    if key == "fractional_time_priority_required" and prediction.get("fractional_time_priority_known") is False:
+        return "待确认" if overview else str(prediction.get("fractional_time_priority_note") or "待确认")
     value = prediction.get(key)
     if overview:
         if key == "top_apply_time_priority_required":
@@ -356,6 +375,11 @@ def _build_composite_lines(all_data: dict[str, Any]) -> list[str]:
     method2 = all_data["method2"]
     method3 = all_data.get("method3") or {}
     final = all_data["final"]
+    quality = final.get("quality_sentiment") or {}
+    if quality.get("mode") == "active":
+        return ["情绪估值 = 个股PE基础 × 个股调整后的情绪倍数",
+                "PE基础未叠加旧方法三及原始涨幅模型；不重复计算情绪折扣",
+                quality.get("sentiment", {}).get("reason") or "价格由统一情绪模型计算"]
 
     width = float(params.get("price_range_width", 0.15))
     width_text = _fmt_weight(width)
@@ -534,6 +558,12 @@ def _prepare_report_context(all_data: dict[str, Any]) -> dict[str, Any]:
         ["首日流通老股", str(all_data.get("old_shares_desc", "-"))],
         ["所属行业", _display_text(industry.get("display_name"), fallback="-")],
     ]
+    if industry.get("statutory_industry"):
+        basic_rows.append(["法定行业", f"{industry['statutory_industry']}（{industry.get('statutory_industry_code') or '-'}）"])
+    if industry.get("chain_tags"):
+        basic_rows.append(["产业链标签", "、".join(str(value) for value in industry["chain_tags"])])
+    if industry.get("status") == "needs_review":
+        basic_rows.append(["行业分类状态", "待复核；候选：" + "、".join(industry.get("candidate_groups") or [])])
 
     user_ranges = _build_user_valuation_ranges(final, issue_price, float(params.get("price_range_width", 0.15)))
     valuation_rows = [
@@ -598,7 +628,55 @@ def _prepare_report_context(all_data: dict[str, Any]) -> dict[str, Any]:
         _format_interval(user_ranges.get("rolling_low"), user_ranges.get("rolling_high")),
     ]
 
+    quality = final.get("quality_sentiment") or {}
+    quality_rows, quality_details, quality_lines = [], [], []
+    if quality:
+        anchor, sentiment, state = quality.get("anchor", {}), quality.get("sentiment", {}), quality.get("state", {})
+        shadow = quality.get("mode") != "active"
+        if shadow:
+            overview_headers[-2:] = ["原综合参考区间（元）", "旧版情绪区间（元）"]
+            for row in valuation_rows:
+                if row[0] == "偏PE估值区间":
+                    row[0], row[2] = "原综合参考区间", "旧版三方法中枢，含情绪"
+                elif row[0] == "偏情绪估值区间":
+                    row[0] = "旧版情绪区间"
+        else:
+            for row in valuation_rows:
+                if row[0] == "偏PE估值区间":
+                    row[2] = "独立个股PE基础"
+                elif row[0] == "偏情绪估值区间":
+                    row[2] = "个股PE基础 × 情绪倍数"
+        overview_headers.append("情绪观察（影子）" if shadow else "情绪观察")
+        overview_row.append(str(state.get("label") or "无法判断"))
+        quality_rows = [
+            ["PE基础区间", _format_interval(anchor.get("low"), anchor.get("high")), anchor.get("reason") or "已剔除炒新及流通盘加价"],
+            ["个股情绪区间", _format_interval(sentiment.get("low"), sentiment.get("high")), sentiment.get("reason") or "相对自身PE基础的额外定价"],
+            ["相对基础的预测溢价", _fmt_signed_pct(sentiment.get("premium_pct")), "不与发行涨幅混用"],
+            ["情绪状态", str(state.get("label") or "无法判断"), "历史模拟，待前向验证" if shadow else ""],
+            ["近期溢价倍数变化", _fmt_signed_pct(state.get("premium_multiplier_change_pct")), "最近3个上市日组对比此前3组"],
+            ["低于模型预期超10%的占比", _fmt_pct(100 * state["miss_share"] if state.get("miss_share") is not None else None),
+             f"可比较{state.get('expectation_count', 0)}只；历史模拟预期单独标记"],
+            ["首日均价至已知后续收盘", _fmt_signed_pct(state.get("post_vwap_mean_pct")), "按观察日期过滤后计算"],
+            ["近期基础覆盖率", _fmt_pct(100 * state.get("recent_coverage", 0)), "缺失不视为中性"],
+            ["有效权重样本数", _fmt_number(sentiment.get("effective_n")), "反映权重集中程度，不等于历史样本总数"],
+        ]
+        for item in quality.get("recent_details") or []:
+            quality_details.append([str(item.get("name") or item["code"]), str(item["date"]),
+                                    _fmt_number(item["anchor"].get("center")), _fmt_number(item.get("expected_center")),
+                                    _fmt_number(item.get("actual")), _fmt_signed_pct(item.get("premium_pct")),
+                                    _fmt_signed_pct((math.exp(item["expectation_error"]) - 1) * 100 if item.get("expectation_error") is not None else None),
+                                    "事前档案" if item.get("expectation_origin") == "archived" else "历史模拟"])
+        quality_lines = ["影子试算：正式价格仍沿用旧模型。" if shadow else "个股基础与情绪区间共用同一估值基础。",
+                         f"数据截断：{quality.get('as_of_exclusive')}之前；有效历史{quality.get('history_count', 0)}只。",
+                         str(state.get("note") or ""), *anchor.get("limitations", []), *quality.get("limitations", [])]
+        if (_safe_float(sentiment.get("effective_n")) or 0) < 3:
+            quality_lines.append("近期有效权重样本不足3只，情绪试算对单只股票较敏感。")
+        snapshot = quality.get("forward_snapshot") or {}
+        if snapshot.get("previous_path"):
+            quality_lines.append(f"相对上次：PE基础{_fmt_signed_pct(snapshot.get('anchor_change_pct'))}；情绪中枢{_fmt_signed_pct(snapshot.get('sentiment_change_pct'))}。")
+
     return {
+        "quality_rows": quality_rows, "quality_details": quality_details, "quality_lines": quality_lines,
         "analysis_date": analysis_date,
         "recent_days": recent_days,
         "generated_at_text": generated_at.strftime("%Y-%m-%d %H:%M:%S"),
@@ -664,6 +742,11 @@ def build_report_markdown(all_data: dict[str, Any]) -> str:
     method2_text = "\n".join(f"- {line}" for line in context["method2_lines"])
     method3_text = "\n".join(f"- {line}" for line in context["method3_lines"])
     composite_text = "\n".join(f"- {line}" for line in context["composite_lines"])
+    quality_text = ""
+    if context["quality_rows"]:
+        quality_text = "\n### 个股资质与情绪观察\n\n" + "\n".join(f"- {line}" for line in context["quality_lines"])
+        quality_text += "\n\n" + _markdown_table(["指标", "结果", "口径"], context["quality_rows"])
+        quality_text += "\n\n" + _markdown_table(["股票", "上市日", "PE基础", "情绪预期", "实际均价", "相对基础溢价", "预期偏离", "预期来源"], context["quality_details"])
 
     return f"""# {context['title']}
 
@@ -707,6 +790,7 @@ def build_report_markdown(all_data: dict[str, Any]) -> str:
 {composite_text}
 
 {valuation_table}
+{quality_text}
 
 ## 五、关注提示
 
@@ -778,6 +862,12 @@ def _build_report_html(context: dict[str, Any]) -> str:
     method3_html = "".join(f"<li>{html.escape(line)}</li>" for line in context["method3_lines"])
     composite_html = "".join(f"<li>{html.escape(line)}</li>" for line in context["composite_lines"])
     notes_html = "".join(f"<li>{html.escape(item)}</li>" for item in context["note_items"])
+    quality_html = ""
+    if context["quality_rows"]:
+        quality_html = '<section style="break-before: page;"><h3>个股资质与情绪观察</h3><ul>' + "".join(f"<li>{html.escape(line)}</li>" for line in context["quality_lines"]) + "</ul>"
+        quality_html += _html_table(["指标", "结果", "口径"], context["quality_rows"])
+        quality_html += _html_table(["股票", "上市日", "PE基础", "情绪预期", "实际均价", "相对基础溢价", "预期偏离", "预期来源"], context["quality_details"])
+        quality_html += "</section>"
 
     return f"""<!doctype html>
 <html lang="zh-CN">
@@ -887,6 +977,7 @@ def _build_report_html(context: dict[str, Any]) -> str:
   <h3>综合估值</h3>
   <ul>{composite_html}</ul>
   {valuation_table}
+  {quality_html}
 
   <h2>五、关注提示</h2>
   <ul>{notes_html}</ul>

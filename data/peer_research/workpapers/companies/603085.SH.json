@@ -1,0 +1,2262 @@
+{
+  "code": "603085.SH",
+  "name": "天成自控",
+  "roles": [
+    "peer"
+  ],
+  "profiles": [
+    {
+      "code": "603085.SH",
+      "name": "天成自控",
+      "evidence": "data/peer_research/mcp/profiles_718b65f933.json",
+      "retrieved_at": "2026-10-12T23:45:10.344+08:00",
+      "source": "ifind_mcp",
+      "vintage_status": "current_vendor_snapshot",
+      "business": "车辆座椅的研发、生产和销售",
+      "products": "乘用车座椅、航空座椅、挖掘机座椅、装载机座椅、叉车座椅、重卡座椅、大中客车座椅、铝合金座椅骨架、碳纤维座椅靠背、轻量化结构件",
+      "available_date": null,
+      "historical_pit_eligible": false
+    }
+  ],
+  "financials": [
+    {
+      "code": "603085.SH",
+      "report_period": "2019-12-31",
+      "values": {
+        "net_profit_parent": {
+          "value": -535138770.67,
+          "rounding_tolerance": 0.005,
+          "raw": "-535138770.67",
+          "unit": "CNY",
+          "source": "ifind_api",
+          "evidence": "data/peer_research/api/d30123948412190727be_20261012234344000718_b8a33961.json",
+          "observations": [
+            {
+              "value": -535138770.67,
+              "rounding_tolerance": 0.005,
+              "raw": "-535138770.67",
+              "unit": "CNY",
+              "source": "ifind_api",
+              "evidence": "data/peer_research/api/d30123948412190727be_20261012234344000718_b8a33961.json"
+            },
+            {
+              "value": -535138770.67,
+              "rounding_tolerance": 0.005,
+              "raw": "-535138770.67",
+              "unit": "CNY",
+              "period_basis": "YTD",
+              "source": "ifind_mcp",
+              "evidence": "data/peer_research/mcp/financials_20191231_718b65f933.json"
+            }
+          ],
+          "conflict": false
+        },
+        "adjusted_net_profit_parent": {
+          "value": -543807235.34,
+          "rounding_tolerance": 0.005,
+          "raw": "-543807235.34",
+          "unit": "CNY",
+          "period_basis": "YTD",
+          "source": "ifind_mcp",
+          "evidence": "data/peer_research/mcp/financials_20191231_718b65f933.json",
+          "observations": [
+            {
+              "value": -543807235.34,
+              "rounding_tolerance": 0.005,
+              "raw": "-543807235.34",
+              "unit": "CNY",
+              "period_basis": "YTD",
+              "source": "ifind_mcp",
+              "evidence": "data/peer_research/mcp/financials_20191231_718b65f933.json"
+            }
+          ],
+          "conflict": false
+        },
+        "revenue": {
+          "value": 1456138935.8,
+          "rounding_tolerance": 0.05,
+          "raw": "1456138935.8",
+          "unit": "CNY",
+          "source": "ifind_api",
+          "evidence": "data/peer_research/api/d30123948412190727be_20261012234344000718_b8a33961.json",
+          "observations": [
+            {
+              "value": 1456138935.8,
+              "rounding_tolerance": 0.05,
+              "raw": "1456138935.8",
+              "unit": "CNY",
+              "source": "ifind_api",
+              "evidence": "data/peer_research/api/d30123948412190727be_20261012234344000718_b8a33961.json"
+            },
+            {
+              "value": 1456140000.0,
+              "rounding_tolerance": 5000.0,
+              "raw": "14.5614亿",
+              "unit": "CNY",
+              "period_basis": "YTD",
+              "source": "ifind_mcp",
+              "evidence": "data/peer_research/mcp/financials_20191231_718b65f933.json"
+            }
+          ],
+          "conflict": false
+        },
+        "reported_profit_yoy_pct": {
+          "value": -1564.2898,
+          "rounding_tolerance": 5e-05,
+          "raw": "-1564.2898",
+          "unit": "%",
+          "period_basis": "YTD",
+          "source": "ifind_mcp",
+          "evidence": "data/peer_research/mcp/financials_20191231_718b65f933.json",
+          "observations": [
+            {
+              "value": -1564.2898,
+              "rounding_tolerance": 5e-05,
+              "raw": "-1564.2898",
+              "unit": "%",
+              "period_basis": "YTD",
+              "source": "ifind_mcp",
+              "evidence": "data/peer_research/mcp/financials_20191231_718b65f933.json"
+            }
+          ],
+          "conflict": false
+        },
+        "gross_margin_pct": {
+          "value": 15.7448,
+          "rounding_tolerance": 5e-05,
+          "raw": "15.7448",
+          "unit": "%",
+          "period_basis": "YTD",
+          "source": "ifind_mcp",
+          "evidence": "data/peer_research/mcp/financials_20191231_718b65f933.json",
+          "observations": [
+            {
+              "value": 15.7448,
+              "rounding_tolerance": 5e-05,
+              "raw": "15.7448",
+              "unit": "%",
+              "period_basis": "YTD",
+              "source": "ifind_mcp",
+              "evidence": "data/peer_research/mcp/financials_20191231_718b65f933.json"
+            }
+          ],
+          "conflict": false
+        },
+        "operating_cash_flow": {
+          "value": 16082756.0,
+          "rounding_tolerance": 0.5,
+          "raw": "1608.2756万",
+          "unit": "CNY",
+          "period_basis": "YTD",
+          "source": "ifind_mcp",
+          "evidence": "data/peer_research/mcp/financials_20191231_718b65f933.json",
+          "observations": [
+            {
+              "value": 16082756.0,
+              "rounding_tolerance": 0.5,
+              "raw": "1608.2756万",
+              "unit": "CNY",
+              "period_basis": "YTD",
+              "source": "ifind_mcp",
+              "evidence": "data/peer_research/mcp/financials_20191231_718b65f933.json"
+            }
+          ],
+          "conflict": false
+        },
+        "reported_revenue_yoy_pct": {
+          "value": 52.0029,
+          "rounding_tolerance": 5e-05,
+          "raw": "52.0029",
+          "unit": "%",
+          "period_basis": "YTD",
+          "source": "ifind_mcp",
+          "evidence": "data/peer_research/mcp/financials_20191231_718b65f933.json",
+          "observations": [
+            {
+              "value": 52.0029,
+              "rounding_tolerance": 5e-05,
+              "raw": "52.0029",
+              "unit": "%",
+              "period_basis": "YTD",
+              "source": "ifind_mcp",
+              "evidence": "data/peer_research/mcp/financials_20191231_718b65f933.json"
+            }
+          ],
+          "conflict": false
+        }
+      },
+      "statement_scope": "consolidated",
+      "period_basis": "YTD",
+      "published_at": "2020-06-29",
+      "publication_evidence": [
+        {
+          "code": "603085.SH",
+          "name": "天成自控",
+          "evidence": "data/peer_research/mcp/financials_20191231_718b65f933.json",
+          "retrieved_at": "2026-10-13T00:18:23.733+08:00",
+          "source": "ifind_mcp",
+          "vintage_status": "current_vendor_snapshot",
+          "report_period": "2019-12-31",
+          "published_at": "2020-06-29"
+        }
+      ],
+      "retrieved_at": "2026-10-13T00:18:23.733+08:00",
+      "conflicts": [],
+      "historical_pit_eligible": false,
+      "warnings": [],
+      "source_family": "ifind",
+      "channel_agreement_is_independent_validation": false,
+      "tushare_publication_dates": [
+        "2020-06-25"
+      ],
+      "publication_date_needs_review": true,
+      "available_not_before": "2020-06-29"
+    },
+    {
+      "code": "603085.SH",
+      "report_period": "2020-12-31",
+      "values": {
+        "net_profit_parent": {
+          "value": 50525257.17,
+          "rounding_tolerance": 0.005,
+          "raw": "50525257.17",
+          "unit": "CNY",
+          "source": "ifind_api",
+          "evidence": "data/peer_research/api/2519ea1e2edf92e51181_20261012234344218880_ceb02dd6.json",
+          "observations": [
+            {
+              "value": 50525257.17,
+              "rounding_tolerance": 0.005,
+              "raw": "50525257.17",
+              "unit": "CNY",
+              "source": "ifind_api",
+              "evidence": "data/peer_research/api/2519ea1e2edf92e51181_20261012234344218880_ceb02dd6.json"
+            },
+            {
+              "value": 50525257.0,
+              "rounding_tolerance": 0.5,
+              "raw": "5052.5257万",
+              "unit": "CNY",
+              "period_basis": "YTD",
+              "source": "ifind_mcp",
+              "evidence": "data/peer_research/mcp/financials_20201231_718b65f933.json"
+            }
+          ],
+          "conflict": false
+        },
+        "adjusted_net_profit_parent": {
+          "value": 23065859.0,
+          "rounding_tolerance": 0.5,
+          "raw": "2306.5859万",
+          "unit": "CNY",
+          "period_basis": "YTD",
+          "source": "ifind_mcp",
+          "evidence": "data/peer_research/mcp/financials_20201231_718b65f933.json",
+          "observations": [
+            {
+              "value": 23065859.0,
+              "rounding_tolerance": 0.5,
+              "raw": "2306.5859万",
+              "unit": "CNY",
+              "period_basis": "YTD",
+              "source": "ifind_mcp",
+              "evidence": "data/peer_research/mcp/financials_20201231_718b65f933.json"
+            }
+          ],
+          "conflict": false
+        },
+        "revenue": {
+          "value": 1427717717.78,
+          "rounding_tolerance": 0.005,
+          "raw": "1427717717.78",
+          "unit": "CNY",
+          "source": "ifind_api",
+          "evidence": "data/peer_research/api/2519ea1e2edf92e51181_20261012234344218880_ceb02dd6.json",
+          "observations": [
+            {
+              "value": 1427717717.78,
+              "rounding_tolerance": 0.005,
+              "raw": "1427717717.78",
+              "unit": "CNY",
+              "source": "ifind_api",
+              "evidence": "data/peer_research/api/2519ea1e2edf92e51181_20261012234344218880_ceb02dd6.json"
+            },
+            {
+              "value": 1427720000.0,
+              "rounding_tolerance": 5000.0,
+              "raw": "14.2772亿",
+              "unit": "CNY",
+              "period_basis": "YTD",
+              "source": "ifind_mcp",
+              "evidence": "data/peer_research/mcp/financials_20201231_718b65f933.json"
+            }
+          ],
+          "conflict": false
+        },
+        "reported_profit_yoy_pct": {
+          "value": 109.4415,
+          "rounding_tolerance": 5e-05,
+          "raw": "109.4415",
+          "unit": "%",
+          "period_basis": "YTD",
+          "source": "ifind_mcp",
+          "evidence": "data/peer_research/mcp/financials_20201231_718b65f933.json",
+          "observations": [
+            {
+              "value": 109.4415,
+              "rounding_tolerance": 5e-05,
+              "raw": "109.4415",
+              "unit": "%",
+              "period_basis": "YTD",
+              "source": "ifind_mcp",
+              "evidence": "data/peer_research/mcp/financials_20201231_718b65f933.json"
+            }
+          ],
+          "conflict": false
+        },
+        "gross_margin_pct": {
+          "value": 21.1602,
+          "rounding_tolerance": 5e-05,
+          "raw": "21.1602",
+          "unit": "%",
+          "period_basis": "YTD",
+          "source": "ifind_mcp",
+          "evidence": "data/peer_research/mcp/financials_20201231_718b65f933.json",
+          "observations": [
+            {
+              "value": 21.1602,
+              "rounding_tolerance": 5e-05,
+              "raw": "21.1602",
+              "unit": "%",
+              "period_basis": "YTD",
+              "source": "ifind_mcp",
+              "evidence": "data/peer_research/mcp/financials_20201231_718b65f933.json"
+            }
+          ],
+          "conflict": false
+        },
+        "operating_cash_flow": {
+          "value": 50246055.0,
+          "rounding_tolerance": 0.5,
+          "raw": "5024.6055万",
+          "unit": "CNY",
+          "period_basis": "YTD",
+          "source": "ifind_mcp",
+          "evidence": "data/peer_research/mcp/financials_20201231_718b65f933.json",
+          "observations": [
+            {
+              "value": 50246055.0,
+              "rounding_tolerance": 0.5,
+              "raw": "5024.6055万",
+              "unit": "CNY",
+              "period_basis": "YTD",
+              "source": "ifind_mcp",
+              "evidence": "data/peer_research/mcp/financials_20201231_718b65f933.json"
+            }
+          ],
+          "conflict": false
+        },
+        "reported_revenue_yoy_pct": {
+          "value": -1.9518,
+          "rounding_tolerance": 5e-05,
+          "raw": "-1.9518",
+          "unit": "%",
+          "period_basis": "YTD",
+          "source": "ifind_mcp",
+          "evidence": "data/peer_research/mcp/financials_20201231_718b65f933.json",
+          "observations": [
+            {
+              "value": -1.9518,
+              "rounding_tolerance": 5e-05,
+              "raw": "-1.9518",
+              "unit": "%",
+              "period_basis": "YTD",
+              "source": "ifind_mcp",
+              "evidence": "data/peer_research/mcp/financials_20201231_718b65f933.json"
+            }
+          ],
+          "conflict": false
+        }
+      },
+      "statement_scope": "consolidated",
+      "period_basis": "YTD",
+      "published_at": "2021-04-15",
+      "publication_evidence": [
+        {
+          "code": "603085.SH",
+          "name": "天成自控",
+          "evidence": "data/peer_research/mcp/financials_20201231_718b65f933.json",
+          "retrieved_at": "2026-10-13T00:14:51.843+08:00",
+          "source": "ifind_mcp",
+          "vintage_status": "current_vendor_snapshot",
+          "report_period": "2020-12-31",
+          "published_at": "2021-04-15"
+        }
+      ],
+      "retrieved_at": "2026-10-13T00:14:51.843+08:00",
+      "conflicts": [],
+      "historical_pit_eligible": false,
+      "warnings": [],
+      "source_family": "ifind",
+      "channel_agreement_is_independent_validation": false,
+      "tushare_publication_dates": [
+        "2021-04-15"
+      ],
+      "publication_date_needs_review": false,
+      "available_not_before": "2021-04-15"
+    },
+    {
+      "code": "603085.SH",
+      "report_period": "2021-12-31",
+      "values": {
+        "net_profit_parent": {
+          "value": 28203760.11,
+          "rounding_tolerance": 0.005,
+          "raw": "28203760.11",
+          "unit": "CNY",
+          "source": "ifind_api",
+          "evidence": "data/peer_research/api/5fdf3d8ad2c05c53cedf_20261012234344444838_8b022fcd.json",
+          "observations": [
+            {
+              "value": 28203760.11,
+              "rounding_tolerance": 0.005,
+              "raw": "28203760.11",
+              "unit": "CNY",
+              "source": "ifind_api",
+              "evidence": "data/peer_research/api/5fdf3d8ad2c05c53cedf_20261012234344444838_8b022fcd.json"
+            },
+            {
+              "value": 28203760.000000004,
+              "rounding_tolerance": 5.0,
+              "raw": "2820.376万",
+              "unit": "CNY",
+              "period_basis": "YTD",
+              "source": "ifind_mcp",
+              "evidence": "data/peer_research/mcp/financials_20211231_718b65f933.json"
+            }
+          ],
+          "conflict": false
+        },
+        "revenue": {
+          "value": 1703718700.37,
+          "rounding_tolerance": 0.005,
+          "raw": "1703718700.37",
+          "unit": "CNY",
+          "source": "ifind_api",
+          "evidence": "data/peer_research/api/5fdf3d8ad2c05c53cedf_20261012234344444838_8b022fcd.json",
+          "observations": [
+            {
+              "value": 1703718700.37,
+              "rounding_tolerance": 0.005,
+              "raw": "1703718700.37",
+              "unit": "CNY",
+              "source": "ifind_api",
+              "evidence": "data/peer_research/api/5fdf3d8ad2c05c53cedf_20261012234344444838_8b022fcd.json"
+            },
+            {
+              "value": 1703719999.9999998,
+              "rounding_tolerance": 5000.0,
+              "raw": "17.0372亿",
+              "unit": "CNY",
+              "period_basis": "YTD",
+              "source": "ifind_mcp",
+              "evidence": "data/peer_research/mcp/financials_20211231_718b65f933.json"
+            }
+          ],
+          "conflict": false
+        },
+        "reported_profit_yoy_pct": {
+          "value": -44.1789,
+          "rounding_tolerance": 5e-05,
+          "raw": "-44.1789",
+          "unit": "%",
+          "period_basis": "YTD",
+          "source": "ifind_mcp",
+          "evidence": "data/peer_research/mcp/financials_20211231_718b65f933.json",
+          "observations": [
+            {
+              "value": -44.1789,
+              "rounding_tolerance": 5e-05,
+              "raw": "-44.1789",
+              "unit": "%",
+              "period_basis": "YTD",
+              "source": "ifind_mcp",
+              "evidence": "data/peer_research/mcp/financials_20211231_718b65f933.json"
+            }
+          ],
+          "conflict": false
+        },
+        "adjusted_net_profit_parent": {
+          "value": 7683692.0,
+          "rounding_tolerance": 0.5,
+          "raw": "768.3692万",
+          "unit": "CNY",
+          "period_basis": "YTD",
+          "source": "ifind_mcp",
+          "evidence": "data/peer_research/mcp/financials_20211231_718b65f933.json",
+          "observations": [
+            {
+              "value": 7683692.0,
+              "rounding_tolerance": 0.5,
+              "raw": "768.3692万",
+              "unit": "CNY",
+              "period_basis": "YTD",
+              "source": "ifind_mcp",
+              "evidence": "data/peer_research/mcp/financials_20211231_718b65f933.json"
+            }
+          ],
+          "conflict": false
+        },
+        "gross_margin_pct": {
+          "value": 15.9797,
+          "rounding_tolerance": 5e-05,
+          "raw": "15.9797",
+          "unit": "%",
+          "period_basis": "YTD",
+          "source": "ifind_mcp",
+          "evidence": "data/peer_research/mcp/financials_20211231_718b65f933.json",
+          "observations": [
+            {
+              "value": 15.9797,
+              "rounding_tolerance": 5e-05,
+              "raw": "15.9797",
+              "unit": "%",
+              "period_basis": "YTD",
+              "source": "ifind_mcp",
+              "evidence": "data/peer_research/mcp/financials_20211231_718b65f933.json"
+            }
+          ],
+          "conflict": false
+        },
+        "operating_cash_flow": {
+          "value": 87424244.0,
+          "rounding_tolerance": 0.5,
+          "raw": "8742.4244万",
+          "unit": "CNY",
+          "period_basis": "YTD",
+          "source": "ifind_mcp",
+          "evidence": "data/peer_research/mcp/financials_20211231_718b65f933.json",
+          "observations": [
+            {
+              "value": 87424244.0,
+              "rounding_tolerance": 0.5,
+              "raw": "8742.4244万",
+              "unit": "CNY",
+              "period_basis": "YTD",
+              "source": "ifind_mcp",
+              "evidence": "data/peer_research/mcp/financials_20211231_718b65f933.json"
+            }
+          ],
+          "conflict": false
+        },
+        "reported_revenue_yoy_pct": {
+          "value": 19.3316,
+          "rounding_tolerance": 5e-05,
+          "raw": "19.3316",
+          "unit": "%",
+          "period_basis": "YTD",
+          "source": "ifind_mcp",
+          "evidence": "data/peer_research/mcp/financials_20211231_718b65f933.json",
+          "observations": [
+            {
+              "value": 19.3316,
+              "rounding_tolerance": 5e-05,
+              "raw": "19.3316",
+              "unit": "%",
+              "period_basis": "YTD",
+              "source": "ifind_mcp",
+              "evidence": "data/peer_research/mcp/financials_20211231_718b65f933.json"
+            }
+          ],
+          "conflict": false
+        }
+      },
+      "statement_scope": "consolidated",
+      "period_basis": "YTD",
+      "published_at": "2022-04-25",
+      "publication_evidence": [
+        {
+          "code": "603085.SH",
+          "name": "天成自控",
+          "evidence": "data/peer_research/mcp/financials_20211231_718b65f933.json",
+          "retrieved_at": "2026-10-13T00:11:12.632+08:00",
+          "source": "ifind_mcp",
+          "vintage_status": "current_vendor_snapshot",
+          "report_period": "2021-12-31",
+          "published_at": "2022-04-25"
+        }
+      ],
+      "retrieved_at": "2026-10-13T00:11:12.632+08:00",
+      "conflicts": [],
+      "historical_pit_eligible": false,
+      "warnings": [],
+      "source_family": "ifind",
+      "channel_agreement_is_independent_validation": false,
+      "tushare_publication_dates": [
+        "2022-04-25"
+      ],
+      "publication_date_needs_review": false,
+      "available_not_before": "2022-04-25"
+    },
+    {
+      "code": "603085.SH",
+      "report_period": "2022-12-31",
+      "values": {
+        "net_profit_parent": {
+          "value": -273242759.63,
+          "rounding_tolerance": 0.005,
+          "raw": "-273242759.63",
+          "unit": "CNY",
+          "source": "ifind_api",
+          "evidence": "data/peer_research/api/73ea8b835c1290094621_20261012234344678181_74c2b3f6.json",
+          "observations": [
+            {
+              "value": -273242759.63,
+              "rounding_tolerance": 0.005,
+              "raw": "-273242759.63",
+              "unit": "CNY",
+              "source": "ifind_api",
+              "evidence": "data/peer_research/api/73ea8b835c1290094621_20261012234344678181_74c2b3f6.json"
+            },
+            {
+              "value": -273242759.63,
+              "rounding_tolerance": 0.005,
+              "raw": "-273242759.63",
+              "unit": "CNY",
+              "period_basis": "YTD",
+              "source": "ifind_mcp",
+              "evidence": "data/peer_research/mcp/financials_20221231_718b65f933.json"
+            }
+          ],
+          "conflict": false
+        },
+        "adjusted_net_profit_parent": {
+          "value": -274441725.5,
+          "rounding_tolerance": 0.05,
+          "raw": "-274441725.5",
+          "unit": "CNY",
+          "period_basis": "YTD",
+          "source": "ifind_mcp",
+          "evidence": "data/peer_research/mcp/financials_20221231_718b65f933.json",
+          "observations": [
+            {
+              "value": -274441725.5,
+              "rounding_tolerance": 0.05,
+              "raw": "-274441725.5",
+              "unit": "CNY",
+              "period_basis": "YTD",
+              "source": "ifind_mcp",
+              "evidence": "data/peer_research/mcp/financials_20221231_718b65f933.json"
+            }
+          ],
+          "conflict": false
+        },
+        "revenue": {
+          "value": 1424864636.73,
+          "rounding_tolerance": 0.005,
+          "raw": "1424864636.73",
+          "unit": "CNY",
+          "source": "ifind_api",
+          "evidence": "data/peer_research/api/73ea8b835c1290094621_20261012234344678181_74c2b3f6.json",
+          "observations": [
+            {
+              "value": 1424864636.73,
+              "rounding_tolerance": 0.005,
+              "raw": "1424864636.73",
+              "unit": "CNY",
+              "source": "ifind_api",
+              "evidence": "data/peer_research/api/73ea8b835c1290094621_20261012234344678181_74c2b3f6.json"
+            },
+            {
+              "value": 1424860000.0,
+              "rounding_tolerance": 5000.0,
+              "raw": "14.2486亿",
+              "unit": "CNY",
+              "period_basis": "YTD",
+              "source": "ifind_mcp",
+              "evidence": "data/peer_research/mcp/financials_20221231_718b65f933.json"
+            }
+          ],
+          "conflict": false
+        },
+        "reported_profit_yoy_pct": {
+          "value": -1068.8168,
+          "rounding_tolerance": 5e-05,
+          "raw": "-1068.8168",
+          "unit": "%",
+          "period_basis": "YTD",
+          "source": "ifind_mcp",
+          "evidence": "data/peer_research/mcp/financials_20221231_718b65f933.json",
+          "observations": [
+            {
+              "value": -1068.8168,
+              "rounding_tolerance": 5e-05,
+              "raw": "-1068.8168",
+              "unit": "%",
+              "period_basis": "YTD",
+              "source": "ifind_mcp",
+              "evidence": "data/peer_research/mcp/financials_20221231_718b65f933.json"
+            }
+          ],
+          "conflict": false
+        },
+        "gross_margin_pct": {
+          "value": 14.1483,
+          "rounding_tolerance": 5e-05,
+          "raw": "14.1483",
+          "unit": "%",
+          "period_basis": "YTD",
+          "source": "ifind_mcp",
+          "evidence": "data/peer_research/mcp/financials_20221231_718b65f933.json",
+          "observations": [
+            {
+              "value": 14.1483,
+              "rounding_tolerance": 5e-05,
+              "raw": "14.1483",
+              "unit": "%",
+              "period_basis": "YTD",
+              "source": "ifind_mcp",
+              "evidence": "data/peer_research/mcp/financials_20221231_718b65f933.json"
+            }
+          ],
+          "conflict": false
+        },
+        "operating_cash_flow": {
+          "value": 89494905.0,
+          "rounding_tolerance": 0.5,
+          "raw": "8949.4905万",
+          "unit": "CNY",
+          "period_basis": "YTD",
+          "source": "ifind_mcp",
+          "evidence": "data/peer_research/mcp/financials_20221231_718b65f933.json",
+          "observations": [
+            {
+              "value": 89494905.0,
+              "rounding_tolerance": 0.5,
+              "raw": "8949.4905万",
+              "unit": "CNY",
+              "period_basis": "YTD",
+              "source": "ifind_mcp",
+              "evidence": "data/peer_research/mcp/financials_20221231_718b65f933.json"
+            }
+          ],
+          "conflict": false
+        },
+        "reported_revenue_yoy_pct": {
+          "value": -16.3674,
+          "rounding_tolerance": 5e-05,
+          "raw": "-16.3674",
+          "unit": "%",
+          "period_basis": "YTD",
+          "source": "ifind_mcp",
+          "evidence": "data/peer_research/mcp/financials_20221231_718b65f933.json",
+          "observations": [
+            {
+              "value": -16.3674,
+              "rounding_tolerance": 5e-05,
+              "raw": "-16.3674",
+              "unit": "%",
+              "period_basis": "YTD",
+              "source": "ifind_mcp",
+              "evidence": "data/peer_research/mcp/financials_20221231_718b65f933.json"
+            }
+          ],
+          "conflict": false
+        }
+      },
+      "statement_scope": "consolidated",
+      "period_basis": "YTD",
+      "published_at": "2023-04-29",
+      "publication_evidence": [
+        {
+          "code": "603085.SH",
+          "name": "天成自控",
+          "evidence": "data/peer_research/mcp/financials_20221231_718b65f933.json",
+          "retrieved_at": "2026-10-13T00:06:37.914+08:00",
+          "source": "ifind_mcp",
+          "vintage_status": "current_vendor_snapshot",
+          "report_period": "2022-12-31",
+          "published_at": "2023-04-29"
+        }
+      ],
+      "retrieved_at": "2026-10-13T00:06:37.914+08:00",
+      "conflicts": [],
+      "historical_pit_eligible": false,
+      "warnings": [],
+      "source_family": "ifind",
+      "channel_agreement_is_independent_validation": false,
+      "tushare_publication_dates": [
+        "2023-04-29"
+      ],
+      "publication_date_needs_review": false,
+      "available_not_before": "2023-04-29"
+    },
+    {
+      "code": "603085.SH",
+      "report_period": "2023-12-31",
+      "values": {
+        "net_profit_parent": {
+          "value": 14171466.41,
+          "rounding_tolerance": 0.005,
+          "raw": "14171466.41",
+          "unit": "CNY",
+          "source": "ifind_api",
+          "evidence": "data/peer_research/api/e6da457ea6aaa0607874_20261012234344898887_847ef3c8.json",
+          "observations": [
+            {
+              "value": 14171466.41,
+              "rounding_tolerance": 0.005,
+              "raw": "14171466.41",
+              "unit": "CNY",
+              "source": "ifind_api",
+              "evidence": "data/peer_research/api/e6da457ea6aaa0607874_20261012234344898887_847ef3c8.json"
+            },
+            {
+              "value": 14171466.0,
+              "rounding_tolerance": 0.5,
+              "raw": "1417.1466万",
+              "unit": "CNY",
+              "period_basis": "YTD",
+              "source": "ifind_mcp",
+              "evidence": "data/peer_research/mcp/financials_20231231_718b65f933.json"
+            }
+          ],
+          "conflict": false
+        },
+        "adjusted_net_profit_parent": {
+          "value": 8465197.0,
+          "rounding_tolerance": 0.5,
+          "raw": "846.5197万",
+          "unit": "CNY",
+          "period_basis": "YTD",
+          "source": "ifind_mcp",
+          "evidence": "data/peer_research/mcp/financials_20231231_718b65f933.json",
+          "observations": [
+            {
+              "value": 8465197.0,
+              "rounding_tolerance": 0.5,
+              "raw": "846.5197万",
+              "unit": "CNY",
+              "period_basis": "YTD",
+              "source": "ifind_mcp",
+              "evidence": "data/peer_research/mcp/financials_20231231_718b65f933.json"
+            }
+          ],
+          "conflict": false
+        },
+        "revenue": {
+          "value": 1426838112.27,
+          "rounding_tolerance": 0.005,
+          "raw": "1426838112.27",
+          "unit": "CNY",
+          "source": "ifind_api",
+          "evidence": "data/peer_research/api/e6da457ea6aaa0607874_20261012234344898887_847ef3c8.json",
+          "observations": [
+            {
+              "value": 1426838112.27,
+              "rounding_tolerance": 0.005,
+              "raw": "1426838112.27",
+              "unit": "CNY",
+              "source": "ifind_api",
+              "evidence": "data/peer_research/api/e6da457ea6aaa0607874_20261012234344898887_847ef3c8.json"
+            },
+            {
+              "value": 1426840000.0,
+              "rounding_tolerance": 5000.0,
+              "raw": "14.2684亿",
+              "unit": "CNY",
+              "period_basis": "YTD",
+              "source": "ifind_mcp",
+              "evidence": "data/peer_research/mcp/financials_20231231_718b65f933.json"
+            }
+          ],
+          "conflict": false
+        },
+        "reported_profit_yoy_pct": {
+          "value": 105.1864,
+          "rounding_tolerance": 5e-05,
+          "raw": "105.1864",
+          "unit": "%",
+          "period_basis": "YTD",
+          "source": "ifind_mcp",
+          "evidence": "data/peer_research/mcp/financials_20231231_718b65f933.json",
+          "observations": [
+            {
+              "value": 105.1864,
+              "rounding_tolerance": 5e-05,
+              "raw": "105.1864",
+              "unit": "%",
+              "period_basis": "YTD",
+              "source": "ifind_mcp",
+              "evidence": "data/peer_research/mcp/financials_20231231_718b65f933.json"
+            }
+          ],
+          "conflict": false
+        },
+        "gross_margin_pct": {
+          "value": 20.726,
+          "rounding_tolerance": 0.0005,
+          "raw": "20.726",
+          "unit": "%",
+          "period_basis": "YTD",
+          "source": "ifind_mcp",
+          "evidence": "data/peer_research/mcp/financials_20231231_718b65f933.json",
+          "observations": [
+            {
+              "value": 20.726,
+              "rounding_tolerance": 0.0005,
+              "raw": "20.726",
+              "unit": "%",
+              "period_basis": "YTD",
+              "source": "ifind_mcp",
+              "evidence": "data/peer_research/mcp/financials_20231231_718b65f933.json"
+            }
+          ],
+          "conflict": false
+        },
+        "operating_cash_flow": {
+          "value": 50059352.0,
+          "rounding_tolerance": 0.5,
+          "raw": "5005.9352万",
+          "unit": "CNY",
+          "period_basis": "YTD",
+          "source": "ifind_mcp",
+          "evidence": "data/peer_research/mcp/financials_20231231_718b65f933.json",
+          "observations": [
+            {
+              "value": 50059352.0,
+              "rounding_tolerance": 0.5,
+              "raw": "5005.9352万",
+              "unit": "CNY",
+              "period_basis": "YTD",
+              "source": "ifind_mcp",
+              "evidence": "data/peer_research/mcp/financials_20231231_718b65f933.json"
+            }
+          ],
+          "conflict": false
+        },
+        "reported_revenue_yoy_pct": {
+          "value": 0.1385,
+          "rounding_tolerance": 5e-05,
+          "raw": "0.1385",
+          "unit": "%",
+          "period_basis": "YTD",
+          "source": "ifind_mcp",
+          "evidence": "data/peer_research/mcp/financials_20231231_718b65f933.json",
+          "observations": [
+            {
+              "value": 0.1385,
+              "rounding_tolerance": 5e-05,
+              "raw": "0.1385",
+              "unit": "%",
+              "period_basis": "YTD",
+              "source": "ifind_mcp",
+              "evidence": "data/peer_research/mcp/financials_20231231_718b65f933.json"
+            }
+          ],
+          "conflict": false
+        }
+      },
+      "statement_scope": "consolidated",
+      "period_basis": "YTD",
+      "published_at": "2024-04-27",
+      "publication_evidence": [
+        {
+          "code": "603085.SH",
+          "name": "天成自控",
+          "evidence": "data/peer_research/mcp/financials_20231231_718b65f933.json",
+          "retrieved_at": "2026-10-13T00:01:15.027+08:00",
+          "source": "ifind_mcp",
+          "vintage_status": "current_vendor_snapshot",
+          "report_period": "2023-12-31",
+          "published_at": "2024-04-27"
+        }
+      ],
+      "retrieved_at": "2026-10-13T00:01:15.027+08:00",
+      "conflicts": [],
+      "historical_pit_eligible": false,
+      "warnings": [],
+      "source_family": "ifind",
+      "channel_agreement_is_independent_validation": false,
+      "tushare_publication_dates": [
+        "2024-04-27"
+      ],
+      "publication_date_needs_review": false,
+      "available_not_before": "2024-04-27"
+    },
+    {
+      "code": "603085.SH",
+      "report_period": "2024-12-31",
+      "values": {
+        "net_profit_parent": {
+          "value": -16481338.8,
+          "rounding_tolerance": 0.05,
+          "raw": "-16481338.8",
+          "unit": "CNY",
+          "source": "ifind_api",
+          "evidence": "data/peer_research/api/f12c511b004106b764c1_20261012234345134988_61d802d7.json",
+          "observations": [
+            {
+              "value": -16481338.8,
+              "rounding_tolerance": 0.05,
+              "raw": "-16481338.8",
+              "unit": "CNY",
+              "source": "ifind_api",
+              "evidence": "data/peer_research/api/f12c511b004106b764c1_20261012234345134988_61d802d7.json"
+            },
+            {
+              "value": -16481338.8,
+              "rounding_tolerance": 0.05,
+              "raw": "-16481338.8",
+              "unit": "CNY",
+              "period_basis": "YTD",
+              "source": "ifind_mcp",
+              "evidence": "data/peer_research/mcp/financials_20241231_718b65f933.json"
+            }
+          ],
+          "conflict": false
+        },
+        "adjusted_net_profit_parent": {
+          "value": -16255164.34,
+          "rounding_tolerance": 0.005,
+          "raw": "-16255164.34",
+          "unit": "CNY",
+          "period_basis": "YTD",
+          "source": "ifind_mcp",
+          "evidence": "data/peer_research/mcp/financials_20241231_718b65f933.json",
+          "observations": [
+            {
+              "value": -16255164.34,
+              "rounding_tolerance": 0.005,
+              "raw": "-16255164.34",
+              "unit": "CNY",
+              "period_basis": "YTD",
+              "source": "ifind_mcp",
+              "evidence": "data/peer_research/mcp/financials_20241231_718b65f933.json"
+            }
+          ],
+          "conflict": false
+        },
+        "revenue": {
+          "value": 2229673710.31,
+          "rounding_tolerance": 0.005,
+          "raw": "2229673710.31",
+          "unit": "CNY",
+          "source": "ifind_api",
+          "evidence": "data/peer_research/api/f12c511b004106b764c1_20261012234345134988_61d802d7.json",
+          "observations": [
+            {
+              "value": 2229673710.31,
+              "rounding_tolerance": 0.005,
+              "raw": "2229673710.31",
+              "unit": "CNY",
+              "source": "ifind_api",
+              "evidence": "data/peer_research/api/f12c511b004106b764c1_20261012234345134988_61d802d7.json"
+            },
+            {
+              "value": 2229670000.0,
+              "rounding_tolerance": 5000.0,
+              "raw": "22.2967亿",
+              "unit": "CNY",
+              "period_basis": "YTD",
+              "source": "ifind_mcp",
+              "evidence": "data/peer_research/mcp/financials_20241231_718b65f933.json"
+            }
+          ],
+          "conflict": false
+        },
+        "reported_profit_yoy_pct": {
+          "value": -216.2995,
+          "rounding_tolerance": 5e-05,
+          "raw": "-216.2995",
+          "unit": "%",
+          "period_basis": "YTD",
+          "source": "ifind_mcp",
+          "evidence": "data/peer_research/mcp/financials_20241231_718b65f933.json",
+          "observations": [
+            {
+              "value": -216.2995,
+              "rounding_tolerance": 5e-05,
+              "raw": "-216.2995",
+              "unit": "%",
+              "period_basis": "YTD",
+              "source": "ifind_mcp",
+              "evidence": "data/peer_research/mcp/financials_20241231_718b65f933.json"
+            }
+          ],
+          "conflict": false
+        },
+        "gross_margin_pct": {
+          "value": 18.88,
+          "rounding_tolerance": 0.005,
+          "raw": "18.88",
+          "unit": "%",
+          "period_basis": "YTD",
+          "source": "ifind_mcp",
+          "evidence": "data/peer_research/mcp/financials_20241231_718b65f933.json",
+          "observations": [
+            {
+              "value": 18.88,
+              "rounding_tolerance": 0.005,
+              "raw": "18.88",
+              "unit": "%",
+              "period_basis": "YTD",
+              "source": "ifind_mcp",
+              "evidence": "data/peer_research/mcp/financials_20241231_718b65f933.json"
+            }
+          ],
+          "conflict": false
+        },
+        "operating_cash_flow": {
+          "value": 32428422.0,
+          "rounding_tolerance": 0.5,
+          "raw": "3242.8422万",
+          "unit": "CNY",
+          "period_basis": "YTD",
+          "source": "ifind_mcp",
+          "evidence": "data/peer_research/mcp/financials_20241231_718b65f933.json",
+          "observations": [
+            {
+              "value": 32428422.0,
+              "rounding_tolerance": 0.5,
+              "raw": "3242.8422万",
+              "unit": "CNY",
+              "period_basis": "YTD",
+              "source": "ifind_mcp",
+              "evidence": "data/peer_research/mcp/financials_20241231_718b65f933.json"
+            }
+          ],
+          "conflict": false
+        },
+        "reported_revenue_yoy_pct": {
+          "value": 56.2668,
+          "rounding_tolerance": 5e-05,
+          "raw": "56.2668",
+          "unit": "%",
+          "period_basis": "YTD",
+          "source": "ifind_mcp",
+          "evidence": "data/peer_research/mcp/financials_20241231_718b65f933.json",
+          "observations": [
+            {
+              "value": 56.2668,
+              "rounding_tolerance": 5e-05,
+              "raw": "56.2668",
+              "unit": "%",
+              "period_basis": "YTD",
+              "source": "ifind_mcp",
+              "evidence": "data/peer_research/mcp/financials_20241231_718b65f933.json"
+            }
+          ],
+          "conflict": false
+        }
+      },
+      "statement_scope": "consolidated",
+      "period_basis": "YTD",
+      "published_at": "2025-04-29",
+      "publication_evidence": [
+        {
+          "code": "603085.SH",
+          "name": "天成自控",
+          "evidence": "data/peer_research/mcp/financials_20241231_718b65f933.json",
+          "retrieved_at": "2026-10-12T23:56:52.967+08:00",
+          "source": "ifind_mcp",
+          "vintage_status": "current_vendor_snapshot",
+          "report_period": "2024-12-31",
+          "published_at": "2025-04-29"
+        }
+      ],
+      "retrieved_at": "2026-10-12T23:56:52.967+08:00",
+      "conflicts": [],
+      "historical_pit_eligible": false,
+      "warnings": [],
+      "source_family": "ifind",
+      "channel_agreement_is_independent_validation": false,
+      "tushare_publication_dates": [
+        "2025-04-29"
+      ],
+      "publication_date_needs_review": false,
+      "available_not_before": "2025-04-29"
+    },
+    {
+      "code": "603085.SH",
+      "report_period": "2025-06-30",
+      "values": {
+        "accounts_receivable": {
+          "value": 809240000.0,
+          "rounding_tolerance": 5000.0,
+          "raw": "8.0924亿",
+          "unit": "CNY",
+          "period_basis": "instant",
+          "source": "ifind_mcp",
+          "evidence": "data/peer_research/mcp/balance_20250630_718b65f933.json",
+          "observations": [
+            {
+              "value": 809240000.0,
+              "rounding_tolerance": 5000.0,
+              "raw": "8.0924亿",
+              "unit": "CNY",
+              "period_basis": "instant",
+              "source": "ifind_mcp",
+              "evidence": "data/peer_research/mcp/balance_20250630_718b65f933.json"
+            }
+          ],
+          "conflict": false
+        },
+        "net_profit_parent": {
+          "value": 23270918.55,
+          "rounding_tolerance": 0.005,
+          "raw": "23270918.55",
+          "unit": "CNY",
+          "source": "ifind_api",
+          "evidence": "data/peer_research/api/eb9b9591e7f9b1fce362_20261012234345351520_5d228075.json",
+          "observations": [
+            {
+              "value": 23270918.55,
+              "rounding_tolerance": 0.005,
+              "raw": "23270918.55",
+              "unit": "CNY",
+              "source": "ifind_api",
+              "evidence": "data/peer_research/api/eb9b9591e7f9b1fce362_20261012234345351520_5d228075.json"
+            },
+            {
+              "value": 23270919.0,
+              "rounding_tolerance": 0.5,
+              "raw": "2327.0919万",
+              "unit": "CNY",
+              "period_basis": "YTD",
+              "source": "ifind_mcp",
+              "evidence": "data/peer_research/mcp/financials_20250630_718b65f933.json"
+            }
+          ],
+          "conflict": false
+        },
+        "equity_parent": {
+          "value": 851880000.0,
+          "rounding_tolerance": 5000.0,
+          "raw": "8.5188亿",
+          "unit": "CNY",
+          "period_basis": "instant",
+          "source": "ifind_mcp",
+          "evidence": "data/peer_research/mcp/balance_20250630_718b65f933.json",
+          "observations": [
+            {
+              "value": 851880000.0,
+              "rounding_tolerance": 5000.0,
+              "raw": "8.5188亿",
+              "unit": "CNY",
+              "period_basis": "instant",
+              "source": "ifind_mcp",
+              "evidence": "data/peer_research/mcp/balance_20250630_718b65f933.json"
+            }
+          ],
+          "conflict": false
+        },
+        "total_assets": {
+          "value": 3402990000.0,
+          "rounding_tolerance": 5000.0,
+          "raw": "34.0299亿",
+          "unit": "CNY",
+          "period_basis": "instant",
+          "source": "ifind_mcp",
+          "evidence": "data/peer_research/mcp/balance_20250630_718b65f933.json",
+          "observations": [
+            {
+              "value": 3402990000.0,
+              "rounding_tolerance": 5000.0,
+              "raw": "34.0299亿",
+              "unit": "CNY",
+              "period_basis": "instant",
+              "source": "ifind_mcp",
+              "evidence": "data/peer_research/mcp/balance_20250630_718b65f933.json"
+            }
+          ],
+          "conflict": false
+        },
+        "inventory": {
+          "value": 544400000.0,
+          "rounding_tolerance": 50000.0,
+          "raw": "5.444亿",
+          "unit": "CNY",
+          "period_basis": "instant",
+          "source": "ifind_mcp",
+          "evidence": "data/peer_research/mcp/balance_20250630_718b65f933.json",
+          "observations": [
+            {
+              "value": 544400000.0,
+              "rounding_tolerance": 50000.0,
+              "raw": "5.444亿",
+              "unit": "CNY",
+              "period_basis": "instant",
+              "source": "ifind_mcp",
+              "evidence": "data/peer_research/mcp/balance_20250630_718b65f933.json"
+            }
+          ],
+          "conflict": false
+        },
+        "revenue": {
+          "value": 1155716403.27,
+          "rounding_tolerance": 0.005,
+          "raw": "1155716403.27",
+          "unit": "CNY",
+          "source": "ifind_api",
+          "evidence": "data/peer_research/api/eb9b9591e7f9b1fce362_20261012234345351520_5d228075.json",
+          "observations": [
+            {
+              "value": 1155716403.27,
+              "rounding_tolerance": 0.005,
+              "raw": "1155716403.27",
+              "unit": "CNY",
+              "source": "ifind_api",
+              "evidence": "data/peer_research/api/eb9b9591e7f9b1fce362_20261012234345351520_5d228075.json"
+            },
+            {
+              "value": 1155720000.0,
+              "rounding_tolerance": 5000.0,
+              "raw": "11.5572亿",
+              "unit": "CNY",
+              "period_basis": "YTD",
+              "source": "ifind_mcp",
+              "evidence": "data/peer_research/mcp/financials_20250630_718b65f933.json"
+            }
+          ],
+          "conflict": false
+        },
+        "adjusted_net_profit_parent": {
+          "value": 17150465.0,
+          "rounding_tolerance": 0.5,
+          "raw": "1715.0465万",
+          "unit": "CNY",
+          "period_basis": "YTD",
+          "source": "ifind_mcp",
+          "evidence": "data/peer_research/mcp/financials_20250630_718b65f933.json",
+          "observations": [
+            {
+              "value": 17150465.0,
+              "rounding_tolerance": 0.5,
+              "raw": "1715.0465万",
+              "unit": "CNY",
+              "period_basis": "YTD",
+              "source": "ifind_mcp",
+              "evidence": "data/peer_research/mcp/financials_20250630_718b65f933.json"
+            }
+          ],
+          "conflict": false
+        },
+        "reported_profit_yoy_pct": {
+          "value": 47.5518,
+          "rounding_tolerance": 5e-05,
+          "raw": "47.5518",
+          "unit": "%",
+          "period_basis": "YTD",
+          "source": "ifind_mcp",
+          "evidence": "data/peer_research/mcp/financials_20250630_718b65f933.json",
+          "observations": [
+            {
+              "value": 47.5518,
+              "rounding_tolerance": 5e-05,
+              "raw": "47.5518",
+              "unit": "%",
+              "period_basis": "YTD",
+              "source": "ifind_mcp",
+              "evidence": "data/peer_research/mcp/financials_20250630_718b65f933.json"
+            }
+          ],
+          "conflict": false
+        },
+        "operating_cash_flow": {
+          "value": 187880000.0,
+          "rounding_tolerance": 5000.0,
+          "raw": "1.8788亿",
+          "unit": "CNY",
+          "period_basis": "YTD",
+          "source": "ifind_mcp",
+          "evidence": "data/peer_research/mcp/financials_20250630_718b65f933.json",
+          "observations": [
+            {
+              "value": 187880000.0,
+              "rounding_tolerance": 5000.0,
+              "raw": "1.8788亿",
+              "unit": "CNY",
+              "period_basis": "YTD",
+              "source": "ifind_mcp",
+              "evidence": "data/peer_research/mcp/financials_20250630_718b65f933.json"
+            }
+          ],
+          "conflict": false
+        },
+        "gross_margin_pct": {
+          "value": 16.6338,
+          "rounding_tolerance": 5e-05,
+          "raw": "16.6338",
+          "unit": "%",
+          "period_basis": "YTD",
+          "source": "ifind_mcp",
+          "evidence": "data/peer_research/mcp/financials_20250630_718b65f933.json",
+          "observations": [
+            {
+              "value": 16.6338,
+              "rounding_tolerance": 5e-05,
+              "raw": "16.6338",
+              "unit": "%",
+              "period_basis": "YTD",
+              "source": "ifind_mcp",
+              "evidence": "data/peer_research/mcp/financials_20250630_718b65f933.json"
+            }
+          ],
+          "conflict": false
+        },
+        "reported_revenue_yoy_pct": {
+          "value": 31.3964,
+          "rounding_tolerance": 5e-05,
+          "raw": "31.3964",
+          "unit": "%",
+          "period_basis": "YTD",
+          "source": "ifind_mcp",
+          "evidence": "data/peer_research/mcp/financials_20250630_718b65f933.json",
+          "observations": [
+            {
+              "value": 31.3964,
+              "rounding_tolerance": 5e-05,
+              "raw": "31.3964",
+              "unit": "%",
+              "period_basis": "YTD",
+              "source": "ifind_mcp",
+              "evidence": "data/peer_research/mcp/financials_20250630_718b65f933.json"
+            }
+          ],
+          "conflict": false
+        }
+      },
+      "statement_scope": "consolidated",
+      "period_basis": "YTD",
+      "published_at": "2025-08-26",
+      "publication_evidence": [
+        {
+          "code": "603085.SH",
+          "name": "天成自控",
+          "evidence": "data/peer_research/mcp/balance_20250630_718b65f933.json",
+          "retrieved_at": "2026-10-13T00:02:06.096+08:00",
+          "source": "ifind_mcp",
+          "vintage_status": "current_vendor_snapshot",
+          "report_period": "2025-06-30",
+          "published_at": "2025-08-26"
+        },
+        {
+          "code": "603085.SH",
+          "name": "天成自控",
+          "evidence": "data/peer_research/mcp/financials_20250630_718b65f933.json",
+          "retrieved_at": "2026-10-12T23:53:29.018+08:00",
+          "source": "ifind_mcp",
+          "vintage_status": "current_vendor_snapshot",
+          "report_period": "2025-06-30",
+          "published_at": "2025-08-26"
+        }
+      ],
+      "retrieved_at": "2026-10-13T00:02:06.096+08:00",
+      "conflicts": [],
+      "historical_pit_eligible": false,
+      "warnings": [],
+      "source_family": "ifind",
+      "channel_agreement_is_independent_validation": false,
+      "tushare_publication_dates": [
+        "2025-08-26"
+      ],
+      "publication_date_needs_review": false,
+      "available_not_before": "2025-08-26"
+    },
+    {
+      "code": "603085.SH",
+      "report_period": "2025-12-31",
+      "values": {
+        "accounts_receivable": {
+          "value": 998620000.0,
+          "rounding_tolerance": 5000.0,
+          "raw": "9.9862亿",
+          "unit": "CNY",
+          "period_basis": "instant",
+          "source": "ifind_mcp",
+          "evidence": "data/peer_research/mcp/balance_20251231_718b65f933.json",
+          "observations": [
+            {
+              "value": 998620000.0,
+              "rounding_tolerance": 5000.0,
+              "raw": "9.9862亿",
+              "unit": "CNY",
+              "period_basis": "instant",
+              "source": "ifind_mcp",
+              "evidence": "data/peer_research/mcp/balance_20251231_718b65f933.json"
+            }
+          ],
+          "conflict": false
+        },
+        "net_profit_parent": {
+          "value": 84897784.11,
+          "rounding_tolerance": 0.005,
+          "raw": "84897784.11",
+          "unit": "CNY",
+          "source": "ifind_api",
+          "evidence": "data/peer_research/api/86feb03eb4ec626e8488_20261012234345565768_09305021.json",
+          "observations": [
+            {
+              "value": 84897784.11,
+              "rounding_tolerance": 0.005,
+              "raw": "84897784.11",
+              "unit": "CNY",
+              "source": "ifind_api",
+              "evidence": "data/peer_research/api/86feb03eb4ec626e8488_20261012234345565768_09305021.json"
+            },
+            {
+              "value": 84897783.99999999,
+              "rounding_tolerance": 0.5,
+              "raw": "8489.7784万",
+              "unit": "CNY",
+              "period_basis": "YTD",
+              "source": "ifind_mcp",
+              "evidence": "data/peer_research/mcp/financials_20251231_718b65f933.json"
+            }
+          ],
+          "conflict": false
+        },
+        "equity_parent": {
+          "value": 931880000.0,
+          "rounding_tolerance": 5000.0,
+          "raw": "9.3188亿",
+          "unit": "CNY",
+          "period_basis": "instant",
+          "source": "ifind_mcp",
+          "evidence": "data/peer_research/mcp/balance_20251231_718b65f933.json",
+          "observations": [
+            {
+              "value": 931880000.0,
+              "rounding_tolerance": 5000.0,
+              "raw": "9.3188亿",
+              "unit": "CNY",
+              "period_basis": "instant",
+              "source": "ifind_mcp",
+              "evidence": "data/peer_research/mcp/balance_20251231_718b65f933.json"
+            }
+          ],
+          "conflict": false
+        },
+        "total_assets": {
+          "value": 3576050000.0,
+          "rounding_tolerance": 5000.0,
+          "raw": "35.7605亿",
+          "unit": "CNY",
+          "period_basis": "instant",
+          "source": "ifind_mcp",
+          "evidence": "data/peer_research/mcp/balance_20251231_718b65f933.json",
+          "observations": [
+            {
+              "value": 3576050000.0,
+              "rounding_tolerance": 5000.0,
+              "raw": "35.7605亿",
+              "unit": "CNY",
+              "period_basis": "instant",
+              "source": "ifind_mcp",
+              "evidence": "data/peer_research/mcp/balance_20251231_718b65f933.json"
+            }
+          ],
+          "conflict": false
+        },
+        "inventory": {
+          "value": 345240000.0,
+          "rounding_tolerance": 5000.0,
+          "raw": "3.4524亿",
+          "unit": "CNY",
+          "period_basis": "instant",
+          "source": "ifind_mcp",
+          "evidence": "data/peer_research/mcp/balance_20251231_718b65f933.json",
+          "observations": [
+            {
+              "value": 345240000.0,
+              "rounding_tolerance": 5000.0,
+              "raw": "3.4524亿",
+              "unit": "CNY",
+              "period_basis": "instant",
+              "source": "ifind_mcp",
+              "evidence": "data/peer_research/mcp/balance_20251231_718b65f933.json"
+            }
+          ],
+          "conflict": false
+        },
+        "revenue": {
+          "value": 3018847538.93,
+          "rounding_tolerance": 0.005,
+          "raw": "3018847538.93",
+          "unit": "CNY",
+          "source": "ifind_api",
+          "evidence": "data/peer_research/api/86feb03eb4ec626e8488_20261012234345565768_09305021.json",
+          "observations": [
+            {
+              "value": 3018847538.93,
+              "rounding_tolerance": 0.005,
+              "raw": "3018847538.93",
+              "unit": "CNY",
+              "source": "ifind_api",
+              "evidence": "data/peer_research/api/86feb03eb4ec626e8488_20261012234345565768_09305021.json"
+            },
+            {
+              "value": 3018850000.0,
+              "rounding_tolerance": 5000.0,
+              "raw": "30.1885亿",
+              "unit": "CNY",
+              "period_basis": "YTD",
+              "source": "ifind_mcp",
+              "evidence": "data/peer_research/mcp/financials_20251231_718b65f933.json"
+            }
+          ],
+          "conflict": false
+        },
+        "reported_profit_yoy_pct": {
+          "value": 615.1146,
+          "rounding_tolerance": 5e-05,
+          "raw": "615.1146",
+          "unit": "%",
+          "period_basis": "YTD",
+          "source": "ifind_mcp",
+          "evidence": "data/peer_research/mcp/financials_20251231_718b65f933.json",
+          "observations": [
+            {
+              "value": 615.1146,
+              "rounding_tolerance": 5e-05,
+              "raw": "615.1146",
+              "unit": "%",
+              "period_basis": "YTD",
+              "source": "ifind_mcp",
+              "evidence": "data/peer_research/mcp/financials_20251231_718b65f933.json"
+            }
+          ],
+          "conflict": false
+        },
+        "adjusted_net_profit_parent": {
+          "value": 75415106.0,
+          "rounding_tolerance": 0.5,
+          "raw": "7541.5106万",
+          "unit": "CNY",
+          "period_basis": "YTD",
+          "source": "ifind_mcp",
+          "evidence": "data/peer_research/mcp/financials_20251231_718b65f933.json",
+          "observations": [
+            {
+              "value": 75415106.0,
+              "rounding_tolerance": 0.5,
+              "raw": "7541.5106万",
+              "unit": "CNY",
+              "period_basis": "YTD",
+              "source": "ifind_mcp",
+              "evidence": "data/peer_research/mcp/financials_20251231_718b65f933.json"
+            }
+          ],
+          "conflict": false
+        },
+        "gross_margin_pct": {
+          "value": 17.5992,
+          "rounding_tolerance": 5e-05,
+          "raw": "17.5992",
+          "unit": "%",
+          "period_basis": "YTD",
+          "source": "ifind_mcp",
+          "evidence": "data/peer_research/mcp/financials_20251231_718b65f933.json",
+          "observations": [
+            {
+              "value": 17.5992,
+              "rounding_tolerance": 5e-05,
+              "raw": "17.5992",
+              "unit": "%",
+              "period_basis": "YTD",
+              "source": "ifind_mcp",
+              "evidence": "data/peer_research/mcp/financials_20251231_718b65f933.json"
+            }
+          ],
+          "conflict": false
+        },
+        "operating_cash_flow": {
+          "value": 576150000.0,
+          "rounding_tolerance": 5000.0,
+          "raw": "5.7615亿",
+          "unit": "CNY",
+          "period_basis": "YTD",
+          "source": "ifind_mcp",
+          "evidence": "data/peer_research/mcp/financials_20251231_718b65f933.json",
+          "observations": [
+            {
+              "value": 576150000.0,
+              "rounding_tolerance": 5000.0,
+              "raw": "5.7615亿",
+              "unit": "CNY",
+              "period_basis": "YTD",
+              "source": "ifind_mcp",
+              "evidence": "data/peer_research/mcp/financials_20251231_718b65f933.json"
+            }
+          ],
+          "conflict": false
+        },
+        "reported_revenue_yoy_pct": {
+          "value": 35.3941,
+          "rounding_tolerance": 5e-05,
+          "raw": "35.3941",
+          "unit": "%",
+          "period_basis": "YTD",
+          "source": "ifind_mcp",
+          "evidence": "data/peer_research/mcp/financials_20251231_718b65f933.json",
+          "observations": [
+            {
+              "value": 35.3941,
+              "rounding_tolerance": 5e-05,
+              "raw": "35.3941",
+              "unit": "%",
+              "period_basis": "YTD",
+              "source": "ifind_mcp",
+              "evidence": "data/peer_research/mcp/financials_20251231_718b65f933.json"
+            }
+          ],
+          "conflict": false
+        }
+      },
+      "statement_scope": "consolidated",
+      "period_basis": "YTD",
+      "published_at": "2026-04-29",
+      "publication_evidence": [
+        {
+          "code": "603085.SH",
+          "name": "天成自控",
+          "evidence": "data/peer_research/mcp/balance_20251231_718b65f933.json",
+          "retrieved_at": "2026-10-13T00:02:38.102+08:00",
+          "source": "ifind_mcp",
+          "vintage_status": "current_vendor_snapshot",
+          "report_period": "2025-12-31",
+          "published_at": "2026-04-29"
+        },
+        {
+          "code": "603085.SH",
+          "name": "天成自控",
+          "evidence": "data/peer_research/mcp/financials_20251231_718b65f933.json",
+          "retrieved_at": "2026-10-12T23:50:33.325+08:00",
+          "source": "ifind_mcp",
+          "vintage_status": "current_vendor_snapshot",
+          "report_period": "2025-12-31",
+          "published_at": "2026-04-29"
+        }
+      ],
+      "retrieved_at": "2026-10-13T00:02:38.102+08:00",
+      "conflicts": [],
+      "historical_pit_eligible": false,
+      "warnings": [],
+      "source_family": "ifind",
+      "channel_agreement_is_independent_validation": false,
+      "tushare_publication_dates": [
+        "2026-04-29"
+      ],
+      "publication_date_needs_review": false,
+      "available_not_before": "2026-04-29"
+    },
+    {
+      "code": "603085.SH",
+      "report_period": "2026-06-30",
+      "values": {
+        "accounts_receivable": {
+          "value": 1057809999.9999999,
+          "rounding_tolerance": 5000.0,
+          "raw": "10.5781亿",
+          "unit": "CNY",
+          "period_basis": "instant",
+          "source": "ifind_mcp",
+          "evidence": "data/peer_research/mcp/balance_20260630_718b65f933.json",
+          "observations": [
+            {
+              "value": 1057809999.9999999,
+              "rounding_tolerance": 5000.0,
+              "raw": "10.5781亿",
+              "unit": "CNY",
+              "period_basis": "instant",
+              "source": "ifind_mcp",
+              "evidence": "data/peer_research/mcp/balance_20260630_718b65f933.json"
+            }
+          ],
+          "conflict": false
+        },
+        "net_profit_parent": {
+          "value": 50599444.85,
+          "rounding_tolerance": 0.005,
+          "raw": "50599444.85",
+          "unit": "CNY",
+          "source": "ifind_api",
+          "evidence": "data/peer_research/api/e59ac91bb368d75c9705_20261012234345801239_3b068c5c.json",
+          "observations": [
+            {
+              "value": 50599444.85,
+              "rounding_tolerance": 0.005,
+              "raw": "50599444.85",
+              "unit": "CNY",
+              "source": "ifind_api",
+              "evidence": "data/peer_research/api/e59ac91bb368d75c9705_20261012234345801239_3b068c5c.json"
+            },
+            {
+              "value": 50599444.99999999,
+              "rounding_tolerance": 0.5,
+              "raw": "5059.9445万",
+              "unit": "CNY",
+              "period_basis": "YTD",
+              "source": "ifind_mcp",
+              "evidence": "data/peer_research/mcp/financials_20260630_718b65f933.json"
+            }
+          ],
+          "conflict": false
+        },
+        "equity_parent": {
+          "value": 996570000.0,
+          "rounding_tolerance": 5000.0,
+          "raw": "9.9657亿",
+          "unit": "CNY",
+          "period_basis": "instant",
+          "source": "ifind_mcp",
+          "evidence": "data/peer_research/mcp/balance_20260630_718b65f933.json",
+          "observations": [
+            {
+              "value": 996570000.0,
+              "rounding_tolerance": 5000.0,
+              "raw": "9.9657亿",
+              "unit": "CNY",
+              "period_basis": "instant",
+              "source": "ifind_mcp",
+              "evidence": "data/peer_research/mcp/balance_20260630_718b65f933.json"
+            }
+          ],
+          "conflict": false
+        },
+        "total_assets": {
+          "value": 3570530000.0,
+          "rounding_tolerance": 5000.0,
+          "raw": "35.7053亿",
+          "unit": "CNY",
+          "period_basis": "instant",
+          "source": "ifind_mcp",
+          "evidence": "data/peer_research/mcp/balance_20260630_718b65f933.json",
+          "observations": [
+            {
+              "value": 3570530000.0,
+              "rounding_tolerance": 5000.0,
+              "raw": "35.7053亿",
+              "unit": "CNY",
+              "period_basis": "instant",
+              "source": "ifind_mcp",
+              "evidence": "data/peer_research/mcp/balance_20260630_718b65f933.json"
+            }
+          ],
+          "conflict": false
+        },
+        "inventory": {
+          "value": 355070000.0,
+          "rounding_tolerance": 5000.0,
+          "raw": "3.5507亿",
+          "unit": "CNY",
+          "period_basis": "instant",
+          "source": "ifind_mcp",
+          "evidence": "data/peer_research/mcp/balance_20260630_718b65f933.json",
+          "observations": [
+            {
+              "value": 355070000.0,
+              "rounding_tolerance": 5000.0,
+              "raw": "3.5507亿",
+              "unit": "CNY",
+              "period_basis": "instant",
+              "source": "ifind_mcp",
+              "evidence": "data/peer_research/mcp/balance_20260630_718b65f933.json"
+            }
+          ],
+          "conflict": false
+        },
+        "adjusted_net_profit_parent": {
+          "value": 51795302.0,
+          "rounding_tolerance": 0.5,
+          "raw": "5179.5302万",
+          "unit": "CNY",
+          "period_basis": "YTD",
+          "source": "ifind_mcp",
+          "evidence": "data/peer_research/mcp/financials_20260630_718b65f933.json",
+          "observations": [
+            {
+              "value": 51795302.0,
+              "rounding_tolerance": 0.5,
+              "raw": "5179.5302万",
+              "unit": "CNY",
+              "period_basis": "YTD",
+              "source": "ifind_mcp",
+              "evidence": "data/peer_research/mcp/financials_20260630_718b65f933.json"
+            }
+          ],
+          "conflict": false
+        },
+        "revenue": {
+          "value": 1530462844.27,
+          "rounding_tolerance": 0.005,
+          "raw": "1530462844.27",
+          "unit": "CNY",
+          "source": "ifind_api",
+          "evidence": "data/peer_research/api/e59ac91bb368d75c9705_20261012234345801239_3b068c5c.json",
+          "observations": [
+            {
+              "value": 1530462844.27,
+              "rounding_tolerance": 0.005,
+              "raw": "1530462844.27",
+              "unit": "CNY",
+              "source": "ifind_api",
+              "evidence": "data/peer_research/api/e59ac91bb368d75c9705_20261012234345801239_3b068c5c.json"
+            },
+            {
+              "value": 1530460000.0,
+              "rounding_tolerance": 5000.0,
+              "raw": "15.3046亿",
+              "unit": "CNY",
+              "period_basis": "YTD",
+              "source": "ifind_mcp",
+              "evidence": "data/peer_research/mcp/financials_20260630_718b65f933.json"
+            }
+          ],
+          "conflict": false
+        },
+        "reported_profit_yoy_pct": {
+          "value": 117.4364,
+          "rounding_tolerance": 5e-05,
+          "raw": "117.4364",
+          "unit": "%",
+          "period_basis": "YTD",
+          "source": "ifind_mcp",
+          "evidence": "data/peer_research/mcp/financials_20260630_718b65f933.json",
+          "observations": [
+            {
+              "value": 117.4364,
+              "rounding_tolerance": 5e-05,
+              "raw": "117.4364",
+              "unit": "%",
+              "period_basis": "YTD",
+              "source": "ifind_mcp",
+              "evidence": "data/peer_research/mcp/financials_20260630_718b65f933.json"
+            }
+          ],
+          "conflict": false
+        },
+        "operating_cash_flow": {
+          "value": 74147668.0,
+          "rounding_tolerance": 0.5,
+          "raw": "7414.7668万",
+          "unit": "CNY",
+          "period_basis": "YTD",
+          "source": "ifind_mcp",
+          "evidence": "data/peer_research/mcp/financials_20260630_718b65f933.json",
+          "observations": [
+            {
+              "value": 74147668.0,
+              "rounding_tolerance": 0.5,
+              "raw": "7414.7668万",
+              "unit": "CNY",
+              "period_basis": "YTD",
+              "source": "ifind_mcp",
+              "evidence": "data/peer_research/mcp/financials_20260630_718b65f933.json"
+            }
+          ],
+          "conflict": false
+        },
+        "gross_margin_pct": {
+          "value": 18.7605,
+          "rounding_tolerance": 5e-05,
+          "raw": "18.7605",
+          "unit": "%",
+          "period_basis": "YTD",
+          "source": "ifind_mcp",
+          "evidence": "data/peer_research/mcp/financials_20260630_718b65f933.json",
+          "observations": [
+            {
+              "value": 18.7605,
+              "rounding_tolerance": 5e-05,
+              "raw": "18.7605",
+              "unit": "%",
+              "period_basis": "YTD",
+              "source": "ifind_mcp",
+              "evidence": "data/peer_research/mcp/financials_20260630_718b65f933.json"
+            }
+          ],
+          "conflict": false
+        },
+        "reported_revenue_yoy_pct": {
+          "value": 32.4255,
+          "rounding_tolerance": 5e-05,
+          "raw": "32.4255",
+          "unit": "%",
+          "period_basis": "YTD",
+          "source": "ifind_mcp",
+          "evidence": "data/peer_research/mcp/financials_20260630_718b65f933.json",
+          "observations": [
+            {
+              "value": 32.4255,
+              "rounding_tolerance": 5e-05,
+              "raw": "32.4255",
+              "unit": "%",
+              "period_basis": "YTD",
+              "source": "ifind_mcp",
+              "evidence": "data/peer_research/mcp/financials_20260630_718b65f933.json"
+            }
+          ],
+          "conflict": false
+        }
+      },
+      "statement_scope": "consolidated",
+      "period_basis": "YTD",
+      "published_at": "2026-08-25",
+      "publication_evidence": [
+        {
+          "code": "603085.SH",
+          "name": "天成自控",
+          "evidence": "data/peer_research/mcp/balance_20260630_718b65f933.json",
+          "retrieved_at": "2026-10-13T00:02:40.356+08:00",
+          "source": "ifind_mcp",
+          "vintage_status": "current_vendor_snapshot",
+          "report_period": "2026-06-30",
+          "published_at": "2026-08-25"
+        },
+        {
+          "code": "603085.SH",
+          "name": "天成自控",
+          "evidence": "data/peer_research/mcp/financials_20260630_718b65f933.json",
+          "retrieved_at": "2026-10-12T23:47:43.146+08:00",
+          "source": "ifind_mcp",
+          "vintage_status": "current_vendor_snapshot",
+          "report_period": "2026-06-30",
+          "published_at": "2026-08-25"
+        }
+      ],
+      "retrieved_at": "2026-10-13T00:02:40.356+08:00",
+      "conflicts": [],
+      "historical_pit_eligible": false,
+      "warnings": [],
+      "source_family": "ifind",
+      "channel_agreement_is_independent_validation": false,
+      "tushare_publication_dates": [
+        "2026-08-25"
+      ],
+      "publication_date_needs_review": false,
+      "available_not_before": "2026-08-25"
+    }
+  ],
+  "diagnostics": {
+    "rules_version": "peer_research_rules_v1",
+    "as_of": "2026-10-14",
+    "expected_latest_period": "2026-06-30",
+    "latest_visible_period": "2026-06-30",
+    "checks": [
+      {
+        "rule": "D01",
+        "title": "必要财务覆盖",
+        "status": "pass",
+        "reason": "必要字段缺失或未过日期/冲突校验：0项",
+        "evidence": []
+      },
+      {
+        "rule": "D02",
+        "title": "来源与版本冲突",
+        "status": "review",
+        "reason": "数值/披露冲突记录0；跨源日期差异1",
+        "evidence": [
+          {
+            "period": "2019-12-31",
+            "ifind": "2020-06-29",
+            "other": [
+              "2020-06-25"
+            ]
+          }
+        ]
+      },
+      {
+        "rule": "D03",
+        "title": "同期基数",
+        "status": "pass",
+        "reason": "已检查披露同比",
+        "evidence": []
+      },
+      {
+        "rule": "G01",
+        "title": "增长与低基数",
+        "status": "pass",
+        "reason": "归母/扣非同期增长状态：positive_base、positive_base；上年净利率不超过1%的低基数：",
+        "evidence": [
+          {
+            "period": "2026-06-30",
+            "growth": {
+              "revenue": {
+                "value_pct": 32.42546700381575,
+                "status": "positive_base"
+              },
+              "net_profit_parent": {
+                "value_pct": 117.43638843168912,
+                "status": "positive_base"
+              },
+              "adjusted_net_profit_parent": {
+                "value_pct": 202.00523426041218,
+                "status": "positive_base"
+              },
+              "operating_cash_flow": {
+                "value_pct": -60.534560357675105,
+                "status": "positive_base"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "rule": "G02",
+        "title": "增长背离",
+        "status": "review",
+        "reason": "扣非同比减收入同比：169.57976725659643个百分点",
+        "evidence": []
+      },
+      {
+        "rule": "G03",
+        "title": "非经常损益",
+        "status": "pass",
+        "reason": "归母与扣非差额/归母绝对值：-0.023633799808378698；扣非利润：51795302.0元",
+        "evidence": []
+      },
+      {
+        "rule": "G04",
+        "title": "现金实现",
+        "status": "pass",
+        "reason": "三年累计经营现金流/累计归母：7.974990047369126",
+        "evidence": [
+          "2023-12-31",
+          "2024-12-31",
+          "2025-12-31"
+        ]
+      },
+      {
+        "rule": "G05",
+        "title": "营运资金",
+        "status": "pass",
+        "reason": "应收/存货增长与营收比较；可比较2/2项",
+        "evidence": [
+          {
+            "accounts_receivable": {
+              "value_pct": 30.716474717018414,
+              "status": "positive_base"
+            },
+            "inventory": {
+              "value_pct": -34.777736958119036,
+              "status": "positive_base"
+            }
+          }
+        ]
+      },
+      {
+        "rule": "C01",
+        "title": "周期覆盖",
+        "status": "pass",
+        "reason": "连续五年有效归母净利率覆盖5/5；仍须检查行业景气与业务范围",
+        "evidence": [
+          "2021-12-31",
+          "2022-12-31",
+          "2023-12-31",
+          "2024-12-31",
+          "2025-12-31"
+        ]
+      },
+      {
+        "rule": "C02",
+        "title": "利润波动",
+        "status": "review",
+        "reason": "五年归母净利率极差21.98901022301039、毛利率极差6.577699999999998个百分点；波动不等于已确认周期",
+        "evidence": []
+      },
+      {
+        "rule": "C03",
+        "title": "正常化口径",
+        "status": "blocked",
+        "reason": "业务范围、可持续利润率、恢复期、同行正常化倍数未审核，情景草稿禁止用于定价",
+        "evidence": []
+      },
+      {
+        "rule": "T01",
+        "title": "时间边界",
+        "status": "blocked",
+        "reason": "本批为当前供应商历史快照；不可用于历史事前PIT回放",
+        "evidence": []
+      }
+    ],
+    "missing_fields": [],
+    "growth_yoy": {
+      "revenue": {
+        "value_pct": 32.42546700381575,
+        "status": "positive_base"
+      },
+      "net_profit_parent": {
+        "value_pct": 117.43638843168912,
+        "status": "positive_base"
+      },
+      "adjusted_net_profit_parent": {
+        "value_pct": 202.00523426041218,
+        "status": "positive_base"
+      },
+      "operating_cash_flow": {
+        "value_pct": -60.534560357675105,
+        "status": "positive_base"
+      }
+    },
+    "cagr_three_year_pct": {
+      "revenue": 28.43671547968325,
+      "net_profit_parent": null,
+      "adjusted_net_profit_parent": null
+    },
+    "cash_conversion_three_year": 7.974990047369126,
+    "nonrecurring_share": -0.023633799808378698,
+    "working_capital_growth": {
+      "accounts_receivable": {
+        "value_pct": 30.716474717018414,
+        "status": "positive_base"
+      },
+      "inventory": {
+        "value_pct": -34.777736958119036,
+        "status": "positive_base"
+      }
+    },
+    "ttm": {
+      "available": true,
+      "end_date": "2026-06-30",
+      "components": [
+        "2025-12-31",
+        "2026-06-30",
+        "2025-06-30"
+      ],
+      "values": {
+        "revenue": 3393593979.93,
+        "net_profit_parent": 112226310.41000001,
+        "adjusted_net_profit_parent": 110059943.0,
+        "operating_cash_flow": 462417668.0
+      },
+      "growth_yoy_pct": {
+        "revenue": 32.42546700381575,
+        "net_profit_parent": 117.43638843168912,
+        "adjusted_net_profit_parent": 202.00523426041218,
+        "operating_cash_flow": -60.534560357675105
+      },
+      "historical_pit_eligible": false,
+      "status": "research_only"
+    },
+    "cycle": {
+      "five_annual_periods": [
+        "2021-12-31",
+        "2022-12-31",
+        "2023-12-31",
+        "2024-12-31",
+        "2025-12-31"
+      ],
+      "net_margin_range_pp": 21.98901022301039,
+      "gross_margin_range_pp": 6.577699999999998,
+      "high_variation_review": true,
+      "full_cycle_verified": false,
+      "business_scope_verified": false,
+      "illustrative_profit_at_median_margin": 33705437.69625334,
+      "normalization_approved": false
+    },
+    "historical_pit_eligible": false,
+    "pricing_eligible": false
+  }
+}

@@ -1178,6 +1178,23 @@ def _run_manual_ladder_runtime_override_case(failures: list[str]) -> None:
     _assert(int(overlay.get("override_count") or 0) >= 2, "manual ladder: override count mismatch", failures)
 
 
+def _run_missing_fractional_distribution_case(failures: list[str]) -> None:
+    # One regular lot is reachable, but the second-lot proxy is above the cap.
+    # Without an account distribution this says nothing about a fractional lot.
+    prediction = subscription_predictor.build_subscription_prediction(
+        {"SECURITY_CODE": "920999", "ISSUE_PRICE": 10.0, "ONLINE_ISSUE_NUM": 10000.0,
+         "ONLINE_VA_SHARES": 1000000.0, "TOP_APPLY_MARKETCAP": 15.0},
+        recent_ipos=[], params={"subscription_prediction_account_pool_rows": []},
+    )
+    _assert(prediction.get("available") is True, "missing distribution: regular prediction unavailable", failures)
+    _assert(prediction.get("fractional_threshold_amount_wan") is None, "missing distribution: invented fractional threshold", failures)
+    _assert(prediction.get("fractional_time_priority_known") is False, "missing distribution: falsely known", failures)
+    _assert(prediction.get("fractional_time_priority_status") == "unknown", "missing distribution: status must be unknown", failures)
+    _assert(prediction.get("fractional_time_priority_overview_text") == "待确认", "missing distribution: overview mismatch", failures)
+    rows = {row[0]: row[1] for row in prediction.get("table_rows", [])}
+    _assert(rows.get("碎股是否抢时间") == "待确认", "missing distribution: table silently says no", failures)
+
+
 def main() -> int:
     failures: list[str] = []
     _run_actual_distribution_case(failures)
@@ -1203,6 +1220,7 @@ def main() -> int:
     _run_all_fractional_split_possible_case(failures)
     _run_all_fractional_split_must_case(failures)
     _run_manual_ladder_runtime_override_case(failures)
+    _run_missing_fractional_distribution_case(failures)
     if failures:
         for failure in failures:
             print(f"FAIL: {failure}")

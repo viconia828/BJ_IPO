@@ -1,0 +1,223 @@
+{
+  "case": {
+    "code": "920288.BJ",
+    "name": "华大海天",
+    "listing_date": "2026-08-28 00:00:00",
+    "industry": "轻工制造",
+    "chain_tags": [],
+    "candidate_codes": [
+      "301469.SZ",
+      "600433.SH",
+      "603733.SH",
+      "605007.SH"
+    ],
+    "evidence": "data/offline_tuning/replay_items/920288.json",
+    "peer_selection_status": "prospectus_candidates_pending_business_review"
+  },
+  "issuer_workpaper": "../companies/920288.BJ.json",
+  "pairs": [
+    {
+      "issuer": "920288.BJ",
+      "peer": "301469.SZ",
+      "peer_name": "恒达新材",
+      "role": "candidate_pending_review",
+      "core_eligible": false,
+      "business_evidence": [
+        "data/peer_research/mcp/profiles_4476510579.json",
+        "data/peer_research/mcp/profiles_47e95b7312.json"
+      ],
+      "issuer_product_terms": [
+        "包装"
+      ],
+      "peer_product_terms": [
+        "包装"
+      ],
+      "shared_product_terms": [
+        "包装"
+      ],
+      "peer_to_issuer_revenue_ratio": null,
+      "same_market": false,
+      "lossmaking_peer_retained": false,
+      "profitability_status": "盈利",
+      "checks": [
+        {
+          "rule": "M01",
+          "title": "业务匹配",
+          "status": "review",
+          "reason": "共同词：包装。仍需产品收入占比、技术/客户、产业链与盈利方式证据",
+          "evidence": [
+            "data/peer_research/mcp/profiles_4476510579.json",
+            "data/peer_research/mcp/profiles_47e95b7312.json"
+          ]
+        },
+        {
+          "rule": "M02",
+          "title": "市场与亏损",
+          "status": "review",
+          "reason": "保留各市场与亏损候选；没有按PE高低筛选可比池",
+          "evidence": []
+        }
+      ],
+      "remaining_evidence": [
+        "主要产品收入占比",
+        "产业链位置及客户用途",
+        "技术及盈利模式",
+        "核心/辅助/题材角色复核",
+        "历史可得版本"
+      ]
+    },
+    {
+      "issuer": "920288.BJ",
+      "peer": "600433.SH",
+      "peer_name": "冠豪高新",
+      "role": "candidate_pending_review",
+      "core_eligible": false,
+      "business_evidence": [
+        "data/peer_research/mcp/profiles_4476510579.json",
+        "data/peer_research/mcp/profiles_47e95b7312.json"
+      ],
+      "issuer_product_terms": [
+        "包装"
+      ],
+      "peer_product_terms": [
+        "涂料",
+        "印刷"
+      ],
+      "shared_product_terms": [],
+      "peer_to_issuer_revenue_ratio": null,
+      "same_market": false,
+      "lossmaking_peer_retained": false,
+      "profitability_status": "盈利",
+      "checks": [
+        {
+          "rule": "M01",
+          "title": "业务匹配",
+          "status": "review",
+          "reason": "共同词：无；需阅读全文。仍需产品收入占比、技术/客户、产业链与盈利方式证据",
+          "evidence": [
+            "data/peer_research/mcp/profiles_4476510579.json",
+            "data/peer_research/mcp/profiles_47e95b7312.json"
+          ]
+        },
+        {
+          "rule": "M02",
+          "title": "市场与亏损",
+          "status": "review",
+          "reason": "保留各市场与亏损候选；没有按PE高低筛选可比池",
+          "evidence": []
+        }
+      ],
+      "remaining_evidence": [
+        "主要产品收入占比",
+        "产业链位置及客户用途",
+        "技术及盈利模式",
+        "核心/辅助/题材角色复核",
+        "历史可得版本"
+      ]
+    },
+    {
+      "issuer": "920288.BJ",
+      "peer": "603733.SH",
+      "peer_name": "仙鹤股份",
+      "role": "candidate_pending_review",
+      "core_eligible": false,
+      "business_evidence": [
+        "data/peer_research/mcp/profiles_4476510579.json",
+        "data/peer_research/mcp/profiles_cdbd8fa628.json"
+      ],
+      "issuer_product_terms": [
+        "包装"
+      ],
+      "peer_product_terms": [
+        "包装",
+        "印刷"
+      ],
+      "shared_product_terms": [
+        "包装"
+      ],
+      "peer_to_issuer_revenue_ratio": null,
+      "same_market": false,
+      "lossmaking_peer_retained": false,
+      "profitability_status": "盈利",
+      "checks": [
+        {
+          "rule": "M01",
+          "title": "业务匹配",
+          "status": "review",
+          "reason": "共同词：包装。仍需产品收入占比、技术/客户、产业链与盈利方式证据",
+          "evidence": [
+            "data/peer_research/mcp/profiles_4476510579.json",
+            "data/peer_research/mcp/profiles_cdbd8fa628.json"
+          ]
+        },
+        {
+          "rule": "M02",
+          "title": "市场与亏损",
+          "status": "review",
+          "reason": "保留各市场与亏损候选；没有按PE高低筛选可比池",
+          "evidence": []
+        }
+      ],
+      "remaining_evidence": [
+        "主要产品收入占比",
+        "产业链位置及客户用途",
+        "技术及盈利模式",
+        "核心/辅助/题材角色复核",
+        "历史可得版本"
+      ]
+    },
+    {
+      "issuer": "920288.BJ",
+      "peer": "605007.SH",
+      "peer_name": "五洲特纸",
+      "role": "candidate_pending_review",
+      "core_eligible": false,
+      "business_evidence": [
+        "data/peer_research/mcp/profiles_4476510579.json",
+        "data/peer_research/mcp/profiles_cdbd8fa628.json"
+      ],
+      "issuer_product_terms": [
+        "包装"
+      ],
+      "peer_product_terms": [
+        "包装",
+        "印刷"
+      ],
+      "shared_product_terms": [
+        "包装"
+      ],
+      "peer_to_issuer_revenue_ratio": null,
+      "same_market": false,
+      "lossmaking_peer_retained": false,
+      "profitability_status": "盈利",
+      "checks": [
+        {
+          "rule": "M01",
+          "title": "业务匹配",
+          "status": "review",
+          "reason": "共同词：包装。仍需产品收入占比、技术/客户、产业链与盈利方式证据",
+          "evidence": [
+            "data/peer_research/mcp/profiles_4476510579.json",
+            "data/peer_research/mcp/profiles_cdbd8fa628.json"
+          ]
+        },
+        {
+          "rule": "M02",
+          "title": "市场与亏损",
+          "status": "review",
+          "reason": "保留各市场与亏损候选；没有按PE高低筛选可比池",
+          "evidence": []
+        }
+      ],
+      "remaining_evidence": [
+        "主要产品收入占比",
+        "产业链位置及客户用途",
+        "技术及盈利模式",
+        "核心/辅助/题材角色复核",
+        "历史可得版本"
+      ]
+    }
+  ],
+  "pricing_eligible": false,
+  "fundamental_anchor_changed": false
+}

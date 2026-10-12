@@ -98,6 +98,10 @@ def resolve_recent_days(params: dict[str, Any]) -> int:
 
 
 def _validate_params(params: dict[str, Any]) -> None:
+    if str(params.get("quality_sentiment_mode", "shadow")) not in {"off", "shadow", "active"}:
+        raise ValueError("quality_sentiment_mode 仅支持 off / shadow / active")
+    if float(params.get("quality_sentiment_half_life_days", 8)) <= 0:
+        raise ValueError("quality_sentiment_half_life_days 必须大于0")
     comparable_data_source = str(params.get("comparable_data_source", SYSTEM_SOURCE_DEFAULTS["comparable_data_source"])).strip().lower() or SYSTEM_SOURCE_DEFAULTS["comparable_data_source"]
     if comparable_data_source not in {"wind", "tushare"}:
         raise ValueError("comparable_data_source 仅支持 wind / tushare")

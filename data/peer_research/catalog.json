@@ -1,0 +1,4452 @@
+{
+  "schema": "peer_research_catalog_v1",
+  "rules_version": "peer_research_rules_v1",
+  "generated_at": "2026-10-13T00:35:55.416028+08:00",
+  "as_of": "2026-10-14",
+  "summary": {
+    "issuers": 66,
+    "peers": 225,
+    "companies": 290,
+    "profiles": 290,
+    "expected_company_periods": 2610,
+    "financial_records": 2441,
+    "dated_records": 2440,
+    "ttm_any_metric_available": 283,
+    "ttm_parent_profit_available": 265,
+    "ttm_adjusted_profit_available": 280,
+    "independent_unique_fields": 4316,
+    "independent_version_comparisons": 6452,
+    "independent_conflicts": 130,
+    "independent_precision_verified_fields": 6,
+    "publication_dates_needing_review": 557,
+    "five_year_margin_coverage": 233,
+    "matching_cards": 250,
+    "mcp_jobs_expected": 156,
+    "mcp_jobs_saved": 156,
+    "missing_mcp_jobs": [],
+    "checks_by_status": {
+      "pass": 1957,
+      "review": 620,
+      "blocked": 647,
+      "unknown": 256
+    },
+    "core_peers_auto_approved": 0,
+    "pricing_changed": false,
+    "historical_pit_ready": 0
+  },
+  "companies": {
+    "000333.SZ": {
+      "name": "美的集团",
+      "path": "workpapers/companies/000333.SZ.json"
+    },
+    "000581.SZ": {
+      "name": "威孚高科",
+      "path": "workpapers/companies/000581.SZ.json"
+    },
+    "000651.SZ": {
+      "name": "格力电器",
+      "path": "workpapers/companies/000651.SZ.json"
+    },
+    "000657.SZ": {
+      "name": "中钨高新",
+      "path": "workpapers/companies/000657.SZ.json"
+    },
+    "000700.SZ": {
+      "name": "模塑科技",
+      "path": "workpapers/companies/000700.SZ.json"
+    },
+    "000902.SZ": {
+      "name": "新洋丰",
+      "path": "workpapers/companies/000902.SZ.json"
+    },
+    "000921.SZ": {
+      "name": "海信家电",
+      "path": "workpapers/companies/000921.SZ.json"
+    },
+    "001266.SZ": {
+      "name": "宏英智能",
+      "path": "workpapers/companies/001266.SZ.json"
+    },
+    "001278.SZ": {
+      "name": "一彬科技",
+      "path": "workpapers/companies/001278.SZ.json"
+    },
+    "001318.SZ": {
+      "name": "阳光乳业",
+      "path": "workpapers/companies/001318.SZ.json"
+    },
+    "001332.SZ": {
+      "name": "锡装股份",
+      "path": "workpapers/companies/001332.SZ.json"
+    },
+    "001356.SZ": {
+      "name": "富岭股份",
+      "path": "workpapers/companies/001356.SZ.json"
+    },
+    "001380.SZ": {
+      "name": "华纬科技",
+      "path": "workpapers/companies/001380.SZ.json"
+    },
+    "002021.SZ": {
+      "name": "中捷资源",
+      "path": "workpapers/companies/002021.SZ.json"
+    },
+    "002044.SZ": {
+      "name": "美年健康",
+      "path": "workpapers/companies/002044.SZ.json"
+    },
+    "002048.SZ": {
+      "name": "宁波华翔",
+      "path": "workpapers/companies/002048.SZ.json"
+    },
+    "002066.SZ": {
+      "name": "瑞泰科技",
+      "path": "workpapers/companies/002066.SZ.json"
+    },
+    "002170.SZ": {
+      "name": "芭田股份",
+      "path": "workpapers/companies/002170.SZ.json"
+    },
+    "002179.SZ": {
+      "name": "中航光电",
+      "path": "workpapers/companies/002179.SZ.json"
+    },
+    "002225.SZ": {
+      "name": "濮耐股份",
+      "path": "workpapers/companies/002225.SZ.json"
+    },
+    "002263.SZ": {
+      "name": "大东南",
+      "path": "workpapers/companies/002263.SZ.json"
+    },
+    "002297.SZ": {
+      "name": "博云新材",
+      "path": "workpapers/companies/002297.SZ.json"
+    },
+    "002329.SZ": {
+      "name": "皇氏集团",
+      "path": "workpapers/companies/002329.SZ.json"
+    },
+    "002351.SZ": {
+      "name": "漫步者",
+      "path": "workpapers/companies/002351.SZ.json"
+    },
+    "002378.SZ": {
+      "name": "章源钨业",
+      "path": "workpapers/companies/002378.SZ.json"
+    },
+    "002384.SZ": {
+      "name": "东山精密",
+      "path": "workpapers/companies/002384.SZ.json"
+    },
+    "002392.SZ": {
+      "name": "北京利尔",
+      "path": "workpapers/companies/002392.SZ.json"
+    },
+    "002475.SZ": {
+      "name": "立讯精密",
+      "path": "workpapers/companies/002475.SZ.json"
+    },
+    "002536.SZ": {
+      "name": "飞龙股份",
+      "path": "workpapers/companies/002536.SZ.json"
+    },
+    "002588.SZ": {
+      "name": "史丹利",
+      "path": "workpapers/companies/002588.SZ.json"
+    },
+    "002662.SZ": {
+      "name": "峰璟股份",
+      "path": "workpapers/companies/002662.SZ.json"
+    },
+    "002732.SZ": {
+      "name": "燕塘乳业",
+      "path": "workpapers/companies/002732.SZ.json"
+    },
+    "002760.SZ": {
+      "name": "凤形股份",
+      "path": "workpapers/companies/002760.SZ.json"
+    },
+    "002842.SZ": {
+      "name": "翔鹭钨业",
+      "path": "workpapers/companies/002842.SZ.json"
+    },
+    "002851.SZ": {
+      "name": "麦格米特",
+      "path": "workpapers/companies/002851.SZ.json"
+    },
+    "002888.SZ": {
+      "name": "惠威科技",
+      "path": "workpapers/companies/002888.SZ.json"
+    },
+    "002892.SZ": {
+      "name": "科力尔",
+      "path": "workpapers/companies/002892.SZ.json"
+    },
+    "002901.SZ": {
+      "name": "大博医疗",
+      "path": "workpapers/companies/002901.SZ.json"
+    },
+    "002910.SZ": {
+      "name": "庄园牧场",
+      "path": "workpapers/companies/002910.SZ.json"
+    },
+    "002946.SZ": {
+      "name": "新乳业",
+      "path": "workpapers/companies/002946.SZ.json"
+    },
+    "002950.SZ": {
+      "name": "奥美医疗",
+      "path": "workpapers/companies/002950.SZ.json"
+    },
+    "002979.SZ": {
+      "name": "雷赛智能",
+      "path": "workpapers/companies/002979.SZ.json"
+    },
+    "002985.SZ": {
+      "name": "北摩高科",
+      "path": "workpapers/companies/002985.SZ.json"
+    },
+    "300041.SZ": {
+      "name": "回天新材",
+      "path": "workpapers/companies/300041.SZ.json"
+    },
+    "300092.SZ": {
+      "name": "科新机电",
+      "path": "workpapers/companies/300092.SZ.json"
+    },
+    "300124.SZ": {
+      "name": "汇川技术",
+      "path": "workpapers/companies/300124.SZ.json"
+    },
+    "300173.SZ": {
+      "name": "ST福能",
+      "path": "workpapers/companies/300173.SZ.json"
+    },
+    "300185.SZ": {
+      "name": "通裕重工",
+      "path": "workpapers/companies/300185.SZ.json"
+    },
+    "300221.SZ": {
+      "name": "银禧科技",
+      "path": "workpapers/companies/300221.SZ.json"
+    },
+    "300272.SZ": {
+      "name": "开能健康",
+      "path": "workpapers/companies/300272.SZ.json"
+    },
+    "300326.SZ": {
+      "name": "ST凯利",
+      "path": "workpapers/companies/300326.SZ.json"
+    },
+    "300394.SZ": {
+      "name": "天孚通信",
+      "path": "workpapers/companies/300394.SZ.json"
+    },
+    "300398.SZ": {
+      "name": "飞凯材料",
+      "path": "workpapers/companies/300398.SZ.json"
+    },
+    "300432.SZ": {
+      "name": "富临精工",
+      "path": "workpapers/companies/300432.SZ.json"
+    },
+    "300443.SZ": {
+      "name": "金雷股份",
+      "path": "workpapers/companies/300443.SZ.json"
+    },
+    "300450.SZ": {
+      "name": "先导智能",
+      "path": "workpapers/companies/300450.SZ.json"
+    },
+    "300453.SZ": {
+      "name": "三鑫医疗",
+      "path": "workpapers/companies/300453.SZ.json"
+    },
+    "300484.SZ": {
+      "name": "蓝海华腾",
+      "path": "workpapers/companies/300484.SZ.json"
+    },
+    "300530.SZ": {
+      "name": "领湃科技",
+      "path": "workpapers/companies/300530.SZ.json"
+    },
+    "300537.SZ": {
+      "name": "广信材料",
+      "path": "workpapers/companies/300537.SZ.json"
+    },
+    "300570.SZ": {
+      "name": "太辰光",
+      "path": "workpapers/companies/300570.SZ.json"
+    },
+    "300619.SZ": {
+      "name": "金银河",
+      "path": "workpapers/companies/300619.SZ.json"
+    },
+    "300644.SZ": {
+      "name": "南京聚隆",
+      "path": "workpapers/companies/300644.SZ.json"
+    },
+    "300660.SZ": {
+      "name": "江苏雷利",
+      "path": "workpapers/companies/300660.SZ.json"
+    },
+    "300681.SZ": {
+      "name": "英搏尔",
+      "path": "workpapers/companies/300681.SZ.json"
+    },
+    "300758.SZ": {
+      "name": "七彩化学",
+      "path": "workpapers/companies/300758.SZ.json"
+    },
+    "300836.SZ": {
+      "name": "佰奥智能",
+      "path": "workpapers/companies/300836.SZ.json"
+    },
+    "300856.SZ": {
+      "name": "科思股份",
+      "path": "workpapers/companies/300856.SZ.json"
+    },
+    "300866.SZ": {
+      "name": "安克创新",
+      "path": "workpapers/companies/300866.SZ.json"
+    },
+    "300920.SZ": {
+      "name": "润阳科技",
+      "path": "workpapers/companies/300920.SZ.json"
+    },
+    "300969.SZ": {
+      "name": "恒帅股份",
+      "path": "workpapers/companies/300969.SZ.json"
+    },
+    "300980.SZ": {
+      "name": "祥源新材",
+      "path": "workpapers/companies/300980.SZ.json"
+    },
+    "301029.SZ": {
+      "name": "怡合达",
+      "path": "workpapers/companies/301029.SZ.json"
+    },
+    "301036.SZ": {
+      "name": "双乐股份",
+      "path": "workpapers/companies/301036.SZ.json"
+    },
+    "301042.SZ": {
+      "name": "安联锐视",
+      "path": "workpapers/companies/301042.SZ.json"
+    },
+    "301097.SZ": {
+      "name": "天益医疗",
+      "path": "workpapers/companies/301097.SZ.json"
+    },
+    "301122.SZ": {
+      "name": "采纳股份",
+      "path": "workpapers/companies/301122.SZ.json"
+    },
+    "301128.SZ": {
+      "name": "强瑞技术",
+      "path": "workpapers/companies/301128.SZ.json"
+    },
+    "301173.SZ": {
+      "name": "毓恬冠佳",
+      "path": "workpapers/companies/301173.SZ.json"
+    },
+    "301187.SZ": {
+      "name": "欧圣电气",
+      "path": "workpapers/companies/301187.SZ.json"
+    },
+    "301189.SZ": {
+      "name": "奥尼电子",
+      "path": "workpapers/companies/301189.SZ.json"
+    },
+    "301193.SZ": {
+      "name": "家联科技",
+      "path": "workpapers/companies/301193.SZ.json"
+    },
+    "301226.SZ": {
+      "name": "祥明智能",
+      "path": "workpapers/companies/301226.SZ.json"
+    },
+    "301234.SZ": {
+      "name": "五洲医疗",
+      "path": "workpapers/companies/301234.SZ.json"
+    },
+    "301332.SZ": {
+      "name": "德尔玛",
+      "path": "workpapers/companies/301332.SZ.json"
+    },
+    "301469.SZ": {
+      "name": "恒达新材",
+      "path": "workpapers/companies/301469.SZ.json"
+    },
+    "301501.SZ": {
+      "name": "恒鑫生活",
+      "path": "workpapers/companies/301501.SZ.json"
+    },
+    "301510.SZ": {
+      "name": "固高科技",
+      "path": "workpapers/companies/301510.SZ.json"
+    },
+    "301518.SZ": {
+      "name": "长华化学",
+      "path": "workpapers/companies/301518.SZ.json"
+    },
+    "301529.SZ": {
+      "name": "福赛科技",
+      "path": "workpapers/companies/301529.SZ.json"
+    },
+    "301558.SZ": {
+      "name": "三态股份",
+      "path": "workpapers/companies/301558.SZ.json"
+    },
+    "301581.SZ": {
+      "name": "黄山谷捷",
+      "path": "workpapers/companies/301581.SZ.json"
+    },
+    "301662.SZ": {
+      "name": "宏工科技",
+      "path": "workpapers/companies/301662.SZ.json"
+    },
+    "430482.NQ": {
+      "name": "河源富马",
+      "path": "workpapers/companies/430482.NQ.json"
+    },
+    "600237.SH": {
+      "name": "铜峰电子",
+      "path": "workpapers/companies/600237.SH.json"
+    },
+    "600302.SH": {
+      "name": "ST标准",
+      "path": "workpapers/companies/600302.SH.json"
+    },
+    "600419.SH": {
+      "name": "天润乳业",
+      "path": "workpapers/companies/600419.SH.json"
+    },
+    "600429.SH": {
+      "name": "三元股份",
+      "path": "workpapers/companies/600429.SH.json"
+    },
+    "600433.SH": {
+      "name": "冠豪高新",
+      "path": "workpapers/companies/600433.SH.json"
+    },
+    "600456.SH": {
+      "name": "宝钛股份",
+      "path": "workpapers/companies/600456.SH.json"
+    },
+    "600549.SH": {
+      "name": "厦门钨业",
+      "path": "workpapers/companies/600549.SH.json"
+    },
+    "600597.SH": {
+      "name": "光明乳业",
+      "path": "workpapers/companies/600597.SH.json"
+    },
+    "600741.SH": {
+      "name": "华域汽车",
+      "path": "workpapers/companies/600741.SH.json"
+    },
+    "600843.SH": {
+      "name": "上工申贝",
+      "path": "workpapers/companies/600843.SH.json"
+    },
+    "600887.SH": {
+      "name": "伊利股份",
+      "path": "workpapers/companies/600887.SH.json"
+    },
+    "600933.SH": {
+      "name": "爱柯迪",
+      "path": "workpapers/companies/600933.SH.json"
+    },
+    "601179.SH": {
+      "name": "中国西电",
+      "path": "workpapers/companies/601179.SH.json"
+    },
+    "601798.SH": {
+      "name": "蓝科高新",
+      "path": "workpapers/companies/601798.SH.json"
+    },
+    "601799.SH": {
+      "name": "星宇股份",
+      "path": "workpapers/companies/601799.SH.json"
+    },
+    "603010.SH": {
+      "name": "万盛股份",
+      "path": "workpapers/companies/603010.SH.json"
+    },
+    "603030.SH": {
+      "name": "全筑股份",
+      "path": "workpapers/companies/603030.SH.json"
+    },
+    "603035.SH": {
+      "name": "常熟汽饰",
+      "path": "workpapers/companies/603035.SH.json"
+    },
+    "603037.SH": {
+      "name": "凯众股份",
+      "path": "workpapers/companies/603037.SH.json"
+    },
+    "603085.SH": {
+      "name": "天成自控",
+      "path": "workpapers/companies/603085.SH.json"
+    },
+    "603169.SH": {
+      "name": "兰石重装",
+      "path": "workpapers/companies/603169.SH.json"
+    },
+    "603179.SH": {
+      "name": "新泉股份",
+      "path": "workpapers/companies/603179.SH.json"
+    },
+    "603181.SH": {
+      "name": "皇马科技",
+      "path": "workpapers/companies/603181.SH.json"
+    },
+    "603192.SH": {
+      "name": "汇得科技",
+      "path": "workpapers/companies/603192.SH.json"
+    },
+    "603205.SH": {
+      "name": "健尔康",
+      "path": "workpapers/companies/603205.SH.json"
+    },
+    "603211.SH": {
+      "name": "晋拓股份",
+      "path": "workpapers/companies/603211.SH.json"
+    },
+    "603228.SH": {
+      "name": "景旺电子",
+      "path": "workpapers/companies/603228.SH.json"
+    },
+    "603266.SH": {
+      "name": "天龙股份",
+      "path": "workpapers/companies/603266.SH.json"
+    },
+    "603283.SH": {
+      "name": "赛腾股份",
+      "path": "workpapers/companies/603283.SH.json"
+    },
+    "603301.SH": {
+      "name": "振德医疗",
+      "path": "workpapers/companies/603301.SH.json"
+    },
+    "603305.SH": {
+      "name": "旭升集团",
+      "path": "workpapers/companies/603305.SH.json"
+    },
+    "603308.SH": {
+      "name": "应流股份",
+      "path": "workpapers/companies/603308.SH.json"
+    },
+    "603309.SH": {
+      "name": "维力医疗",
+      "path": "workpapers/companies/603309.SH.json"
+    },
+    "603337.SH": {
+      "name": "杰克科技",
+      "path": "workpapers/companies/603337.SH.json"
+    },
+    "603344.SH": {
+      "name": "星德胜",
+      "path": "workpapers/companies/603344.SH.json"
+    },
+    "603348.SH": {
+      "name": "文灿股份",
+      "path": "workpapers/companies/603348.SH.json"
+    },
+    "603395.SH": {
+      "name": "红四方",
+      "path": "workpapers/companies/603395.SH.json"
+    },
+    "603408.SH": {
+      "name": "建霖家居",
+      "path": "workpapers/companies/603408.SH.json"
+    },
+    "603416.SH": {
+      "name": "信捷电气",
+      "path": "workpapers/companies/603416.SH.json"
+    },
+    "603435.SH": {
+      "name": "嘉德利",
+      "path": "workpapers/companies/603435.SH.json"
+    },
+    "603530.SH": {
+      "name": "神马电力",
+      "path": "workpapers/companies/603530.SH.json"
+    },
+    "603586.SH": {
+      "name": "金麒麟",
+      "path": "workpapers/companies/603586.SH.json"
+    },
+    "603730.SH": {
+      "name": "岱美股份",
+      "path": "workpapers/companies/603730.SH.json"
+    },
+    "603733.SH": {
+      "name": "仙鹤股份",
+      "path": "workpapers/companies/603733.SH.json"
+    },
+    "603786.SH": {
+      "name": "科博达",
+      "path": "workpapers/companies/603786.SH.json"
+    },
+    "603823.SH": {
+      "name": "百合花",
+      "path": "workpapers/companies/603823.SH.json"
+    },
+    "603826.SH": {
+      "name": "坤彩科技",
+      "path": "workpapers/companies/603826.SH.json"
+    },
+    "603917.SH": {
+      "name": "合力科技",
+      "path": "workpapers/companies/603917.SH.json"
+    },
+    "603960.SH": {
+      "name": "克来机电",
+      "path": "workpapers/companies/603960.SH.json"
+    },
+    "603987.SH": {
+      "name": "康德莱",
+      "path": "workpapers/companies/603987.SH.json"
+    },
+    "603997.SH": {
+      "name": "继峰股份",
+      "path": "workpapers/companies/603997.SH.json"
+    },
+    "605007.SH": {
+      "name": "五洲特纸",
+      "path": "workpapers/companies/605007.SH.json"
+    },
+    "605117.SH": {
+      "name": "德业股份",
+      "path": "workpapers/companies/605117.SH.json"
+    },
+    "605123.SH": {
+      "name": "派克新材",
+      "path": "workpapers/companies/605123.SH.json"
+    },
+    "605133.SH": {
+      "name": "嵘泰股份",
+      "path": "workpapers/companies/605133.SH.json"
+    },
+    "605228.SH": {
+      "name": "神通科技",
+      "path": "workpapers/companies/605228.SH.json"
+    },
+    "688019.SH": {
+      "name": "安集科技",
+      "path": "workpapers/companies/688019.SH.json"
+    },
+    "688029.SH": {
+      "name": "南微医学",
+      "path": "workpapers/companies/688029.SH.json"
+    },
+    "688033.SH": {
+      "name": "*ST天宜",
+      "path": "workpapers/companies/688033.SH.json"
+    },
+    "688035.SH": {
+      "name": "德邦科技",
+      "path": "workpapers/companies/688035.SH.json"
+    },
+    "688085.SH": {
+      "name": "三友医疗",
+      "path": "workpapers/companies/688085.SH.json"
+    },
+    "688093.SH": {
+      "name": "世华科技",
+      "path": "workpapers/companies/688093.SH.json"
+    },
+    "688097.SH": {
+      "name": "博众精工",
+      "path": "workpapers/companies/688097.SH.json"
+    },
+    "688103.SH": {
+      "name": "国力电子",
+      "path": "workpapers/companies/688103.SH.json"
+    },
+    "688119.SH": {
+      "name": "中钢洛耐",
+      "path": "workpapers/companies/688119.SH.json"
+    },
+    "688157.SH": {
+      "name": "松井股份",
+      "path": "workpapers/companies/688157.SH.json"
+    },
+    "688160.SH": {
+      "name": "步科股份",
+      "path": "workpapers/companies/688160.SH.json"
+    },
+    "688161.SH": {
+      "name": "威高骨科",
+      "path": "workpapers/companies/688161.SH.json"
+    },
+    "688203.SH": {
+      "name": "海正生材",
+      "path": "workpapers/companies/688203.SH.json"
+    },
+    "688219.SH": {
+      "name": "会通股份",
+      "path": "workpapers/companies/688219.SH.json"
+    },
+    "688236.SH": {
+      "name": "春立医疗",
+      "path": "workpapers/companies/688236.SH.json"
+    },
+    "688257.SH": {
+      "name": "新锐股份",
+      "path": "workpapers/companies/688257.SH.json"
+    },
+    "688300.SH": {
+      "name": "联瑞新材",
+      "path": "workpapers/companies/688300.SH.json"
+    },
+    "688308.SH": {
+      "name": "欧科亿",
+      "path": "workpapers/companies/688308.SH.json"
+    },
+    "688314.SH": {
+      "name": "康拓医疗",
+      "path": "workpapers/companies/688314.SH.json"
+    },
+    "688320.SH": {
+      "name": "禾川科技",
+      "path": "workpapers/companies/688320.SH.json"
+    },
+    "688323.SH": {
+      "name": "瑞华泰",
+      "path": "workpapers/companies/688323.SH.json"
+    },
+    "688353.SH": {
+      "name": "华盛锂电",
+      "path": "workpapers/companies/688353.SH.json"
+    },
+    "688359.SH": {
+      "name": "三孚新科",
+      "path": "workpapers/companies/688359.SH.json"
+    },
+    "688363.SH": {
+      "name": "华熙生物",
+      "path": "workpapers/companies/688363.SH.json"
+    },
+    "688409.SH": {
+      "name": "富创精密",
+      "path": "workpapers/companies/688409.SH.json"
+    },
+    "688456.SH": {
+      "name": "有研粉材",
+      "path": "workpapers/companies/688456.SH.json"
+    },
+    "688475.SH": {
+      "name": "萤石网络",
+      "path": "workpapers/companies/688475.SH.json"
+    },
+    "688499.SH": {
+      "name": "利元亨",
+      "path": "workpapers/companies/688499.SH.json"
+    },
+    "688517.SH": {
+      "name": "金冠电气",
+      "path": "workpapers/companies/688517.SH.json"
+    },
+    "688535.SH": {
+      "name": "华海诚科",
+      "path": "workpapers/companies/688535.SH.json"
+    },
+    "688605.SH": {
+      "name": "先锋精科",
+      "path": "workpapers/companies/688605.SH.json"
+    },
+    "688617.SH": {
+      "name": "惠泰医疗",
+      "path": "workpapers/companies/688617.SH.json"
+    },
+    "688716.SH": {
+      "name": "中研股份",
+      "path": "workpapers/companies/688716.SH.json"
+    },
+    "688733.SH": {
+      "name": "壹石通",
+      "path": "workpapers/companies/688733.SH.json"
+    },
+    "688789.SH": {
+      "name": "宏华数科",
+      "path": "workpapers/companies/688789.SH.json"
+    },
+    "832246.NQ": {
+      "name": "润天智",
+      "path": "workpapers/companies/832246.NQ.json"
+    },
+    "832402.NQ": {
+      "name": "辉文生物",
+      "path": "workpapers/companies/832402.NQ.json"
+    },
+    "832684.NQ": {
+      "name": "天运股份",
+      "path": "workpapers/companies/832684.NQ.json"
+    },
+    "833450.NQ": {
+      "name": "奥立思特",
+      "path": "workpapers/companies/833450.NQ.json"
+    },
+    "833580.NQ": {
+      "name": "科创新材",
+      "path": "workpapers/companies/833580.NQ.json"
+    },
+    "837408.NQ": {
+      "name": "海普锐",
+      "path": "workpapers/companies/837408.NQ.json"
+    },
+    "870303.NQ": {
+      "name": "松石科技",
+      "path": "workpapers/companies/870303.NQ.json"
+    },
+    "872643.NQ": {
+      "name": "华冶股份",
+      "path": "workpapers/companies/872643.NQ.json"
+    },
+    "872824.NQ": {
+      "name": "先歌国际",
+      "path": "workpapers/companies/872824.NQ.json"
+    },
+    "873280.NQ": {
+      "name": "秦燕科技",
+      "path": "workpapers/companies/873280.NQ.json"
+    },
+    "873553.NQ": {
+      "name": "华成工控",
+      "path": "workpapers/companies/873553.NQ.json"
+    },
+    "873650.NQ": {
+      "name": "腾升科技",
+      "path": "workpapers/companies/873650.NQ.json"
+    },
+    "873757.NQ": {
+      "name": "汉和生物",
+      "path": "workpapers/companies/873757.NQ.json"
+    },
+    "873804.NQ": {
+      "name": "华鸿科技",
+      "path": "workpapers/companies/873804.NQ.json"
+    },
+    "873913.NQ": {
+      "name": "菲高科技",
+      "path": "workpapers/companies/873913.NQ.json"
+    },
+    "874312.NQ": {
+      "name": "先锋智能",
+      "path": "workpapers/companies/874312.NQ.json"
+    },
+    "874318.NQ": {
+      "name": "康美特",
+      "path": "workpapers/companies/874318.NQ.json"
+    },
+    "874378.NQ": {
+      "name": "华汇智能",
+      "path": "workpapers/companies/874378.NQ.json"
+    },
+    "874389.NQ": {
+      "name": "立万精工",
+      "path": "workpapers/companies/874389.NQ.json"
+    },
+    "874421.NQ": {
+      "name": "旭阳新材",
+      "path": "workpapers/companies/874421.NQ.json"
+    },
+    "874437.NQ": {
+      "name": "中原辊轴",
+      "path": "workpapers/companies/874437.NQ.json"
+    },
+    "874520.NQ": {
+      "name": "龙鑫智能",
+      "path": "workpapers/companies/874520.NQ.json"
+    },
+    "874696.NQ": {
+      "name": "肯特合金",
+      "path": "workpapers/companies/874696.NQ.json"
+    },
+    "875029.NQ": {
+      "name": "百图股份",
+      "path": "workpapers/companies/875029.NQ.json"
+    },
+    "920011.BJ": {
+      "name": "晨光电机",
+      "path": "workpapers/companies/920011.BJ.json"
+    },
+    "920012.BJ": {
+      "name": "创达新材",
+      "path": "workpapers/companies/920012.BJ.json"
+    },
+    "920025.BJ": {
+      "name": "凯达重工",
+      "path": "workpapers/companies/920025.BJ.json"
+    },
+    "920028.BJ": {
+      "name": "新恒泰",
+      "path": "workpapers/companies/920028.BJ.json"
+    },
+    "920036.BJ": {
+      "name": "觅睿科技",
+      "path": "workpapers/companies/920036.BJ.json"
+    },
+    "920038.BJ": {
+      "name": "森合高科",
+      "path": "workpapers/companies/920038.BJ.json"
+    },
+    "920045.BJ": {
+      "name": "蘅东光",
+      "path": "workpapers/companies/920045.BJ.json"
+    },
+    "920050.BJ": {
+      "name": "爱伦医疗",
+      "path": "workpapers/companies/920050.BJ.json"
+    },
+    "920055.BJ": {
+      "name": "隆源股份",
+      "path": "workpapers/companies/920055.BJ.json"
+    },
+    "920059.BJ": {
+      "name": "双英集团",
+      "path": "workpapers/companies/920059.BJ.json"
+    },
+    "920065.BJ": {
+      "name": "千岸科技",
+      "path": "workpapers/companies/920065.BJ.json"
+    },
+    "920069.BJ": {
+      "name": "普昂医疗",
+      "path": "workpapers/companies/920069.BJ.json"
+    },
+    "920071.BJ": {
+      "name": "金钛股份",
+      "path": "workpapers/companies/920071.BJ.json"
+    },
+    "920072.BJ": {
+      "name": "科莱瑞迪",
+      "path": "workpapers/companies/920072.BJ.json"
+    },
+    "920076.BJ": {
+      "name": "国亮新材",
+      "path": "workpapers/companies/920076.BJ.json"
+    },
+    "920078.BJ": {
+      "name": "族兴新材",
+      "path": "workpapers/companies/920078.BJ.json"
+    },
+    "920079.BJ": {
+      "name": "乔路铭",
+      "path": "workpapers/companies/920079.BJ.json"
+    },
+    "920081.BJ": {
+      "name": "欧伦电气",
+      "path": "workpapers/companies/920081.BJ.json"
+    },
+    "920083.BJ": {
+      "name": "金戈新材",
+      "path": "workpapers/companies/920083.BJ.json"
+    },
+    "920086.BJ": {
+      "name": "科马材料",
+      "path": "workpapers/companies/920086.BJ.json"
+    },
+    "920093.BJ": {
+      "name": "信胜科技",
+      "path": "workpapers/companies/920093.BJ.json"
+    },
+    "920096.BJ": {
+      "name": "嘉晨智能",
+      "path": "workpapers/companies/920096.BJ.json"
+    },
+    "920100.BJ": {
+      "name": "三协电机",
+      "path": "workpapers/companies/920100.BJ.json"
+    },
+    "920106.BJ": {
+      "name": "林泰新材",
+      "path": "workpapers/companies/920106.BJ.json"
+    },
+    "920107.BJ": {
+      "name": "恒兴股份",
+      "path": "workpapers/companies/920107.BJ.json"
+    },
+    "920117.BJ": {
+      "name": "龙鑫智能",
+      "path": "workpapers/companies/920117.BJ.json"
+    },
+    "920119.BJ": {
+      "name": "美德乐",
+      "path": "workpapers/companies/920119.BJ.json"
+    },
+    "920123.BJ": {
+      "name": "芭薇股份",
+      "path": "workpapers/companies/920123.BJ.json"
+    },
+    "920125.BJ": {
+      "name": "鸿仕达",
+      "path": "workpapers/companies/920125.BJ.json"
+    },
+    "920126.BJ": {
+      "name": "永大股份",
+      "path": "workpapers/companies/920126.BJ.json"
+    },
+    "920136.BJ": {
+      "name": "永励精密",
+      "path": "workpapers/companies/920136.BJ.json"
+    },
+    "920138.BJ": {
+      "name": "杰理科技",
+      "path": "workpapers/companies/920138.BJ.json"
+    },
+    "920156.BJ": {
+      "name": "海昌智能",
+      "path": "workpapers/companies/920156.BJ.json"
+    },
+    "920157.BJ": {
+      "name": "宇特光电",
+      "path": "workpapers/companies/920157.BJ.json"
+    },
+    "920159.BJ": {
+      "name": "农大科技",
+      "path": "workpapers/companies/920159.BJ.json"
+    },
+    "920161.BJ": {
+      "name": "龙辰科技",
+      "path": "workpapers/companies/920161.BJ.json"
+    },
+    "920162.BJ": {
+      "name": "莫森泰克",
+      "path": "workpapers/companies/920162.BJ.json"
+    },
+    "920165.BJ": {
+      "name": "珈凯生物",
+      "path": "workpapers/companies/920165.BJ.json"
+    },
+    "920166.BJ": {
+      "name": "海圣医疗",
+      "path": "workpapers/companies/920166.BJ.json"
+    },
+    "920168.BJ": {
+      "name": "通宝光电",
+      "path": "workpapers/companies/920168.BJ.json"
+    },
+    "920176.BJ": {
+      "name": "维琪科技",
+      "path": "workpapers/companies/920176.BJ.json"
+    },
+    "920177.BJ": {
+      "name": "恒道科技",
+      "path": "workpapers/companies/920177.BJ.json"
+    },
+    "920178.BJ": {
+      "name": "锐翔智能",
+      "path": "workpapers/companies/920178.BJ.json"
+    },
+    "920180.BJ": {
+      "name": "爱得科技",
+      "path": "workpapers/companies/920180.BJ.json"
+    },
+    "920181.BJ": {
+      "name": "赛英电子",
+      "path": "workpapers/companies/920181.BJ.json"
+    },
+    "920183.BJ": {
+      "name": "海菲曼",
+      "path": "workpapers/companies/920183.BJ.json"
+    },
+    "920186.BJ": {
+      "name": "中科仪",
+      "path": "workpapers/companies/920186.BJ.json"
+    },
+    "920187.BJ": {
+      "name": "通领科技",
+      "path": "workpapers/companies/920187.BJ.json"
+    },
+    "920188.BJ": {
+      "name": "悦龙科技",
+      "path": "workpapers/companies/920188.BJ.json"
+    },
+    "920189.BJ": {
+      "name": "康美特",
+      "path": "workpapers/companies/920189.BJ.json"
+    },
+    "920191.BJ": {
+      "name": "瑞尔竞达",
+      "path": "workpapers/companies/920191.BJ.json"
+    },
+    "920193.BJ": {
+      "name": "吉和昌",
+      "path": "workpapers/companies/920193.BJ.json"
+    },
+    "920196.BJ": {
+      "name": "南方乳业",
+      "path": "workpapers/companies/920196.BJ.json"
+    },
+    "920200.BJ": {
+      "name": "振宏股份",
+      "path": "workpapers/companies/920200.BJ.json"
+    },
+    "920201.BJ": {
+      "name": "百瑞吉",
+      "path": "workpapers/companies/920201.BJ.json"
+    },
+    "920202.BJ": {
+      "name": "安达股份",
+      "path": "workpapers/companies/920202.BJ.json"
+    },
+    "920206.BJ": {
+      "name": "彩客科技",
+      "path": "workpapers/companies/920206.BJ.json"
+    },
+    "920211.BJ": {
+      "name": "新睿电子",
+      "path": "workpapers/companies/920211.BJ.json"
+    },
+    "920218.BJ": {
+      "name": "新天力",
+      "path": "workpapers/companies/920218.BJ.json"
+    },
+    "920220.BJ": {
+      "name": "朗信电气",
+      "path": "workpapers/companies/920220.BJ.json"
+    },
+    "920222.BJ": {
+      "name": "益坤电气",
+      "path": "workpapers/companies/920222.BJ.json"
+    },
+    "920225.BJ": {
+      "name": "利通科技",
+      "path": "workpapers/companies/920225.BJ.json"
+    },
+    "920229.BJ": {
+      "name": "世纪数码",
+      "path": "workpapers/companies/920229.BJ.json"
+    },
+    "920238.BJ": {
+      "name": "长鹰硬科",
+      "path": "workpapers/companies/920238.BJ.json"
+    },
+    "920258.BJ": {
+      "name": "聚仁新材",
+      "path": "workpapers/companies/920258.BJ.json"
+    },
+    "920261.BJ": {
+      "name": "一诺威",
+      "path": "workpapers/companies/920261.BJ.json"
+    },
+    "920268.BJ": {
+      "name": "百迈科",
+      "path": "workpapers/companies/920268.BJ.json"
+    },
+    "920269.BJ": {
+      "name": "杰锋动力",
+      "path": "workpapers/companies/920269.BJ.json"
+    },
+    "920284.BJ": {
+      "name": "灵鸽科技",
+      "path": "workpapers/companies/920284.BJ.json"
+    },
+    "920285.BJ": {
+      "name": "远大健科",
+      "path": "workpapers/companies/920285.BJ.json"
+    },
+    "920288.BJ": {
+      "name": "华大海天",
+      "path": "workpapers/companies/920288.BJ.json"
+    },
+    "920289.BJ": {
+      "name": "华汇智能",
+      "path": "workpapers/companies/920289.BJ.json"
+    },
+    "920298.BJ": {
+      "name": "腾信精密",
+      "path": "workpapers/companies/920298.BJ.json"
+    },
+    "920522.BJ": {
+      "name": "纳科诺尔",
+      "path": "workpapers/companies/920522.BJ.json"
+    },
+    "920526.BJ": {
+      "name": "凯华材料",
+      "path": "workpapers/companies/920526.BJ.json"
+    },
+    "920634.BJ": {
+      "name": "新威凌",
+      "path": "workpapers/companies/920634.BJ.json"
+    },
+    "920694.BJ": {
+      "name": "中裕科技",
+      "path": "workpapers/companies/920694.BJ.json"
+    },
+    "920703.BJ": {
+      "name": "广厦环能",
+      "path": "workpapers/companies/920703.BJ.json"
+    },
+    "920871.BJ": {
+      "name": "派特尔",
+      "path": "workpapers/companies/920871.BJ.json"
+    },
+    "920971.BJ": {
+      "name": "天马新材",
+      "path": "workpapers/companies/920971.BJ.json"
+    },
+    "920982.BJ": {
+      "name": "锦波生物",
+      "path": "workpapers/companies/920982.BJ.json"
+    }
+  },
+  "cases": {
+    "920086": {
+      "code": "920086.BJ",
+      "name": "科马材料",
+      "listing_date": "2026-01-16 00:00:00",
+      "industry": "汽车",
+      "chain_tags": [
+        "汽车产业链"
+      ],
+      "candidate_codes": [
+        "002297.SZ",
+        "002985.SZ",
+        "603586.SH",
+        "688033.SH",
+        "920106.BJ"
+      ],
+      "evidence": "data/offline_tuning/replay_items/920086.json",
+      "peer_selection_status": "prospectus_candidates_pending_business_review"
+    },
+    "920050": {
+      "code": "920050.BJ",
+      "name": "爱伦医疗",
+      "listing_date": "2026-01-21 00:00:00",
+      "industry": "医药生物",
+      "chain_tags": [],
+      "candidate_codes": [
+        "002950.SZ",
+        "603205.SH",
+        "603301.SH"
+      ],
+      "evidence": "data/offline_tuning/replay_items/920050.json",
+      "peer_selection_status": "prospectus_candidates_pending_business_review"
+    },
+    "920076": {
+      "code": "920076.BJ",
+      "name": "国亮新材",
+      "listing_date": "2026-01-22 00:00:00",
+      "industry": "建筑材料",
+      "chain_tags": [
+        "钢铁产业链",
+        "耐火材料"
+      ],
+      "candidate_codes": [
+        "002066.SZ",
+        "002225.SZ",
+        "002392.SZ",
+        "688119.SH",
+        "833580.NQ"
+      ],
+      "evidence": "data/offline_tuning/replay_items/920076.json",
+      "peer_selection_status": "prospectus_candidates_pending_business_review"
+    },
+    "920159": {
+      "code": "920159.BJ",
+      "name": "农大科技",
+      "listing_date": "2026-01-28 00:00:00",
+      "industry": "基础化工",
+      "chain_tags": [],
+      "candidate_codes": [
+        "000902.SZ",
+        "002170.SZ",
+        "002588.SZ",
+        "603395.SH",
+        "873757.NQ"
+      ],
+      "evidence": "data/offline_tuning/replay_items/920159.json",
+      "peer_selection_status": "prospectus_candidates_pending_business_review"
+    },
+    "920119": {
+      "code": "920119.BJ",
+      "name": "美德乐",
+      "listing_date": "2026-01-30 00:00:00",
+      "industry": "电力设备",
+      "chain_tags": [
+        "锂电产业链"
+      ],
+      "candidate_codes": [
+        "300173.SZ",
+        "300450.SZ",
+        "301029.SZ",
+        "301662.SZ",
+        "688097.SH"
+      ],
+      "evidence": "data/offline_tuning/replay_items/920119.json",
+      "peer_selection_status": "prospectus_candidates_pending_business_review"
+    },
+    "920180": {
+      "code": "920180.BJ",
+      "name": "爱得科技",
+      "listing_date": "2026-02-10 00:00:00",
+      "industry": "医药生物",
+      "chain_tags": [],
+      "candidate_codes": [
+        "002901.SZ",
+        "300326.SZ",
+        "688085.SH",
+        "688161.SH",
+        "688236.SH"
+      ],
+      "evidence": "data/offline_tuning/replay_items/920180.json",
+      "peer_selection_status": "prospectus_candidates_pending_business_review"
+    },
+    "920166": {
+      "code": "920166.BJ",
+      "name": "海圣医疗",
+      "listing_date": "2026-02-12 00:00:00",
+      "industry": "医药生物",
+      "chain_tags": [],
+      "candidate_codes": [
+        "300453.SZ",
+        "301097.SZ",
+        "603309.SH"
+      ],
+      "evidence": "data/offline_tuning/replay_items/920166.json",
+      "peer_selection_status": "prospectus_candidates_pending_business_review"
+    },
+    "920168": {
+      "code": "920168.BJ",
+      "name": "通宝光电",
+      "listing_date": "2026-02-26 00:00:00",
+      "industry": "汽车",
+      "chain_tags": [
+        "汽车产业链"
+      ],
+      "candidate_codes": [
+        "600741.SH",
+        "601799.SH",
+        "603786.SH"
+      ],
+      "evidence": "data/offline_tuning/replay_items/920168.json",
+      "peer_selection_status": "prospectus_candidates_pending_business_review"
+    },
+    "920183": {
+      "code": "920183.BJ",
+      "name": "海菲曼",
+      "listing_date": "2026-03-04 00:00:00",
+      "industry": "电子",
+      "chain_tags": [],
+      "candidate_codes": [
+        "002351.SZ",
+        "002888.SZ",
+        "872824.NQ"
+      ],
+      "evidence": "data/offline_tuning/replay_items/920183.json",
+      "peer_selection_status": "prospectus_candidates_pending_business_review"
+    },
+    "920187": {
+      "code": "920187.BJ",
+      "name": "通领科技",
+      "listing_date": "2026-03-05 00:00:00",
+      "industry": "汽车",
+      "chain_tags": [
+        "汽车产业链"
+      ],
+      "candidate_codes": [
+        "301529.SZ",
+        "603035.SH",
+        "603179.SH",
+        "603730.SH"
+      ],
+      "evidence": "data/offline_tuning/replay_items/920187.json",
+      "peer_selection_status": "prospectus_candidates_pending_business_review"
+    },
+    "920036": {
+      "code": "920036.BJ",
+      "name": "觅睿科技",
+      "listing_date": "2026-03-09 00:00:00",
+      "industry": "计算机",
+      "chain_tags": [],
+      "candidate_codes": [
+        "002044.SZ",
+        "301042.SZ",
+        "301189.SZ",
+        "603030.SH",
+        "688475.SH"
+      ],
+      "evidence": "data/offline_tuning/replay_items/920036.json",
+      "peer_selection_status": "prospectus_candidates_pending_business_review"
+    },
+    "920078": {
+      "code": "920078.BJ",
+      "name": "族兴新材",
+      "listing_date": "2026-03-18 00:00:00",
+      "industry": "有色金属",
+      "chain_tags": [],
+      "candidate_codes": [
+        "603826.SH",
+        "688456.SH",
+        "874421.NQ",
+        "920634.BJ"
+      ],
+      "evidence": "data/offline_tuning/replay_items/920078.json",
+      "peer_selection_status": "prospectus_candidates_pending_business_review"
+    },
+    "920028": {
+      "code": "920028.BJ",
+      "name": "新恒泰",
+      "listing_date": "2026-03-20 00:00:00",
+      "industry": "基础化工",
+      "chain_tags": [],
+      "candidate_codes": [
+        "300920.SZ",
+        "300980.SZ"
+      ],
+      "evidence": "data/offline_tuning/replay_items/920028.json",
+      "peer_selection_status": "prospectus_candidates_pending_business_review"
+    },
+    "920069": {
+      "code": "920069.BJ",
+      "name": "普昂医疗",
+      "listing_date": "2026-03-27 00:00:00",
+      "industry": "医药生物",
+      "chain_tags": [],
+      "candidate_codes": [
+        "301122.SZ",
+        "301234.SZ",
+        "603987.SH",
+        "873804.NQ"
+      ],
+      "evidence": "data/offline_tuning/replay_items/920069.json",
+      "peer_selection_status": "prospectus_candidates_pending_business_review"
+    },
+    "920188": {
+      "code": "920188.BJ",
+      "name": "悦龙科技",
+      "listing_date": "2026-03-30 00:00:00",
+      "industry": "基础化工",
+      "chain_tags": [],
+      "candidate_codes": [
+        "920225.BJ",
+        "920694.BJ",
+        "920871.BJ"
+      ],
+      "evidence": "data/offline_tuning/replay_items/920188.json",
+      "peer_selection_status": "prospectus_candidates_pending_business_review"
+    },
+    "920055": {
+      "code": "920055.BJ",
+      "name": "隆源股份",
+      "listing_date": "2026-03-31 00:00:00",
+      "industry": "汽车",
+      "chain_tags": [
+        "汽车产业链"
+      ],
+      "candidate_codes": [
+        "600933.SH",
+        "603211.SH",
+        "603305.SH",
+        "605133.SH"
+      ],
+      "evidence": "data/offline_tuning/replay_items/920055.json",
+      "peer_selection_status": "prospectus_candidates_pending_business_review"
+    },
+    "920011": {
+      "code": "920011.BJ",
+      "name": "晨光电机",
+      "listing_date": "2026-04-08 00:00:00",
+      "industry": "电力设备",
+      "chain_tags": [],
+      "candidate_codes": [
+        "002892.SZ",
+        "300660.SZ",
+        "301226.SZ",
+        "603344.SH",
+        "833450.NQ",
+        "920100.BJ"
+      ],
+      "evidence": "data/offline_tuning/replay_items/920011.json",
+      "peer_selection_status": "prospectus_candidates_pending_business_review"
+    },
+    "920181": {
+      "code": "920181.BJ",
+      "name": "赛英电子",
+      "listing_date": "2026-04-10 00:00:00",
+      "industry": "电子",
+      "chain_tags": [],
+      "candidate_codes": [
+        "301581.SZ",
+        "688103.SH",
+        "873913.NQ"
+      ],
+      "evidence": "data/offline_tuning/replay_items/920181.json",
+      "peer_selection_status": "prospectus_candidates_pending_business_review"
+    },
+    "920012": {
+      "code": "920012.BJ",
+      "name": "创达新材",
+      "listing_date": "2026-04-13 00:00:00",
+      "industry": "电子",
+      "chain_tags": [
+        "半导体产业链"
+      ],
+      "candidate_codes": [
+        "688535.SH",
+        "874318.NQ",
+        "920526.BJ"
+      ],
+      "evidence": "data/offline_tuning/replay_items/920012.json",
+      "peer_selection_status": "prospectus_candidates_pending_business_review"
+    },
+    "920177": {
+      "code": "920177.BJ",
+      "name": "恒道科技",
+      "listing_date": "2026-04-16 00:00:00",
+      "industry": "机械设备",
+      "chain_tags": [],
+      "candidate_codes": [],
+      "evidence": "data/offline_tuning/replay_items/920177.json",
+      "peer_selection_status": "prospectus_candidates_pending_business_review"
+    },
+    "920191": {
+      "code": "920191.BJ",
+      "name": "瑞尔竞达",
+      "listing_date": "2026-04-20 00:00:00",
+      "industry": "建筑材料",
+      "chain_tags": [
+        "钢铁产业链",
+        "耐火材料"
+      ],
+      "candidate_codes": [
+        "002066.SZ",
+        "002225.SZ",
+        "002392.SZ",
+        "688119.SH"
+      ],
+      "evidence": "data/offline_tuning/replay_items/920191.json",
+      "peer_selection_status": "prospectus_candidates_pending_business_review"
+    },
+    "920125": {
+      "code": "920125.BJ",
+      "name": "鸿仕达",
+      "listing_date": "2026-04-24 00:00:00",
+      "industry": "机械设备",
+      "chain_tags": [],
+      "candidate_codes": [
+        "300836.SZ",
+        "301128.SZ",
+        "603283.SH",
+        "688097.SH"
+      ],
+      "evidence": "data/offline_tuning/replay_items/920125.json",
+      "peer_selection_status": "prospectus_candidates_pending_business_review"
+    },
+    "920156": {
+      "code": "920156.BJ",
+      "name": "海昌智能",
+      "listing_date": "2026-04-27 00:00:00",
+      "industry": "机械设备",
+      "chain_tags": [],
+      "candidate_codes": [
+        "301128.SZ",
+        "603960.SH",
+        "837408.NQ"
+      ],
+      "evidence": "data/offline_tuning/replay_items/920156.json",
+      "peer_selection_status": "prospectus_candidates_pending_business_review"
+    },
+    "920186": {
+      "code": "920186.BJ",
+      "name": "中科仪",
+      "listing_date": "2026-04-29 00:00:00",
+      "industry": "电子",
+      "chain_tags": [
+        "半导体产业链"
+      ],
+      "candidate_codes": [],
+      "evidence": "data/offline_tuning/replay_items/920186.json",
+      "peer_selection_status": "prospectus_candidates_pending_business_review"
+    },
+    "920200": {
+      "code": "920200.BJ",
+      "name": "振宏股份",
+      "listing_date": "2026-05-07 00:00:00",
+      "industry": "电力设备",
+      "chain_tags": [
+        "风电产业链"
+      ],
+      "candidate_codes": [
+        "300185.SZ",
+        "300443.SZ",
+        "605123.SH"
+      ],
+      "evidence": "data/offline_tuning/replay_items/920200.json",
+      "peer_selection_status": "prospectus_candidates_pending_business_review"
+    },
+    "920178": {
+      "code": "920178.BJ",
+      "name": "锐翔智能",
+      "listing_date": "2026-05-15 00:00:00",
+      "industry": "机械设备",
+      "chain_tags": [],
+      "candidate_codes": [
+        "002384.SZ",
+        "002475.SZ",
+        "603228.SH"
+      ],
+      "evidence": "data/offline_tuning/replay_items/920178.json",
+      "peer_selection_status": "prospectus_candidates_pending_business_review"
+    },
+    "920096": {
+      "code": "920096.BJ",
+      "name": "嘉晨智能",
+      "listing_date": "2026-05-18 00:00:00",
+      "industry": "机械设备",
+      "chain_tags": [],
+      "candidate_codes": [
+        "001266.SZ",
+        "002851.SZ",
+        "300124.SZ",
+        "300484.SZ",
+        "300681.SZ"
+      ],
+      "evidence": "data/offline_tuning/replay_items/920096.json",
+      "peer_selection_status": "prospectus_candidates_pending_business_review"
+    },
+    "920220": {
+      "code": "920220.BJ",
+      "name": "朗信电气",
+      "listing_date": "2026-05-22 00:00:00",
+      "industry": "汽车",
+      "chain_tags": [
+        "汽车产业链"
+      ],
+      "candidate_codes": [
+        "002536.SZ",
+        "300969.SZ",
+        "603266.SH",
+        "603305.SH",
+        "603348.SH"
+      ],
+      "evidence": "data/offline_tuning/replay_items/920220.json",
+      "peer_selection_status": "prospectus_candidates_pending_business_review"
+    },
+    "920161": {
+      "code": "920161.BJ",
+      "name": "龙辰科技",
+      "listing_date": "2026-05-27 00:00:00",
+      "industry": "电子",
+      "chain_tags": [],
+      "candidate_codes": [
+        "002263.SZ",
+        "600237.SH",
+        "603435.SH"
+      ],
+      "evidence": "data/offline_tuning/replay_items/920161.json",
+      "peer_selection_status": "prospectus_candidates_pending_business_review"
+    },
+    "920218": {
+      "code": "920218.BJ",
+      "name": "新天力",
+      "listing_date": "2026-05-29 00:00:00",
+      "industry": "轻工制造",
+      "chain_tags": [],
+      "candidate_codes": [
+        "001356.SZ",
+        "301193.SZ",
+        "301501.SZ"
+      ],
+      "evidence": "data/offline_tuning/replay_items/920218.json",
+      "peer_selection_status": "prospectus_candidates_pending_business_review"
+    },
+    "920211": {
+      "code": "920211.BJ",
+      "name": "新睿电子",
+      "listing_date": "2026-06-05 00:00:00",
+      "industry": "机械设备",
+      "chain_tags": [],
+      "candidate_codes": [
+        "002979.SZ",
+        "301510.SZ",
+        "603416.SH",
+        "688160.SH",
+        "688320.SH",
+        "873553.NQ"
+      ],
+      "evidence": "data/offline_tuning/replay_items/920211.json",
+      "peer_selection_status": "prospectus_candidates_pending_business_review"
+    },
+    "920206": {
+      "code": "920206.BJ",
+      "name": "彩客科技",
+      "listing_date": "2026-06-08 00:00:00",
+      "industry": "基础化工",
+      "chain_tags": [],
+      "candidate_codes": [
+        "300758.SZ",
+        "301036.SZ",
+        "603823.SH",
+        "873280.NQ"
+      ],
+      "evidence": "data/offline_tuning/replay_items/920206.json",
+      "peer_selection_status": "prospectus_candidates_pending_business_review"
+    },
+    "920083": {
+      "code": "920083.BJ",
+      "name": "金戈新材",
+      "listing_date": "2026-06-11 00:00:00",
+      "industry": "基础化工",
+      "chain_tags": [],
+      "candidate_codes": [
+        "603010.SH",
+        "688300.SH",
+        "688733.SH",
+        "875029.NQ",
+        "920971.BJ"
+      ],
+      "evidence": "data/offline_tuning/replay_items/920083.json",
+      "peer_selection_status": "prospectus_candidates_pending_business_review"
+    },
+    "920126": {
+      "code": "920126.BJ",
+      "name": "永大股份",
+      "listing_date": "2026-06-15 00:00:00",
+      "industry": "机械设备",
+      "chain_tags": [],
+      "candidate_codes": [
+        "001332.SZ",
+        "300092.SZ",
+        "601798.SH",
+        "603169.SH",
+        "920703.BJ"
+      ],
+      "evidence": "data/offline_tuning/replay_items/920126.json",
+      "peer_selection_status": "prospectus_candidates_pending_business_review"
+    },
+    "920072": {
+      "code": "920072.BJ",
+      "name": "科莱瑞迪",
+      "listing_date": "2026-06-29 00:00:00",
+      "industry": "医药生物",
+      "chain_tags": [],
+      "candidate_codes": [
+        "688029.SH",
+        "688236.SH",
+        "688314.SH",
+        "688617.SH"
+      ],
+      "evidence": "data/offline_tuning/replay_items/920072.json",
+      "peer_selection_status": "prospectus_candidates_pending_business_review"
+    },
+    "920222": {
+      "code": "920222.BJ",
+      "name": "益坤电气",
+      "listing_date": "2026-06-30 00:00:00",
+      "industry": "电力设备",
+      "chain_tags": [],
+      "candidate_codes": [
+        "601179.SH",
+        "603530.SH",
+        "688517.SH"
+      ],
+      "evidence": "data/offline_tuning/replay_items/920222.json",
+      "peer_selection_status": "prospectus_candidates_pending_business_review"
+    },
+    "920193": {
+      "code": "920193.BJ",
+      "name": "吉和昌",
+      "listing_date": "2026-07-02 00:00:00",
+      "industry": "基础化工",
+      "chain_tags": [],
+      "candidate_codes": [
+        "300530.SZ",
+        "603181.SH",
+        "688353.SH",
+        "688359.SH",
+        "870303.NQ"
+      ],
+      "evidence": "data/offline_tuning/replay_items/920193.json",
+      "peer_selection_status": "prospectus_candidates_pending_business_review"
+    },
+    "920189": {
+      "code": "920189.BJ",
+      "name": "康美特",
+      "listing_date": "2026-07-08 00:00:00",
+      "industry": "电子",
+      "chain_tags": [
+        "半导体产业链"
+      ],
+      "candidate_codes": [
+        "300041.SZ",
+        "300221.SZ",
+        "300644.SZ",
+        "688019.SH",
+        "688035.SH",
+        "688093.SH",
+        "688219.SH",
+        "688535.SH"
+      ],
+      "evidence": "data/offline_tuning/replay_items/920189.json",
+      "peer_selection_status": "prospectus_candidates_pending_business_review"
+    },
+    "920136": {
+      "code": "920136.BJ",
+      "name": "永励精密",
+      "listing_date": "2026-07-09 00:00:00",
+      "industry": "汽车",
+      "chain_tags": [
+        "汽车产业链"
+      ],
+      "candidate_codes": [
+        "001380.SZ",
+        "603037.SH",
+        "874389.NQ"
+      ],
+      "evidence": "data/offline_tuning/replay_items/920136.json",
+      "peer_selection_status": "prospectus_candidates_pending_business_review"
+    },
+    "920081": {
+      "code": "920081.BJ",
+      "name": "欧伦电气",
+      "listing_date": "2026-07-10 00:00:00",
+      "industry": "家用电器",
+      "chain_tags": [],
+      "candidate_codes": [
+        "000333.SZ",
+        "000651.SZ",
+        "000921.SZ",
+        "301187.SZ",
+        "605117.SH"
+      ],
+      "evidence": "data/offline_tuning/replay_items/920081.json",
+      "peer_selection_status": "prospectus_candidates_pending_business_review"
+    },
+    "920117": {
+      "code": "920117.BJ",
+      "name": "龙鑫智能",
+      "listing_date": "2026-07-16 00:00:00",
+      "industry": "电力设备",
+      "chain_tags": [
+        "锂电产业链"
+      ],
+      "candidate_codes": [
+        "300619.SZ",
+        "301662.SZ",
+        "874312.NQ",
+        "874378.NQ",
+        "920284.BJ",
+        "920522.BJ"
+      ],
+      "evidence": "data/offline_tuning/replay_items/920117.json",
+      "peer_selection_status": "prospectus_candidates_pending_business_review"
+    },
+    "920079": {
+      "code": "920079.BJ",
+      "name": "乔路铭",
+      "listing_date": "2026-07-22 00:00:00",
+      "industry": "汽车",
+      "chain_tags": [
+        "汽车产业链"
+      ],
+      "candidate_codes": [
+        "000700.SZ",
+        "001278.SZ",
+        "002048.SZ",
+        "002662.SZ",
+        "603035.SH",
+        "603179.SH",
+        "605228.SH"
+      ],
+      "evidence": "data/offline_tuning/replay_items/920079.json",
+      "peer_selection_status": "prospectus_candidates_pending_business_review"
+    },
+    "920238": {
+      "code": "920238.BJ",
+      "name": "长鹰硬科",
+      "listing_date": "2026-07-24 00:00:00",
+      "industry": "机械设备",
+      "chain_tags": [],
+      "candidate_codes": [
+        "000657.SZ",
+        "002378.SZ",
+        "002842.SZ",
+        "430482.NQ",
+        "600549.SH",
+        "688257.SH",
+        "688308.SH",
+        "874696.NQ"
+      ],
+      "evidence": "data/offline_tuning/replay_items/920238.json",
+      "peer_selection_status": "prospectus_candidates_pending_business_review"
+    },
+    "920176": {
+      "code": "920176.BJ",
+      "name": "维琪科技",
+      "listing_date": "2026-07-27 00:00:00",
+      "industry": "美容护理",
+      "chain_tags": [],
+      "candidate_codes": [
+        "920123.BJ",
+        "920982.BJ"
+      ],
+      "evidence": "data/offline_tuning/replay_items/920176.json",
+      "peer_selection_status": "prospectus_candidates_pending_business_review"
+    },
+    "920065": {
+      "code": "920065.BJ",
+      "name": "千岸科技",
+      "listing_date": "2026-07-29 00:00:00",
+      "industry": "商贸零售",
+      "chain_tags": [],
+      "candidate_codes": [
+        "301558.SZ"
+      ],
+      "evidence": "data/offline_tuning/replay_items/920065.json",
+      "peer_selection_status": "prospectus_candidates_pending_business_review"
+    },
+    "920258": {
+      "code": "920258.BJ",
+      "name": "聚仁新材",
+      "listing_date": "2026-08-03 00:00:00",
+      "industry": "基础化工",
+      "chain_tags": [],
+      "candidate_codes": [
+        "301518.SZ",
+        "603192.SH",
+        "688203.SH",
+        "688323.SH",
+        "688716.SH",
+        "920261.BJ"
+      ],
+      "evidence": "data/offline_tuning/replay_items/920258.json",
+      "peer_selection_status": "prospectus_candidates_pending_business_review"
+    },
+    "920038": {
+      "code": "920038.BJ",
+      "name": "森合高科",
+      "listing_date": "2026-08-05 00:00:00",
+      "industry": "基础化工",
+      "chain_tags": [
+        "矿业产业链"
+      ],
+      "candidate_codes": [],
+      "evidence": "data/offline_tuning/replay_items/920038.json",
+      "peer_selection_status": "prospectus_candidates_pending_business_review"
+    },
+    "920165": {
+      "code": "920165.BJ",
+      "name": "珈凯生物",
+      "listing_date": "2026-08-11 00:00:00",
+      "industry": "美容护理",
+      "chain_tags": [],
+      "candidate_codes": [
+        "300856.SZ",
+        "688363.SH",
+        "832402.NQ",
+        "920982.BJ"
+      ],
+      "evidence": "data/offline_tuning/replay_items/920165.json",
+      "peer_selection_status": "prospectus_candidates_pending_business_review"
+    },
+    "920138": {
+      "code": "920138.BJ",
+      "name": "杰理科技",
+      "listing_date": "2026-08-12 00:00:00",
+      "industry": "电子",
+      "chain_tags": [
+        "半导体产业链"
+      ],
+      "candidate_codes": [],
+      "evidence": "data/offline_tuning/replay_items/920138.json",
+      "peer_selection_status": "prospectus_candidates_pending_business_review"
+    },
+    "920107": {
+      "code": "920107.BJ",
+      "name": "恒兴股份",
+      "listing_date": "2026-08-17 00:00:00",
+      "industry": "基础化工",
+      "chain_tags": [],
+      "candidate_codes": [
+        "300398.SZ",
+        "300537.SZ",
+        "688157.SH"
+      ],
+      "evidence": "data/offline_tuning/replay_items/920107.json",
+      "peer_selection_status": "prospectus_candidates_pending_business_review"
+    },
+    "920059": {
+      "code": "920059.BJ",
+      "name": "双英集团",
+      "listing_date": "2026-08-19 00:00:00",
+      "industry": "汽车",
+      "chain_tags": [
+        "汽车产业链"
+      ],
+      "candidate_codes": [
+        "603035.SH",
+        "603085.SH",
+        "603179.SH",
+        "603997.SH"
+      ],
+      "evidence": "data/offline_tuning/replay_items/920059.json",
+      "peer_selection_status": "prospectus_candidates_pending_business_review"
+    },
+    "920093": {
+      "code": "920093.BJ",
+      "name": "信胜科技",
+      "listing_date": "2026-08-21 00:00:00",
+      "industry": "机械设备",
+      "chain_tags": [],
+      "candidate_codes": [
+        "002021.SZ",
+        "600302.SH",
+        "600843.SH",
+        "603337.SH"
+      ],
+      "evidence": "data/offline_tuning/replay_items/920093.json",
+      "peer_selection_status": "prospectus_candidates_pending_business_review"
+    },
+    "920288": {
+      "code": "920288.BJ",
+      "name": "华大海天",
+      "listing_date": "2026-08-28 00:00:00",
+      "industry": "轻工制造",
+      "chain_tags": [],
+      "candidate_codes": [
+        "301469.SZ",
+        "600433.SH",
+        "603733.SH",
+        "605007.SH"
+      ],
+      "evidence": "data/offline_tuning/replay_items/920288.json",
+      "peer_selection_status": "prospectus_candidates_pending_business_review"
+    },
+    "920071": {
+      "code": "920071.BJ",
+      "name": "金钛股份",
+      "listing_date": "2026-09-03 00:00:00",
+      "industry": "有色金属",
+      "chain_tags": [],
+      "candidate_codes": [
+        "600456.SH"
+      ],
+      "evidence": "data/offline_tuning/replay_items/920071.json",
+      "peer_selection_status": "prospectus_candidates_pending_business_review"
+    },
+    "920289": {
+      "code": "920289.BJ",
+      "name": "华汇智能",
+      "listing_date": "2026-09-04 00:00:00",
+      "industry": "电力设备",
+      "chain_tags": [
+        "锂电产业链"
+      ],
+      "candidate_codes": [
+        "300450.SZ",
+        "301662.SZ",
+        "688499.SH",
+        "874520.NQ",
+        "920284.BJ"
+      ],
+      "evidence": "data/offline_tuning/replay_items/920289.json",
+      "peer_selection_status": "prospectus_candidates_pending_business_review"
+    },
+    "920269": {
+      "code": "920269.BJ",
+      "name": "杰锋动力",
+      "listing_date": "2026-09-07 00:00:00",
+      "industry": "汽车",
+      "chain_tags": [
+        "汽车产业链"
+      ],
+      "candidate_codes": [
+        "000581.SZ",
+        "300432.SZ"
+      ],
+      "evidence": "data/offline_tuning/replay_items/920269.json",
+      "peer_selection_status": "prospectus_candidates_pending_business_review"
+    },
+    "920268": {
+      "code": "920268.BJ",
+      "name": "百迈科",
+      "listing_date": "2026-09-09 00:00:00",
+      "industry": "医药生物",
+      "chain_tags": [],
+      "candidate_codes": [
+        "688314.SH"
+      ],
+      "evidence": "data/offline_tuning/replay_items/920268.json",
+      "peer_selection_status": "prospectus_candidates_pending_business_review"
+    },
+    "920298": {
+      "code": "920298.BJ",
+      "name": "腾信精密",
+      "listing_date": "2026-09-16 00:00:00",
+      "industry": "机械设备",
+      "chain_tags": [],
+      "candidate_codes": [
+        "301029.SZ",
+        "603308.SH",
+        "688409.SH",
+        "688605.SH"
+      ],
+      "evidence": "data/offline_tuning/replay_items/920298.json",
+      "peer_selection_status": "prospectus_candidates_pending_business_review"
+    },
+    "920157": {
+      "code": "920157.BJ",
+      "name": "宇特光电",
+      "listing_date": "2026-09-21",
+      "industry": "通信",
+      "chain_tags": [],
+      "candidate_codes": [
+        "002179.SZ",
+        "300394.SZ",
+        "300570.SZ",
+        "920045.BJ"
+      ],
+      "evidence": "data/offline_tuning/replay_items/920157.json",
+      "peer_selection_status": "prospectus_candidates_pending_business_review"
+    },
+    "920229": {
+      "code": "920229.BJ",
+      "name": "世纪数码",
+      "listing_date": "2026-09-22 00:00:00",
+      "industry": "机械设备",
+      "chain_tags": [],
+      "candidate_codes": [
+        "688789.SH",
+        "832246.NQ"
+      ],
+      "evidence": "data/offline_tuning/replay_items/920229.json",
+      "peer_selection_status": "prospectus_candidates_pending_business_review"
+    },
+    "920025": {
+      "code": "920025.BJ",
+      "name": "凯达重工",
+      "listing_date": "2026-09-23 00:00:00",
+      "industry": "机械设备",
+      "chain_tags": [
+        "钢铁产业链"
+      ],
+      "candidate_codes": [
+        "002760.SZ",
+        "603917.SH",
+        "872643.NQ",
+        "873650.NQ",
+        "874437.NQ"
+      ],
+      "evidence": "data/offline_tuning/replay_items/920025.json",
+      "peer_selection_status": "prospectus_candidates_pending_business_review"
+    },
+    "920162": {
+      "code": "920162.BJ",
+      "name": "莫森泰克",
+      "listing_date": "2026-09-23",
+      "industry": "汽车",
+      "chain_tags": [
+        "汽车产业链"
+      ],
+      "candidate_codes": [
+        "301173.SZ",
+        "600741.SH",
+        "832684.NQ"
+      ],
+      "evidence": "data/offline_tuning/replay_items/920162.json",
+      "peer_selection_status": "prospectus_candidates_pending_business_review"
+    },
+    "920201": {
+      "code": "920201.BJ",
+      "name": "百瑞吉",
+      "listing_date": "2026-09-24 00:00:00",
+      "industry": "医药生物",
+      "chain_tags": [],
+      "candidate_codes": [],
+      "evidence": "data/offline_tuning/replay_items/920201.json",
+      "peer_selection_status": "prospectus_candidates_pending_business_review"
+    },
+    "920196": {
+      "code": "920196.BJ",
+      "name": "南方乳业",
+      "listing_date": "2026-09-28",
+      "industry": "食品饮料",
+      "chain_tags": [],
+      "candidate_codes": [
+        "001318.SZ",
+        "002329.SZ",
+        "002732.SZ",
+        "002910.SZ",
+        "002946.SZ",
+        "600419.SH",
+        "600429.SH",
+        "600597.SH",
+        "600887.SH"
+      ],
+      "evidence": "data/offline_tuning/replay_items/920196.json",
+      "peer_selection_status": "prospectus_candidates_pending_business_review"
+    },
+    "920202": {
+      "code": "920202.BJ",
+      "name": "安达股份",
+      "listing_date": "2026-09-29 00:00:00",
+      "industry": "汽车",
+      "chain_tags": [
+        "汽车产业链"
+      ],
+      "candidate_codes": [
+        "600933.SH",
+        "603211.SH",
+        "603305.SH",
+        "605133.SH"
+      ],
+      "evidence": "data/offline_tuning/replay_items/920202.json",
+      "peer_selection_status": "prospectus_candidates_pending_business_review"
+    },
+    "920285": {
+      "code": "920285.BJ",
+      "name": "远大健科",
+      "candidate_codes": [
+        "300272.SZ",
+        "301332.SZ",
+        "603408.SH",
+        "920065.BJ",
+        "300866.SZ"
+      ],
+      "status": "candidates_pending_business_review",
+      "evidence": "公告文件/920285_远大健科_招股说明书.pdf",
+      "peer_selection_status": "prospectus_candidates_pending_business_review"
+    }
+  },
+  "evidence": [
+    {
+      "path": "data/peer_fundamentals/api/4b72a222fc92f630a58b_20261012230645769350_8ddbf2e2.json",
+      "sha256": "c4bae6a25b87276d35945680574564ef5a8e6443a8ee796c8383c7976a467107"
+    },
+    {
+      "path": "data/peer_fundamentals/api/4bd8de69748670383f26_20261012230646476510_6d4856dc.json",
+      "sha256": "e0d42f87d66ce0bb040c71e7e7207f03daf5b4c711099b4781967ebe9f0474a5"
+    },
+    {
+      "path": "data/peer_fundamentals/api/708d8ae43a8f227dae62_20261012230646004324_b3c48c69.json",
+      "sha256": "211488ccdc77f2db32a0b14f8c7af6cae1b5ccdcb133db7529e79409f123e4ba"
+    },
+    {
+      "path": "data/peer_fundamentals/api/85f95e57f25caded40c7_20261012230645531031_2747780c.json",
+      "sha256": "75b2ca60ed48d14c7525c4a0939050227d817a676e0b10b0c55c1bb8c6373056"
+    },
+    {
+      "path": "data/peer_fundamentals/api/af48f215f4329261e710_20261012230646252616_4bdca6ce.json",
+      "sha256": "772cfbd62a4707ef904a122d2180f786018ff111df18b554bd0a38d0e497eda5"
+    },
+    {
+      "path": "data/peer_fundamentals/mcp/financials_20231231.json",
+      "sha256": "9995bc7d167036cf230c055041ac7f15995a83fd908f7239ab569a096d3a96f7"
+    },
+    {
+      "path": "data/peer_fundamentals/mcp/financials_20241231.json",
+      "sha256": "b7ecd77e4f8835f7468f729f3039f08a834d5b92578846f2025792ae74097baa"
+    },
+    {
+      "path": "data/peer_fundamentals/mcp/financials_20250630.json",
+      "sha256": "05a3fd8c40860d32fa98b21eb5fadca10088e21f0cb0da62fee88cfbba20f0cb"
+    },
+    {
+      "path": "data/peer_fundamentals/mcp/financials_20251231.json",
+      "sha256": "c75422cf716f35d731fd684b3e98bd009936104aef866b031190a20ae7a4aaac"
+    },
+    {
+      "path": "data/peer_fundamentals/mcp/financials_20260630.json",
+      "sha256": "c2e3a1398e75727e65f94ba5cb17ab9708575a5aaea8c417d6e088bb3c01b568"
+    },
+    {
+      "path": "data/peer_fundamentals/mcp/nq_20231231.json",
+      "sha256": "d010934366de373cabfe348bc397b77f2f5e2f93c04a98e1cd78b4d0ee286eee"
+    },
+    {
+      "path": "data/peer_fundamentals/mcp/nq_20241231.json",
+      "sha256": "4dbda842e1e048fee64f8c7d861faf64241856a1664d78aed00ff4426f0a485b"
+    },
+    {
+      "path": "data/peer_fundamentals/mcp/nq_20250630.json",
+      "sha256": "4791cdc53bc5dd5b66e54cf1223b3d9b4c8a7cf327a904d83a787d1da703df42"
+    },
+    {
+      "path": "data/peer_fundamentals/mcp/nq_20251231.json",
+      "sha256": "771c9edeeb058d468121f771bebcbf1ce0248302b847d739031facfb6da1dd1c"
+    },
+    {
+      "path": "data/peer_fundamentals/mcp/nq_20260630.json",
+      "sha256": "33e67bf1fcd1a4ce1521b2b5936cc13de6ccc2461ad9e51e89ba409318cd7fda"
+    },
+    {
+      "path": "data/peer_fundamentals/mcp/profiles.json",
+      "sha256": "0e40185aa75dc9d06b4510b2ca16fef0b0e20e1b067ffd6b4e367c3d94c15227"
+    },
+    {
+      "path": "data/peer_fundamentals/mcp/profiles_nq.json",
+      "sha256": "8f83dd7df1648c82bb453d870cb22e10e06c384aac592f41b6be798646fdaf0a"
+    },
+    {
+      "path": "data/peer_fundamentals/mcp/profiles_other.json",
+      "sha256": "231ec82250d883e7db0c9ae27df602dbd576531ad7ac9dd52bd7ce973c516ed3"
+    },
+    {
+      "path": "data/peer_research/api/017f824cdabd929b60c8_20261012234352516824_5457697c.json",
+      "sha256": "2f993cf0aed9d91afa6d339d54d2b6b5b2fd37a82f2ef2303144a20156b92fc0"
+    },
+    {
+      "path": "data/peer_research/api/024207b1a405df5e5bb9_20261012234349002436_91700949.json",
+      "sha256": "c2b68503a806769eb9ba76e55312bf30b23d6bb7bfed1b9579c838292c5197dd"
+    },
+    {
+      "path": "data/peer_research/api/05a9831beaf42d55b107_20261012234337962937_df79a48c.json",
+      "sha256": "805ed3fd3c39716bfc8b83e06cfb4dcadae9954c2971d8dafd741a91807511be"
+    },
+    {
+      "path": "data/peer_research/api/0d8577f9390a0c28986e_20261012234353508711_f7fbc84d.json",
+      "sha256": "211bac63c51fb8a0ae8ecd36a8141a184d41237556e69d0d8b4945ce33c78cf1"
+    },
+    {
+      "path": "data/peer_research/api/0e572232beb827bfbc43_20261012234355622974_c06cb9e3.json",
+      "sha256": "bbcebab67bffab83d960f1525e4023ab14ac87c035ca8bb46f9451f690f5ff6b"
+    },
+    {
+      "path": "data/peer_research/api/11c73d2c8c384371f284_20261012234358529261_5b4663eb.json",
+      "sha256": "fd3794db3ab866c1d3ebcffc82ea82a471b721ba86194f452cd7c9b1b2889021"
+    },
+    {
+      "path": "data/peer_research/api/138ad929ff6a9d9d43da_20261012234352753551_86b4a9aa.json",
+      "sha256": "3c3c414116c9e7f8353549de5fff281fa42f44eb084ad74da90d90f3817dbdac"
+    },
+    {
+      "path": "data/peer_research/api/13fcef28ac5b1f83dad1_20261012234335730790_3c487aed.json",
+      "sha256": "0751606fd1cb4310baa1aec264616293921f8a83de3a6b2380b622118ba4a773"
+    },
+    {
+      "path": "data/peer_research/api/1427e35bd78a0280ecb4_20261012234338684414_e36ed377.json",
+      "sha256": "908c5939d7597cd46622e475fa34068ea8ffe3aacb8bc5e3dd12bead7d15f586"
+    },
+    {
+      "path": "data/peer_research/api/1a0cd38590932831b41d_20261012234348119509_e30b2d66.json",
+      "sha256": "fe4e9490965cea2e30a21da83431eb70509b8db7759548eab1bc3387714f9e9f"
+    },
+    {
+      "path": "data/peer_research/api/1b3cfcd7b778f2a012f3_20261012234350664914_847c3ad4.json",
+      "sha256": "893f44a38c8a59a7a1265a69d73da31e2a25fac27d41c5f0ebd941ac6d2ab644"
+    },
+    {
+      "path": "data/peer_research/api/1ca7f7bbfc629eae17cc_20261012234348787501_493eb47b.json",
+      "sha256": "c539a78a0bbc72bf4eb9d4e105efaf01c52c112b6482f7e5f3242ed1e9f0430a"
+    },
+    {
+      "path": "data/peer_research/api/1ce34fdb6d65138516eb_20261012234356998292_554c7ecd.json",
+      "sha256": "046b599dd7a36e56b2ccec925abb1f093f2b53e80997332b1dce68c61e9da73f"
+    },
+    {
+      "path": "data/peer_research/api/1ef3c7ce995c9349fd49_20261012234357856872_bd2d569a.json",
+      "sha256": "48de72f835f606d9de527e7f13a3ef0fbc28fced8d1b20d21d64f8e03bc498d8"
+    },
+    {
+      "path": "data/peer_research/api/20910120b5347a6f2307_20261012234347888295_09e3222c.json",
+      "sha256": "b8a2d5da477ca32ee678db170a30958552d43df508bc984c24496e0ab1b105c0"
+    },
+    {
+      "path": "data/peer_research/api/2519ea1e2edf92e51181_20261012234344218880_ceb02dd6.json",
+      "sha256": "27b44460d3178b33ede185309ed0c0f70edc301d3e5e0381df141a5472996a4c"
+    },
+    {
+      "path": "data/peer_research/api/260ad3a58f29e9e0fd00_20261012234353737907_18cab6ca.json",
+      "sha256": "5a84a456ae682f50efe0cc7b5e87fd8135dca7e21c503d043bd2894441d15dd5"
+    },
+    {
+      "path": "data/peer_research/api/2d6afa7e01ec0254b25e_20261012234336173324_2b80afd7.json",
+      "sha256": "8768ec2784a13f20521a71b3f0116f3e79add44b128597da65c8379ca894ce29"
+    },
+    {
+      "path": "data/peer_research/api/2e9bb91afc23f2562288_20261012234349703854_ebae37d2.json",
+      "sha256": "a4503d5d596f155130e2f126145456e0d0aaf2b8345d86531eb0eb3d29313d06"
+    },
+    {
+      "path": "data/peer_research/api/2f29c9980f0a599c10fe_20261012234347104965_2a1071ca.json",
+      "sha256": "cb1ce9fc3f06bc0c997e6407d0d8def481032b237aa55b61891740cf9bb9316e"
+    },
+    {
+      "path": "data/peer_research/api/2fc8b0b703773c8fb1d7_20261012234348564323_889ae0ec.json",
+      "sha256": "da32a39cd75902dece2786c2fd864b3e30d30102fc5a47b8cf61c02503673258"
+    },
+    {
+      "path": "data/peer_research/api/302369ef3e835eec89fa_20261012234351566787_cc5bea33.json",
+      "sha256": "6c8bd36a9effc37b3139b306c272e71fdea328a33aa4393c07d8fb9503aaa1e6"
+    },
+    {
+      "path": "data/peer_research/api/32d7fafd214aaa16aef2_20261012234340268582_b45cb7b3.json",
+      "sha256": "33eaf33d7dbfa341ed814428f5358e22d1fd03361d6280b0eec38d849f8ffb7a"
+    },
+    {
+      "path": "data/peer_research/api/35e9b02df822e7a1c97a_20261012234359773856_96b348d3.json",
+      "sha256": "f51891715e7d950e5d4bd75e81ba360b9cfda332599dce33b52341fed82cdee6"
+    },
+    {
+      "path": "data/peer_research/api/3665dd50592e926f98e9_20261012234336857017_20bcbad9.json",
+      "sha256": "777d8a17138b223588ab19a15a0c2caf679cebd55be3769f2a7cc5d2a16914ac"
+    },
+    {
+      "path": "data/peer_research/api/37d9e0a698d55908badf_20261012234401861350_0c0e40c0.json",
+      "sha256": "f4a43d52b4c6c288ad163bb41091dbcf94bbeb11b2d3d354ca48437f60cf5160"
+    },
+    {
+      "path": "data/peer_research/api/38ab5e87391ede876578_20261012234401565329_779ac41f.json",
+      "sha256": "bf6e66cd51cece6bda1d03c838b5b21cd6316dac6cdad7d5f702783afd47ab18"
+    },
+    {
+      "path": "data/peer_research/api/3e52b8f7049bdab3bfc8_20261012234338198386_01058794.json",
+      "sha256": "0c847a2204969697caae3df4ff4b6abe3cb69da865584e6c63302d08baf731d9"
+    },
+    {
+      "path": "data/peer_research/api/415ee7e643b0795b8137_20261012234339570562_e59295e2.json",
+      "sha256": "abbceb1d997a8af3375ffe6c97b679f12d9ca20a9c9d54416376626fa292ed45"
+    },
+    {
+      "path": "data/peer_research/api/44d6edd0612d9b63251b_20261012234358764056_db7f77b4.json",
+      "sha256": "d24e808bfe01541e18e3b73f5a57b7e7ed47a350d794f8d22d4d7363a811927a"
+    },
+    {
+      "path": "data/peer_research/api/50ce0e4673fe9253c646_20261012234337087810_c8b183f4.json",
+      "sha256": "120b5c0cf344798bf185b2914ab8384ed4be6bbe5b8463a9b5fab5f0349cf0b7"
+    },
+    {
+      "path": "data/peer_research/api/5182d25bfcbc4b214e69_20261012234342703483_6ea6d0ec.json",
+      "sha256": "b324084c0e0a9d5993d6d9a406fccc6553f6097fbfbe1915b88c682784c502b4"
+    },
+    {
+      "path": "data/peer_research/api/52e8458ea84c8c15dc2a_20261012234357441767_f403f5cd.json",
+      "sha256": "239236e43e197c4fe0b080a2308eaa86f50423c9b532ecbfb5a0ffeafdacf659"
+    },
+    {
+      "path": "data/peer_research/api/56012207a85cc5836dda_20261012234358288466_e7f84e22.json",
+      "sha256": "89a9113efd5386504abce1d0200b8065ffb0e4b032e277cfa558fb594e84adbf"
+    },
+    {
+      "path": "data/peer_research/api/560a6a747469b59b9b1e_20261012234349271193_45e3603e.json",
+      "sha256": "a43b59342da8f664f9986af89e305372a79ebcdff4576dac847b45f831bcb74b"
+    },
+    {
+      "path": "data/peer_research/api/57d02b2fabb1093d9cea_20261012234402515658_7f798405.json",
+      "sha256": "1149f3739c3fc5905bd18195f28c74b246254549e829b3d8b5f64a0586eed25f"
+    },
+    {
+      "path": "data/peer_research/api/5aa9791c70d5f5dd1e66_20261012234400366394_704368c7.json",
+      "sha256": "b77361e77e3a891608d5a63ae2dddff6f32435634e3f2d62af9cf4d5005abfd7"
+    },
+    {
+      "path": "data/peer_research/api/5dfd7bcefb4bbf947cfc_20261012234401092706_1f150297.json",
+      "sha256": "608955a7f39163e4c4171f79d4002ebd89fec2726731ab7beb4bbaf56a3bc847"
+    },
+    {
+      "path": "data/peer_research/api/5fdf3d8ad2c05c53cedf_20261012234344444838_8b022fcd.json",
+      "sha256": "cfda67340ae77a7748ef6ba4620292a4826ba359d0112caa449255fdb07a6620"
+    },
+    {
+      "path": "data/peer_research/api/60ea925a4cc9573d6bff_20261012234339151498_63f8b551.json",
+      "sha256": "6aea30ee90fd686c25fafef7065fe5c23a3df225ee7cb8fc0050e8f938ecd45c"
+    },
+    {
+      "path": "data/peer_research/api/618d6c2b0c76b1ebc596_20261012234350901306_c765a1d4.json",
+      "sha256": "30b2286bafff1cb2d8f0cd9de9e617450554dc5e212dbff60210ca5846defe43"
+    },
+    {
+      "path": "data/peer_research/api/64bd5690eac5718e55b3_20261012234355185735_9301ea1b.json",
+      "sha256": "7949c027dbcae2e602c90e577bf835024aaf6cdcee9481cd237769b8501698c9"
+    },
+    {
+      "path": "data/peer_research/api/6744f3a81b1504ca034c_20261012234351121591_00fe11bf.json",
+      "sha256": "2350262244fcb83a35e02a2cb8ca33bd98785dd000dd647dda4159a79f8b10da"
+    },
+    {
+      "path": "data/peer_research/api/687433b1df08e868a352_20261012234357214786_740f0d33.json",
+      "sha256": "b81a28aa786767bf2348561bff238a3b37b07b277bdf336cf1c90935fc5562df"
+    },
+    {
+      "path": "data/peer_research/api/687bda9df96dde6ed9bf_20261012234402298159_1cb0878c.json",
+      "sha256": "5dea57c1555952fc39ff4ffc56b16e721516ff69f2397bd0f1243bdb23ab8e22"
+    },
+    {
+      "path": "data/peer_research/api/68c0e23fddc9b25945eb_20261012234349941183_822ac47c.json",
+      "sha256": "e5a44d7fd301371534f9a9a9187feb55e51e6378bc60d4b673521fe602aa8b1f"
+    },
+    {
+      "path": "data/peer_research/api/69c6f1751aff94a942e1_20261012234400032114_6ace646d.json",
+      "sha256": "8bb0c1af8eef18ca8b59622d54b245f330c6273ca3a1f74adfdd27b7bba458d8"
+    },
+    {
+      "path": "data/peer_research/api/6b9095ee811c1ae95918_20261012234338454059_73fb2bf9.json",
+      "sha256": "68815dcefb33542d8d69384ccde64e4b61deeacb28d60564174a81b4286c691b"
+    },
+    {
+      "path": "data/peer_research/api/6b9c89a3c32a28c9ca9f_20261012234356533917_ebdb3a16.json",
+      "sha256": "59102d6a8ead09ba637f307ccd8ebb22d65f9406ddbc102201ac039c4b177023"
+    },
+    {
+      "path": "data/peer_research/api/6fd22b512d9bfa23ebd7_20261012234341834995_3011058d.json",
+      "sha256": "879d50f2e2702854ecf17f35f443329198534cb933e20eecc4a40c0f03ba97e8"
+    },
+    {
+      "path": "data/peer_research/api/700d4c353af2884d59a4_20261012234340947855_29058af1.json",
+      "sha256": "185c9f10506e718496a8d347f4275cf992c9529b3bbc90c1b89c22b7a0397544"
+    },
+    {
+      "path": "data/peer_research/api/73ea8b835c1290094621_20261012234344678181_74c2b3f6.json",
+      "sha256": "cccc9d062f90e620b2a83ba3da60dcc65fbd13d30e6b5e671dec63eed9abdfde"
+    },
+    {
+      "path": "data/peer_research/api/748cba05de3d29e72149_20261012234351815912_7408373c.json",
+      "sha256": "e4a5cc4b8b71550f3b93f675725eed465c9d6bf5540f0a2a9d8be0461d15b61e"
+    },
+    {
+      "path": "data/peer_research/api/75ceb678714a6210841f_20261012234340516718_bc80624b.json",
+      "sha256": "22430299b98420b13a640ae9eb123e9a233779252526513a43428a25dc6f8517"
+    },
+    {
+      "path": "data/peer_research/api/786637ff09f187c90228_20261012234355405516_dc0df1ef.json",
+      "sha256": "948ec32b3c8c801fdfdc4bac6e60971187b8be72ff36bc818c29eb22f38587eb"
+    },
+    {
+      "path": "data/peer_research/api/7ec13d3f8536d21727ac_20261012234339364915_bfe90569.json",
+      "sha256": "db412b33f9728183456dbee589fb5364233f96721bdc545a860b90005169f6b9"
+    },
+    {
+      "path": "data/peer_research/api/804522b43806344718f6_20261012234337314227_cd6315fa.json",
+      "sha256": "958f6a1b003aa3b180df4b3ebb3ce122adf281e7e5921fbb3f414d134398f486"
+    },
+    {
+      "path": "data/peer_research/api/84e18d163dcb0d180823_20261012234341169561_d97f49b5.json",
+      "sha256": "3b7a608be02e25faec04f27ffb88eabcdcbca2f573e1b2a6249419405e76818b"
+    },
+    {
+      "path": "data/peer_research/api/86feb03eb4ec626e8488_20261012234345565768_09305021.json",
+      "sha256": "f9e29d661fce4217911ea06d4f8e806678fb10ac4ceb17c5e20a3331451221ad"
+    },
+    {
+      "path": "data/peer_research/api/882c5d409bdb0e357949_20261012234359105013_78ee7740.json",
+      "sha256": "798e1d2c659091bdc6c761fc86cc29448d90d8e44b09a39cc1ba7bcf3daed8b7"
+    },
+    {
+      "path": "data/peer_research/api/8cecb37aee129a79bde8_20261012234350201764_4bc254f4.json",
+      "sha256": "74d6b00db6d90b230594f319eab784caeaf90f109aeb280716f39306570c27b0"
+    },
+    {
+      "path": "data/peer_research/api/9588369579f4464b0af2_20261012234352068737_bd3b2e73.json",
+      "sha256": "8365eba7dd9ea915569cb0de5c39b311ba22ae717702fb55aecd39c481877c01"
+    },
+    {
+      "path": "data/peer_research/api/969ad81038d010fd68b4_20261012234342050763_32d22b36.json",
+      "sha256": "48881a195f2183fe1ceed3b9456bd143444eed7ad5eef6210d0954fd507d1708"
+    },
+    {
+      "path": "data/peer_research/api/98be3e2744367ae36546_20261012234350431194_d7fad8f3.json",
+      "sha256": "052483383e7668ca1efbddd5d7d20152266b453653f3c56d742f2fbc236d6df6"
+    },
+    {
+      "path": "data/peer_research/api/98fa2ed992f86f754de3_20261012234336651008_b7453a4a.json",
+      "sha256": "dbc1fcb87cfcffd2a4800f8a333f04565a0b5773b364ddc93574733314073e0a"
+    },
+    {
+      "path": "data/peer_research/api/99b9732b914476239327_20261012234351348991_9e248fc7.json",
+      "sha256": "0d5af1241b2f9b0d2b930dd30fbe96bb6781f6bb5e75c653485be7584c8dfc01"
+    },
+    {
+      "path": "data/peer_research/api/99e3cb74bee5931184cb_20261012234337752530_a171e1f9.json",
+      "sha256": "0e451ffab142baf31f2e5e8d8d10b2d99419e56fae3a840a4373645caa2061ae"
+    },
+    {
+      "path": "data/peer_research/api/9e6eb02213255a868d28_20261012234341388725_9acf9a39.json",
+      "sha256": "1d76913d01b04dbb7caf1a1034419c28d75f8758e502c8399c6f355dc76d1799"
+    },
+    {
+      "path": "data/peer_research/api/9ea91e312e72fd87b64c_20261012234347668183_5c6812fd.json",
+      "sha256": "f6b85f46bade07e51937999c596701d1a6ba3a7b69e121423661eedfb161cd73"
+    },
+    {
+      "path": "data/peer_research/api/a64775fa7635107029f5_20261012234338933865_f5cccccd.json",
+      "sha256": "766c87b70ba7a8831bf9d7fee6440b5f0d0951408bbd8e6f3ba82623f33536d7"
+    },
+    {
+      "path": "data/peer_research/api/a76f466c8c8ab8293781_20261012234358055984_49e60a78.json",
+      "sha256": "c122adf5515606cd3e5ebe704b4041aecb3aeb06aa6e6582a354fdaf1b29e60f"
+    },
+    {
+      "path": "data/peer_research/api/a9c32dcd340854b6731a_20261012234346264273_18166a70.json",
+      "sha256": "a0c5d10579adee585d8f403720be68a1288e4e162f766677dc1feff70a70972b"
+    },
+    {
+      "path": "data/peer_research/api/ad120bb9ac845fd1dbed_20261012234359557464_019b2d9b.json",
+      "sha256": "71ed9fddc9c03a15e2c72b90b56eb1af23619d1c12e983861697df59a08e3e68"
+    },
+    {
+      "path": "data/peer_research/api/ad5427fcb8e40a71efee_20261012234354253794_c44cb1f1.json",
+      "sha256": "bb8f370e1c259df4e0a11e38683573b03e32114e6c1a3b9d1ffcccb09ca6d073"
+    },
+    {
+      "path": "data/peer_research/api/b14e46ed2a7cba5a2e68_20261012234346692791_85660041.json",
+      "sha256": "1a5e9486af94d525cd17a91fa2723c72a9a54592533c4fac1a1c7c9a7028d919"
+    },
+    {
+      "path": "data/peer_research/api/b1e51b2f72743f7b747c_20261012234339786507_1c74bfb6.json",
+      "sha256": "3495308e7af3369dd38135dafc0514b830ba70ac64517657479fe12f43910794"
+    },
+    {
+      "path": "data/peer_research/api/b3689fe65b23e4ef2fd0_20261012234339997597_b4889d81.json",
+      "sha256": "4c868318c9a7417f34dc7270b4018fba10ce6e04cc96f0f5cdb64e3620e3cafa"
+    },
+    {
+      "path": "data/peer_research/api/b61d8e40bbaedf50dc8b_20261012234341627755_6894a359.json",
+      "sha256": "dbf387fcb53c349e6f22b0ad0f9ca92f5486c311d03d6365e12dbb06fd38740a"
+    },
+    {
+      "path": "data/peer_research/api/b742a82e7473be88de5f_20261012234343572200_a2849c26.json",
+      "sha256": "ae1bba68a2cf9a7152092a034bc370ee57e1ba5d329fe2eca20bd146c272e27a"
+    },
+    {
+      "path": "data/peer_research/api/b87710babdde36ee313d_20261012234346038590_e95e608c.json",
+      "sha256": "a857b18078a728856f5bc1a7922776ecadff7e6252e3ad862c8deaf9e10d6913"
+    },
+    {
+      "path": "data/peer_research/api/b998967c6be74d8cac5a_20261012234347338138_ce558176.json",
+      "sha256": "e7b3b16840f575a5b65a17040aebff9b44f63a8a064dcebb4fc6e519cf513ad9"
+    },
+    {
+      "path": "data/peer_research/api/baec3158745367383dbe_20261012234346465606_c48e112c.json",
+      "sha256": "7242867ea44ca7bee348611d0653cdd260a93e5d3fd1efcc2f56f086905825bf"
+    },
+    {
+      "path": "data/peer_research/api/c4def0a5d3d516ef3e69_20261012234342923699_057dd869.json",
+      "sha256": "9646e741d845296888118938493f5fac539245eadc8d00876ba850c27f480a81"
+    },
+    {
+      "path": "data/peer_research/api/c6c7723bb91bb01cd338_20261012234354502385_b8908de7.json",
+      "sha256": "afe4002182527862dc61b8e438ca5f7bdabe57f77c690a947f5bff13986453a5"
+    },
+    {
+      "path": "data/peer_research/api/c71b9765210fa154ac01_20261012234359348845_5a3b9d3f.json",
+      "sha256": "e7e4490f21c5222f76f5dcd191c12166b3acc06788145b82db4ae0e268e5ae9e"
+    },
+    {
+      "path": "data/peer_research/api/c8aa11538348c8705ebd_20261012234353998764_d87eefde.json",
+      "sha256": "b5c08dff400e4a9c222cdb665d716fcc306b55a7fb853788e84a7c66334d1ff8"
+    },
+    {
+      "path": "data/peer_research/api/c9828064748f260b9f50_20261012234337532935_5e45486b.json",
+      "sha256": "43dea80687c472c3ea353235acb8be7e1f8a57a52ef39d0d8d89abf53a70c8a3"
+    },
+    {
+      "path": "data/peer_research/api/cf55d8bff7f18100fd9e_20261012234336404451_8747fd00.json",
+      "sha256": "e1bfbf1f443bcb351b0d245f7611a86033f7a37f8f98f08010b4bd4ecd935299"
+    },
+    {
+      "path": "data/peer_research/api/d30123948412190727be_20261012234344000718_b8a33961.json",
+      "sha256": "c73ec3f33c03b73a3e1b5c1ee50e71a41db9f28c4d08e1ef302bce65ba05bd33"
+    },
+    {
+      "path": "data/peer_research/api/d3785a95fab334172cbb_20261012234349497099_f9127db5.json",
+      "sha256": "fa7cffd1cdedb40166667a11cd7e48bf016f8f825fc2e596d6a4fa1aac0c263e"
+    },
+    {
+      "path": "data/peer_research/api/da0e84f29bdff1261aba_20261012234402070686_0ac9c076.json",
+      "sha256": "54a3820a7fecde598129e6edf3c4a641e55299632bc7649d395e4f1082387484"
+    },
+    {
+      "path": "data/peer_research/api/db6ba50b1e571bc6624f_20261012234356779983_ace73364.json",
+      "sha256": "11f3ebc7e289d1aedab18d9abdc2f099b19cae8e099806649c32f7bdb134c909"
+    },
+    {
+      "path": "data/peer_research/api/dc368b5c6829c559a52a_20261012234348359403_5364567f.json",
+      "sha256": "36d5f93a8cb1b84188b07e063cff5473cdf6bbf9346c9b842607d6c0a8f2f979"
+    },
+    {
+      "path": "data/peer_research/api/de8dab097cca2d5aaaae_20261012234400680527_6cd39d17.json",
+      "sha256": "42249eb68b93b2b398feb3d431796fd074c9a295913a606d539b28552cd5181f"
+    },
+    {
+      "path": "data/peer_research/api/dff4e804cdeea7fa9e52_20261012234343147630_d4f932be.json",
+      "sha256": "6c812224ed73911f6a5b8b4a7ae681b73f989d253454ace1f67d604c887bb370"
+    },
+    {
+      "path": "data/peer_research/api/e39ede11fd7346e18676_20261012234343367685_e9ee0355.json",
+      "sha256": "722b7ca3340863e90b0566225ceb78404dc898127d373db566f739fd5ec71b95"
+    },
+    {
+      "path": "data/peer_research/api/e59ac91bb368d75c9705_20261012234345801239_3b068c5c.json",
+      "sha256": "4e2ce6bb3b254617c354ed0f56d60ec87ed188596ca3d1b328a051820ec6139e"
+    },
+    {
+      "path": "data/peer_research/api/e6da457ea6aaa0607874_20261012234344898887_847ef3c8.json",
+      "sha256": "2babc26d5bb35882a3208a480c9e210c4605030c93e8186c14704eef665e77f0"
+    },
+    {
+      "path": "data/peer_research/api/e78d46cca692afa41030_20261012234335957148_3b4ada26.json",
+      "sha256": "6bbc21cd9826be2b99ce40677827867cb6d2056d19d656b75925190a7c09d5c6"
+    },
+    {
+      "path": "data/peer_research/api/ea4136c6d077466db782_20261012234354720966_7607da32.json",
+      "sha256": "e40b10d9e936484f0a7b90ffb85fbac9ce7cc2f2f0d7f6d31a4ab82aaeadce37"
+    },
+    {
+      "path": "data/peer_research/api/eb4f1675ac246183320a_20261012234346895229_f70b9fe1.json",
+      "sha256": "4943588c73f6d0a7613783f624d01966238d59cd8aa2c2c3f83725f6dda863dd"
+    },
+    {
+      "path": "data/peer_research/api/eb9b9591e7f9b1fce362_20261012234345351520_5d228075.json",
+      "sha256": "816a714f7fccffd254f4c660469d9540d7e7135c88e1f976acf36572e3448732"
+    },
+    {
+      "path": "data/peer_research/api/f12c511b004106b764c1_20261012234345134988_61d802d7.json",
+      "sha256": "41f3b9b5c94c957b479e64c9540133866b45807841f451e36e732763b337170b"
+    },
+    {
+      "path": "data/peer_research/api/f7ba124883e468235ca2_20261012234342281158_1ca62f9a.json",
+      "sha256": "a4bb95125bd0fe9c7878f317031941b33dc432345b3b0c96b75e423ac72a25c4"
+    },
+    {
+      "path": "data/peer_research/api/f7e0562a305432c73ee8_20261012234335524452_57e70f9b.json",
+      "sha256": "0d9127649e091df29815bf8b08d1666b71473c204ea1a5c4f7c3b601426ea891"
+    },
+    {
+      "path": "data/peer_research/api/f89ad8d6affb24a69c0a_20261012234354942168_31c33fe3.json",
+      "sha256": "a66322b925ef0c8bdb1ddb1962e22b735538b2af7de9a6db0840b4ef1cfc78f2"
+    },
+    {
+      "path": "data/peer_research/api/f8ea4a9b9b8fbd427000_20261012234401333002_f72ac6b9.json",
+      "sha256": "e9c4565b8b2628c92a81ff13d1177a60c4883e322170114873d54dc6c9402bf1"
+    },
+    {
+      "path": "data/peer_research/api/fe1f4f272121b301134f_20261012234340736809_bc188066.json",
+      "sha256": "4215e064b28f08493a465fdd4f452b46f339be096e74318cc930fa083f8e30b6"
+    },
+    {
+      "path": "data/peer_research/mcp/balance_20250630_07e8e6482f.json",
+      "sha256": "9f1865b1f2b3a6d07b46176cebddf1685b2303acf0b966ab99dbf717b5a0ecef"
+    },
+    {
+      "path": "data/peer_research/mcp/balance_20250630_1867691263.json",
+      "sha256": "4b04f2a697e5e02c5fa00c8540896d51f8601a6a39739473e643adef7fc85b87"
+    },
+    {
+      "path": "data/peer_research/mcp/balance_20250630_3923fc5eba.json",
+      "sha256": "cebd4e133077a0709e2fe2c648b0fcfbf4c3e279179cd85a7816af7e999923b2"
+    },
+    {
+      "path": "data/peer_research/mcp/balance_20250630_4476510579.json",
+      "sha256": "e054c363ce8ce706e1cfb4e9dab51a7c157f60915f71a4bf4a2f1fef7c053497"
+    },
+    {
+      "path": "data/peer_research/mcp/balance_20250630_451657bbe7.json",
+      "sha256": "be92bbcebae1b879036c8bfda12f222df7fb6448f6e737e5ebfbe9199fab63a0"
+    },
+    {
+      "path": "data/peer_research/mcp/balance_20250630_47e95b7312.json",
+      "sha256": "7a2908f82e905e1e172238f5a8f2771883c0959df40cad6d1c22ba329fb89bfe"
+    },
+    {
+      "path": "data/peer_research/mcp/balance_20250630_718b65f933.json",
+      "sha256": "fab7325d1bd77ab4f581a5ece43a5d217288e525214ecfdeee88e5951507eba9"
+    },
+    {
+      "path": "data/peer_research/mcp/balance_20250630_7c5ee99bbf.json",
+      "sha256": "7d06929ac429b987117cca4acac23267be8708c9ecf753de20a90f480d853be9"
+    },
+    {
+      "path": "data/peer_research/mcp/balance_20250630_cdbd8fa628.json",
+      "sha256": "b594175ee25b5c486d3834f497dc66767ec0c8fb7f8bf052598f3aef849685c1"
+    },
+    {
+      "path": "data/peer_research/mcp/balance_20250630_ebb0431b07.json",
+      "sha256": "d85e823199fe3920422c15a75bf89fcf4329cba14f0f4226bbfabc8fc297d937"
+    },
+    {
+      "path": "data/peer_research/mcp/balance_20250630_f19807915a.json",
+      "sha256": "11414ba2a2c8c4fb324becf5c09967cf65c20aefa97feb931f91deaed407f628"
+    },
+    {
+      "path": "data/peer_research/mcp/balance_20250630_ffa5b63068.json",
+      "sha256": "f83131c54c63a591591907918af69b967da9d93959ddd0686eabed73e590cc33"
+    },
+    {
+      "path": "data/peer_research/mcp/balance_20251231_07e8e6482f.json",
+      "sha256": "beb072431302e2327b3413ca7904eb3354e31b9eea99de5e3911142e011799a7"
+    },
+    {
+      "path": "data/peer_research/mcp/balance_20251231_1867691263.json",
+      "sha256": "52218bc7712d32d7c15bafdc5119c54229584757213726557a74d0444ff0e47a"
+    },
+    {
+      "path": "data/peer_research/mcp/balance_20251231_3923fc5eba.json",
+      "sha256": "6aa47a7e2362022776e726051294ee01d584123ca0c6047680aefa3230beca73"
+    },
+    {
+      "path": "data/peer_research/mcp/balance_20251231_4476510579.json",
+      "sha256": "64f51407e9fb8e975c24ca97a79c84c5a06f0ce47aa89f08960804871560a770"
+    },
+    {
+      "path": "data/peer_research/mcp/balance_20251231_451657bbe7.json",
+      "sha256": "6e82be07d85c7e78902a9ba1ebab9bd2735a56e25d512ff3038eb936a7b3f863"
+    },
+    {
+      "path": "data/peer_research/mcp/balance_20251231_47e95b7312.json",
+      "sha256": "6fca933fe0aaa03519bcdaa3d19734d0d486d201b6eeda83470e3f63ccba064b"
+    },
+    {
+      "path": "data/peer_research/mcp/balance_20251231_718b65f933.json",
+      "sha256": "702942ddce06b15b76b0f391a3aa3292ab15ebb553989b9579a5437a71755c47"
+    },
+    {
+      "path": "data/peer_research/mcp/balance_20251231_7c5ee99bbf.json",
+      "sha256": "a05351f3ef9898635a2479e9090ccd70462ba04f22468bd1439c3efce86b3c6c"
+    },
+    {
+      "path": "data/peer_research/mcp/balance_20251231_cdbd8fa628.json",
+      "sha256": "77aac0a263d0a137d1597f1b910106582d03af3705d4810fc89fa8817a5cc212"
+    },
+    {
+      "path": "data/peer_research/mcp/balance_20251231_ebb0431b07.json",
+      "sha256": "7246969c7e7d3b33689a2612f15845b2c12248bd2414ae0c8fa81b78ce72c991"
+    },
+    {
+      "path": "data/peer_research/mcp/balance_20251231_f19807915a.json",
+      "sha256": "4878282f039c7c48e1e441dbb88dbcf1146322b46ec71a7c723be358cca66c3e"
+    },
+    {
+      "path": "data/peer_research/mcp/balance_20251231_ffa5b63068.json",
+      "sha256": "e3a8254c4ea7e9450455b9f6682d6dfb0438b3e88fdc2f153e953e304e3e5f04"
+    },
+    {
+      "path": "data/peer_research/mcp/balance_20260630_07e8e6482f.json",
+      "sha256": "6e51988af641f3f7e6e9f0e4ae225ae145dea8516c804cff33ad45cf12c3dc7b"
+    },
+    {
+      "path": "data/peer_research/mcp/balance_20260630_1867691263.json",
+      "sha256": "f10576aeb85b6e95ddee0c85bdb19f2da209361bb12dc25c0f92cb9485a61283"
+    },
+    {
+      "path": "data/peer_research/mcp/balance_20260630_3923fc5eba.json",
+      "sha256": "1e1bf0ef917202923a4704c954d60bd4eee8d78e4a61f845648452cece5c471a"
+    },
+    {
+      "path": "data/peer_research/mcp/balance_20260630_4476510579.json",
+      "sha256": "09208f6845a879e7cb40ca30b340ae7bc9ba66deedfd223311d4ae065b48884b"
+    },
+    {
+      "path": "data/peer_research/mcp/balance_20260630_451657bbe7.json",
+      "sha256": "3b66572d281864e3ea830a45c98ac1257b5556eea45126e62294ed757602b2ee"
+    },
+    {
+      "path": "data/peer_research/mcp/balance_20260630_47e95b7312.json",
+      "sha256": "4e6e2f6cc263ff01a3de7155421438b13a722d8ae5be59faf5d8265ea9eb7c79"
+    },
+    {
+      "path": "data/peer_research/mcp/balance_20260630_718b65f933.json",
+      "sha256": "855c57b732503ac63b4d75e88c23f9f32b91cc8958ac8395583d2ac41343523d"
+    },
+    {
+      "path": "data/peer_research/mcp/balance_20260630_7c5ee99bbf.json",
+      "sha256": "b29594ffe91ef0b09b75523b38822bd3688ec0263bca62af923b4a665f2443a0"
+    },
+    {
+      "path": "data/peer_research/mcp/balance_20260630_cdbd8fa628.json",
+      "sha256": "4a6ab443521178344f92262f1b00b71b7f00ffd42c5c36f4448b9671c8e8945f"
+    },
+    {
+      "path": "data/peer_research/mcp/balance_20260630_ebb0431b07.json",
+      "sha256": "e55c0cfc70593b81b4baf805087678733c74d2117c5161fe430f222945b45ab9"
+    },
+    {
+      "path": "data/peer_research/mcp/balance_20260630_f19807915a.json",
+      "sha256": "43b7cd55ce8ecb4aea3707911036a81e5959b226bf041f5c7383b9e274409428"
+    },
+    {
+      "path": "data/peer_research/mcp/balance_20260630_ffa5b63068.json",
+      "sha256": "ce002e1301ff4aafbb149a92583fd7fc4619494208c66ce8cfe6582416bf78f4"
+    },
+    {
+      "path": "data/peer_research/mcp/balance_probe_20260630.json",
+      "sha256": "168826bee82a37d327c6ffd88cab7febd77ffcea1d70f0fe0e5811941669b85e"
+    },
+    {
+      "path": "data/peer_research/mcp/financials_20191231_07e8e6482f.json",
+      "sha256": "9e076593956ecd05873b708208f5d40ce91a8d77f063d3ddd12837a80c7b2bf2"
+    },
+    {
+      "path": "data/peer_research/mcp/financials_20191231_1867691263.json",
+      "sha256": "8bb6e87a1b36510d49f8f583a5971d55602e874ce95c3ebea81c5688a641536a"
+    },
+    {
+      "path": "data/peer_research/mcp/financials_20191231_3923fc5eba.json",
+      "sha256": "b1966988cf618c919140f9f2e6edc5ba11150eb1bd82ad3686fbfcd9d0870101"
+    },
+    {
+      "path": "data/peer_research/mcp/financials_20191231_4476510579.json",
+      "sha256": "8e78d94947b5d903321dd6c43383fb2389c2498bf36f08163a1d814eae4c20aa"
+    },
+    {
+      "path": "data/peer_research/mcp/financials_20191231_451657bbe7.json",
+      "sha256": "35b2798fe1f81e8746757afc4eda6ae94ed6442ef769f6312bb9f9f32fc03563"
+    },
+    {
+      "path": "data/peer_research/mcp/financials_20191231_47e95b7312.json",
+      "sha256": "78fee2fa1225b355de8a40658f7917c578d2f57d74172b2d1cb61ccd4933936e"
+    },
+    {
+      "path": "data/peer_research/mcp/financials_20191231_718b65f933.json",
+      "sha256": "c3e2adaff441a6a56fe5e2ff598762937d22f4227983c733fbccda0b3e5f2b77"
+    },
+    {
+      "path": "data/peer_research/mcp/financials_20191231_7c5ee99bbf.json",
+      "sha256": "9356e44ac0d9911c1e9d247c93d3e203724c2cfb734815fcbff4f1e0d783d93a"
+    },
+    {
+      "path": "data/peer_research/mcp/financials_20191231_cdbd8fa628.json",
+      "sha256": "729fd088b9af6a9597e28604fd1764804c3e7fcaf0e99f04bd932abae2fc8e2d"
+    },
+    {
+      "path": "data/peer_research/mcp/financials_20191231_ebb0431b07.json",
+      "sha256": "66c6207a1464547ae837b79dae1f5ef552872822a22b61c1abbf9a3d8678e60d"
+    },
+    {
+      "path": "data/peer_research/mcp/financials_20191231_f19807915a.json",
+      "sha256": "c6919a647c4862b8da73b41c69c14a443416e3947aca8b239315c0a31d86626a"
+    },
+    {
+      "path": "data/peer_research/mcp/financials_20191231_ffa5b63068.json",
+      "sha256": "f722ac6ce403dce409f55d69f4f539c957d897b8186aaec1daa082c7f01959b1"
+    },
+    {
+      "path": "data/peer_research/mcp/financials_20201231_07e8e6482f.json",
+      "sha256": "b31a3890d033faee4a7604e9b515fbeb9f2bcb3f2774efc41de51c58da841499"
+    },
+    {
+      "path": "data/peer_research/mcp/financials_20201231_1867691263.json",
+      "sha256": "a80635b7840e775f33ffef714b9cf36b891519b93819c6da4648dfa9cc0ea1de"
+    },
+    {
+      "path": "data/peer_research/mcp/financials_20201231_3923fc5eba.json",
+      "sha256": "ebd4330117b209a1a87f034fcb15192ed87fc6101a5c1993e9aa748c80634ba2"
+    },
+    {
+      "path": "data/peer_research/mcp/financials_20201231_4476510579.json",
+      "sha256": "7bb5d158a7fab6fdfbc7e3efa940247d4c5cee0b827d2e1b84497f56c07d4146"
+    },
+    {
+      "path": "data/peer_research/mcp/financials_20201231_451657bbe7.json",
+      "sha256": "c2b61b781b27f07a3cf3fd1bf2698cbb8a0c9361d53d5405f85836cdbd838a20"
+    },
+    {
+      "path": "data/peer_research/mcp/financials_20201231_47e95b7312.json",
+      "sha256": "a69521c041ec8983a40a801f17245418b3c91bcfcc4dd5976ff12bbfe6f2fb19"
+    },
+    {
+      "path": "data/peer_research/mcp/financials_20201231_718b65f933.json",
+      "sha256": "b42e962240384654fcbc1c5c4d69c01f2105df39114d9e2f4807b0eef0c3656b"
+    },
+    {
+      "path": "data/peer_research/mcp/financials_20201231_7c5ee99bbf.json",
+      "sha256": "f4ba61c4a42d1431d5b05446213baec44ed0e3672460c6280af103248670cc1a"
+    },
+    {
+      "path": "data/peer_research/mcp/financials_20201231_cdbd8fa628.json",
+      "sha256": "cc1f83d33d59e31037154a63dee2915971e67665a2375d523ef1790c599a573a"
+    },
+    {
+      "path": "data/peer_research/mcp/financials_20201231_ebb0431b07.json",
+      "sha256": "f6a5fdbc375dc4e2f940229853c8c92f79962088914f6c7dc5aea14fc5db9104"
+    },
+    {
+      "path": "data/peer_research/mcp/financials_20201231_f19807915a.json",
+      "sha256": "2985fd278de279318d34058ec6e9910d052a6f42c12304622da37b020f3774ba"
+    },
+    {
+      "path": "data/peer_research/mcp/financials_20201231_ffa5b63068.json",
+      "sha256": "05534bffd62a91d1edcdf015d6a3952b103c90df4dc155f7addfc780719d8955"
+    },
+    {
+      "path": "data/peer_research/mcp/financials_20211231_07e8e6482f.json",
+      "sha256": "624fe2ddee58785bd1a628cc81637a2fb971ed72124419062a2185e089c116d3"
+    },
+    {
+      "path": "data/peer_research/mcp/financials_20211231_1867691263.json",
+      "sha256": "4f5413ec6d1697e06752ec51421652bb201f530deeb0bab741ccd2d44ada61ba"
+    },
+    {
+      "path": "data/peer_research/mcp/financials_20211231_3923fc5eba.json",
+      "sha256": "673d13b055ba4e7daf82c3a3395e4128cac6c0c8ba122229110d4b7b55233f6e"
+    },
+    {
+      "path": "data/peer_research/mcp/financials_20211231_4476510579.json",
+      "sha256": "4d7c076051ca747dabcae838151faef2cda87e3114d7778ad57f120a6c0f2923"
+    },
+    {
+      "path": "data/peer_research/mcp/financials_20211231_451657bbe7.json",
+      "sha256": "1760466b005b7204e45eab809cf0e23da2b4b06707c00d58c271fd241c84c35e"
+    },
+    {
+      "path": "data/peer_research/mcp/financials_20211231_47e95b7312.json",
+      "sha256": "059a057deef973d2ad631bfd6df66378a638fa2134e04b0e18437237bf220fc9"
+    },
+    {
+      "path": "data/peer_research/mcp/financials_20211231_718b65f933.json",
+      "sha256": "b99aaf009e686ad56bf0b9240085c3721cc77f8ab4dea1870dbe7b11adc17bc4"
+    },
+    {
+      "path": "data/peer_research/mcp/financials_20211231_7c5ee99bbf.json",
+      "sha256": "6842ab03e3a8307d004f3f5c6c6001c3f00979fe78859484b410fe53e2af3688"
+    },
+    {
+      "path": "data/peer_research/mcp/financials_20211231_cdbd8fa628.json",
+      "sha256": "564826eb5445bdebde7b8bc231bdeb7b5d8ac320261d67747c70d935426c9338"
+    },
+    {
+      "path": "data/peer_research/mcp/financials_20211231_ebb0431b07.json",
+      "sha256": "4a5b6f8c8f1ad12a3cec12da90522cf034af58601a7315a8b2e845dd995894e0"
+    },
+    {
+      "path": "data/peer_research/mcp/financials_20211231_f19807915a.json",
+      "sha256": "01ce92fb7f2979bef628dd6cf6e63e4a3167986ebe93f1c59fc524655bf73a3b"
+    },
+    {
+      "path": "data/peer_research/mcp/financials_20211231_ffa5b63068.json",
+      "sha256": "6d699c309181e43ce18ee26df96b98e9ef9fc679a79450e083cceb42e1d05a3b"
+    },
+    {
+      "path": "data/peer_research/mcp/financials_20221231_07e8e6482f.json",
+      "sha256": "cf50bd01b2d7028be414801bd3b8aafd0e2829576f07d5c4a6efd998c231cdba"
+    },
+    {
+      "path": "data/peer_research/mcp/financials_20221231_1867691263.json",
+      "sha256": "5e7cc64a9c2a24590417a7387b29f4c3e3a032aa7555d8196f66649517cf9842"
+    },
+    {
+      "path": "data/peer_research/mcp/financials_20221231_3923fc5eba.json",
+      "sha256": "9c1df09719ff58c9400e57de7e770ddee6676b53e7d09972ad68eb747cfcdfca"
+    },
+    {
+      "path": "data/peer_research/mcp/financials_20221231_4476510579.json",
+      "sha256": "a561b8d049ea535af24a475b1e72adb80778d50e7176d6d71369f8f89620c1ef"
+    },
+    {
+      "path": "data/peer_research/mcp/financials_20221231_451657bbe7.json",
+      "sha256": "d49d66d0a0af9bf3f637fb7c1b288cfd3c008dde40b41cf266b2d7b65009548b"
+    },
+    {
+      "path": "data/peer_research/mcp/financials_20221231_47e95b7312.json",
+      "sha256": "6f5cc2c94afed897fa61befe3aed9b5753884aa1a3fb979a872bd9564f7de0b3"
+    },
+    {
+      "path": "data/peer_research/mcp/financials_20221231_718b65f933.json",
+      "sha256": "d0dc314c9fddc1caabfb30cd53c9c5da4a96efc62aca3c497d479db2aee51b0b"
+    },
+    {
+      "path": "data/peer_research/mcp/financials_20221231_7c5ee99bbf.json",
+      "sha256": "cb0e972c096ac3ecefe017c7c16f96d560b26c39540fc0b0fe62aae61e5a2377"
+    },
+    {
+      "path": "data/peer_research/mcp/financials_20221231_cdbd8fa628.json",
+      "sha256": "283c1811633c57c33233a2b6501618fa21c6343b81a209eac6d3ff6766258989"
+    },
+    {
+      "path": "data/peer_research/mcp/financials_20221231_ebb0431b07.json",
+      "sha256": "b080034fafa39c1218fcd44a08d603148c823f382e38f41eea75ac9b8ff6091d"
+    },
+    {
+      "path": "data/peer_research/mcp/financials_20221231_f19807915a.json",
+      "sha256": "ef189a041de4e94511802d6775750859a092d020bdead92f6005e452bcc4e25b"
+    },
+    {
+      "path": "data/peer_research/mcp/financials_20221231_ffa5b63068.json",
+      "sha256": "178fd17cab119616b055892246a1e6126fe728e245481eb8bd5684be1df06b53"
+    },
+    {
+      "path": "data/peer_research/mcp/financials_20231231_07e8e6482f.json",
+      "sha256": "20054046f2f7a9a41681cd3e276c0ac7e983c31b9e2f010ad8db6d2a5987d067"
+    },
+    {
+      "path": "data/peer_research/mcp/financials_20231231_1867691263.json",
+      "sha256": "3d58439b3b7c4a9f12be29d6f9cce70e72f5e1102302a95d0340a0cc527cd00a"
+    },
+    {
+      "path": "data/peer_research/mcp/financials_20231231_3923fc5eba.json",
+      "sha256": "7bc07928ef3146ccec5c0d3c1857920f2be185db224b471379eb896c92e0048b"
+    },
+    {
+      "path": "data/peer_research/mcp/financials_20231231_4476510579.json",
+      "sha256": "0524c6dc3237c2a23258fa09d1c692a1b2333321490c69b1b158b1f0260c8669"
+    },
+    {
+      "path": "data/peer_research/mcp/financials_20231231_451657bbe7.json",
+      "sha256": "8df7b72ff4b621c54b06046920b47d7f07fe60a64cee0bc664056407330c7e32"
+    },
+    {
+      "path": "data/peer_research/mcp/financials_20231231_47e95b7312.json",
+      "sha256": "e49d7317ef7e01f533f6bb734db3e8f89dc2fc24a11d3a1186a9de606383070e"
+    },
+    {
+      "path": "data/peer_research/mcp/financials_20231231_718b65f933.json",
+      "sha256": "8f277af78189d76a6de8694b663bf001b75b5a3a8f10ec48d27f3f576c904363"
+    },
+    {
+      "path": "data/peer_research/mcp/financials_20231231_7c5ee99bbf.json",
+      "sha256": "c9c98f6c2380a85d893d26bead66493b759c45dbf36224ea5a409ba5e5c64005"
+    },
+    {
+      "path": "data/peer_research/mcp/financials_20231231_cdbd8fa628.json",
+      "sha256": "94bc49671d9d900e796b02e18446f0a5ea7b82b8eef2a6bcf3d73b1f231b7210"
+    },
+    {
+      "path": "data/peer_research/mcp/financials_20231231_ebb0431b07.json",
+      "sha256": "f2a4486ef50b6e77a700a83571b7981dbe0a73bdac890b4ad5bbb4cf9b4b8b29"
+    },
+    {
+      "path": "data/peer_research/mcp/financials_20231231_f19807915a.json",
+      "sha256": "2c39384578faabb772e5703ea2b72d792f53b6f2fcf369986861f2a91ec457a3"
+    },
+    {
+      "path": "data/peer_research/mcp/financials_20231231_ffa5b63068.json",
+      "sha256": "724c633f8a18838f8abcbea8c7090b8d41b138dd3454ccd106fad2df0b14e57d"
+    },
+    {
+      "path": "data/peer_research/mcp/financials_20241231_07e8e6482f.json",
+      "sha256": "184cfc5dfe7b8f61e9725f40bb2783590a35e71b7cddf13e3af602c023d60d92"
+    },
+    {
+      "path": "data/peer_research/mcp/financials_20241231_1867691263.json",
+      "sha256": "1e96e554a2dbb72d950a1f9f26921fefe6242c2d0fd743db5d4ebbdb719f33d4"
+    },
+    {
+      "path": "data/peer_research/mcp/financials_20241231_3923fc5eba.json",
+      "sha256": "c41f4efa23757ff76b7ea4e29fb4f2bc43fedf37b2bffc0e703fe49ce6b7255d"
+    },
+    {
+      "path": "data/peer_research/mcp/financials_20241231_4476510579.json",
+      "sha256": "7f2cd498df0be0d78dd5793e1bbc7092daad7e88b2b7695b6491c05926db01ad"
+    },
+    {
+      "path": "data/peer_research/mcp/financials_20241231_451657bbe7.json",
+      "sha256": "b3353f934aab7b18d2c6b54f15dfb068c82e6555a1be10ca0e5951609f05a54a"
+    },
+    {
+      "path": "data/peer_research/mcp/financials_20241231_47e95b7312.json",
+      "sha256": "9ab6fa468907db8f71ee6577a2661c55f65af36fc0c2dade74b17bcb70fce2f3"
+    },
+    {
+      "path": "data/peer_research/mcp/financials_20241231_718b65f933.json",
+      "sha256": "1e1152fadafe358946d69343716b52d6e881a9a483985498a84475bbe35510bc"
+    },
+    {
+      "path": "data/peer_research/mcp/financials_20241231_7c5ee99bbf.json",
+      "sha256": "8daff860309bc5b87de19e5a52835ff3e37f30a96586ad10ca7979ff147a4a82"
+    },
+    {
+      "path": "data/peer_research/mcp/financials_20241231_cdbd8fa628.json",
+      "sha256": "5890348cd7b0f85d94d6b7aa9f08fe6161434cbeaf637efaa0550774e1c63a9b"
+    },
+    {
+      "path": "data/peer_research/mcp/financials_20241231_ebb0431b07.json",
+      "sha256": "53736350b011bd8445b3952d7b4ead3712b3c5b3b930f62a789abf36f6a65cdd"
+    },
+    {
+      "path": "data/peer_research/mcp/financials_20241231_f19807915a.json",
+      "sha256": "5062049bd7b586dae2e7418c75219c3b1f49d9b8779f683d3d4c5c0dee171874"
+    },
+    {
+      "path": "data/peer_research/mcp/financials_20241231_ffa5b63068.json",
+      "sha256": "ebb9fc8d715e39fb8dd6d97cf982a4d09118d23de324ed4155a452aa874b62c3"
+    },
+    {
+      "path": "data/peer_research/mcp/financials_20250630_07e8e6482f.json",
+      "sha256": "ac39e9f0ec5907eaa13865a89576aa6c3a3e1a03a77471757ff2f991e2de3202"
+    },
+    {
+      "path": "data/peer_research/mcp/financials_20250630_1867691263.json",
+      "sha256": "08a19796f0ac819b312fa32f0d8aa12f6ad0b7327657a60614537dd802642bf4"
+    },
+    {
+      "path": "data/peer_research/mcp/financials_20250630_3923fc5eba.json",
+      "sha256": "af1acb82b981383c9cbe8e50f12b795152f67b1bc194fbe5464e314f15dcc720"
+    },
+    {
+      "path": "data/peer_research/mcp/financials_20250630_4476510579.json",
+      "sha256": "9f15ae8df18a63d0d886ebc6ac7e7f0c41cb3477595d429f37c73dd02f7818fd"
+    },
+    {
+      "path": "data/peer_research/mcp/financials_20250630_451657bbe7.json",
+      "sha256": "a844d75140bcd63dc1490a1e7e8e2f051ab0f516f256c9564b6d0ed425df1572"
+    },
+    {
+      "path": "data/peer_research/mcp/financials_20250630_47e95b7312.json",
+      "sha256": "5f1b02583ef12a1672a8775584e7ccd6ea20f0379b71299bd06721d5eabb87d9"
+    },
+    {
+      "path": "data/peer_research/mcp/financials_20250630_718b65f933.json",
+      "sha256": "94972bcecea290a698ccfc1676dd3cca4006cbadd01fbd1bb12a435e2f0d905f"
+    },
+    {
+      "path": "data/peer_research/mcp/financials_20250630_7c5ee99bbf.json",
+      "sha256": "433abe3b6c96ad590a6fdbe9ffbe17fbe25130206cd077877e9b2aa2fe580b4f"
+    },
+    {
+      "path": "data/peer_research/mcp/financials_20250630_cdbd8fa628.json",
+      "sha256": "e63cb17b2ab9e96dcabc9b73ba77d342b45b19ec2701b2685d975d15a4e9a8fe"
+    },
+    {
+      "path": "data/peer_research/mcp/financials_20250630_ebb0431b07.json",
+      "sha256": "a210f5013cad025fdaf5325d839ce9388c3dfc19d16e4071827654ac9763069e"
+    },
+    {
+      "path": "data/peer_research/mcp/financials_20250630_f19807915a.json",
+      "sha256": "b21521b51b62a92cbd7b85cbeb2be1274f352cdacea98459d4bb0919c56da13e"
+    },
+    {
+      "path": "data/peer_research/mcp/financials_20250630_ffa5b63068.json",
+      "sha256": "020276e8213e3d3a430056cfaa23fe877f84dfe755368185dd79f57edb20c73a"
+    },
+    {
+      "path": "data/peer_research/mcp/financials_20251231_07e8e6482f.json",
+      "sha256": "603548f538d055b67132741548e81056566f426991d46e083eaa41f6c8be645c"
+    },
+    {
+      "path": "data/peer_research/mcp/financials_20251231_1867691263.json",
+      "sha256": "75dcee2f0260e68f75b0a1126bdd39ebffe57545b6d6ebc69a145b705c2b9d46"
+    },
+    {
+      "path": "data/peer_research/mcp/financials_20251231_3923fc5eba.json",
+      "sha256": "b79ad5778d87702a1219a5f0cb225872bde668d582366fb570870c24829e6a6b"
+    },
+    {
+      "path": "data/peer_research/mcp/financials_20251231_4476510579.json",
+      "sha256": "0e60e05caffa5a86656ba68be37bb4f682a2e90d0863763dabd39b66b2c2831d"
+    },
+    {
+      "path": "data/peer_research/mcp/financials_20251231_451657bbe7.json",
+      "sha256": "fe5e39b2486127495ba29cfb6265b4ebd4714bfea36c6ce679b6f0333fd2c0c9"
+    },
+    {
+      "path": "data/peer_research/mcp/financials_20251231_47e95b7312.json",
+      "sha256": "46196c4c6552d0054e56fad2adb3ca633d62047c949a4e72cfa66e07e4f7e83f"
+    },
+    {
+      "path": "data/peer_research/mcp/financials_20251231_718b65f933.json",
+      "sha256": "9dbc883c79f2f9fdd859f5908790c7ca597e164b257d0306d6eb0e2ff828e005"
+    },
+    {
+      "path": "data/peer_research/mcp/financials_20251231_7c5ee99bbf.json",
+      "sha256": "b011c2313cbbb12ee412e2e678a8fd67b12f1e0183255e8a0e2428d05ff5e68e"
+    },
+    {
+      "path": "data/peer_research/mcp/financials_20251231_cdbd8fa628.json",
+      "sha256": "af3294288a8536026499e37c07e134bc7ef1157fbc71e92849ef19306042a53b"
+    },
+    {
+      "path": "data/peer_research/mcp/financials_20251231_ebb0431b07.json",
+      "sha256": "1eeb482d9f49b8c951b22e0d724d5bb11c78a2d30fb0024582843d18a6638f6b"
+    },
+    {
+      "path": "data/peer_research/mcp/financials_20251231_f19807915a.json",
+      "sha256": "ce65dd17f635c6399e38996aa82878f28085a153f0fe5a8b87bb650b0252a708"
+    },
+    {
+      "path": "data/peer_research/mcp/financials_20251231_ffa5b63068.json",
+      "sha256": "0aa1b478dbf9491a8ed777a67976c824b10f7d6bc06d7ed7b7b4e91788c20964"
+    },
+    {
+      "path": "data/peer_research/mcp/financials_20260630_07e8e6482f.json",
+      "sha256": "a954b3f2cd962ec5e90092084281a21db318038ef644c2d885135861d0a4fd4d"
+    },
+    {
+      "path": "data/peer_research/mcp/financials_20260630_1867691263.json",
+      "sha256": "47ab177a6f4771f008cb18fa517bd678c4be6d67364e427ae3d4718834f5a347"
+    },
+    {
+      "path": "data/peer_research/mcp/financials_20260630_3923fc5eba.json",
+      "sha256": "8e427a37ce525068695269f08ef584484df085d213db70d60a5decc675206ae7"
+    },
+    {
+      "path": "data/peer_research/mcp/financials_20260630_4476510579.json",
+      "sha256": "8f311593ed0b4f3341c25cbcf871ab16ce76dd3ede3e6e75eac2c98f76b8f7af"
+    },
+    {
+      "path": "data/peer_research/mcp/financials_20260630_451657bbe7.json",
+      "sha256": "61510657a9cf39b62fdab4eb949b0775ee0a242af74968a8dc343b39c0954969"
+    },
+    {
+      "path": "data/peer_research/mcp/financials_20260630_47e95b7312.json",
+      "sha256": "d9d01b47d562f590208078ff8fce44d48d240beb68c8b4f20e9e8b659e055c7d"
+    },
+    {
+      "path": "data/peer_research/mcp/financials_20260630_718b65f933.json",
+      "sha256": "a829da95cb74a9f6a17d4c301f0da258fdd8386e0e94fe8240aacfb69b057056"
+    },
+    {
+      "path": "data/peer_research/mcp/financials_20260630_7c5ee99bbf.json",
+      "sha256": "152800e38becfa131b560806318faecfbb88a9468c90dcdf94ed0902ba394750"
+    },
+    {
+      "path": "data/peer_research/mcp/financials_20260630_cdbd8fa628.json",
+      "sha256": "56b314401f38d938b4615e8392753d94b19b3595cc817e52582821d82c4fdb20"
+    },
+    {
+      "path": "data/peer_research/mcp/financials_20260630_ebb0431b07.json",
+      "sha256": "3d8b3ca5f9e016a8f2b8fb51ed4f977a229bff687e60a1ea0ab0be70b9994128"
+    },
+    {
+      "path": "data/peer_research/mcp/financials_20260630_f19807915a.json",
+      "sha256": "b37f573a9cd43261402b6d5cac57056c1eb4c02ce1918143c972f93e74868cb1"
+    },
+    {
+      "path": "data/peer_research/mcp/financials_20260630_ffa5b63068.json",
+      "sha256": "cd802e3c69bceba04a539cfa12e050ea0ec580d03e27e340dfa5b8abb45adb8d"
+    },
+    {
+      "path": "data/peer_research/mcp/profiles_07e8e6482f.json",
+      "sha256": "228f27275c890edc2f0cf9dc2b1c0a42616d7f12869d606d02c884cd310d041d"
+    },
+    {
+      "path": "data/peer_research/mcp/profiles_1867691263.json",
+      "sha256": "0f5159c9519827b4950f4ae70715f8a2cc5f3923f9562e433e43bf2975d4d892"
+    },
+    {
+      "path": "data/peer_research/mcp/profiles_3923fc5eba.json",
+      "sha256": "0b505eafa7102981caf5d74324e42669e8af1b94d66891edba3d593a209ffb24"
+    },
+    {
+      "path": "data/peer_research/mcp/profiles_4476510579.json",
+      "sha256": "a11e88a50059020c6de110bd9dfc4440196d56cece46f1d3ad54f2ba175153c4"
+    },
+    {
+      "path": "data/peer_research/mcp/profiles_451657bbe7.json",
+      "sha256": "d0db7f8548edcf2ab3fe3d58cd5cdc17c2c7e09d19fda4b539793c71f89aa7a8"
+    },
+    {
+      "path": "data/peer_research/mcp/profiles_47e95b7312.json",
+      "sha256": "fb797582efadc059349c4f0e2f22d461542dcecd5e088cd598ef48d5bed92f73"
+    },
+    {
+      "path": "data/peer_research/mcp/profiles_718b65f933.json",
+      "sha256": "b5ecec4198c5d63a33772591730d172c56b711473365b1ae5134b1d3de47a7e6"
+    },
+    {
+      "path": "data/peer_research/mcp/profiles_7c5ee99bbf.json",
+      "sha256": "a3fe7622cfe71938403b859804c4d98d59fd25625e38f332aeaecbf9bd204ae0"
+    },
+    {
+      "path": "data/peer_research/mcp/profiles_cdbd8fa628.json",
+      "sha256": "b02e7b2952c6de0a99fc774cc6086879d3929437b7a6eb76d71f405e5ea221c7"
+    },
+    {
+      "path": "data/peer_research/mcp/profiles_ebb0431b07.json",
+      "sha256": "45c63ea986055cbfa107ef3f2e5d231b0d20390470225b5f06607ebc92701c83"
+    },
+    {
+      "path": "data/peer_research/mcp/profiles_f19807915a.json",
+      "sha256": "43e27fb03f7bc379f0849979393daa60e0466c93baa80420400c9313bc775dd3"
+    },
+    {
+      "path": "data/peer_research/mcp/profiles_ffa5b63068.json",
+      "sha256": "6b9dc44c37531876fbf3d10b561210ec86e0d2cb44aa031d796df6e1c71d239c"
+    },
+    {
+      "path": "data/peer_research/notices/anda_products.json",
+      "sha256": "209f88d0e1cd4544cf74ab73b9105c1ca79e2b8cbfebb48b35e02c9543673f24"
+    },
+    {
+      "path": "data/peer_research/notices/kada_cycle.json",
+      "sha256": "59099dd1fba1c3806feebbe08440df6e5b766a82067c561dc3b03b3465eb5908"
+    },
+    {
+      "path": "data/peer_research/notices/yuanda_channels.json",
+      "sha256": "c5dc11dbbd6a9b0418a79e3947c9d296c44a49fc3d38e4d1f73e587c16afe0ea"
+    },
+    {
+      "path": "data/peer_research/notices/yute_products.json",
+      "sha256": "c2e9bdc46838599f99fe041a25f0361795dd80f096a39e545ebcba8e6b4fde1e"
+    },
+    {
+      "path": "data/peer_research/source_excerpts/920025_20260630.json",
+      "sha256": "9cf24ca19a2cb1a4a54047ae6959f5934fcb47d389a3f577bace367d7ee288f9"
+    },
+    {
+      "path": "data/peer_research/source_excerpts/920157_20260630.json",
+      "sha256": "7b8bd814501b1e683e6fdded55a054a2e056df226dbebbb8fcf4f62c6fd0651a"
+    },
+    {
+      "path": "data/peer_research/source_excerpts/920157_guidance.json",
+      "sha256": "6dc07db061bce8a7d385ced73dd6e712d32556a205338d1358a6f9d5e1a44942"
+    },
+    {
+      "path": "data/peer_research/source_excerpts/920202_20260630.json",
+      "sha256": "5cb918546da7c66de56a7827decf1d87f5cd5df37c8e086447227951833651ba"
+    },
+    {
+      "path": "data/peer_research/source_excerpts/920202_guidance.json",
+      "sha256": "78246281c223e2e975ba11330c26bc3822af12a11299d4422d606dc7668530d4"
+    },
+    {
+      "path": "data/peer_research/source_excerpts/920285_guidance.json",
+      "sha256": "28ecf581305e017e216ef2cb40d2759dd0435fcf686791f68f3f1f41f560ea9a"
+    },
+    {
+      "path": "data/peer_research/tushare/000333.SZ_income.json",
+      "sha256": "d757aef61a7245b4a6c3002e45e7e84bd58fa5ecba6537f4e07a65dd423233cf"
+    },
+    {
+      "path": "data/peer_research/tushare/000581.SZ_income.json",
+      "sha256": "e78ac0ac56464a916c01dcc8806655b73ff4c40fdae172b10001adbbfc712069"
+    },
+    {
+      "path": "data/peer_research/tushare/000651.SZ_income.json",
+      "sha256": "af6be164ca12198340bedcddba102a4b08eb9ea0190460b106fe92a10ddfcecf"
+    },
+    {
+      "path": "data/peer_research/tushare/000657.SZ_income.json",
+      "sha256": "7eb1f3436cd591e1b3de80c79f03b9d3249d5e73761709461cce03a3b7de70c2"
+    },
+    {
+      "path": "data/peer_research/tushare/000700.SZ_income.json",
+      "sha256": "9e4b71f529774c4bc10efeb585d6db772ce2b3a1ed00b5d7c25c120d6af37ef2"
+    },
+    {
+      "path": "data/peer_research/tushare/000902.SZ_income.json",
+      "sha256": "a1b0220ef0d1b9d9226c25db52a84df41db60e89fc43a5418efac626c2fd6012"
+    },
+    {
+      "path": "data/peer_research/tushare/000921.SZ_income.json",
+      "sha256": "a7a5ae54e4a1e8b6b45cd4aaa542c7e65ef7b35c57c7a423d204a918c5635430"
+    },
+    {
+      "path": "data/peer_research/tushare/001266.SZ_income.json",
+      "sha256": "b8b2728e808bb9e9f5e2c2d14a853af9ff39fbb510df16aedbc2e3887c44b839"
+    },
+    {
+      "path": "data/peer_research/tushare/001278.SZ_income.json",
+      "sha256": "ea0ae6aa4309e905bf719579b6814bcd80f7e0c392e9263aa97c06cc2517f566"
+    },
+    {
+      "path": "data/peer_research/tushare/001318.SZ_income.json",
+      "sha256": "12123154366fd2bf80c4eecdeb0e8b45313e12b8c97e47e79296cc856386301c"
+    },
+    {
+      "path": "data/peer_research/tushare/001332.SZ_income.json",
+      "sha256": "bedcd18f05c27cb18247cc2731640e5961c7c497624306a37729e48849aafa16"
+    },
+    {
+      "path": "data/peer_research/tushare/001356.SZ_income.json",
+      "sha256": "6ccce344ab8ea6cb7b515cd609008196ef5c00a7eab0c0a05c90dd9b98e32843"
+    },
+    {
+      "path": "data/peer_research/tushare/001380.SZ_income.json",
+      "sha256": "20f0faa9b611213570f1045ebf654d4dffc73b3e3567831e5b5a58e6ce31f0fb"
+    },
+    {
+      "path": "data/peer_research/tushare/002021.SZ_income.json",
+      "sha256": "81af8298303da26a65d1cd810a2210a4136e73db19571f3a0ad92d9f4b30d129"
+    },
+    {
+      "path": "data/peer_research/tushare/002044.SZ_income.json",
+      "sha256": "7e8681fb54dc56d98c98852981e0e1a34c60b7abc0bb78d326e754ec32df44e9"
+    },
+    {
+      "path": "data/peer_research/tushare/002048.SZ_income.json",
+      "sha256": "ddbf7c956a1d89d6e023cf9ce5ca0a986d69ca8d1b0828cc3964ccd5dff473d3"
+    },
+    {
+      "path": "data/peer_research/tushare/002066.SZ_income.json",
+      "sha256": "5a15137a71a9102059238fe1710cc304d1370953fe962892ce9995720c8a1e8f"
+    },
+    {
+      "path": "data/peer_research/tushare/002170.SZ_income.json",
+      "sha256": "8503bb8797bf71d88ab54da0568b8c03947555f67f80a883fb471bbf59a3aa50"
+    },
+    {
+      "path": "data/peer_research/tushare/002179.SZ_income.json",
+      "sha256": "32caadf4a8314951284c6b6b58afadb12907a0ca3690ffea4b3b9655d97c3834"
+    },
+    {
+      "path": "data/peer_research/tushare/002225.SZ_income.json",
+      "sha256": "a3db4ff17ad9a5dafe48554357c5011007ca0428f88a77bbc200ada187b0a916"
+    },
+    {
+      "path": "data/peer_research/tushare/002263.SZ_income.json",
+      "sha256": "f24d997f067ff011efa4a323c34c4ce04a24d791f53735465cb47c6371f66183"
+    },
+    {
+      "path": "data/peer_research/tushare/002297.SZ_income.json",
+      "sha256": "2cdb60d958d1f996886f5857b7600ec0f6076ab5450cf4c322418e1e121e87d3"
+    },
+    {
+      "path": "data/peer_research/tushare/002329.SZ_income.json",
+      "sha256": "d906a4b7fa48448a33728d0521444265aca781a7a421538805904329c77a6cfe"
+    },
+    {
+      "path": "data/peer_research/tushare/002351.SZ_income.json",
+      "sha256": "03c0270acf734b194a51e5aa5e1a4d6a4ca31afe42803a441ea996cb621c2b56"
+    },
+    {
+      "path": "data/peer_research/tushare/002378.SZ_income.json",
+      "sha256": "20e9905ecc035202598e858432d98cb11377302b42fe3b1e66ea6d239f76c17f"
+    },
+    {
+      "path": "data/peer_research/tushare/002384.SZ_income.json",
+      "sha256": "cc1a15b82d841503baa6aeb33d6ecf1f59efba3a2122150bc40698aefa7b38e2"
+    },
+    {
+      "path": "data/peer_research/tushare/002392.SZ_income.json",
+      "sha256": "15dac2ab8fb55b41fc35c8d58338b0c94af436eaa40d5fddfd26f4354568a47f"
+    },
+    {
+      "path": "data/peer_research/tushare/002475.SZ_income.json",
+      "sha256": "b78d0566fd93f0d400f7f73fd878ae098103e39b3cf07f838eb445b0a030ee53"
+    },
+    {
+      "path": "data/peer_research/tushare/002536.SZ_income.json",
+      "sha256": "c11bee2c3fa0862694dd87a982864a8ca120ff7ad6b3a67f9290eb7e282ce2f8"
+    },
+    {
+      "path": "data/peer_research/tushare/002588.SZ_income.json",
+      "sha256": "00dbe40c4fbe9cfd33e091f33ce30d8255be6b51ec42964c21c09306e358ede7"
+    },
+    {
+      "path": "data/peer_research/tushare/002662.SZ_income.json",
+      "sha256": "aa01e3487a07792cec8363004608e8184d5036f8075c733ea4a34046bd1caa35"
+    },
+    {
+      "path": "data/peer_research/tushare/002732.SZ_income.json",
+      "sha256": "b1ae6d618180d3200e691b545f24573b06b4fa65aadf300fd23b852ff53c6f6c"
+    },
+    {
+      "path": "data/peer_research/tushare/002760.SZ_income.json",
+      "sha256": "dbd27acec6566922d19314f944f523ab7168b30adfae5e2396a57ad3439cfe9a"
+    },
+    {
+      "path": "data/peer_research/tushare/002842.SZ_income.json",
+      "sha256": "4340f8d9f99ae5f1406cbb1de89a1124dc701562952c0722c4aedba7c57b6423"
+    },
+    {
+      "path": "data/peer_research/tushare/002851.SZ_income.json",
+      "sha256": "7e67f68cf203b0a8312e59b4c4997970e038f30a2cab14f266b8476bc9d8169c"
+    },
+    {
+      "path": "data/peer_research/tushare/002888.SZ_income.json",
+      "sha256": "249b762c9dfb7f08dedde747c3bec46c1bb1b40be22f169b420a5d4c20747d84"
+    },
+    {
+      "path": "data/peer_research/tushare/002892.SZ_income.json",
+      "sha256": "b9d7df692388dcf32efd6d41d2b0b61c12a4f7c079a20a04ba8be83aa0d93dca"
+    },
+    {
+      "path": "data/peer_research/tushare/002901.SZ_income.json",
+      "sha256": "53bb0d8fa3b4a584d726e93790bfcd339fbcf80cb10108da5060af5a13a84ab4"
+    },
+    {
+      "path": "data/peer_research/tushare/002910.SZ_income.json",
+      "sha256": "88b71c7656e184b4d40d9e99ef9838eadf707911101ee58ead291424cc690467"
+    },
+    {
+      "path": "data/peer_research/tushare/002946.SZ_income.json",
+      "sha256": "2edacd615ece5876573d69f4f007bede0739a69139d542c9829825a79fa65e91"
+    },
+    {
+      "path": "data/peer_research/tushare/002950.SZ_income.json",
+      "sha256": "437bc18c415ef2b747f78f584792f5e11167dd7f46f0caee5d2860c67f387444"
+    },
+    {
+      "path": "data/peer_research/tushare/002979.SZ_income.json",
+      "sha256": "158db95cdfbec0f82593211bdf40c42ec6a3281d05de417cf9ec48a17b1b9eed"
+    },
+    {
+      "path": "data/peer_research/tushare/002985.SZ_income.json",
+      "sha256": "e2f1bfbf4867ddb1321febcec1bbf7791e6d6888dd1383c53216e5caa2eb1a90"
+    },
+    {
+      "path": "data/peer_research/tushare/300041.SZ_income.json",
+      "sha256": "487f2965ed05000d5cc725af049bd09a63149a23fe0bad6a2b7cf031b19cf570"
+    },
+    {
+      "path": "data/peer_research/tushare/300092.SZ_income.json",
+      "sha256": "4014203d7c2255313b4fa7b6526cdf5adcc2015c8674fe1c551443ae7b5b3f4c"
+    },
+    {
+      "path": "data/peer_research/tushare/300124.SZ_income.json",
+      "sha256": "e8fe9b3d473705229a3a069089235a6ae3e8bae9d68db1e33468f28e78ade17b"
+    },
+    {
+      "path": "data/peer_research/tushare/300173.SZ_income.json",
+      "sha256": "0e8971f9cb8b6dd575b3633c51ac38741bb1a82c2ab498858afdb298cffeba22"
+    },
+    {
+      "path": "data/peer_research/tushare/300185.SZ_income.json",
+      "sha256": "4aee2bbc5178727d09b40720938c8e10423a66e27fde44e09d7d94ba6c1d9d33"
+    },
+    {
+      "path": "data/peer_research/tushare/300221.SZ_income.json",
+      "sha256": "1df31d6563b93cf2ba540ee5a7f8c504acf751312ec62024e6ea67ec760cc4d4"
+    },
+    {
+      "path": "data/peer_research/tushare/300272.SZ_income.json",
+      "sha256": "df234a4ab7d0fc985afab83bcf768144d570384240f03e173736b444fca412ac"
+    },
+    {
+      "path": "data/peer_research/tushare/300326.SZ_income.json",
+      "sha256": "80f231a1646df727fed4133b55dff87fadb85b5f5fc9880141b0c18716051185"
+    },
+    {
+      "path": "data/peer_research/tushare/300394.SZ_income.json",
+      "sha256": "a589b123556d64a9357a8c1f7b70d4f27e66016d33c7ce81b7601f2f7204f15e"
+    },
+    {
+      "path": "data/peer_research/tushare/300398.SZ_income.json",
+      "sha256": "7e7115f780a3141a73b8b8bbea3bb68dfaa6fa14b649dcfef8593fbedacfc2f1"
+    },
+    {
+      "path": "data/peer_research/tushare/300432.SZ_income.json",
+      "sha256": "2d0c5b0728772b42adef876d86a932b92031f823bc6c0299b3a5f6dac96fc1ae"
+    },
+    {
+      "path": "data/peer_research/tushare/300443.SZ_income.json",
+      "sha256": "1486bcc89f56db531d0db64142e64ac937ae037edfc28f1dd3576a6ca6fb9ac8"
+    },
+    {
+      "path": "data/peer_research/tushare/300450.SZ_income.json",
+      "sha256": "ada0a25a67dd4d5dd40028c3e1bd4b924281de6c80516bf0977f345b9408cba4"
+    },
+    {
+      "path": "data/peer_research/tushare/300453.SZ_income.json",
+      "sha256": "280677f3d5af839f9a5a884dc7625889e52398a57603ddefec104c556733463b"
+    },
+    {
+      "path": "data/peer_research/tushare/300484.SZ_income.json",
+      "sha256": "7e0a7e8e7219e816b9c5ead955a8f3dbd113bd397df7f9815843113330709f56"
+    },
+    {
+      "path": "data/peer_research/tushare/300530.SZ_income.json",
+      "sha256": "b1c1c5c8d78da9bc3c030287dd14f2db10b9e015da2f36ab7fd28158a06cdf33"
+    },
+    {
+      "path": "data/peer_research/tushare/300537.SZ_income.json",
+      "sha256": "d995119b50e80f57a85d283ba840bff2714e99aae3ce306df4848a19530308bb"
+    },
+    {
+      "path": "data/peer_research/tushare/300570.SZ_income.json",
+      "sha256": "f00255cda47c435274806309199aaf125ddf52e92535605658cdcabe3ee7d713"
+    },
+    {
+      "path": "data/peer_research/tushare/300619.SZ_income.json",
+      "sha256": "1f029fca231c826756793bc376307e58f2b68a40ea63ad6358abd1ed560b2ae6"
+    },
+    {
+      "path": "data/peer_research/tushare/300644.SZ_income.json",
+      "sha256": "fe067993441a8bb994de6cfd424d2201ede84a07ebb31afb0ac8d9e0ac883815"
+    },
+    {
+      "path": "data/peer_research/tushare/300660.SZ_income.json",
+      "sha256": "36e25e98e556bf9595f6423adfc36510095527b4591f5a76b9ac1784c7f09497"
+    },
+    {
+      "path": "data/peer_research/tushare/300681.SZ_income.json",
+      "sha256": "13f8f595f7976ea91a0de5ba28c6e7858a24cd0f0a6fca4f5e13b924c5d7d216"
+    },
+    {
+      "path": "data/peer_research/tushare/300758.SZ_income.json",
+      "sha256": "66e3d9264eb98620be1e60ba4b955764f3477cc93f944e98168d0df8696d7c9f"
+    },
+    {
+      "path": "data/peer_research/tushare/300836.SZ_income.json",
+      "sha256": "cf98cb53cdd616091b58510d89ffe69b201b44f530030dcf73e097d4834a265b"
+    },
+    {
+      "path": "data/peer_research/tushare/300856.SZ_income.json",
+      "sha256": "4f2d2eefcb3e805213787cb0c78f1f4410af9839ba432f616d10290c5eda0428"
+    },
+    {
+      "path": "data/peer_research/tushare/300866.SZ_income.json",
+      "sha256": "dbe6c852a71fe3d6940c6812a589e8a93da03e7bf277575c594918aacabd729f"
+    },
+    {
+      "path": "data/peer_research/tushare/300920.SZ_income.json",
+      "sha256": "77c9a9168bb17cc41e9247e5554104c89c19b2d5831176375ffac8ee5c156bcb"
+    },
+    {
+      "path": "data/peer_research/tushare/300969.SZ_income.json",
+      "sha256": "9532b880a6eac6a67afe7bcb72ba04ed84ce2d693735d1752583ad273de9065e"
+    },
+    {
+      "path": "data/peer_research/tushare/300980.SZ_income.json",
+      "sha256": "f52f9c476c0c75aafc13383d9cecfd6de7e0f5263f50a2f9af436d0b25f33657"
+    },
+    {
+      "path": "data/peer_research/tushare/301029.SZ_income.json",
+      "sha256": "19521e3fc5bb0d9e52b4f090af1b8f5b1091ed3d21582b3c065e62da1b8caec2"
+    },
+    {
+      "path": "data/peer_research/tushare/301036.SZ_income.json",
+      "sha256": "4f97152ef7fd628dfa64a82bf5a2384a3ffa461f9337ad429e475632a6edd062"
+    },
+    {
+      "path": "data/peer_research/tushare/301042.SZ_income.json",
+      "sha256": "e8f4b7829aaf90fc7fc3476fa4e3288e606cc55606038a3ce8ff70c55c482260"
+    },
+    {
+      "path": "data/peer_research/tushare/301097.SZ_income.json",
+      "sha256": "2dd90acc11a322e72b7c3950b38cf0930dd9bf969e913b7cc59bd1f3b6a5ad07"
+    },
+    {
+      "path": "data/peer_research/tushare/301122.SZ_income.json",
+      "sha256": "89215d51d0fa9f5d28f64256b0eedb70335a58308c2ed2f251488f1472542911"
+    },
+    {
+      "path": "data/peer_research/tushare/301128.SZ_income.json",
+      "sha256": "ad39e651a95eace960b3fde17231fa8e402f1d22be86a8b1e401f5818a9994d4"
+    },
+    {
+      "path": "data/peer_research/tushare/301173.SZ_income.json",
+      "sha256": "006e73eea9b0e6e1c3f6b9468384325cb2883f1b01a7e4c862244ed6f88d1a2c"
+    },
+    {
+      "path": "data/peer_research/tushare/301187.SZ_income.json",
+      "sha256": "686fde9cff624ba069b9cdb0f38e71e9ff0f6309d8fe5a47517114cba3393655"
+    },
+    {
+      "path": "data/peer_research/tushare/301189.SZ_income.json",
+      "sha256": "9b046d6c7dd2103dba7af2736da7961c0bc7ddff15372f4d0e3e91c1111c0816"
+    },
+    {
+      "path": "data/peer_research/tushare/301193.SZ_income.json",
+      "sha256": "7e831c53308b01d7df54375a38dc1e304a4addc67cfe0f2237b9bb48109eff1e"
+    },
+    {
+      "path": "data/peer_research/tushare/301226.SZ_income.json",
+      "sha256": "2968b6fde6df7d5950e307d727d571f7a10d8d8bf16d1da37f1307458240a014"
+    },
+    {
+      "path": "data/peer_research/tushare/301234.SZ_income.json",
+      "sha256": "1e30803387d67944e1a057d29174905ae8929f789f664e56e70df95aeab4d385"
+    },
+    {
+      "path": "data/peer_research/tushare/301332.SZ_income.json",
+      "sha256": "01214d5cb01876913e4647021ea00c9b316b788ad808d2767a03f0ca5e48b1f7"
+    },
+    {
+      "path": "data/peer_research/tushare/301469.SZ_income.json",
+      "sha256": "c7e09fe7fd3fe138c45d5a8b421838b40b4856472c7ea6305e535d4c6d0b1761"
+    },
+    {
+      "path": "data/peer_research/tushare/301501.SZ_income.json",
+      "sha256": "9e92bc576b19df0e6c3fc2bfdad1d1a9422310e29e9f5fd5b324b467956c3a13"
+    },
+    {
+      "path": "data/peer_research/tushare/301510.SZ_income.json",
+      "sha256": "b100e6c6460926762b5d512fe51633f803e4be8ccd9682e8b1b5eb06df64a65e"
+    },
+    {
+      "path": "data/peer_research/tushare/301518.SZ_income.json",
+      "sha256": "6d447b3a86cc8dbd1c29425fdbe424a221e44785ab222bbfd41808f7023749d3"
+    },
+    {
+      "path": "data/peer_research/tushare/301529.SZ_income.json",
+      "sha256": "f07d69b6b31d4f5b4b388936da7768607d5430a2b2a0cb60860a6dbc41883ab6"
+    },
+    {
+      "path": "data/peer_research/tushare/301558.SZ_income.json",
+      "sha256": "fac1acc5c076e59e78f23d4b1d55a53b91695b969d7db89a922f5a1e82df14e7"
+    },
+    {
+      "path": "data/peer_research/tushare/301581.SZ_income.json",
+      "sha256": "73f0e7b50302df6505b888c6a254b9387ea8ba8ee5c1ce663b0c8503dc15d655"
+    },
+    {
+      "path": "data/peer_research/tushare/301662.SZ_income.json",
+      "sha256": "1f4510916bead37cd84f168ba34b5bc869d994231ef28ebcfe9e1005a13aad20"
+    },
+    {
+      "path": "data/peer_research/tushare/600237.SH_income.json",
+      "sha256": "b83873380378c9c1a86065813d101c2cfa81a12a0493757fa4ea2c4827bb7371"
+    },
+    {
+      "path": "data/peer_research/tushare/600302.SH_income.json",
+      "sha256": "a03b84e259108ac026bffce67df137c39de98cef25f340a3bcc29eeee3f29477"
+    },
+    {
+      "path": "data/peer_research/tushare/600419.SH_income.json",
+      "sha256": "202a72ca96d1c287ad4e37f64657f287d3e690de63cdc8a28fbc2873edad82ac"
+    },
+    {
+      "path": "data/peer_research/tushare/600429.SH_income.json",
+      "sha256": "0eb1bad243faeeb045524269dcf6a521822977b0a7d1a8a12add36ccfc1868d2"
+    },
+    {
+      "path": "data/peer_research/tushare/600433.SH_income.json",
+      "sha256": "0d08e155731e06fd851bef1a40889aa43e83c605f458948b0caca88535ef349c"
+    },
+    {
+      "path": "data/peer_research/tushare/600456.SH_income.json",
+      "sha256": "f99c299a183907195801c94c15472380c416435a3a64d41f7f30da15bbc12bd8"
+    },
+    {
+      "path": "data/peer_research/tushare/600549.SH_income.json",
+      "sha256": "f435553e72940e4516ff17af487835896238fab65f577b979c3421c79fb186a8"
+    },
+    {
+      "path": "data/peer_research/tushare/600597.SH_income.json",
+      "sha256": "b7255e67f29fabae44996dc82cd9a12f52da2f15868df6154f2b1f1bf6340e03"
+    },
+    {
+      "path": "data/peer_research/tushare/600741.SH_income.json",
+      "sha256": "4bfd38660f3137df6932806ccb48d3fe5b01bcfed5c27a6eb5b6a5ffa93aa750"
+    },
+    {
+      "path": "data/peer_research/tushare/600843.SH_income.json",
+      "sha256": "4513b48323e1c08e871aff487c33f8379befd650334e9339ef8f19557634c167"
+    },
+    {
+      "path": "data/peer_research/tushare/600887.SH_income.json",
+      "sha256": "735c61f6f5fbfd3cd447a62299db6f99458b3258f2e82860d51b49790f925669"
+    },
+    {
+      "path": "data/peer_research/tushare/600933.SH_income.json",
+      "sha256": "951ebb93245d0bf85f531b7d85f91542ae6f56cfca5f89f3983600388cd3830d"
+    },
+    {
+      "path": "data/peer_research/tushare/601179.SH_income.json",
+      "sha256": "bc81387433fc17c5e30126e8aebb05445a80acf4ff50fe6addc67ebe28c7f47c"
+    },
+    {
+      "path": "data/peer_research/tushare/601798.SH_income.json",
+      "sha256": "2b93008acdffc03e84518c0adfce8cc92b4ca5026a22964db6abe7d1808ab7b6"
+    },
+    {
+      "path": "data/peer_research/tushare/601799.SH_income.json",
+      "sha256": "17a59f9e2aac7ab2432bf6362f929c0a1418155f6a5c0c52d858e28c0bcf5298"
+    },
+    {
+      "path": "data/peer_research/tushare/603010.SH_income.json",
+      "sha256": "e86bbe5306d4d538a3d6e26197abca42ef6149c9a627c9d81473e8434bf5cd76"
+    },
+    {
+      "path": "data/peer_research/tushare/603030.SH_income.json",
+      "sha256": "11dc4a740cac1b50ba17a623c44a094a6110dcca379627d1ac68b8ba8d412a79"
+    },
+    {
+      "path": "data/peer_research/tushare/603035.SH_income.json",
+      "sha256": "a538c4981c0a8c7c620d5e3c0cc251beee52e07faf67f93f3968ee3438110627"
+    },
+    {
+      "path": "data/peer_research/tushare/603037.SH_income.json",
+      "sha256": "7505fd0b8ed1ac05a5ffdd7ea1ff7186acf7081d6a1222d73522d0c889128c32"
+    },
+    {
+      "path": "data/peer_research/tushare/603085.SH_income.json",
+      "sha256": "1dd05a7c89a347afc2ce8db0d55579e638312d115b4baef31be2cca2701f2f43"
+    },
+    {
+      "path": "data/peer_research/tushare/603169.SH_income.json",
+      "sha256": "5e7684f9c85c0d26d626f8d01e79b2357d5bac5a239b80111f92504fa0007275"
+    },
+    {
+      "path": "data/peer_research/tushare/603179.SH_income.json",
+      "sha256": "7dac63d475a00c199252514fcf29f0489ba9cef1df2e3883e6eba3b98995ff22"
+    },
+    {
+      "path": "data/peer_research/tushare/603181.SH_income.json",
+      "sha256": "82e0260a8c32d36ec930197f3560ebf5737c10d59e9f2450eea4101697513227"
+    },
+    {
+      "path": "data/peer_research/tushare/603192.SH_income.json",
+      "sha256": "42987c7f4d2fee5356eff5647f4c655a86dda96528bf15851af4df29c7bbd3ee"
+    },
+    {
+      "path": "data/peer_research/tushare/603205.SH_income.json",
+      "sha256": "ab0f54613419c5e32760133db4e91ad2c3b0281edb0eb1d1baa5a9f5be452d6a"
+    },
+    {
+      "path": "data/peer_research/tushare/603211.SH_income.json",
+      "sha256": "958afdcf6bdb4230d96e817dadb7f4b4af86f882c5a018ad5c80fe4efb11e455"
+    },
+    {
+      "path": "data/peer_research/tushare/603228.SH_income.json",
+      "sha256": "df9ec3b3e3f1bbefbe73b10c482a111940be9e18e502763d7505d0393fa8af6e"
+    },
+    {
+      "path": "data/peer_research/tushare/603266.SH_income.json",
+      "sha256": "ba33377f6b92ceed78e2d62459512a7665952ddcdefcc614670f0cf28683feaa"
+    },
+    {
+      "path": "data/peer_research/tushare/603283.SH_income.json",
+      "sha256": "23d398f49f00bda4ab979261c52c05499346960951b27d8aa309e249a6efce28"
+    },
+    {
+      "path": "data/peer_research/tushare/603301.SH_income.json",
+      "sha256": "7e4e494a330ea96ea9499e18ce0711090e75b92b8cb1cae22ac142f177a1dcdd"
+    },
+    {
+      "path": "data/peer_research/tushare/603305.SH_income.json",
+      "sha256": "63358363b6ef804ff51e205980d643b8f063c64930b0fd88cb54604d6b98a57d"
+    },
+    {
+      "path": "data/peer_research/tushare/603308.SH_income.json",
+      "sha256": "c08864372b3057175e1f684169c3980b90be15ab56c323a5e9d93f8b7343b7b5"
+    },
+    {
+      "path": "data/peer_research/tushare/603309.SH_income.json",
+      "sha256": "ef000c214b7cee8499078fd3196780d2ecc3f9e2f3860b2fd081522501be3902"
+    },
+    {
+      "path": "data/peer_research/tushare/603337.SH_income.json",
+      "sha256": "4eb01ea7cb70f6d8ea716aed4e77b9cf8d06bce72fc3df8b64ab02d76daa9598"
+    },
+    {
+      "path": "data/peer_research/tushare/603344.SH_income.json",
+      "sha256": "06ebd252fdecb898a6cc0ec288b89d6b5b9685fd38c133a2e13cd5e521553e37"
+    },
+    {
+      "path": "data/peer_research/tushare/603348.SH_income.json",
+      "sha256": "71e9d1514650b29c5e51c4584a6ff71be419ff418f49e940d3a8d10342753106"
+    },
+    {
+      "path": "data/peer_research/tushare/603395.SH_income.json",
+      "sha256": "9863fdb8a086e5bf627657a5b6cb59ded0db70e0a6714d157c90d90bb0bc9a78"
+    },
+    {
+      "path": "data/peer_research/tushare/603408.SH_income.json",
+      "sha256": "7bf8dd9a8bbfc166972d81cf550c5395dfd666d33f0581247172e74468616d33"
+    },
+    {
+      "path": "data/peer_research/tushare/603416.SH_income.json",
+      "sha256": "1b440a968967dbeebe867f4d9a3839aa284f6439a506039952f09de7c3ea0584"
+    },
+    {
+      "path": "data/peer_research/tushare/603435.SH_income.json",
+      "sha256": "35a45a962f9ceea15960722a3d3c91c365c77159e84c516e8453814e88f861af"
+    },
+    {
+      "path": "data/peer_research/tushare/603530.SH_income.json",
+      "sha256": "e60e68326c321cfdcc238445111dc93b92963b218706b887ca43c90b313f93cc"
+    },
+    {
+      "path": "data/peer_research/tushare/603586.SH_income.json",
+      "sha256": "a84bddc31489a3ff3fcf198dfc7c9023568280eb257877219f41d9f289875212"
+    },
+    {
+      "path": "data/peer_research/tushare/603730.SH_income.json",
+      "sha256": "b8f4a8089e22759f622b0bf2fe4c945855c71584660a4a052400a9ba415ff115"
+    },
+    {
+      "path": "data/peer_research/tushare/603733.SH_income.json",
+      "sha256": "ecf1b4cff15da1a93358ee1ff153b64475f94d74e2282565f94409037ad049a5"
+    },
+    {
+      "path": "data/peer_research/tushare/603786.SH_income.json",
+      "sha256": "7552943b0f56ddd788257f60677c39425c664262437ffd5c6dc735681811be8a"
+    },
+    {
+      "path": "data/peer_research/tushare/603823.SH_income.json",
+      "sha256": "50cd1a23b29898fc94d8e88e02f8ea16b0f73f87b702483075135fadff3de511"
+    },
+    {
+      "path": "data/peer_research/tushare/603826.SH_income.json",
+      "sha256": "acec694e7217cd47c2678b1d26171a3a297e72dbcd662ee86f38c43c81c8b5f4"
+    },
+    {
+      "path": "data/peer_research/tushare/603917.SH_income.json",
+      "sha256": "b854bc4177a069bb7eb79b6d26d65a55ffa75ef8516993bf9e0660f89afdd17e"
+    },
+    {
+      "path": "data/peer_research/tushare/603960.SH_income.json",
+      "sha256": "17bc4597e83b21d3865106b803ed056606c4263af6194f160da9afd6fa8c2b31"
+    },
+    {
+      "path": "data/peer_research/tushare/603987.SH_income.json",
+      "sha256": "48bb57d5f591a934e7bdd0d59fe63cfbdf733efb52644c312a3d87f40f291aa1"
+    },
+    {
+      "path": "data/peer_research/tushare/603997.SH_income.json",
+      "sha256": "e8f3bd6c8bead670ecf135e02f1ae784c0fcc6b043e68964a852ed73c8015d91"
+    },
+    {
+      "path": "data/peer_research/tushare/605007.SH_income.json",
+      "sha256": "11731c8af4d727a64d5a047fa39b03baf1bd1ece4a5fac7009d9a497d7f3f9e8"
+    },
+    {
+      "path": "data/peer_research/tushare/605117.SH_income.json",
+      "sha256": "22eb694f9c11b4c3a167c0b6ddf19c8acdaad7ec268e0c23516a47c51ccc40aa"
+    },
+    {
+      "path": "data/peer_research/tushare/605123.SH_income.json",
+      "sha256": "556719d4f101e16f4f6f5a902b0e1468cf2e446bd0361c06a22f1d1de0aa70cb"
+    },
+    {
+      "path": "data/peer_research/tushare/605133.SH_income.json",
+      "sha256": "62145157c4bb7537ba43ac8a024b82a15ffee4b2511c61f9488d04b78b8a5b87"
+    },
+    {
+      "path": "data/peer_research/tushare/605228.SH_income.json",
+      "sha256": "7634c87ab19cc918aa0072d507a90b6695d7aafb2801c5805e88fca5c41f6b90"
+    },
+    {
+      "path": "data/peer_research/tushare/688019.SH_income.json",
+      "sha256": "1718ed94f32902374a65faa50c1e99b65dfbe892653abbcd7a214cba4a3a2d3f"
+    },
+    {
+      "path": "data/peer_research/tushare/688029.SH_income.json",
+      "sha256": "4bcb62cbec5a6d4fa283e7d9e886874f9cdb1b6258860cc9a2f64e3b6d5066e8"
+    },
+    {
+      "path": "data/peer_research/tushare/688033.SH_income.json",
+      "sha256": "41010364ec4eb78d68d646559f82a0213f23bf248c35bc5ec99f423464740222"
+    },
+    {
+      "path": "data/peer_research/tushare/688035.SH_income.json",
+      "sha256": "17db7596abebdc2ef8dee26eedcd0c34d6582acbe97fc3db5edc1ebd4937f65a"
+    },
+    {
+      "path": "data/peer_research/tushare/688085.SH_income.json",
+      "sha256": "a4d84a3e357882aa5250c40722965e6958d3b1549eaf2c298ac9d4aa83e23a8f"
+    },
+    {
+      "path": "data/peer_research/tushare/688093.SH_income.json",
+      "sha256": "083f8895e3ff59bf1de997f6e13a791038dd16606dcac5c57365df287742cb73"
+    },
+    {
+      "path": "data/peer_research/tushare/688097.SH_income.json",
+      "sha256": "af7011a599107d4476b01572f6c584b1521b5cde6ce9cb5dec847a1ba6b9ee7e"
+    },
+    {
+      "path": "data/peer_research/tushare/688103.SH_income.json",
+      "sha256": "92133c951afb96980042b38b219ed7708d7883138eae238d386e5f9dd338023a"
+    },
+    {
+      "path": "data/peer_research/tushare/688119.SH_income.json",
+      "sha256": "5a6c03a2fa1ba87e2883434dca84d98976afd236049eb993fe095c58427261b1"
+    },
+    {
+      "path": "data/peer_research/tushare/688157.SH_income.json",
+      "sha256": "5ea3b1696be5b6194e231872a3af8acaa40949074ea4ef3670257e2d60d1ffc0"
+    },
+    {
+      "path": "data/peer_research/tushare/688160.SH_income.json",
+      "sha256": "9c9356f328571e94e1dc7530ff4be3b546abfb8b14d670dc82e611d107673928"
+    },
+    {
+      "path": "data/peer_research/tushare/688161.SH_income.json",
+      "sha256": "61b2371887b0f3c955a16196512cb0329b7017d7e7c60f36fa923e687c8c0e32"
+    },
+    {
+      "path": "data/peer_research/tushare/688203.SH_income.json",
+      "sha256": "a333cf04b194399fc5d92d71d2f9d137789de08eb799346a1ceeb8cbc68a4c15"
+    },
+    {
+      "path": "data/peer_research/tushare/688219.SH_income.json",
+      "sha256": "e5110b3b508a7965970040c7320f815381c8f49bf4c8cc3a85df70cec340915f"
+    },
+    {
+      "path": "data/peer_research/tushare/688236.SH_income.json",
+      "sha256": "c5316fb696ac3d4f8acf912b687eb871c6ec697e3f7a2ef59d100f2bc342a98b"
+    },
+    {
+      "path": "data/peer_research/tushare/688257.SH_income.json",
+      "sha256": "6a59e9a6e2cc808ced8891073585ac40b8486a68bc2521fa0c23e2ad2339b9fb"
+    },
+    {
+      "path": "data/peer_research/tushare/688300.SH_income.json",
+      "sha256": "01655d67565de987bd8c9b554ecbe554e9def821e08008e6e3a96c15986d43a0"
+    },
+    {
+      "path": "data/peer_research/tushare/688308.SH_income.json",
+      "sha256": "99cafce5405d2216a18f3ea99ea22d5c514bc088ec9ed8617e3ca89e9a0a043f"
+    },
+    {
+      "path": "data/peer_research/tushare/688314.SH_income.json",
+      "sha256": "aa6d8111261e4d5c8d4f453f0979eb8bd15aa8b7f06ef5b7f4e97e887ea75dc4"
+    },
+    {
+      "path": "data/peer_research/tushare/688320.SH_income.json",
+      "sha256": "0612d04ccd9f63f7a4432d24000ef7cf705e808af10b19a231bbd974b454bbec"
+    },
+    {
+      "path": "data/peer_research/tushare/688323.SH_income.json",
+      "sha256": "41266628545baa973c291c9a342e783b6293cd0d40f39e0306879768974228f3"
+    },
+    {
+      "path": "data/peer_research/tushare/688353.SH_income.json",
+      "sha256": "d19b2e0284200f4e65115d5342425657f65e34352f3bfa5b09e66019f7714529"
+    },
+    {
+      "path": "data/peer_research/tushare/688359.SH_income.json",
+      "sha256": "17165bd3affadfc89515a996db96344887336b92e82ddcd96ccc2168280ec407"
+    },
+    {
+      "path": "data/peer_research/tushare/688363.SH_income.json",
+      "sha256": "dccbb202bf6054f23eca8efe5e8989112b5ee368c80abbda57eaf0fa1f2d22d2"
+    },
+    {
+      "path": "data/peer_research/tushare/688409.SH_income.json",
+      "sha256": "510ed99101c495180ff4c93e67664312c044d20d3d9f8ba4c1a1cabe60d4b8de"
+    },
+    {
+      "path": "data/peer_research/tushare/688456.SH_income.json",
+      "sha256": "bab04012d07dd9779dfb973d85ad574c5e3cdbfe51f9fda16c28b27e420f9320"
+    },
+    {
+      "path": "data/peer_research/tushare/688475.SH_income.json",
+      "sha256": "b634b6b20389d12231d4f1c439055d6316dbfcfee18d41cfaa31df2a2e929769"
+    },
+    {
+      "path": "data/peer_research/tushare/688499.SH_income.json",
+      "sha256": "febf0c3a405fafb393e5c12d9dbb310ce6527c1369ed5309d35d92485607b0a4"
+    },
+    {
+      "path": "data/peer_research/tushare/688517.SH_income.json",
+      "sha256": "048e7938f03e570ab131a97ed5b22d3b6490388823d81954457bdec5d4bfcbb7"
+    },
+    {
+      "path": "data/peer_research/tushare/688535.SH_income.json",
+      "sha256": "06517741920e65716d4ad30249dd07380b4608bf20cd45af837ef4105f8fcaba"
+    },
+    {
+      "path": "data/peer_research/tushare/688605.SH_income.json",
+      "sha256": "1daba3401ec609726f390344dbca295cda62a77dbc47a0bba03974fa98a44ee3"
+    },
+    {
+      "path": "data/peer_research/tushare/688617.SH_income.json",
+      "sha256": "61ba3c53c48146064ce6f829fb811fc3e1f5b8e131d45be33483e8cc0a73ae61"
+    },
+    {
+      "path": "data/peer_research/tushare/688716.SH_income.json",
+      "sha256": "e3a37ba4b0852965aeccefe0f27ef99cd2eaae58cff55da3cac683b7d818d8b0"
+    },
+    {
+      "path": "data/peer_research/tushare/688733.SH_income.json",
+      "sha256": "14872c7ad69b7d8204bad51f04172e9c0070732cfb5a7de91022b37b778f0afe"
+    },
+    {
+      "path": "data/peer_research/tushare/688789.SH_income.json",
+      "sha256": "a33230577d77fbea7eab2f6d9f381bb61ee2a4d639f588c072da609434cfa5f1"
+    },
+    {
+      "path": "data/peer_research/tushare/920011.BJ_income.json",
+      "sha256": "3cab8aa431fd7dd708c946250170b3462addfb4d4fc0a9519df042682a9c55f4"
+    },
+    {
+      "path": "data/peer_research/tushare/920012.BJ_income.json",
+      "sha256": "ed591420e949bf57d01b55226b328b3e4294a8b0e4b418f50cb008a91f75f95e"
+    },
+    {
+      "path": "data/peer_research/tushare/920025.BJ_income.json",
+      "sha256": "02ec413dc333e9cb879a55ffcb6947caf24924a02216adc82d42bc9f5b7f542d"
+    },
+    {
+      "path": "data/peer_research/tushare/920028.BJ_income.json",
+      "sha256": "3107918a629be57ebb9d7c0ecb3d70c265a00876c17d8ba6889e9665a22da2e9"
+    },
+    {
+      "path": "data/peer_research/tushare/920036.BJ_income.json",
+      "sha256": "05c6eacf997f1ad555454eee70db3b3cecb8397ead9e6e48e0794a4d27e43269"
+    },
+    {
+      "path": "data/peer_research/tushare/920038.BJ_income.json",
+      "sha256": "b1158b042133e2c89b3ec98feb57559875061291a1e2a3bb944b380eee268c0e"
+    },
+    {
+      "path": "data/peer_research/tushare/920045.BJ_income.json",
+      "sha256": "5fb9aee8772071e98832e4fca329e1077baa3d62ebab7288ea7c6e6f6dfddbd4"
+    },
+    {
+      "path": "data/peer_research/tushare/920050.BJ_income.json",
+      "sha256": "2794ce8f21e9e26b22d5fbf7df12a74d03bdd220a104d15a639d5211d5d39f35"
+    },
+    {
+      "path": "data/peer_research/tushare/920055.BJ_income.json",
+      "sha256": "1ec9e4ef189b237d6352afe8a04f7ce2059dd3f4688755dc7f07c62ddae191ab"
+    },
+    {
+      "path": "data/peer_research/tushare/920059.BJ_income.json",
+      "sha256": "f0c3dca7be72659f9d431ce648ab607c5c55f6e47a0f62d057430444d8d5ed16"
+    },
+    {
+      "path": "data/peer_research/tushare/920065.BJ_income.json",
+      "sha256": "c12a65e3563dbd707a1e3dbd187c14a5fe61ef69c589051489380ab788189000"
+    },
+    {
+      "path": "data/peer_research/tushare/920069.BJ_income.json",
+      "sha256": "f23d9e3383ae0b44aeb3d808dbc72399c6580e5ebb7b9b80df34634597acc966"
+    },
+    {
+      "path": "data/peer_research/tushare/920071.BJ_income.json",
+      "sha256": "c587fe7515eb756ca54af2a8eb2fb69ec2a43a4a38c7b501e549d804b702755e"
+    },
+    {
+      "path": "data/peer_research/tushare/920072.BJ_income.json",
+      "sha256": "4338a1e04e5f1f596c727a549126b7c0e5cafdeb6415d168ba07b54edab2becf"
+    },
+    {
+      "path": "data/peer_research/tushare/920076.BJ_income.json",
+      "sha256": "4fae9a370f379c1fbeb806b3f51fc8808c56d7431cc7147bb5fac3069f107952"
+    },
+    {
+      "path": "data/peer_research/tushare/920078.BJ_income.json",
+      "sha256": "aa6a34b696f28bd8578b973b941c4ecf1becc7840a1e8f4a739def56d80c9941"
+    },
+    {
+      "path": "data/peer_research/tushare/920079.BJ_income.json",
+      "sha256": "2fab4771817838cf2f3c8a0cd5dd6b83f090af2c548e5e5b6d181e0cb0042e21"
+    },
+    {
+      "path": "data/peer_research/tushare/920081.BJ_income.json",
+      "sha256": "0d0f8d2e72ee46e3399763ada4c92c0270132b26fb44c61605deaa216d580e7d"
+    },
+    {
+      "path": "data/peer_research/tushare/920083.BJ_income.json",
+      "sha256": "3fbe6f35ce411c1f4e12b9d31a2074a50ad6feacaabb7c3b440f3d3cb6d7d816"
+    },
+    {
+      "path": "data/peer_research/tushare/920086.BJ_income.json",
+      "sha256": "59f871f330c623d2aaa886eb6dca5d18e3eeb204c2e8b36e6fc8b43edea8ea7c"
+    },
+    {
+      "path": "data/peer_research/tushare/920093.BJ_income.json",
+      "sha256": "ff705c1fc7ab326573f5f554284d1e4c87a6ea4631765eba759f64e943da8fda"
+    },
+    {
+      "path": "data/peer_research/tushare/920096.BJ_income.json",
+      "sha256": "ed2eef17460b0c4a1c51d9520af52bf6292b1ac3f69f4d417d08e78d2d368a10"
+    },
+    {
+      "path": "data/peer_research/tushare/920100.BJ_income.json",
+      "sha256": "e4ae2f3fd40160620f99a7b808eec95294f0d2c162d2f442fa7803cc24226f43"
+    },
+    {
+      "path": "data/peer_research/tushare/920106.BJ_income.json",
+      "sha256": "5a620f4cbd5f948dafafdad66f6dffb1d1d2f0547c35074ce08b47520a092ff5"
+    },
+    {
+      "path": "data/peer_research/tushare/920107.BJ_income.json",
+      "sha256": "f3e03839160587e47c3848451d252e9853dde7473df2d652df1488908a0e4a53"
+    },
+    {
+      "path": "data/peer_research/tushare/920117.BJ_income.json",
+      "sha256": "0b117231ab25e45a21c992c2368158579c87f3e20bf86b9b1fcc174ad672ac12"
+    },
+    {
+      "path": "data/peer_research/tushare/920119.BJ_income.json",
+      "sha256": "ce6ffdc68f2a8400e763b01ee2f31c537e0a9ce659a15742f1b9d6458ce5039c"
+    },
+    {
+      "path": "data/peer_research/tushare/920123.BJ_income.json",
+      "sha256": "f8c231d04df40332fcefe1d8e44b84dbaae8db27437ecfd824a0aac92546ee36"
+    },
+    {
+      "path": "data/peer_research/tushare/920125.BJ_income.json",
+      "sha256": "1fe1b469ead2c823b3d7acf04b23a97b088d59f073a028f81136db7f1e0e8054"
+    },
+    {
+      "path": "data/peer_research/tushare/920126.BJ_income.json",
+      "sha256": "155cb5bddd37088c81e07238f823d1a1dd93c759facdaba2135a38f3d05eea4b"
+    },
+    {
+      "path": "data/peer_research/tushare/920136.BJ_income.json",
+      "sha256": "84bf1b093c4d01b1625235743231223276c336aeb78dbf70f5f2dd3e74d64a0e"
+    },
+    {
+      "path": "data/peer_research/tushare/920138.BJ_income.json",
+      "sha256": "e034424389982909d5b646d20fbab47febab6a29a579a987521a7e8abdccd6db"
+    },
+    {
+      "path": "data/peer_research/tushare/920156.BJ_income.json",
+      "sha256": "12c904df2bbb89e0ef50c38fd15a88cd464b6fbce681123c21ae5de7a0ac9689"
+    },
+    {
+      "path": "data/peer_research/tushare/920157.BJ_income.json",
+      "sha256": "4e73d4ee58512e3edecaab6e9bcda986cc9043b356ec89278d1982c2188757ef"
+    },
+    {
+      "path": "data/peer_research/tushare/920159.BJ_income.json",
+      "sha256": "ad0a002930c3e7103f95d4eafd47cb8274a8ccf30e307edf1125024ea3e02764"
+    },
+    {
+      "path": "data/peer_research/tushare/920161.BJ_income.json",
+      "sha256": "154e007cda8e6752778d0b486ef2acb89d04a733ee5236b48f2e84abd1323f6e"
+    },
+    {
+      "path": "data/peer_research/tushare/920162.BJ_income.json",
+      "sha256": "09cb5628bc90feffc0cd5e582516e609d65ed4ae8fdacff915a00d03e9a4e81f"
+    },
+    {
+      "path": "data/peer_research/tushare/920165.BJ_income.json",
+      "sha256": "e4ec47fec37a380f9c4317b813bdf16876c0eac710cee937df2f1ac0b290dbdf"
+    },
+    {
+      "path": "data/peer_research/tushare/920166.BJ_income.json",
+      "sha256": "0815b203c802a4f48ad432501e96e840c0640211d5ce26d594c1f9b88ce36a13"
+    },
+    {
+      "path": "data/peer_research/tushare/920168.BJ_income.json",
+      "sha256": "e23c6eef99a75eb37c4a418e035ec7d0a07e7dd7cbf0e805a7788463a3d630a2"
+    },
+    {
+      "path": "data/peer_research/tushare/920176.BJ_income.json",
+      "sha256": "0a220c9cdbad071eb0ee09d3d81be660fe6bb5d7d0c572b4d812962d7933f5fb"
+    },
+    {
+      "path": "data/peer_research/tushare/920177.BJ_income.json",
+      "sha256": "48f43fe259a54f8d197cfa56d8d4f4ff02460b69abc904e484cee97fe7085096"
+    },
+    {
+      "path": "data/peer_research/tushare/920178.BJ_income.json",
+      "sha256": "331e887e565659c97b1fce91d965e03136bcb032135156e73986601b0424eec9"
+    },
+    {
+      "path": "data/peer_research/tushare/920180.BJ_income.json",
+      "sha256": "4bf6b058debc19b879be316ddc57e017215981c194f16977dd2645449cf8fcf4"
+    },
+    {
+      "path": "data/peer_research/tushare/920181.BJ_income.json",
+      "sha256": "792b79f62e36dd6294ef5b0dfbfccc62e1bd5b6a45e3946715677548e66c44d8"
+    },
+    {
+      "path": "data/peer_research/tushare/920183.BJ_income.json",
+      "sha256": "7a902ab0f9999070b9c2bb672560165d7ee92b3ac54082aaa3c5343bfd527cb5"
+    },
+    {
+      "path": "data/peer_research/tushare/920186.BJ_income.json",
+      "sha256": "9d08ac2c2c2bc16a3736f1f43a94711575cbbe9a72d770a19bdace24a5e9be65"
+    },
+    {
+      "path": "data/peer_research/tushare/920187.BJ_income.json",
+      "sha256": "f4dffb01c6a480524e4d9ba5c434bc300eba5e899b6465db7ca94e934d3600b1"
+    },
+    {
+      "path": "data/peer_research/tushare/920188.BJ_income.json",
+      "sha256": "979f7afc35cc57976dcc766d81ec9530c22b40ce41623de8c155bb546f50980f"
+    },
+    {
+      "path": "data/peer_research/tushare/920189.BJ_income.json",
+      "sha256": "e98a004aaba91b55283d47ba1ce89842f45cbd57e809bc20b555020c09c27613"
+    },
+    {
+      "path": "data/peer_research/tushare/920191.BJ_income.json",
+      "sha256": "783053f7f153acce50eac3e888d7ba78401829198a49b2c99342f544e4381ffa"
+    },
+    {
+      "path": "data/peer_research/tushare/920193.BJ_income.json",
+      "sha256": "01e5c26d76bc4e27c7c3019064ebd89f304bcefffa105c6278140392a76f8dcf"
+    },
+    {
+      "path": "data/peer_research/tushare/920196.BJ_income.json",
+      "sha256": "01385bb9e96259bc9f9bf7b40350f0c574b3e78cd3d2462abfab43ed0dc190bd"
+    },
+    {
+      "path": "data/peer_research/tushare/920200.BJ_income.json",
+      "sha256": "c514b3fd145e5add615b784d9e666d780883447abffcdcfc4e0ceda17b1c9dd5"
+    },
+    {
+      "path": "data/peer_research/tushare/920201.BJ_income.json",
+      "sha256": "a464bf1b474ba3aeb9ce4c8c883a17fbd42af18e2e43ca33478be0be67011301"
+    },
+    {
+      "path": "data/peer_research/tushare/920202.BJ_income.json",
+      "sha256": "c2e78bac33c46c399e0a9639e4d84fdf846aec566ed6d5d4fec82df28ed2a48a"
+    },
+    {
+      "path": "data/peer_research/tushare/920206.BJ_income.json",
+      "sha256": "709541dd22221bbbf8263ce9d2af6e3ab074baed4d926d389d6c18a4c84a2b66"
+    },
+    {
+      "path": "data/peer_research/tushare/920211.BJ_income.json",
+      "sha256": "fd3fbfe16967144343db3b14c4e1f6447f43f6d72c25b55191fbb50bbc40282a"
+    },
+    {
+      "path": "data/peer_research/tushare/920218.BJ_income.json",
+      "sha256": "83764cbef4d08b1b58d92c04edaefe1301db7b00ee78f8b611f153d08e59845a"
+    },
+    {
+      "path": "data/peer_research/tushare/920220.BJ_income.json",
+      "sha256": "01e97d4a069ceb5429493e399a3d2bc4c656509c9fe974779899130febf3f3ae"
+    },
+    {
+      "path": "data/peer_research/tushare/920222.BJ_income.json",
+      "sha256": "87713d950ecf73074bc4f43b0dae7d73193b772e53e046479fae3b44f3fff97d"
+    },
+    {
+      "path": "data/peer_research/tushare/920225.BJ_income.json",
+      "sha256": "cc8a26fee50dfa984cc500e6cd9f1c2eb5848ff1c7df6f501939d900468a928e"
+    },
+    {
+      "path": "data/peer_research/tushare/920229.BJ_income.json",
+      "sha256": "c7309da22d4e0a8c582b58b2cefbc551f7880f17e3b080201c057ceecb6e2291"
+    },
+    {
+      "path": "data/peer_research/tushare/920238.BJ_income.json",
+      "sha256": "9264c14bbc3c3b408c65194c4b0a4b5707c09bd9e4b930fdde7a8a2d5a0112bc"
+    },
+    {
+      "path": "data/peer_research/tushare/920258.BJ_income.json",
+      "sha256": "50d8a212e99b962f3b2ed670153d95f8ba98082fd9d2a1ab3fb7983f2541eb2b"
+    },
+    {
+      "path": "data/peer_research/tushare/920261.BJ_income.json",
+      "sha256": "4ecba1f8c9eca60181f44c22df14c06709e0c5fee3fad8747da99e2dd0bd04b2"
+    },
+    {
+      "path": "data/peer_research/tushare/920268.BJ_income.json",
+      "sha256": "bf6dac912eb1f2006faf86740fa88032e8d4699ffc887bb4abeaf2deb891a871"
+    },
+    {
+      "path": "data/peer_research/tushare/920269.BJ_income.json",
+      "sha256": "3b4d803cf755e988ef1913f7e7bc3c838c9337e3097a26e4318e26d3840812ed"
+    },
+    {
+      "path": "data/peer_research/tushare/920284.BJ_income.json",
+      "sha256": "749a6db6ebd29fdda6a919f11be9af6f71e1c89c5c0909b7eebb43acabb27364"
+    },
+    {
+      "path": "data/peer_research/tushare/920285.BJ_income.json",
+      "sha256": "db35f47b203439755ba889c1ebf9eb2a4eb53264f93bd192ebd5d0bcba15d68d"
+    },
+    {
+      "path": "data/peer_research/tushare/920288.BJ_income.json",
+      "sha256": "ff5c02d75377a76ea93e4d8249002d962b47cc4774d9d61a5fd0138b74d321e3"
+    },
+    {
+      "path": "data/peer_research/tushare/920289.BJ_income.json",
+      "sha256": "e5286a749b375df33f3b81564e35596059215c0747a8ee2e266b07aba7c3dfed"
+    },
+    {
+      "path": "data/peer_research/tushare/920298.BJ_income.json",
+      "sha256": "24484a8a9bf0b9f1fa50d700ebd0353aaaa8df24a63d91ad76032825359b79ca"
+    },
+    {
+      "path": "data/peer_research/tushare/920522.BJ_income.json",
+      "sha256": "1989df5cbb58f5a526e97625967ac48765ff0611a291bdf1c26a79ac2fb03835"
+    },
+    {
+      "path": "data/peer_research/tushare/920526.BJ_income.json",
+      "sha256": "6c1c1d26bf82bc8442fd3f41f5b292825e535c3df43ac362ad58fc551a30157e"
+    },
+    {
+      "path": "data/peer_research/tushare/920634.BJ_income.json",
+      "sha256": "186180955ea25edecdd4014f98143ac9f891b9fd6df1428b692c2b694d1d804b"
+    },
+    {
+      "path": "data/peer_research/tushare/920694.BJ_income.json",
+      "sha256": "59947c088c9f67813fc52b921bcbbf0fa0dcac00d6b9e50ab13215bdc1845b12"
+    },
+    {
+      "path": "data/peer_research/tushare/920703.BJ_income.json",
+      "sha256": "919244ebc5a74d2024bb2066d20cb5570f304c2a314852432e4576f6d7e874f0"
+    },
+    {
+      "path": "data/peer_research/tushare/920871.BJ_income.json",
+      "sha256": "ae12066d819da0741943fd08108fecc1f20595c94ed94997e40cac56bf5dbbd2"
+    },
+    {
+      "path": "data/peer_research/tushare/920971.BJ_income.json",
+      "sha256": "f316981ff42ad53fde1d51ee6e872bcf0798146bd17c829473b105d55a109973"
+    },
+    {
+      "path": "data/peer_research/tushare/920982.BJ_income.json",
+      "sha256": "2fc634129726b09bc319e1ee8a54dff6118facfaddf13892170f76fc249008b8"
+    }
+  ]
+}

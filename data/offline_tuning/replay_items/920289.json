@@ -30,15 +30,23 @@
     "SW_INDUSTRY": null,
     "INDUSTRY": "专用设备制造业",
     "INDUSTRY_CODE": "C35",
-    "industry_primary": "高端装备",
-    "industry_secondary": "机械设备",
-    "industry_source": "record_mapping",
+    "industry_primary": "电力设备",
+    "industry_secondary": "电池",
+    "industry_source": "market_reference",
     "statutory_industry": "专用设备制造业",
     "statutory_industry_code": "C35",
-    "valuation_peer_group": "高端装备 / 机械设备",
-    "business_tags": "[]",
-    "industry_confidence": 0.8,
-    "industry_evidence": "['INDUSTRY:专用设备制造业']"
+    "valuation_peer_group": "电力设备 / 电池",
+    "business_tags": "['智能装备']",
+    "industry_confidence": 0.95,
+    "industry_evidence": "['ifind_sw:2026-10-12', 'issuer_business:高端智能装备及其关键部件的研发、生产和销售。']",
+    "industry_tertiary": "锂电专用设备",
+    "chain_tags": "['锂电产业链']",
+    "industry_status": "confirmed",
+    "industry_candidates": "[]",
+    "industry_review_reasons": "[]",
+    "industry_classification_version": 4,
+    "ISSUER_BUSINESS": null,
+    "MAIN_BUSINESS": null
   },
   "pdf_signature": {
     "files": {
@@ -91,16 +99,19 @@
     "SW_INDUSTRY": "",
     "INDUSTRY": "专用设备制造业",
     "INDUSTRY_CODE": "C35",
-    "industry_primary": "高端装备",
-    "industry_secondary": "机械设备",
-    "industry_source": "record_mapping",
+    "industry_primary": "电力设备",
+    "industry_secondary": "电池",
+    "industry_source": "market_reference",
     "statutory_industry": "专用设备制造业",
     "statutory_industry_code": "C35",
-    "valuation_peer_group": "高端装备 / 机械设备",
-    "business_tags": [],
-    "industry_confidence": 0.8,
+    "valuation_peer_group": "电力设备 / 电池",
+    "business_tags": [
+      "智能装备"
+    ],
+    "industry_confidence": 0.95,
     "industry_evidence": [
-      "INDUSTRY:专用设备制造业"
+      "ifind_sw:2026-10-12",
+      "issuer_business:高端智能装备及其关键部件的研发、生产和销售。"
     ],
     "old_shares": 0.0,
     "old_shares_desc": "待确认（当前按 0 万股计）",
@@ -221,6 +232,15 @@
     "average_price_unit_mode": "volume_shares_amount_yuan",
     "average_price_reference": 37.89,
     "replay_record_source": "",
-    "listing_date_source": ""
-  }
+    "listing_date_source": "",
+    "industry_tertiary": "锂电专用设备",
+    "chain_tags": [
+      "锂电产业链"
+    ],
+    "industry_status": "confirmed",
+    "industry_candidates": [],
+    "industry_review_reasons": [],
+    "industry_classification_version": 4
+  },
+  "industry_reclassification_version": 4
 }

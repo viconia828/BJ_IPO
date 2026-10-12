@@ -30,15 +30,23 @@
     "SW_INDUSTRY": "食品制造业",
     "INDUSTRY": "食品制造业",
     "INDUSTRY_CODE": "C14",
-    "industry_primary": "消费服务",
-    "industry_secondary": "食品饮料",
-    "industry_source": "record_mapping",
+    "industry_primary": "食品饮料",
+    "industry_secondary": "饮料乳品",
+    "industry_source": "market_reference",
     "statutory_industry": "食品制造业",
     "statutory_industry_code": "C14",
-    "valuation_peer_group": "消费服务 / 食品饮料",
+    "valuation_peer_group": "食品饮料 / 饮料乳品",
     "business_tags": "[]",
-    "industry_confidence": 0.8,
-    "industry_evidence": "['SW_INDUSTRY:食品制造业']"
+    "industry_confidence": 0.95,
+    "industry_evidence": "['ifind_sw:2026-10-12', 'issuer_business:乳制品及含乳饮料的制造与销售。']",
+    "industry_tertiary": "乳品",
+    "chain_tags": "[]",
+    "industry_status": "confirmed",
+    "industry_candidates": "[]",
+    "industry_review_reasons": "[]",
+    "industry_classification_version": 4,
+    "ISSUER_BUSINESS": null,
+    "MAIN_BUSINESS": null
   },
   "pdf_signature": {
     "files": {
@@ -91,16 +99,17 @@
     "SW_INDUSTRY": "食品制造业",
     "INDUSTRY": "食品制造业",
     "INDUSTRY_CODE": "C14",
-    "industry_primary": "消费服务",
-    "industry_secondary": "食品饮料",
-    "industry_source": "record_mapping",
+    "industry_primary": "食品饮料",
+    "industry_secondary": "饮料乳品",
+    "industry_source": "market_reference",
     "statutory_industry": "食品制造业",
     "statutory_industry_code": "C14",
-    "valuation_peer_group": "消费服务 / 食品饮料",
+    "valuation_peer_group": "食品饮料 / 饮料乳品",
     "business_tags": [],
-    "industry_confidence": 0.8,
+    "industry_confidence": 0.95,
     "industry_evidence": [
-      "SW_INDUSTRY:食品制造业"
+      "ifind_sw:2026-10-12",
+      "issuer_business:乳制品及含乳饮料的制造与销售。"
     ],
     "old_shares": 0.0,
     "old_shares_desc": "待确认（当前按 0 万股计）",
@@ -182,6 +191,13 @@
       "issue": "920196_南方乳业_发行公告.pdf",
       "result": "",
       "listing": ""
-    }
-  }
+    },
+    "industry_tertiary": "乳品",
+    "chain_tags": [],
+    "industry_status": "confirmed",
+    "industry_candidates": [],
+    "industry_review_reasons": [],
+    "industry_classification_version": 4
+  },
+  "industry_reclassification_version": 4
 }

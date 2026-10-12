@@ -30,15 +30,23 @@
     "SW_INDUSTRY": null,
     "INDUSTRY": "计算机、通信和其他电子设备制造业",
     "INDUSTRY_CODE": "C39",
-    "industry_primary": "化工新材",
-    "industry_secondary": "橡胶和塑料制品业",
-    "industry_source": "built_in_sample_map",
+    "industry_primary": "电子",
+    "industry_secondary": "元件",
+    "industry_source": "market_reference",
     "statutory_industry": "计算机、通信和其他电子设备制造业",
     "statutory_industry_code": "C39",
-    "valuation_peer_group": "化工新材 / 橡胶和塑料制品业",
+    "valuation_peer_group": "电子 / 元件",
     "business_tags": "[]",
-    "industry_confidence": 0.98,
-    "industry_evidence": "['curated_code_mapping']"
+    "industry_confidence": 0.95,
+    "industry_evidence": "['ifind_sw:2026-10-12', 'issuer_business:薄膜电容器相关BOPP薄膜材料的研发、生产和销售。']",
+    "industry_tertiary": "被动元件",
+    "chain_tags": "[]",
+    "industry_status": "confirmed",
+    "industry_candidates": "[]",
+    "industry_review_reasons": "[]",
+    "industry_classification_version": 4,
+    "ISSUER_BUSINESS": null,
+    "MAIN_BUSINESS": null
   },
   "pdf_signature": {
     "files": {
@@ -95,16 +103,17 @@
     "SW_INDUSTRY": "",
     "INDUSTRY": "计算机、通信和其他电子设备制造业",
     "INDUSTRY_CODE": "C39",
-    "industry_primary": "化工新材",
-    "industry_secondary": "橡胶和塑料制品业",
-    "industry_source": "built_in_sample_map",
+    "industry_primary": "电子",
+    "industry_secondary": "元件",
+    "industry_source": "market_reference",
     "statutory_industry": "计算机、通信和其他电子设备制造业",
     "statutory_industry_code": "C39",
-    "valuation_peer_group": "化工新材 / 橡胶和塑料制品业",
+    "valuation_peer_group": "电子 / 元件",
     "business_tags": [],
-    "industry_confidence": 0.98,
+    "industry_confidence": 0.95,
     "industry_evidence": [
-      "curated_code_mapping"
+      "ifind_sw:2026-10-12",
+      "issuer_business:薄膜电容器相关BOPP薄膜材料的研发、生产和销售。"
     ],
     "old_shares": 630.019,
     "old_shares_desc": "630.02 万股（PDF 提取：上市公告书）",
@@ -202,6 +211,13 @@
     "average_price_unit_mode": "volume_shares_amount_yuan",
     "average_price_reference": 46.025000000000006,
     "replay_record_source": "",
-    "listing_date_source": ""
-  }
+    "listing_date_source": "",
+    "industry_tertiary": "被动元件",
+    "chain_tags": [],
+    "industry_status": "confirmed",
+    "industry_candidates": [],
+    "industry_review_reasons": [],
+    "industry_classification_version": 4
+  },
+  "industry_reclassification_version": 4
 }

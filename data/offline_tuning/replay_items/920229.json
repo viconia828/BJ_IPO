@@ -30,15 +30,23 @@
     "SW_INDUSTRY": null,
     "INDUSTRY": "专用设备制造业",
     "INDUSTRY_CODE": "C35",
-    "industry_primary": "高端装备",
-    "industry_secondary": "机械设备",
-    "industry_source": "built_in_sample_map",
+    "industry_primary": "机械设备",
+    "industry_secondary": "专用设备",
+    "industry_source": "market_reference",
     "statutory_industry": "专用设备制造业",
     "statutory_industry_code": "C35",
-    "valuation_peer_group": "高端装备 / 机械设备",
+    "valuation_peer_group": "机械设备 / 专用设备",
     "business_tags": "['工业数字印刷', '喷墨打印设备']",
-    "industry_confidence": 1.0,
-    "industry_evidence": "['manual_review_2026-09-03']"
+    "industry_confidence": 0.95,
+    "industry_evidence": "['ifind_sw:2026-10-12', 'issuer_business:数字喷墨打印设备及配件耗材的研发、生产及销售。']",
+    "industry_tertiary": "纺织服装设备",
+    "chain_tags": "[]",
+    "industry_status": "confirmed",
+    "industry_candidates": "[]",
+    "industry_review_reasons": "[]",
+    "industry_classification_version": 4,
+    "ISSUER_BUSINESS": null,
+    "MAIN_BUSINESS": null
   },
   "pdf_signature": {
     "files": {
@@ -91,19 +99,20 @@
     "SW_INDUSTRY": "",
     "INDUSTRY": "专用设备制造业",
     "INDUSTRY_CODE": "C35",
-    "industry_primary": "高端装备",
-    "industry_secondary": "机械设备",
-    "industry_source": "built_in_sample_map",
+    "industry_primary": "机械设备",
+    "industry_secondary": "专用设备",
+    "industry_source": "market_reference",
     "statutory_industry": "专用设备制造业",
     "statutory_industry_code": "C35",
-    "valuation_peer_group": "高端装备 / 机械设备",
+    "valuation_peer_group": "机械设备 / 专用设备",
     "business_tags": [
       "工业数字印刷",
       "喷墨打印设备"
     ],
-    "industry_confidence": 1.0,
+    "industry_confidence": 0.95,
     "industry_evidence": [
-      "manual_review_2026-09-03"
+      "ifind_sw:2026-10-12",
+      "issuer_business:数字喷墨打印设备及配件耗材的研发、生产及销售。"
     ],
     "old_shares": 0.0,
     "old_shares_desc": "待确认（当前按 0 万股计）",
@@ -170,6 +179,13 @@
     "average_price_unit_mode": "volume_shares_amount_yuan",
     "average_price_reference": 68.755,
     "replay_record_source": "",
-    "listing_date_source": ""
-  }
+    "listing_date_source": "",
+    "industry_tertiary": "纺织服装设备",
+    "chain_tags": [],
+    "industry_status": "confirmed",
+    "industry_candidates": [],
+    "industry_review_reasons": [],
+    "industry_classification_version": 4
+  },
+  "industry_reclassification_version": 4
 }

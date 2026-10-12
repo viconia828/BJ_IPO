@@ -5,6 +5,7 @@ from typing import Any
 
 import tushare_helper
 import wind_helper
+from peer_fundamentals import attach_cached_fundamentals
 
 
 SUPPORTED_PROVIDERS = {"wind", "tushare"}
@@ -28,10 +29,17 @@ def get_comparable_valuations(
         provider = "tushare"
 
     if provider == "tushare":
-        return tushare_helper.get_comparable_valuations(codes, params=settings)
-
-    return wind_helper.get_comparable_valuations(
-        codes,
-        str(settings.get("wind_channel", "disabled")),
-        settings,
-    )
+        result = tushare_helper.get_comparable_valuations(codes, params=settings)
+    else:
+        result = wind_helper.get_comparable_valuations(
+            codes, str(settings.get("wind_channel", "disabled")), settings,
+        )
+    items, _ = attach_cached_fundamentals(
+        result.get("items") or [], as_of=settings.get("fundamentals_as_of"))
+    # Preserve business candidates even when they have no usable daily PE quote.
+    candidates, fundamental_summary = attach_cached_fundamentals(
+        [{"code": code} for code in dict.fromkeys(codes)], as_of=settings.get("fundamentals_as_of"))
+    quoted_codes = {item.get("code") for item in items}
+    fundamental_summary["missing_quote_codes"] = [c["code"] for c in candidates if c["code"] not in quoted_codes]
+    return {**result, "items": items, "fundamental_candidates": candidates,
+            "summary": {**(result.get("summary") or {}), "fundamentals": fundamental_summary}}

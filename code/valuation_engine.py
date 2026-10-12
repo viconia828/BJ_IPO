@@ -4,6 +4,7 @@ import math
 import statistics
 from datetime import date, timedelta
 from typing import Any
+from quality_sentiment import mask_post_listing
 
 
 
@@ -495,7 +496,10 @@ def _pick_secondary_industry_samples(
     secondary = str(industry.get("secondary") or "").strip()
     if not secondary or secondary == "未分类":
         return [], "未映射"
-    return [item for item in valid_records if item.get("industry_secondary") == secondary], "二级行业"
+    primary = str(industry.get("primary") or "").strip()
+    # Legacy callers may provide secondary only; an explicit parent must agree.
+    return [item for item in valid_records if item.get("industry_secondary") == secondary
+            and (not primary or not item.get("industry_primary") or item.get("industry_primary") == primary)], "二级行业"
 
 
 def _filter_historical_samples(
@@ -658,7 +662,8 @@ def method3_recent_sentiment(
         }
 
     first_day_entries = _build_sentiment_entries(recent_records, params, reference_date, _sample_first_day_change_pct)
-    post_listing_entries = _build_sentiment_entries(recent_records, params, reference_date, _sample_post_listing_profit_effect_pct)
+    visible_records = [mask_post_listing(item, reference_date) for item in recent_records]
+    post_listing_entries = _build_sentiment_entries(visible_records, params, reference_date, _sample_post_listing_profit_effect_pct)
     first_day_factor = _weighted_mean([(value, weight) for _, value, weight in first_day_entries])
     post_listing_factor = _weighted_mean([(value, weight) for _, value, weight in post_listing_entries])
     if first_day_factor is None:

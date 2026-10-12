@@ -1,0 +1,284 @@
+{
+  "case": {
+    "code": "920220.BJ",
+    "name": "朗信电气",
+    "listing_date": "2026-05-22 00:00:00",
+    "industry": "汽车",
+    "chain_tags": [
+      "汽车产业链"
+    ],
+    "candidate_codes": [
+      "002536.SZ",
+      "300969.SZ",
+      "603266.SH",
+      "603305.SH",
+      "603348.SH"
+    ],
+    "evidence": "data/offline_tuning/replay_items/920220.json",
+    "peer_selection_status": "prospectus_candidates_pending_business_review"
+  },
+  "issuer_workpaper": "../companies/920220.BJ.json",
+  "pairs": [
+    {
+      "issuer": "920220.BJ",
+      "peer": "002536.SZ",
+      "peer_name": "飞龙股份",
+      "role": "candidate_pending_review",
+      "core_eligible": false,
+      "business_evidence": [
+        "data/peer_research/mcp/profiles_1867691263.json",
+        "data/peer_research/mcp/profiles_ffa5b63068.json"
+      ],
+      "issuer_product_terms": [
+        "热管理",
+        "电机"
+      ],
+      "peer_product_terms": [
+        "汽车",
+        "热管理"
+      ],
+      "shared_product_terms": [
+        "热管理"
+      ],
+      "peer_to_issuer_revenue_ratio": 3.306477258728021,
+      "same_market": false,
+      "lossmaking_peer_retained": false,
+      "profitability_status": "盈利",
+      "checks": [
+        {
+          "rule": "M01",
+          "title": "业务匹配",
+          "status": "review",
+          "reason": "共同词：热管理。仍需产品收入占比、技术/客户、产业链与盈利方式证据",
+          "evidence": [
+            "data/peer_research/mcp/profiles_1867691263.json",
+            "data/peer_research/mcp/profiles_ffa5b63068.json"
+          ]
+        },
+        {
+          "rule": "M02",
+          "title": "市场与亏损",
+          "status": "review",
+          "reason": "保留各市场与亏损候选；没有按PE高低筛选可比池",
+          "evidence": []
+        }
+      ],
+      "remaining_evidence": [
+        "主要产品收入占比",
+        "产业链位置及客户用途",
+        "技术及盈利模式",
+        "核心/辅助/题材角色复核",
+        "历史可得版本"
+      ]
+    },
+    {
+      "issuer": "920220.BJ",
+      "peer": "300969.SZ",
+      "peer_name": "恒帅股份",
+      "role": "candidate_pending_review",
+      "core_eligible": false,
+      "business_evidence": [
+        "data/peer_research/mcp/profiles_07e8e6482f.json",
+        "data/peer_research/mcp/profiles_ffa5b63068.json"
+      ],
+      "issuer_product_terms": [
+        "热管理",
+        "电机"
+      ],
+      "peer_product_terms": [
+        "汽车",
+        "电机"
+      ],
+      "shared_product_terms": [
+        "电机"
+      ],
+      "peer_to_issuer_revenue_ratio": 0.7835114768093147,
+      "same_market": false,
+      "lossmaking_peer_retained": false,
+      "profitability_status": "盈利",
+      "checks": [
+        {
+          "rule": "M01",
+          "title": "业务匹配",
+          "status": "review",
+          "reason": "共同词：电机。仍需产品收入占比、技术/客户、产业链与盈利方式证据",
+          "evidence": [
+            "data/peer_research/mcp/profiles_07e8e6482f.json",
+            "data/peer_research/mcp/profiles_ffa5b63068.json"
+          ]
+        },
+        {
+          "rule": "M02",
+          "title": "市场与亏损",
+          "status": "review",
+          "reason": "保留各市场与亏损候选；没有按PE高低筛选可比池",
+          "evidence": []
+        }
+      ],
+      "remaining_evidence": [
+        "主要产品收入占比",
+        "产业链位置及客户用途",
+        "技术及盈利模式",
+        "核心/辅助/题材角色复核",
+        "历史可得版本"
+      ]
+    },
+    {
+      "issuer": "920220.BJ",
+      "peer": "603266.SH",
+      "peer_name": "天龙股份",
+      "role": "candidate_pending_review",
+      "core_eligible": false,
+      "business_evidence": [
+        "data/peer_research/mcp/profiles_718b65f933.json",
+        "data/peer_research/mcp/profiles_ffa5b63068.json"
+      ],
+      "issuer_product_terms": [
+        "热管理",
+        "电机"
+      ],
+      "peer_product_terms": [
+        "汽车",
+        "塑料",
+        "模具"
+      ],
+      "shared_product_terms": [],
+      "peer_to_issuer_revenue_ratio": 0.9762437677515621,
+      "same_market": false,
+      "lossmaking_peer_retained": false,
+      "profitability_status": "盈利",
+      "checks": [
+        {
+          "rule": "M01",
+          "title": "业务匹配",
+          "status": "review",
+          "reason": "共同词：无；需阅读全文。仍需产品收入占比、技术/客户、产业链与盈利方式证据",
+          "evidence": [
+            "data/peer_research/mcp/profiles_718b65f933.json",
+            "data/peer_research/mcp/profiles_ffa5b63068.json"
+          ]
+        },
+        {
+          "rule": "M02",
+          "title": "市场与亏损",
+          "status": "review",
+          "reason": "保留各市场与亏损候选；没有按PE高低筛选可比池",
+          "evidence": []
+        }
+      ],
+      "remaining_evidence": [
+        "主要产品收入占比",
+        "产业链位置及客户用途",
+        "技术及盈利模式",
+        "核心/辅助/题材角色复核",
+        "历史可得版本"
+      ]
+    },
+    {
+      "issuer": "920220.BJ",
+      "peer": "603305.SH",
+      "peer_name": "旭升集团",
+      "role": "candidate_pending_review",
+      "core_eligible": false,
+      "business_evidence": [
+        "data/peer_fundamentals/mcp/profiles_other.json",
+        "data/peer_research/mcp/profiles_718b65f933.json",
+        "data/peer_research/mcp/profiles_ffa5b63068.json"
+      ],
+      "issuer_product_terms": [
+        "热管理",
+        "电机"
+      ],
+      "peer_product_terms": [
+        "压铸",
+        "汽车零部件",
+        "汽车"
+      ],
+      "shared_product_terms": [],
+      "peer_to_issuer_revenue_ratio": 3.6405447265009845,
+      "same_market": false,
+      "lossmaking_peer_retained": false,
+      "profitability_status": "盈利",
+      "checks": [
+        {
+          "rule": "M01",
+          "title": "业务匹配",
+          "status": "review",
+          "reason": "共同词：无；需阅读全文。仍需产品收入占比、技术/客户、产业链与盈利方式证据",
+          "evidence": [
+            "data/peer_fundamentals/mcp/profiles_other.json",
+            "data/peer_research/mcp/profiles_718b65f933.json",
+            "data/peer_research/mcp/profiles_ffa5b63068.json"
+          ]
+        },
+        {
+          "rule": "M02",
+          "title": "市场与亏损",
+          "status": "review",
+          "reason": "保留各市场与亏损候选；没有按PE高低筛选可比池",
+          "evidence": []
+        }
+      ],
+      "remaining_evidence": [
+        "主要产品收入占比",
+        "产业链位置及客户用途",
+        "技术及盈利模式",
+        "核心/辅助/题材角色复核",
+        "历史可得版本"
+      ]
+    },
+    {
+      "issuer": "920220.BJ",
+      "peer": "603348.SH",
+      "peer_name": "文灿股份",
+      "role": "candidate_pending_review",
+      "core_eligible": false,
+      "business_evidence": [
+        "data/peer_research/mcp/profiles_cdbd8fa628.json",
+        "data/peer_research/mcp/profiles_ffa5b63068.json"
+      ],
+      "issuer_product_terms": [
+        "热管理",
+        "电机"
+      ],
+      "peer_product_terms": [
+        "压铸",
+        "汽车",
+        "铸件"
+      ],
+      "shared_product_terms": [],
+      "peer_to_issuer_revenue_ratio": 4.197009504725086,
+      "same_market": false,
+      "lossmaking_peer_retained": true,
+      "profitability_status": "亏损",
+      "checks": [
+        {
+          "rule": "M01",
+          "title": "业务匹配",
+          "status": "review",
+          "reason": "共同词：无；需阅读全文。仍需产品收入占比、技术/客户、产业链与盈利方式证据",
+          "evidence": [
+            "data/peer_research/mcp/profiles_cdbd8fa628.json",
+            "data/peer_research/mcp/profiles_ffa5b63068.json"
+          ]
+        },
+        {
+          "rule": "M02",
+          "title": "市场与亏损",
+          "status": "review",
+          "reason": "保留各市场与亏损候选；没有按PE高低筛选可比池",
+          "evidence": []
+        }
+      ],
+      "remaining_evidence": [
+        "主要产品收入占比",
+        "产业链位置及客户用途",
+        "技术及盈利模式",
+        "核心/辅助/题材角色复核",
+        "历史可得版本"
+      ]
+    }
+  ],
+  "pricing_eligible": false,
+  "fundamental_anchor_changed": false
+}

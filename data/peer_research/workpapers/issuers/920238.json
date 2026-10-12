@@ -1,0 +1,433 @@
+{
+  "case": {
+    "code": "920238.BJ",
+    "name": "长鹰硬科",
+    "listing_date": "2026-07-24 00:00:00",
+    "industry": "机械设备",
+    "chain_tags": [],
+    "candidate_codes": [
+      "000657.SZ",
+      "002378.SZ",
+      "002842.SZ",
+      "430482.NQ",
+      "600549.SH",
+      "688257.SH",
+      "688308.SH",
+      "874696.NQ"
+    ],
+    "evidence": "data/offline_tuning/replay_items/920238.json",
+    "peer_selection_status": "prospectus_candidates_pending_business_review"
+  },
+  "issuer_workpaper": "../companies/920238.BJ.json",
+  "pairs": [
+    {
+      "issuer": "920238.BJ",
+      "peer": "000657.SZ",
+      "peer_name": "中钨高新",
+      "role": "candidate_pending_review",
+      "core_eligible": false,
+      "business_evidence": [
+        "data/peer_research/mcp/profiles_ebb0431b07.json",
+        "data/peer_research/mcp/profiles_ffa5b63068.json"
+      ],
+      "issuer_product_terms": [
+        "耐磨",
+        "硬质合金"
+      ],
+      "peer_product_terms": [
+        "轧辊",
+        "硬质合金"
+      ],
+      "shared_product_terms": [
+        "硬质合金"
+      ],
+      "peer_to_issuer_revenue_ratio": 12.184104635579505,
+      "same_market": false,
+      "lossmaking_peer_retained": false,
+      "profitability_status": "盈利",
+      "checks": [
+        {
+          "rule": "M01",
+          "title": "业务匹配",
+          "status": "review",
+          "reason": "共同词：硬质合金。仍需产品收入占比、技术/客户、产业链与盈利方式证据",
+          "evidence": [
+            "data/peer_research/mcp/profiles_ebb0431b07.json",
+            "data/peer_research/mcp/profiles_ffa5b63068.json"
+          ]
+        },
+        {
+          "rule": "M02",
+          "title": "市场与亏损",
+          "status": "review",
+          "reason": "保留各市场与亏损候选；没有按PE高低筛选可比池",
+          "evidence": []
+        }
+      ],
+      "remaining_evidence": [
+        "主要产品收入占比",
+        "产业链位置及客户用途",
+        "技术及盈利模式",
+        "核心/辅助/题材角色复核",
+        "历史可得版本"
+      ]
+    },
+    {
+      "issuer": "920238.BJ",
+      "peer": "002378.SZ",
+      "peer_name": "章源钨业",
+      "role": "candidate_pending_review",
+      "core_eligible": false,
+      "business_evidence": [
+        "data/peer_research/mcp/profiles_ebb0431b07.json",
+        "data/peer_research/mcp/profiles_ffa5b63068.json"
+      ],
+      "issuer_product_terms": [
+        "耐磨",
+        "硬质合金"
+      ],
+      "peer_product_terms": [
+        "焊接"
+      ],
+      "shared_product_terms": [],
+      "peer_to_issuer_revenue_ratio": 4.348023766589534,
+      "same_market": false,
+      "lossmaking_peer_retained": false,
+      "profitability_status": "盈利",
+      "checks": [
+        {
+          "rule": "M01",
+          "title": "业务匹配",
+          "status": "review",
+          "reason": "共同词：无；需阅读全文。仍需产品收入占比、技术/客户、产业链与盈利方式证据",
+          "evidence": [
+            "data/peer_research/mcp/profiles_ebb0431b07.json",
+            "data/peer_research/mcp/profiles_ffa5b63068.json"
+          ]
+        },
+        {
+          "rule": "M02",
+          "title": "市场与亏损",
+          "status": "review",
+          "reason": "保留各市场与亏损候选；没有按PE高低筛选可比池",
+          "evidence": []
+        }
+      ],
+      "remaining_evidence": [
+        "主要产品收入占比",
+        "产业链位置及客户用途",
+        "技术及盈利模式",
+        "核心/辅助/题材角色复核",
+        "历史可得版本"
+      ]
+    },
+    {
+      "issuer": "920238.BJ",
+      "peer": "002842.SZ",
+      "peer_name": "翔鹭钨业",
+      "role": "candidate_pending_review",
+      "core_eligible": false,
+      "business_evidence": [
+        "data/peer_research/mcp/profiles_1867691263.json",
+        "data/peer_research/mcp/profiles_ffa5b63068.json"
+      ],
+      "issuer_product_terms": [
+        "耐磨",
+        "硬质合金"
+      ],
+      "peer_product_terms": [
+        "硬质合金"
+      ],
+      "shared_product_terms": [
+        "硬质合金"
+      ],
+      "peer_to_issuer_revenue_ratio": 1.9581453072938484,
+      "same_market": false,
+      "lossmaking_peer_retained": false,
+      "profitability_status": "盈利",
+      "checks": [
+        {
+          "rule": "M01",
+          "title": "业务匹配",
+          "status": "review",
+          "reason": "共同词：硬质合金。仍需产品收入占比、技术/客户、产业链与盈利方式证据",
+          "evidence": [
+            "data/peer_research/mcp/profiles_1867691263.json",
+            "data/peer_research/mcp/profiles_ffa5b63068.json"
+          ]
+        },
+        {
+          "rule": "M02",
+          "title": "市场与亏损",
+          "status": "review",
+          "reason": "保留各市场与亏损候选；没有按PE高低筛选可比池",
+          "evidence": []
+        }
+      ],
+      "remaining_evidence": [
+        "主要产品收入占比",
+        "产业链位置及客户用途",
+        "技术及盈利模式",
+        "核心/辅助/题材角色复核",
+        "历史可得版本"
+      ]
+    },
+    {
+      "issuer": "920238.BJ",
+      "peer": "430482.NQ",
+      "peer_name": "河源富马",
+      "role": "candidate_pending_review",
+      "core_eligible": false,
+      "business_evidence": [
+        "data/peer_research/mcp/profiles_f19807915a.json",
+        "data/peer_research/mcp/profiles_ffa5b63068.json"
+      ],
+      "issuer_product_terms": [
+        "耐磨",
+        "硬质合金"
+      ],
+      "peer_product_terms": [
+        "硬质合金"
+      ],
+      "shared_product_terms": [
+        "硬质合金"
+      ],
+      "peer_to_issuer_revenue_ratio": 0.21787821979181876,
+      "same_market": false,
+      "lossmaking_peer_retained": false,
+      "profitability_status": "盈利",
+      "checks": [
+        {
+          "rule": "M01",
+          "title": "业务匹配",
+          "status": "review",
+          "reason": "共同词：硬质合金。仍需产品收入占比、技术/客户、产业链与盈利方式证据",
+          "evidence": [
+            "data/peer_research/mcp/profiles_f19807915a.json",
+            "data/peer_research/mcp/profiles_ffa5b63068.json"
+          ]
+        },
+        {
+          "rule": "M02",
+          "title": "市场与亏损",
+          "status": "review",
+          "reason": "保留各市场与亏损候选；没有按PE高低筛选可比池",
+          "evidence": []
+        }
+      ],
+      "remaining_evidence": [
+        "主要产品收入占比",
+        "产业链位置及客户用途",
+        "技术及盈利模式",
+        "核心/辅助/题材角色复核",
+        "历史可得版本"
+      ]
+    },
+    {
+      "issuer": "920238.BJ",
+      "peer": "600549.SH",
+      "peer_name": "厦门钨业",
+      "role": "candidate_pending_review",
+      "core_eligible": false,
+      "business_evidence": [
+        "data/peer_research/mcp/profiles_47e95b7312.json",
+        "data/peer_research/mcp/profiles_ffa5b63068.json"
+      ],
+      "issuer_product_terms": [
+        "耐磨",
+        "硬质合金"
+      ],
+      "peer_product_terms": [
+        "硬质合金"
+      ],
+      "shared_product_terms": [
+        "硬质合金"
+      ],
+      "peer_to_issuer_revenue_ratio": 26.03735330140536,
+      "same_market": false,
+      "lossmaking_peer_retained": false,
+      "profitability_status": "盈利",
+      "checks": [
+        {
+          "rule": "M01",
+          "title": "业务匹配",
+          "status": "review",
+          "reason": "共同词：硬质合金。仍需产品收入占比、技术/客户、产业链与盈利方式证据",
+          "evidence": [
+            "data/peer_research/mcp/profiles_47e95b7312.json",
+            "data/peer_research/mcp/profiles_ffa5b63068.json"
+          ]
+        },
+        {
+          "rule": "M02",
+          "title": "市场与亏损",
+          "status": "review",
+          "reason": "保留各市场与亏损候选；没有按PE高低筛选可比池",
+          "evidence": []
+        }
+      ],
+      "remaining_evidence": [
+        "主要产品收入占比",
+        "产业链位置及客户用途",
+        "技术及盈利模式",
+        "核心/辅助/题材角色复核",
+        "历史可得版本"
+      ]
+    },
+    {
+      "issuer": "920238.BJ",
+      "peer": "688257.SH",
+      "peer_name": "新锐股份",
+      "role": "candidate_pending_review",
+      "core_eligible": false,
+      "business_evidence": [
+        "data/peer_research/mcp/profiles_7c5ee99bbf.json",
+        "data/peer_research/mcp/profiles_ffa5b63068.json"
+      ],
+      "issuer_product_terms": [
+        "耐磨",
+        "硬质合金"
+      ],
+      "peer_product_terms": [
+        "硬质合金"
+      ],
+      "shared_product_terms": [
+        "硬质合金"
+      ],
+      "peer_to_issuer_revenue_ratio": 1.5297923734133154,
+      "same_market": false,
+      "lossmaking_peer_retained": false,
+      "profitability_status": "盈利",
+      "checks": [
+        {
+          "rule": "M01",
+          "title": "业务匹配",
+          "status": "review",
+          "reason": "共同词：硬质合金。仍需产品收入占比、技术/客户、产业链与盈利方式证据",
+          "evidence": [
+            "data/peer_research/mcp/profiles_7c5ee99bbf.json",
+            "data/peer_research/mcp/profiles_ffa5b63068.json"
+          ]
+        },
+        {
+          "rule": "M02",
+          "title": "市场与亏损",
+          "status": "review",
+          "reason": "保留各市场与亏损候选；没有按PE高低筛选可比池",
+          "evidence": []
+        }
+      ],
+      "remaining_evidence": [
+        "主要产品收入占比",
+        "产业链位置及客户用途",
+        "技术及盈利模式",
+        "核心/辅助/题材角色复核",
+        "历史可得版本"
+      ]
+    },
+    {
+      "issuer": "920238.BJ",
+      "peer": "688308.SH",
+      "peer_name": "欧科亿",
+      "role": "candidate_pending_review",
+      "core_eligible": false,
+      "business_evidence": [
+        "data/peer_research/mcp/profiles_7c5ee99bbf.json",
+        "data/peer_research/mcp/profiles_ffa5b63068.json"
+      ],
+      "issuer_product_terms": [
+        "耐磨",
+        "硬质合金"
+      ],
+      "peer_product_terms": [
+        "硬质合金"
+      ],
+      "shared_product_terms": [
+        "硬质合金"
+      ],
+      "peer_to_issuer_revenue_ratio": 0.8973445459568783,
+      "same_market": false,
+      "lossmaking_peer_retained": false,
+      "profitability_status": "盈利",
+      "checks": [
+        {
+          "rule": "M01",
+          "title": "业务匹配",
+          "status": "review",
+          "reason": "共同词：硬质合金。仍需产品收入占比、技术/客户、产业链与盈利方式证据",
+          "evidence": [
+            "data/peer_research/mcp/profiles_7c5ee99bbf.json",
+            "data/peer_research/mcp/profiles_ffa5b63068.json"
+          ]
+        },
+        {
+          "rule": "M02",
+          "title": "市场与亏损",
+          "status": "review",
+          "reason": "保留各市场与亏损候选；没有按PE高低筛选可比池",
+          "evidence": []
+        }
+      ],
+      "remaining_evidence": [
+        "主要产品收入占比",
+        "产业链位置及客户用途",
+        "技术及盈利模式",
+        "核心/辅助/题材角色复核",
+        "历史可得版本"
+      ]
+    },
+    {
+      "issuer": "920238.BJ",
+      "peer": "874696.NQ",
+      "peer_name": "肯特合金",
+      "role": "candidate_pending_review",
+      "core_eligible": false,
+      "business_evidence": [
+        "data/peer_research/mcp/profiles_f19807915a.json",
+        "data/peer_research/mcp/profiles_ffa5b63068.json"
+      ],
+      "issuer_product_terms": [
+        "耐磨",
+        "硬质合金"
+      ],
+      "peer_product_terms": [
+        "硬质合金"
+      ],
+      "shared_product_terms": [
+        "硬质合金"
+      ],
+      "peer_to_issuer_revenue_ratio": 0.5508848258246518,
+      "same_market": false,
+      "lossmaking_peer_retained": false,
+      "profitability_status": "盈利",
+      "checks": [
+        {
+          "rule": "M01",
+          "title": "业务匹配",
+          "status": "review",
+          "reason": "共同词：硬质合金。仍需产品收入占比、技术/客户、产业链与盈利方式证据",
+          "evidence": [
+            "data/peer_research/mcp/profiles_f19807915a.json",
+            "data/peer_research/mcp/profiles_ffa5b63068.json"
+          ]
+        },
+        {
+          "rule": "M02",
+          "title": "市场与亏损",
+          "status": "review",
+          "reason": "保留各市场与亏损候选；没有按PE高低筛选可比池",
+          "evidence": []
+        }
+      ],
+      "remaining_evidence": [
+        "主要产品收入占比",
+        "产业链位置及客户用途",
+        "技术及盈利模式",
+        "核心/辅助/题材角色复核",
+        "历史可得版本"
+      ]
+    }
+  ],
+  "pricing_eligible": false,
+  "fundamental_anchor_changed": false
+}

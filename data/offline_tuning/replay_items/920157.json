@@ -30,15 +30,23 @@
     "SW_INDUSTRY": "计算机、通信和其他电子设备制造业",
     "INDUSTRY": "计算机、通信和其他电子设备制造业",
     "INDUSTRY_CODE": "C39",
-    "industry_primary": "信息技术",
-    "industry_secondary": "电子",
-    "industry_source": "industry_code_mapping",
+    "industry_primary": "通信",
+    "industry_secondary": "通信设备",
+    "industry_source": "market_reference",
     "statutory_industry": "计算机、通信和其他电子设备制造业",
     "statutory_industry_code": "C39",
-    "valuation_peer_group": "信息技术 / 电子",
+    "valuation_peer_group": "通信 / 通信设备",
     "business_tags": "[]",
-    "industry_confidence": 0.6,
-    "industry_evidence": "['INDUSTRY_CODE:C39']"
+    "industry_confidence": 0.95,
+    "industry_evidence": "['ifind_sw:2026-10-12', 'issuer_business:光连接产品的研发设计、精密制造与销售。']",
+    "industry_tertiary": "通信网络设备及器件",
+    "chain_tags": "[]",
+    "industry_status": "confirmed",
+    "industry_candidates": "[]",
+    "industry_review_reasons": "[]",
+    "industry_classification_version": 4,
+    "ISSUER_BUSINESS": null,
+    "MAIN_BUSINESS": null
   },
   "pdf_signature": {
     "files": {
@@ -91,16 +99,17 @@
     "SW_INDUSTRY": "计算机、通信和其他电子设备制造业",
     "INDUSTRY": "计算机、通信和其他电子设备制造业",
     "INDUSTRY_CODE": "C39",
-    "industry_primary": "信息技术",
-    "industry_secondary": "电子",
-    "industry_source": "industry_code_mapping",
+    "industry_primary": "通信",
+    "industry_secondary": "通信设备",
+    "industry_source": "market_reference",
     "statutory_industry": "计算机、通信和其他电子设备制造业",
     "statutory_industry_code": "C39",
-    "valuation_peer_group": "信息技术 / 电子",
+    "valuation_peer_group": "通信 / 通信设备",
     "business_tags": [],
-    "industry_confidence": 0.6,
+    "industry_confidence": 0.95,
     "industry_evidence": [
-      "INDUSTRY_CODE:C39"
+      "ifind_sw:2026-10-12",
+      "issuer_business:光连接产品的研发设计、精密制造与销售。"
     ],
     "old_shares": 0.0,
     "old_shares_desc": "待确认（当前按 0 万股计）",
@@ -176,6 +185,13 @@
       "issue": "920157_宇特光电_发行公告.pdf",
       "result": "920157_宇特光电_发行结果公告.pdf",
       "listing": ""
-    }
-  }
+    },
+    "industry_tertiary": "通信网络设备及器件",
+    "chain_tags": [],
+    "industry_status": "confirmed",
+    "industry_candidates": [],
+    "industry_review_reasons": [],
+    "industry_classification_version": 4
+  },
+  "industry_reclassification_version": 4
 }

@@ -321,6 +321,12 @@ COMPARABLE_NAME_CODE_FALLBACKS = {
     "锡装股份": "001332.SZ",
     "广厦环能": "920703.BJ",
     "德邦科技": "688035.SH",
+    # Name-only peers in 920285's prospectus; codes verified against its issue announcement.
+    "开能健康": "300272.SZ",
+    "德尔玛": "301332.SZ",
+    "建霖家居": "603408.SH",
+    "千岸科技": "920065.BJ",
+    "安克创新": "300866.SZ",
 }
 COMPARABLE_CODE_ALIASES = {
     "832522.BJ": "920522.BJ",
@@ -356,8 +362,17 @@ NUMERIC_TOKEN_PATTERN = r"[0-9][0-9,]*(?:\.[0-9]+)?"
 CHINESE_DATE_PATTERN = r"20[0-9]{2}年[0-9]{1,2}月[0-9]{1,2}日"
 ISO_DATE_PATTERN = r"20[0-9]{2}[-/][0-9]{1,2}[-/][0-9]{1,2}"
 PROSPECTUS_ISSUE_PRICE_PATTERNS = (
-    re.compile(rf"(?:每股发行价格|发行价格|发行价)[^0-9]{{0,24}}(?P<value>{NUMERIC_TOKEN_PATTERN})元(?:/股)?"),
-    re.compile(rf"(?P<value>{NUMERIC_TOKEN_PATTERN})元/股"),
+    re.compile(
+        rf"(?:每股发行价格|发行价格|发行价)(?:[(]元(?:/股)?[)])?"
+        rf"[:：]?(?:确定为|为|每股|人民币){{0,3}}(?P<value>{NUMERIC_TOKEN_PATTERN})元(?:/股)?"
+    ),
+    # Some issuance tables omit the unit. Keep the price label and next field
+    # as evidence; an arbitrary yuan/share value can instead be EPS or NAV.
+    re.compile(
+        rf"(?:每股发行价格|发行价格|发行价)(?:[(]元(?:/股)?[)])?"
+        rf"[:：]?(?:为|人民币)?(?P<value>{NUMERIC_TOKEN_PATTERN})"
+        rf"(?=预计发行日期|发行市盈率|发行[前后](?:市盈率|市净率|总股本)|发行方式|发行对象|[。；;]|$)"
+    ),
 )
 PROSPECTUS_SECURITY_NAME_PATTERNS = (
     re.compile(
@@ -505,11 +520,11 @@ PROSPECTUS_INDUSTRY_PATTERNS = (
 )
 PARSE_CACHE_SCHEMA = "pdf_parse_cache_v1"
 PARSE_CACHE_KIND_VERSIONS = {
-    "prospectus_issue_info": 10,
-    "issue_announcement_info": 8,
-    "issue_result_info": 5,
-    "comparable_companies": 25,
-    "business_desc": 7,
+    "prospectus_issue_info": 11,
+    "issue_announcement_info": 9,
+    "issue_result_info": 6,
+    "comparable_companies": 27,
+    "business_desc": 8,
 }
 PARSE_CACHE_DIR = Path(__file__).resolve().parents[1] / "data" / "pdf_parse_cache"
 _CACHE_MISSING = object()
@@ -702,7 +717,7 @@ def _iter_page_texts(file_path: Path) -> Iterable[str]:
 
 
 @lru_cache(maxsize=32)
-def _read_pdf_text_cached(path_text: str) -> str:
+def _read_pdf_text_cached(path_text: str, mtime_ns: int, size: int) -> str:
     file_path = Path(path_text)
     if not file_path.exists():
         return ""
@@ -711,7 +726,11 @@ def _read_pdf_text_cached(path_text: str) -> str:
 
 def _read_pdf_text(pdf_path: str | Path) -> str:
     file_path = Path(pdf_path)
-    return _read_pdf_text_cached(str(file_path.resolve()))
+    try:
+        stat = file_path.stat()
+    except OSError:
+        return ""
+    return _read_pdf_text_cached(str(file_path.resolve()), stat.st_mtime_ns, stat.st_size)
 
 
 def _normalize_fullwidth_text(text: str) -> str:
@@ -1726,6 +1745,18 @@ def _extract_explicit_selection_codes(text: str) -> list[str]:
                 if table_codes:
                     codes.extend(table_codes)
                     continue
+                # A name-only table can span several sentences/pages. The
+                # first row alone is not the complete peer selection.
+                table_names = _extract_known_comparable_names(evidence)
+                if table_names:
+                    # Known-name fallbacks supplement the explicit sentence;
+                    # they must not drop less-known/NQ peers or change its order.
+                    codes.extend(sentence_codes)
+                    codes.extend(
+                        code for name in table_names
+                        if (code := _search_direct_or_known_code_for_name(text, name))
+                    )
+                    continue
             codes.extend(sentence_codes)
             continue
 
@@ -2063,6 +2094,9 @@ def _collect_business_sentence_candidates(text: str) -> list[str]:
             raw_candidate = match.group(1).strip()
             if "行业内其他主要企业情况如下" in raw_candidate:
                 continue
+            # Check before cleaning replaces a named subject with "公司".
+            if any(raw_candidate.startswith(name) for name in COMPARABLE_NAME_CODE_FALLBACKS):
+                continue
             candidate = _clean_business_desc(raw_candidate)
             if candidate and _is_plausible_business_desc(candidate):
                 candidates.append(candidate)
@@ -2087,7 +2121,6 @@ def _extract_business_desc_from_text(text: str) -> str:
         normalized_text,
         ("发行人主营业务情况",),
         BUSINESS_SECTION_STOP_PATTERNS,
-        chapter_anchors=PROSPECTUS_BUSINESS_CHAPTER_PATTERNS,
         fallback_radius=1800,
     )
     if exact_section_text:

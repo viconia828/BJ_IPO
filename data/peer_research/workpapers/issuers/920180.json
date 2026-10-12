@@ -1,0 +1,277 @@
+{
+  "case": {
+    "code": "920180.BJ",
+    "name": "爱得科技",
+    "listing_date": "2026-02-10 00:00:00",
+    "industry": "医药生物",
+    "chain_tags": [],
+    "candidate_codes": [
+      "002901.SZ",
+      "300326.SZ",
+      "688085.SH",
+      "688161.SH",
+      "688236.SH"
+    ],
+    "evidence": "data/offline_tuning/replay_items/920180.json",
+    "peer_selection_status": "prospectus_candidates_pending_business_review"
+  },
+  "issuer_workpaper": "../companies/920180.BJ.json",
+  "pairs": [
+    {
+      "issuer": "920180.BJ",
+      "peer": "002901.SZ",
+      "peer_name": "大博医疗",
+      "role": "candidate_pending_review",
+      "core_eligible": false,
+      "business_evidence": [
+        "data/peer_research/mcp/profiles_1867691263.json",
+        "data/peer_research/mcp/profiles_ffa5b63068.json"
+      ],
+      "issuer_product_terms": [
+        "医疗器械",
+        "医用耗材"
+      ],
+      "peer_product_terms": [
+        "钛"
+      ],
+      "shared_product_terms": [],
+      "peer_to_issuer_revenue_ratio": 10.151000740073261,
+      "same_market": false,
+      "lossmaking_peer_retained": false,
+      "profitability_status": "盈利",
+      "checks": [
+        {
+          "rule": "M01",
+          "title": "业务匹配",
+          "status": "review",
+          "reason": "共同词：无；需阅读全文。仍需产品收入占比、技术/客户、产业链与盈利方式证据",
+          "evidence": [
+            "data/peer_research/mcp/profiles_1867691263.json",
+            "data/peer_research/mcp/profiles_ffa5b63068.json"
+          ]
+        },
+        {
+          "rule": "M02",
+          "title": "市场与亏损",
+          "status": "review",
+          "reason": "保留各市场与亏损候选；没有按PE高低筛选可比池",
+          "evidence": []
+        }
+      ],
+      "remaining_evidence": [
+        "主要产品收入占比",
+        "产业链位置及客户用途",
+        "技术及盈利模式",
+        "核心/辅助/题材角色复核",
+        "历史可得版本"
+      ]
+    },
+    {
+      "issuer": "920180.BJ",
+      "peer": "300326.SZ",
+      "peer_name": "ST凯利",
+      "role": "candidate_pending_review",
+      "core_eligible": false,
+      "business_evidence": [
+        "data/peer_research/mcp/profiles_07e8e6482f.json",
+        "data/peer_research/mcp/profiles_ffa5b63068.json"
+      ],
+      "issuer_product_terms": [
+        "医疗器械",
+        "医用耗材"
+      ],
+      "peer_product_terms": [
+        "医疗器械",
+        "手术"
+      ],
+      "shared_product_terms": [
+        "医疗器械"
+      ],
+      "peer_to_issuer_revenue_ratio": 2.729205895752075,
+      "same_market": false,
+      "lossmaking_peer_retained": false,
+      "profitability_status": "盈利",
+      "checks": [
+        {
+          "rule": "M01",
+          "title": "业务匹配",
+          "status": "review",
+          "reason": "共同词：医疗器械。仍需产品收入占比、技术/客户、产业链与盈利方式证据",
+          "evidence": [
+            "data/peer_research/mcp/profiles_07e8e6482f.json",
+            "data/peer_research/mcp/profiles_ffa5b63068.json"
+          ]
+        },
+        {
+          "rule": "M02",
+          "title": "市场与亏损",
+          "status": "review",
+          "reason": "保留各市场与亏损候选；没有按PE高低筛选可比池",
+          "evidence": []
+        }
+      ],
+      "remaining_evidence": [
+        "主要产品收入占比",
+        "产业链位置及客户用途",
+        "技术及盈利模式",
+        "核心/辅助/题材角色复核",
+        "历史可得版本"
+      ]
+    },
+    {
+      "issuer": "920180.BJ",
+      "peer": "688085.SH",
+      "peer_name": "三友医疗",
+      "role": "candidate_pending_review",
+      "core_eligible": false,
+      "business_evidence": [
+        "data/peer_research/mcp/profiles_7c5ee99bbf.json",
+        "data/peer_research/mcp/profiles_ffa5b63068.json"
+      ],
+      "issuer_product_terms": [
+        "医疗器械",
+        "医用耗材"
+      ],
+      "peer_product_terms": [
+        "树脂",
+        "钛",
+        "手术"
+      ],
+      "shared_product_terms": [],
+      "peer_to_issuer_revenue_ratio": 2.075989105251556,
+      "same_market": false,
+      "lossmaking_peer_retained": false,
+      "profitability_status": "盈利",
+      "checks": [
+        {
+          "rule": "M01",
+          "title": "业务匹配",
+          "status": "review",
+          "reason": "共同词：无；需阅读全文。仍需产品收入占比、技术/客户、产业链与盈利方式证据",
+          "evidence": [
+            "data/peer_research/mcp/profiles_7c5ee99bbf.json",
+            "data/peer_research/mcp/profiles_ffa5b63068.json"
+          ]
+        },
+        {
+          "rule": "M02",
+          "title": "市场与亏损",
+          "status": "review",
+          "reason": "保留各市场与亏损候选；没有按PE高低筛选可比池",
+          "evidence": []
+        }
+      ],
+      "remaining_evidence": [
+        "主要产品收入占比",
+        "产业链位置及客户用途",
+        "技术及盈利模式",
+        "核心/辅助/题材角色复核",
+        "历史可得版本"
+      ]
+    },
+    {
+      "issuer": "920180.BJ",
+      "peer": "688161.SH",
+      "peer_name": "威高骨科",
+      "role": "candidate_pending_review",
+      "core_eligible": false,
+      "business_evidence": [
+        "data/peer_research/mcp/profiles_7c5ee99bbf.json",
+        "data/peer_research/mcp/profiles_ffa5b63068.json"
+      ],
+      "issuer_product_terms": [
+        "医疗器械",
+        "医用耗材"
+      ],
+      "peer_product_terms": [
+        "医疗器械"
+      ],
+      "shared_product_terms": [
+        "医疗器械"
+      ],
+      "peer_to_issuer_revenue_ratio": 5.336738082687985,
+      "same_market": false,
+      "lossmaking_peer_retained": false,
+      "profitability_status": "盈利",
+      "checks": [
+        {
+          "rule": "M01",
+          "title": "业务匹配",
+          "status": "review",
+          "reason": "共同词：医疗器械。仍需产品收入占比、技术/客户、产业链与盈利方式证据",
+          "evidence": [
+            "data/peer_research/mcp/profiles_7c5ee99bbf.json",
+            "data/peer_research/mcp/profiles_ffa5b63068.json"
+          ]
+        },
+        {
+          "rule": "M02",
+          "title": "市场与亏损",
+          "status": "review",
+          "reason": "保留各市场与亏损候选；没有按PE高低筛选可比池",
+          "evidence": []
+        }
+      ],
+      "remaining_evidence": [
+        "主要产品收入占比",
+        "产业链位置及客户用途",
+        "技术及盈利模式",
+        "核心/辅助/题材角色复核",
+        "历史可得版本"
+      ]
+    },
+    {
+      "issuer": "920180.BJ",
+      "peer": "688236.SH",
+      "peer_name": "春立医疗",
+      "role": "candidate_pending_review",
+      "core_eligible": false,
+      "business_evidence": [
+        "data/peer_research/mcp/profiles_7c5ee99bbf.json",
+        "data/peer_research/mcp/profiles_ffa5b63068.json"
+      ],
+      "issuer_product_terms": [
+        "医疗器械",
+        "医用耗材"
+      ],
+      "peer_product_terms": [
+        "医疗器械"
+      ],
+      "shared_product_terms": [
+        "医疗器械"
+      ],
+      "peer_to_issuer_revenue_ratio": 3.1599930121783215,
+      "same_market": false,
+      "lossmaking_peer_retained": false,
+      "profitability_status": "盈利",
+      "checks": [
+        {
+          "rule": "M01",
+          "title": "业务匹配",
+          "status": "review",
+          "reason": "共同词：医疗器械。仍需产品收入占比、技术/客户、产业链与盈利方式证据",
+          "evidence": [
+            "data/peer_research/mcp/profiles_7c5ee99bbf.json",
+            "data/peer_research/mcp/profiles_ffa5b63068.json"
+          ]
+        },
+        {
+          "rule": "M02",
+          "title": "市场与亏损",
+          "status": "review",
+          "reason": "保留各市场与亏损候选；没有按PE高低筛选可比池",
+          "evidence": []
+        }
+      ],
+      "remaining_evidence": [
+        "主要产品收入占比",
+        "产业链位置及客户用途",
+        "技术及盈利模式",
+        "核心/辅助/题材角色复核",
+        "历史可得版本"
+      ]
+    }
+  ],
+  "pricing_eligible": false,
+  "fundamental_anchor_changed": false
+}

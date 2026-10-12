@@ -30,15 +30,23 @@
     "SW_INDUSTRY": null,
     "INDUSTRY": "化学原料和化学制品制造业",
     "INDUSTRY_CODE": "C26",
-    "industry_primary": "化工新材",
+    "industry_primary": "基础化工",
     "industry_secondary": "化学制品",
-    "industry_source": "built_in_sample_map",
+    "industry_source": "market_reference",
     "statutory_industry": "化学原料和化学制品制造业",
     "statutory_industry_code": "C26",
-    "valuation_peer_group": "化工新材 / 化学制品",
+    "valuation_peer_group": "基础化工 / 化学制品",
     "business_tags": "[]",
-    "industry_confidence": 0.98,
-    "industry_evidence": "['curated_code_mapping']"
+    "industry_confidence": 0.95,
+    "industry_evidence": "['ifind_sw:2026-10-12', 'issuer_business:高性能有机颜料中间体、食品添加剂中间体及新材料聚合单体的研发、生产及销售。']",
+    "industry_tertiary": "涂料油墨",
+    "chain_tags": "[]",
+    "industry_status": "confirmed",
+    "industry_candidates": "[]",
+    "industry_review_reasons": "[]",
+    "industry_classification_version": 4,
+    "ISSUER_BUSINESS": null,
+    "MAIN_BUSINESS": null
   },
   "pdf_signature": {
     "files": {
@@ -91,16 +99,17 @@
     "SW_INDUSTRY": "",
     "INDUSTRY": "化学原料和化学制品制造业",
     "INDUSTRY_CODE": "C26",
-    "industry_primary": "化工新材",
+    "industry_primary": "基础化工",
     "industry_secondary": "化学制品",
-    "industry_source": "built_in_sample_map",
+    "industry_source": "market_reference",
     "statutory_industry": "化学原料和化学制品制造业",
     "statutory_industry_code": "C26",
-    "valuation_peer_group": "化工新材 / 化学制品",
+    "valuation_peer_group": "基础化工 / 化学制品",
     "business_tags": [],
-    "industry_confidence": 0.98,
+    "industry_confidence": 0.95,
     "industry_evidence": [
-      "curated_code_mapping"
+      "ifind_sw:2026-10-12",
+      "issuer_business:高性能有机颜料中间体、食品添加剂中间体及新材料聚合单体的研发、生产及销售。"
     ],
     "old_shares": 0.0,
     "old_shares_desc": "待确认（当前按 0 万股计）",
@@ -203,6 +212,13 @@
     "average_price_unit_mode": "volume_shares_amount_yuan",
     "average_price_reference": 88.0,
     "replay_record_source": "",
-    "listing_date_source": ""
-  }
+    "listing_date_source": "",
+    "industry_tertiary": "涂料油墨",
+    "chain_tags": [],
+    "industry_status": "confirmed",
+    "industry_candidates": [],
+    "industry_review_reasons": [],
+    "industry_classification_version": 4
+  },
+  "industry_reclassification_version": 4
 }

@@ -27,6 +27,8 @@ old_shares_transfer = auto            # 首日流通老股数量：auto=自动�
 # === 仅手动可调：正式估值和自动调参都会使用，但自动调参不会修改 ===
 recent_days = 30                      # Method3 recent sentiment lookback days; method2 uses target-year YTD same-secondary samples
 price_range_width = 0.10              # 最终估值区间宽度（±）；自动调参只用于命中判断，不搜索、不放大
+quality_sentiment_mode = shadow      # 个股基础×额外溢价；首版影子对照，不替换正式价格
+quality_sentiment_half_life_days = 8  # 固定实验设定；不参与自动网格调参
 min_industry_samples = 2              # Legacy compatibility; method2 no longer falls back to primary industry or full market
 pe_method = ttm                       # PE 口径：当前固定使用 TTM
 comparable_pe_stat = mean           # 可比公司 PE 聚合方式：median / mean

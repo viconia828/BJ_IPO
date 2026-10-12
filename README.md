@@ -42,6 +42,7 @@
 程序会自动使用和维护以下目录：
 
 - `公告文件/`：招股说明书、上市公告书等 PDF
+- `data/industry_classification/market_reference.json`：按证券代码核验的市场行业与主营参考；报告分别展示市场细分行业、法定行业和产业链标签。分类规则及迁移说明见 `docs/设计文档/14_估值分类审计与多层标签方案.md`。
 - `data/offline_tuning/local_pdf_manifest.json`：公告 PDF 的增量索引，记录代码映射、文件大小、修改时间和完整性
 - `首日分时走势/`：首日分时 CSV
 - `xueqiu/`：用户手工保存的雪球 MHTML/TXT；刷新入口不会联网抓取
@@ -336,5 +337,6 @@
 - `code/local_pdf_manifest.py`：维护公告 PDF 增量索引并提供按代码查找
 - `tools/download_bse_official_pdf.py`：下载公告 PDF
 - `tools/scan_pdf_samples.py`：批量扫描本地 PDF 样本
+- `tools/collect_peer_research.py`、`tools/build_peer_workpapers.py`：批量同业资料与底稿，使用说明见[data/peer_research/README.md](data/peer_research/README.md)，成品见[底稿总览](data/peer_research/review.md)
 
 早期按单一主题拆分的专用观察脚本已经清理，避免入口重复；现在统一通过 `tools/tune_params.py` 和 `调参.bat` 使用。

@@ -1,0 +1,108 @@
+{
+  "case": {
+    "code": "920176.BJ",
+    "name": "维琪科技",
+    "listing_date": "2026-07-27 00:00:00",
+    "industry": "美容护理",
+    "chain_tags": [],
+    "candidate_codes": [
+      "920123.BJ",
+      "920982.BJ"
+    ],
+    "evidence": "data/offline_tuning/replay_items/920176.json",
+    "peer_selection_status": "prospectus_candidates_pending_business_review"
+  },
+  "issuer_workpaper": "../companies/920176.BJ.json",
+  "pairs": [
+    {
+      "issuer": "920176.BJ",
+      "peer": "920123.BJ",
+      "peer_name": "芭薇股份",
+      "role": "candidate_pending_review",
+      "core_eligible": false,
+      "business_evidence": [
+        "data/peer_research/mcp/profiles_451657bbe7.json"
+      ],
+      "issuer_product_terms": [],
+      "peer_product_terms": [],
+      "shared_product_terms": [],
+      "peer_to_issuer_revenue_ratio": 3.7753547813802832,
+      "same_market": true,
+      "lossmaking_peer_retained": false,
+      "profitability_status": "盈利",
+      "checks": [
+        {
+          "rule": "M01",
+          "title": "业务匹配",
+          "status": "review",
+          "reason": "共同词：无；需阅读全文。仍需产品收入占比、技术/客户、产业链与盈利方式证据",
+          "evidence": [
+            "data/peer_research/mcp/profiles_451657bbe7.json"
+          ]
+        },
+        {
+          "rule": "M02",
+          "title": "市场与亏损",
+          "status": "pass",
+          "reason": "保留各市场与亏损候选；没有按PE高低筛选可比池",
+          "evidence": []
+        }
+      ],
+      "remaining_evidence": [
+        "主要产品收入占比",
+        "产业链位置及客户用途",
+        "技术及盈利模式",
+        "核心/辅助/题材角色复核",
+        "历史可得版本"
+      ]
+    },
+    {
+      "issuer": "920176.BJ",
+      "peer": "920982.BJ",
+      "peer_name": "锦波生物",
+      "role": "candidate_pending_review",
+      "core_eligible": false,
+      "business_evidence": [
+        "data/peer_research/mcp/profiles_4476510579.json",
+        "data/peer_research/mcp/profiles_451657bbe7.json"
+      ],
+      "issuer_product_terms": [],
+      "peer_product_terms": [
+        "医疗器械"
+      ],
+      "shared_product_terms": [],
+      "peer_to_issuer_revenue_ratio": 6.281329355191294,
+      "same_market": true,
+      "lossmaking_peer_retained": false,
+      "profitability_status": "盈利",
+      "checks": [
+        {
+          "rule": "M01",
+          "title": "业务匹配",
+          "status": "review",
+          "reason": "共同词：无；需阅读全文。仍需产品收入占比、技术/客户、产业链与盈利方式证据",
+          "evidence": [
+            "data/peer_research/mcp/profiles_4476510579.json",
+            "data/peer_research/mcp/profiles_451657bbe7.json"
+          ]
+        },
+        {
+          "rule": "M02",
+          "title": "市场与亏损",
+          "status": "pass",
+          "reason": "保留各市场与亏损候选；没有按PE高低筛选可比池",
+          "evidence": []
+        }
+      ],
+      "remaining_evidence": [
+        "主要产品收入占比",
+        "产业链位置及客户用途",
+        "技术及盈利模式",
+        "核心/辅助/题材角色复核",
+        "历史可得版本"
+      ]
+    }
+  ],
+  "pricing_eligible": false,
+  "fundamental_anchor_changed": false
+}

@@ -40,16 +40,25 @@
       "valuation_peer_group",
       "business_tags",
       "industry_confidence",
-      "industry_evidence"
+      "industry_evidence",
+      "industry_tertiary",
+      "chain_tags",
+      "industry_status",
+      "industry_candidates",
+      "industry_review_reasons",
+      "industry_classification_version",
+      "ISSUER_BUSINESS",
+      "MAIN_BUSINESS"
     ],
-    "industry_classification_version": 3,
+    "industry_classification_version": 4,
     "pdf_parser_versions": {
       "prospectus_issue_info": 10,
       "issue_announcement_info": 8,
       "issue_result_info": 5,
       "comparable_companies": 25,
       "business_desc": 7
-    }
+    },
+    "industry_reference_signature": "0ca50679660321008fb93f48f6a37a6f4fd56146415ee148250f2f4ae5fec6f1"
   },
   "sample_codes": [
     "920086",
@@ -232,16 +241,17 @@
       "SW_INDUSTRY": "",
       "INDUSTRY": "汽车制造业",
       "INDUSTRY_CODE": "C36",
-      "industry_primary": "高端装备",
+      "industry_primary": "汽车",
       "industry_secondary": "汽车零部件",
-      "industry_source": "built_in_sample_map",
+      "industry_source": "market_reference",
       "statutory_industry": "汽车制造业",
       "statutory_industry_code": "C36",
-      "valuation_peer_group": "高端装备 / 汽车零部件",
+      "valuation_peer_group": "汽车 / 汽车零部件",
       "business_tags": [],
-      "industry_confidence": 0.98,
+      "industry_confidence": 0.95,
       "industry_evidence": [
-        "curated_code_mapping"
+        "ifind_sw:2026-10-12",
+        "issuer_business:干式离合器摩擦片及湿式纸基摩擦片的研发、生产及销售。"
       ],
       "old_shares": 0.0,
       "old_shares_desc": "0.00 万股（PDF 提取：上市公告书）",
@@ -375,7 +385,15 @@
       "average_price_unit_mode": "volume_shares_amount_yuan",
       "average_price_reference": 58.46,
       "replay_record_source": "",
-      "listing_date_source": ""
+      "listing_date_source": "",
+      "industry_tertiary": "底盘与发动机系统",
+      "chain_tags": [
+        "汽车产业链"
+      ],
+      "industry_status": "confirmed",
+      "industry_candidates": [],
+      "industry_review_reasons": [],
+      "industry_classification_version": 4
     },
     {
       "SECURITY_CODE": "920050",
@@ -408,14 +426,17 @@
       "INDUSTRY_CODE": "C27",
       "industry_primary": "医药生物",
       "industry_secondary": "医疗器械",
-      "industry_source": "built_in_sample_map",
+      "industry_source": "market_reference",
       "statutory_industry": "医药制造业",
       "statutory_industry_code": "C27",
       "valuation_peer_group": "医药生物 / 医疗器械",
-      "business_tags": [],
-      "industry_confidence": 0.98,
+      "business_tags": [
+        "医用耗材"
+      ],
+      "industry_confidence": 0.95,
       "industry_evidence": [
-        "curated_code_mapping"
+        "ifind_sw:2026-10-12",
+        "issuer_business:一次性医用耗材的研发、生产和销售。"
       ],
       "old_shares": 287.48,
       "old_shares_desc": "287.48 万股（PDF 提取：上市公告书）",
@@ -513,7 +534,13 @@
       "average_price_unit_mode": "volume_shares_amount_yuan",
       "average_price_reference": 46.89,
       "replay_record_source": "",
-      "listing_date_source": ""
+      "listing_date_source": "",
+      "industry_tertiary": "医疗耗材",
+      "chain_tags": [],
+      "industry_status": "confirmed",
+      "industry_candidates": [],
+      "industry_review_reasons": [],
+      "industry_classification_version": 4
     },
     {
       "SECURITY_CODE": "920076",
@@ -544,16 +571,19 @@
       "SW_INDUSTRY": "",
       "INDUSTRY": "非金属矿物制品业",
       "INDUSTRY_CODE": "C30",
-      "industry_primary": "化工新材",
-      "industry_secondary": "非金属材料",
-      "industry_source": "built_in_sample_map",
+      "industry_primary": "建筑材料",
+      "industry_secondary": "装修建材",
+      "industry_source": "market_reference",
       "statutory_industry": "非金属矿物制品业",
       "statutory_industry_code": "C30",
-      "valuation_peer_group": "化工新材 / 非金属材料",
-      "business_tags": [],
-      "industry_confidence": 0.98,
+      "valuation_peer_group": "建筑材料 / 装修建材",
+      "business_tags": [
+        "耐火材料"
+      ],
+      "industry_confidence": 0.95,
       "industry_evidence": [
-        "curated_code_mapping"
+        "ifind_sw:2026-10-12",
+        "issuer_business:提供高温工业用耐火材料整体解决方案。"
       ],
       "old_shares": 352.1049,
       "old_shares_desc": "352.10 万股（PDF 提取：上市公告书）",
@@ -673,7 +703,16 @@
       "average_price_unit_mode": "volume_shares_amount_yuan",
       "average_price_reference": 28.88,
       "replay_record_source": "",
-      "listing_date_source": ""
+      "listing_date_source": "",
+      "industry_tertiary": "耐火材料",
+      "chain_tags": [
+        "钢铁产业链",
+        "耐火材料"
+      ],
+      "industry_status": "confirmed",
+      "industry_candidates": [],
+      "industry_review_reasons": [],
+      "industry_classification_version": 4
     },
     {
       "SECURITY_CODE": "920159",
@@ -704,16 +743,17 @@
       "SW_INDUSTRY": "",
       "INDUSTRY": "化学原料和化学制品制造业",
       "INDUSTRY_CODE": "C26",
-      "industry_primary": "化工新材",
-      "industry_secondary": "化学制品",
-      "industry_source": "built_in_sample_map",
+      "industry_primary": "基础化工",
+      "industry_secondary": "农化制品",
+      "industry_source": "market_reference",
       "statutory_industry": "化学原料和化学制品制造业",
       "statutory_industry_code": "C26",
-      "valuation_peer_group": "化工新材 / 化学制品",
+      "valuation_peer_group": "基础化工 / 农化制品",
       "business_tags": [],
-      "industry_confidence": 0.98,
+      "industry_confidence": 0.95,
       "industry_evidence": [
-        "curated_code_mapping"
+        "ifind_sw:2026-10-12",
+        "issuer_business:新型肥料及新型肥料中间体的研发、生产、销售和技术服务。"
       ],
       "old_shares": 0.0,
       "old_shares_desc": "0.00 万股（PDF 提取：上市公告书）",
@@ -833,7 +873,13 @@
       "average_price_unit_mode": "volume_shares_amount_yuan",
       "average_price_reference": 52.88,
       "replay_record_source": "",
-      "listing_date_source": ""
+      "listing_date_source": "",
+      "industry_tertiary": "复合肥",
+      "chain_tags": [],
+      "industry_status": "confirmed",
+      "industry_candidates": [],
+      "industry_review_reasons": [],
+      "industry_classification_version": 4
     },
     {
       "SECURITY_CODE": "920119",
@@ -864,16 +910,17 @@
       "SW_INDUSTRY": "",
       "INDUSTRY": "通用设备制造业",
       "INDUSTRY_CODE": "C34",
-      "industry_primary": "高端装备",
-      "industry_secondary": "机械设备",
-      "industry_source": "built_in_sample_map",
+      "industry_primary": "电力设备",
+      "industry_secondary": "电池",
+      "industry_source": "market_reference",
       "statutory_industry": "通用设备制造业",
       "statutory_industry_code": "C34",
-      "valuation_peer_group": "高端装备 / 机械设备",
+      "valuation_peer_group": "电力设备 / 电池",
       "business_tags": [],
-      "industry_confidence": 0.98,
+      "industry_confidence": 0.95,
       "industry_evidence": [
-        "curated_code_mapping"
+        "ifind_sw:2026-10-12",
+        "issuer_business:智能制造装备的研发、设计、制造和销售业务。"
       ],
       "old_shares": 0.0,
       "old_shares_desc": "0.00 万股（PDF 提取：上市公告书）",
@@ -1007,7 +1054,15 @@
       "average_price_unit_mode": "volume_shares_amount_yuan",
       "average_price_reference": 114.83500000000001,
       "replay_record_source": "",
-      "listing_date_source": ""
+      "listing_date_source": "",
+      "industry_tertiary": "锂电专用设备",
+      "chain_tags": [
+        "锂电产业链"
+      ],
+      "industry_status": "confirmed",
+      "industry_candidates": [],
+      "industry_review_reasons": [],
+      "industry_classification_version": 4
     },
     {
       "SECURITY_CODE": "920180",
@@ -1040,14 +1095,17 @@
       "INDUSTRY_CODE": "C35",
       "industry_primary": "医药生物",
       "industry_secondary": "医疗器械",
-      "industry_source": "built_in_sample_map",
+      "industry_source": "market_reference",
       "statutory_industry": "专用设备制造业",
       "statutory_industry_code": "C35",
       "valuation_peer_group": "医药生物 / 医疗器械",
-      "business_tags": [],
-      "industry_confidence": 0.98,
+      "business_tags": [
+        "医疗器械的研发"
+      ],
+      "industry_confidence": 0.95,
       "industry_evidence": [
-        "curated_code_mapping"
+        "ifind_sw:2026-10-12",
+        "issuer_business:骨科耗材为主的医疗器械的研发、生产与销售。"
       ],
       "old_shares": 0.0,
       "old_shares_desc": "0.00 万股（PDF 提取：上市公告书）",
@@ -1181,7 +1239,13 @@
       "average_price_unit_mode": "volume_shares_amount_yuan",
       "average_price_reference": 22.695,
       "replay_record_source": "",
-      "listing_date_source": ""
+      "listing_date_source": "",
+      "industry_tertiary": "医疗耗材",
+      "chain_tags": [],
+      "industry_status": "confirmed",
+      "industry_candidates": [],
+      "industry_review_reasons": [],
+      "industry_classification_version": 4
     },
     {
       "SECURITY_CODE": "920166",
@@ -1214,14 +1278,17 @@
       "INDUSTRY_CODE": "C35",
       "industry_primary": "医药生物",
       "industry_secondary": "医疗器械",
-      "industry_source": "built_in_sample_map",
+      "industry_source": "market_reference",
       "statutory_industry": "专用设备制造业",
       "statutory_industry_code": "C35",
       "valuation_peer_group": "医药生物 / 医疗器械",
-      "business_tags": [],
-      "industry_confidence": 0.98,
+      "business_tags": [
+        "医疗器械产品"
+      ],
+      "industry_confidence": 0.95,
       "industry_evidence": [
-        "curated_code_mapping"
+        "ifind_sw:2026-10-12",
+        "issuer_business:麻醉、监护类医疗器械产品的研发、生产和销售。"
       ],
       "old_shares": 1360.0,
       "old_shares_desc": "1360.00 万股（PDF 提取：上市公告书）",
@@ -1319,7 +1386,13 @@
       "average_price_unit_mode": "volume_shares_amount_yuan",
       "average_price_reference": 30.555,
       "replay_record_source": "",
-      "listing_date_source": ""
+      "listing_date_source": "",
+      "industry_tertiary": "医疗耗材",
+      "chain_tags": [],
+      "industry_status": "confirmed",
+      "industry_candidates": [],
+      "industry_review_reasons": [],
+      "industry_classification_version": 4
     },
     {
       "SECURITY_CODE": "920168",
@@ -1350,16 +1423,17 @@
       "SW_INDUSTRY": "",
       "INDUSTRY": "汽车制造业",
       "INDUSTRY_CODE": "C36",
-      "industry_primary": "高端装备",
+      "industry_primary": "汽车",
       "industry_secondary": "汽车零部件",
-      "industry_source": "built_in_sample_map",
+      "industry_source": "market_reference",
       "statutory_industry": "汽车制造业",
       "statutory_industry_code": "C36",
-      "valuation_peer_group": "高端装备 / 汽车零部件",
+      "valuation_peer_group": "汽车 / 汽车零部件",
       "business_tags": [],
-      "industry_confidence": 0.98,
+      "industry_confidence": 0.95,
       "industry_evidence": [
-        "curated_code_mapping"
+        "ifind_sw:2026-10-12",
+        "issuer_business:汽车照明系统、电子控制系统、能源管理系统等汽车电子零部件的研发、生产和销售。"
       ],
       "old_shares": 0.0,
       "old_shares_desc": "待确认（当前按 0 万股计）",
@@ -1458,7 +1532,15 @@
       "average_price_unit_mode": "volume_shares_amount_yuan",
       "average_price_reference": 29.41,
       "replay_record_source": "",
-      "listing_date_source": ""
+      "listing_date_source": "",
+      "industry_tertiary": "车身附件及饰件",
+      "chain_tags": [
+        "汽车产业链"
+      ],
+      "industry_status": "confirmed",
+      "industry_candidates": [],
+      "industry_review_reasons": [],
+      "industry_classification_version": 4
     },
     {
       "SECURITY_CODE": "920183",
@@ -1489,16 +1571,17 @@
       "SW_INDUSTRY": "",
       "INDUSTRY": "计算机、通信和其他电子设备制造业",
       "INDUSTRY_CODE": "C39",
-      "industry_primary": "消费服务",
+      "industry_primary": "电子",
       "industry_secondary": "消费电子",
-      "industry_source": "built_in_sample_map",
+      "industry_source": "market_reference",
       "statutory_industry": "计算机、通信和其他电子设备制造业",
       "statutory_industry_code": "C39",
-      "valuation_peer_group": "消费服务 / 消费电子",
+      "valuation_peer_group": "电子 / 消费电子",
       "business_tags": [],
-      "industry_confidence": 0.98,
+      "industry_confidence": 0.95,
       "industry_evidence": [
-        "curated_code_mapping"
+        "ifind_sw:2026-10-12",
+        "issuer_business:自主品牌“HIFIMAN”终端电声产品的设计、研发、生产和销售。"
       ],
       "old_shares": 177.5509,
       "old_shares_desc": "177.55 万股（PDF 提取：上市公告书）",
@@ -1582,7 +1665,13 @@
       "average_price_unit_mode": "volume_shares_amount_yuan",
       "average_price_reference": 55.02,
       "replay_record_source": "",
-      "listing_date_source": ""
+      "listing_date_source": "",
+      "industry_tertiary": "品牌消费电子",
+      "chain_tags": [],
+      "industry_status": "confirmed",
+      "industry_candidates": [],
+      "industry_review_reasons": [],
+      "industry_classification_version": 4
     },
     {
       "SECURITY_CODE": "920187",
@@ -1613,16 +1702,17 @@
       "SW_INDUSTRY": "",
       "INDUSTRY": "汽车制造业",
       "INDUSTRY_CODE": "C36",
-      "industry_primary": "高端装备",
+      "industry_primary": "汽车",
       "industry_secondary": "汽车零部件",
-      "industry_source": "built_in_sample_map",
+      "industry_source": "market_reference",
       "statutory_industry": "汽车制造业",
       "statutory_industry_code": "C36",
-      "valuation_peer_group": "高端装备 / 汽车零部件",
+      "valuation_peer_group": "汽车 / 汽车零部件",
       "business_tags": [],
-      "industry_confidence": 0.98,
+      "industry_confidence": 0.95,
       "industry_evidence": [
-        "curated_code_mapping"
+        "ifind_sw:2026-10-12",
+        "issuer_business:汽车内饰件的研发、生产及销售。"
       ],
       "old_shares": 691.3886,
       "old_shares_desc": "691.39 万股（PDF 提取：上市公告书）",
@@ -1738,7 +1828,15 @@
       "average_price_unit_mode": "volume_shares_amount_yuan",
       "average_price_reference": 44.51,
       "replay_record_source": "",
-      "listing_date_source": ""
+      "listing_date_source": "",
+      "industry_tertiary": "车身附件及饰件",
+      "chain_tags": [
+        "汽车产业链"
+      ],
+      "industry_status": "confirmed",
+      "industry_candidates": [],
+      "industry_review_reasons": [],
+      "industry_classification_version": 4
     },
     {
       "SECURITY_CODE": "920036",
@@ -1769,16 +1867,17 @@
       "SW_INDUSTRY": "",
       "INDUSTRY": "计算机、通信和其他电子设备制造业",
       "INDUSTRY_CODE": "C39",
-      "industry_primary": "消费服务",
-      "industry_secondary": "消费电子",
-      "industry_source": "built_in_sample_map",
+      "industry_primary": "计算机",
+      "industry_secondary": "计算机设备",
+      "industry_source": "market_reference",
       "statutory_industry": "计算机、通信和其他电子设备制造业",
       "statutory_industry_code": "C39",
-      "valuation_peer_group": "消费服务 / 消费电子",
+      "valuation_peer_group": "计算机 / 计算机设备",
       "business_tags": [],
-      "industry_confidence": 0.98,
+      "industry_confidence": 0.95,
       "industry_evidence": [
-        "curated_code_mapping"
+        "ifind_sw:2026-10-12",
+        "issuer_business:集硬件、软件、云服务、AI为一体的智能网络摄像机及物联网视频产品的研发、设计、生产和销售。"
       ],
       "old_shares": 81.6327,
       "old_shares_desc": "81.63 万股（PDF 提取：上市公告书）",
@@ -1912,7 +2011,13 @@
       "average_price_unit_mode": "volume_shares_amount_yuan",
       "average_price_reference": 42.27,
       "replay_record_source": "",
-      "listing_date_source": ""
+      "listing_date_source": "",
+      "industry_tertiary": "安防设备",
+      "chain_tags": [],
+      "industry_status": "confirmed",
+      "industry_candidates": [],
+      "industry_review_reasons": [],
+      "industry_classification_version": 4
     },
     {
       "SECURITY_CODE": "920078",
@@ -1943,16 +2048,17 @@
       "SW_INDUSTRY": "",
       "INDUSTRY": "有色金属冶炼和压延加工业",
       "INDUSTRY_CODE": "C32",
-      "industry_primary": "化工新材",
+      "industry_primary": "有色金属",
       "industry_secondary": "金属新材料",
-      "industry_source": "built_in_sample_map",
+      "industry_source": "market_reference",
       "statutory_industry": "有色金属冶炼和压延加工业",
       "statutory_industry_code": "C32",
-      "valuation_peer_group": "化工新材 / 金属新材料",
+      "valuation_peer_group": "有色金属 / 金属新材料",
       "business_tags": [],
-      "industry_confidence": 0.98,
+      "industry_confidence": 0.95,
       "industry_evidence": [
-        "curated_code_mapping"
+        "ifind_sw:2026-10-12",
+        "issuer_business:微细球形铝粉及其深加工产品铝颜料的研发、生产和销售。"
       ],
       "old_shares": 0.0,
       "old_shares_desc": "0.00 万股（PDF 提取：上市公告书）",
@@ -2054,7 +2160,13 @@
       "average_price_unit_mode": "volume_shares_amount_yuan",
       "average_price_reference": 37.57,
       "replay_record_source": "",
-      "listing_date_source": ""
+      "listing_date_source": "",
+      "industry_tertiary": "其他金属新材料",
+      "chain_tags": [],
+      "industry_status": "confirmed",
+      "industry_candidates": [],
+      "industry_review_reasons": [],
+      "industry_classification_version": 4
     },
     {
       "SECURITY_CODE": "920028",
@@ -2085,16 +2197,17 @@
       "SW_INDUSTRY": "",
       "INDUSTRY": "橡胶和塑料制品业",
       "INDUSTRY_CODE": "C29",
-      "industry_primary": "化工新材",
-      "industry_secondary": "橡胶和塑料制品业",
-      "industry_source": "built_in_sample_map",
+      "industry_primary": "基础化工",
+      "industry_secondary": "塑料",
+      "industry_source": "market_reference",
       "statutory_industry": "橡胶和塑料制品业",
       "statutory_industry_code": "C29",
-      "valuation_peer_group": "化工新材 / 橡胶和塑料制品业",
+      "valuation_peer_group": "基础化工 / 塑料",
       "business_tags": [],
-      "industry_confidence": 0.98,
+      "industry_confidence": 0.95,
       "industry_evidence": [
-        "curated_code_mapping"
+        "ifind_sw:2026-10-12",
+        "issuer_business:功能性高分子发泡材料的研发、制造和销售"
       ],
       "old_shares": 557.81,
       "old_shares_desc": "557.81 万股（PDF 提取：上市公告书）",
@@ -2174,7 +2287,13 @@
       "average_price_unit_mode": "volume_shares_amount_yuan",
       "average_price_reference": 20.84,
       "replay_record_source": "",
-      "listing_date_source": ""
+      "listing_date_source": "",
+      "industry_tertiary": "其他塑料制品",
+      "chain_tags": [],
+      "industry_status": "confirmed",
+      "industry_candidates": [],
+      "industry_review_reasons": [],
+      "industry_classification_version": 4
     },
     {
       "SECURITY_CODE": "920069",
@@ -2207,14 +2326,17 @@
       "INDUSTRY_CODE": "C35",
       "industry_primary": "医药生物",
       "industry_secondary": "医疗器械",
-      "industry_source": "built_in_sample_map",
+      "industry_source": "market_reference",
       "statutory_industry": "专用设备制造业",
       "statutory_industry_code": "C35",
       "valuation_peer_group": "医药生物 / 医疗器械",
-      "business_tags": [],
-      "industry_confidence": 0.98,
+      "business_tags": [
+        "医疗器械的研发"
+      ],
+      "industry_confidence": 0.95,
       "industry_evidence": [
-        "curated_code_mapping"
+        "ifind_sw:2026-10-12",
+        "issuer_business:糖尿病护理、通用给药输注、微创介入类医疗器械的研发、生产和销售。"
       ],
       "old_shares": 525.3215,
       "old_shares_desc": "525.32 万股（PDF 提取：上市公告书）",
@@ -2316,7 +2438,13 @@
       "average_price_unit_mode": "volume_shares_amount_yuan",
       "average_price_reference": 43.8,
       "replay_record_source": "",
-      "listing_date_source": ""
+      "listing_date_source": "",
+      "industry_tertiary": "医疗耗材",
+      "chain_tags": [],
+      "industry_status": "confirmed",
+      "industry_candidates": [],
+      "industry_review_reasons": [],
+      "industry_classification_version": 4
     },
     {
       "SECURITY_CODE": "920188",
@@ -2347,16 +2475,17 @@
       "SW_INDUSTRY": "",
       "INDUSTRY": "橡胶和塑料制品业",
       "INDUSTRY_CODE": "C29",
-      "industry_primary": "化工新材",
-      "industry_secondary": "橡胶和塑料制品业",
-      "industry_source": "built_in_sample_map",
+      "industry_primary": "基础化工",
+      "industry_secondary": "橡胶",
+      "industry_source": "market_reference",
       "statutory_industry": "橡胶和塑料制品业",
       "statutory_industry_code": "C29",
-      "valuation_peer_group": "化工新材 / 橡胶和塑料制品业",
+      "valuation_peer_group": "基础化工 / 橡胶",
       "business_tags": [],
-      "industry_confidence": 0.98,
+      "industry_confidence": 0.95,
       "industry_evidence": [
-        "curated_code_mapping"
+        "ifind_sw:2026-10-12",
+        "issuer_business:公司主要从事流体输送柔性管道及软管总成的研发、生产和销售。"
       ],
       "old_shares": 0.0,
       "old_shares_desc": "0.00 万股（PDF 提取：上市公告书）",
@@ -2454,7 +2583,13 @@
       "average_price_unit_mode": "volume_shares_amount_yuan",
       "average_price_reference": 31.9,
       "replay_record_source": "",
-      "listing_date_source": ""
+      "listing_date_source": "",
+      "industry_tertiary": "其他橡胶制品",
+      "chain_tags": [],
+      "industry_status": "confirmed",
+      "industry_candidates": [],
+      "industry_review_reasons": [],
+      "industry_classification_version": 4
     },
     {
       "SECURITY_CODE": "920055",
@@ -2485,16 +2620,17 @@
       "SW_INDUSTRY": "",
       "INDUSTRY": "汽车制造业",
       "INDUSTRY_CODE": "C36",
-      "industry_primary": "高端装备",
+      "industry_primary": "汽车",
       "industry_secondary": "汽车零部件",
-      "industry_source": "built_in_sample_map",
+      "industry_source": "market_reference",
       "statutory_industry": "汽车制造业",
       "statutory_industry_code": "C36",
-      "valuation_peer_group": "高端装备 / 汽车零部件",
+      "valuation_peer_group": "汽车 / 汽车零部件",
       "business_tags": [],
-      "industry_confidence": 0.98,
+      "industry_confidence": 0.95,
       "industry_evidence": [
-        "curated_code_mapping"
+        "ifind_sw:2026-10-12",
+        "issuer_business:铝合金精密压铸件的研发、生产与销售。"
       ],
       "old_shares": 0.0,
       "old_shares_desc": "0.00 万股（PDF 提取：上市公告书）",
@@ -2610,7 +2746,15 @@
       "average_price_unit_mode": "volume_shares_amount_yuan",
       "average_price_reference": 38.4,
       "replay_record_source": "",
-      "listing_date_source": ""
+      "listing_date_source": "",
+      "industry_tertiary": "底盘与发动机系统",
+      "chain_tags": [
+        "汽车产业链"
+      ],
+      "industry_status": "confirmed",
+      "industry_candidates": [],
+      "industry_review_reasons": [],
+      "industry_classification_version": 4
     },
     {
       "SECURITY_CODE": "920011",
@@ -2641,16 +2785,19 @@
       "SW_INDUSTRY": "",
       "INDUSTRY": "中的电气机械和器材制造业",
       "INDUSTRY_CODE": "C38",
-      "industry_primary": "高端装备",
-      "industry_secondary": "机械设备",
-      "industry_source": "built_in_sample_map",
+      "industry_primary": "电力设备",
+      "industry_secondary": "电机",
+      "industry_source": "market_reference",
       "statutory_industry": "中的电气机械和器材制造业",
       "statutory_industry_code": "C38",
-      "valuation_peer_group": "高端装备 / 机械设备",
-      "business_tags": [],
-      "industry_confidence": 0.98,
+      "valuation_peer_group": "电力设备 / 电机",
+      "business_tags": [
+        "微特电机"
+      ],
+      "industry_confidence": 0.95,
       "industry_evidence": [
-        "curated_code_mapping"
+        "ifind_sw:2026-10-12",
+        "issuer_business:微特电机研发、生产和销售。"
       ],
       "old_shares": 0.0,
       "old_shares_desc": "0.00 万股（PDF 提取：上市公告书）",
@@ -2788,7 +2935,13 @@
       "average_price_unit_mode": "volume_shares_amount_yuan",
       "average_price_reference": 29.27,
       "replay_record_source": "",
-      "listing_date_source": ""
+      "listing_date_source": "",
+      "industry_tertiary": "电机",
+      "chain_tags": [],
+      "industry_status": "confirmed",
+      "industry_candidates": [],
+      "industry_review_reasons": [],
+      "industry_classification_version": 4
     },
     {
       "SECURITY_CODE": "920181",
@@ -2819,16 +2972,17 @@
       "SW_INDUSTRY": "",
       "INDUSTRY": "电气机械和器材制造业",
       "INDUSTRY_CODE": "C38",
-      "industry_primary": "信息技术",
-      "industry_secondary": "半导体制造",
-      "industry_source": "built_in_sample_map",
+      "industry_primary": "电子",
+      "industry_secondary": "其他电子",
+      "industry_source": "market_reference",
       "statutory_industry": "电气机械和器材制造业",
       "statutory_industry_code": "C38",
-      "valuation_peer_group": "信息技术 / 半导体制造",
+      "valuation_peer_group": "电子 / 其他电子",
       "business_tags": [],
-      "industry_confidence": 0.98,
+      "industry_confidence": 0.95,
       "industry_evidence": [
-        "curated_code_mapping"
+        "ifind_sw:2026-10-12",
+        "issuer_business:电子元器件的生产、销售。"
       ],
       "old_shares": 30.0,
       "old_shares_desc": "30.00 万股（PDF 提取：上市公告书）",
@@ -2912,7 +3066,13 @@
       "average_price_unit_mode": "volume_shares_amount_yuan",
       "average_price_reference": 63.08,
       "replay_record_source": "",
-      "listing_date_source": ""
+      "listing_date_source": "",
+      "industry_tertiary": "其他电子",
+      "chain_tags": [],
+      "industry_status": "confirmed",
+      "industry_candidates": [],
+      "industry_review_reasons": [],
+      "industry_classification_version": 4
     },
     {
       "SECURITY_CODE": "920012",
@@ -2943,16 +3103,17 @@
       "SW_INDUSTRY": "",
       "INDUSTRY": "计算机、通信和其他电子设备制造业",
       "INDUSTRY_CODE": "C39",
-      "industry_primary": "信息技术",
-      "industry_secondary": "半导体制造",
-      "industry_source": "built_in_sample_map",
+      "industry_primary": "电子",
+      "industry_secondary": "半导体",
+      "industry_source": "market_reference",
       "statutory_industry": "计算机、通信和其他电子设备制造业",
       "statutory_industry_code": "C39",
-      "valuation_peer_group": "信息技术 / 半导体制造",
+      "valuation_peer_group": "电子 / 半导体",
       "business_tags": [],
-      "industry_confidence": 0.98,
+      "industry_confidence": 0.95,
       "industry_evidence": [
-        "curated_code_mapping"
+        "ifind_sw:2026-10-12",
+        "issuer_business:高性能热固性复合材料的研发、生产、销售和技术服务"
       ],
       "old_shares": 217.2256,
       "old_shares_desc": "217.23 万股（PDF 提取：上市公告书）",
@@ -3036,7 +3197,15 @@
       "average_price_unit_mode": "volume_shares_amount_yuan",
       "average_price_reference": 50.81,
       "replay_record_source": "",
-      "listing_date_source": ""
+      "listing_date_source": "",
+      "industry_tertiary": "半导体材料",
+      "chain_tags": [
+        "半导体产业链"
+      ],
+      "industry_status": "confirmed",
+      "industry_candidates": [],
+      "industry_review_reasons": [],
+      "industry_classification_version": 4
     },
     {
       "SECURITY_CODE": "920177",
@@ -3067,16 +3236,17 @@
       "SW_INDUSTRY": "",
       "INDUSTRY": "专用设备制造业",
       "INDUSTRY_CODE": "C35",
-      "industry_primary": "高端装备",
-      "industry_secondary": "机械设备",
-      "industry_source": "built_in_sample_map",
+      "industry_primary": "机械设备",
+      "industry_secondary": "专用设备",
+      "industry_source": "market_reference",
       "statutory_industry": "专用设备制造业",
       "statutory_industry_code": "C35",
-      "valuation_peer_group": "高端装备 / 机械设备",
+      "valuation_peer_group": "机械设备 / 专用设备",
       "business_tags": [],
-      "industry_confidence": 0.98,
+      "industry_confidence": 0.95,
       "industry_evidence": [
-        "curated_code_mapping"
+        "ifind_sw:2026-10-12",
+        "issuer_business:注塑模具热流道系统及相关部件的研发、设计、生产和销售。"
       ],
       "old_shares": 0.0,
       "old_shares_desc": "0.00 万股（PDF 提取：上市公告书）",
@@ -3115,7 +3285,13 @@
       "average_price_unit_mode": "volume_shares_amount_yuan",
       "average_price_reference": 37.22,
       "replay_record_source": "",
-      "listing_date_source": ""
+      "listing_date_source": "",
+      "industry_tertiary": "其他专用设备",
+      "chain_tags": [],
+      "industry_status": "confirmed",
+      "industry_candidates": [],
+      "industry_review_reasons": [],
+      "industry_classification_version": 4
     },
     {
       "SECURITY_CODE": "920191",
@@ -3146,16 +3322,19 @@
       "SW_INDUSTRY": "",
       "INDUSTRY": "非金属矿物制品业",
       "INDUSTRY_CODE": "C30",
-      "industry_primary": "化工新材",
-      "industry_secondary": "非金属材料",
-      "industry_source": "built_in_sample_map",
+      "industry_primary": "建筑材料",
+      "industry_secondary": "装修建材",
+      "industry_source": "market_reference",
       "statutory_industry": "非金属矿物制品业",
       "statutory_industry_code": "C30",
-      "valuation_peer_group": "化工新材 / 非金属材料",
-      "business_tags": [],
-      "industry_confidence": 0.98,
+      "valuation_peer_group": "建筑材料 / 装修建材",
+      "business_tags": [
+        "耐火材料"
+      ],
+      "industry_confidence": 0.95,
       "industry_evidence": [
-        "curated_code_mapping"
+        "ifind_sw:2026-10-12",
+        "issuer_business:炼铁高炉高效、长寿、节能、绿色、环保等技术与所需耐火材料的研发、生产和销售"
       ],
       "old_shares": 0.0,
       "old_shares_desc": "0.00 万股（PDF 提取：上市公告书）",
@@ -3271,7 +3450,16 @@
       "average_price_unit_mode": "volume_shares_amount_yuan",
       "average_price_reference": 14.98,
       "replay_record_source": "",
-      "listing_date_source": ""
+      "listing_date_source": "",
+      "industry_tertiary": "耐火材料",
+      "chain_tags": [
+        "钢铁产业链",
+        "耐火材料"
+      ],
+      "industry_status": "confirmed",
+      "industry_candidates": [],
+      "industry_review_reasons": [],
+      "industry_classification_version": 4
     },
     {
       "SECURITY_CODE": "920125",
@@ -3302,16 +3490,19 @@
       "SW_INDUSTRY": "",
       "INDUSTRY": "专用设备制造业",
       "INDUSTRY_CODE": "C35",
-      "industry_primary": "信息技术",
-      "industry_secondary": "半导体制造",
-      "industry_source": "built_in_sample_map",
+      "industry_primary": "机械设备",
+      "industry_secondary": "自动化设备",
+      "industry_source": "market_reference",
       "statutory_industry": "专用设备制造业",
       "statutory_industry_code": "C35",
-      "valuation_peer_group": "信息技术 / 半导体制造",
-      "business_tags": [],
-      "industry_confidence": 0.98,
+      "valuation_peer_group": "机械设备 / 自动化设备",
+      "business_tags": [
+        "智能自动化设备"
+      ],
+      "industry_confidence": 0.95,
       "industry_evidence": [
-        "curated_code_mapping"
+        "ifind_sw:2026-10-12",
+        "issuer_business:智能自动化设备、智能柔性生产线、配件及耗材等产品的研发、生产与销售。"
       ],
       "old_shares": 433.1539,
       "old_shares_desc": "433.15 万股（PDF 提取：上市公告书）",
@@ -3427,7 +3618,13 @@
       "average_price_unit_mode": "volume_shares_amount_yuan",
       "average_price_reference": 51.394999999999996,
       "replay_record_source": "",
-      "listing_date_source": ""
+      "listing_date_source": "",
+      "industry_tertiary": "其他自动化设备",
+      "chain_tags": [],
+      "industry_status": "confirmed",
+      "industry_candidates": [],
+      "industry_review_reasons": [],
+      "industry_classification_version": 4
     },
     {
       "SECURITY_CODE": "920156",
@@ -3458,16 +3655,17 @@
       "SW_INDUSTRY": "",
       "INDUSTRY": "专用设备制造业",
       "INDUSTRY_CODE": "C35",
-      "industry_primary": "高端装备",
-      "industry_secondary": "机械设备",
-      "industry_source": "built_in_sample_map",
+      "industry_primary": "机械设备",
+      "industry_secondary": "专用设备",
+      "industry_source": "market_reference",
       "statutory_industry": "专用设备制造业",
       "statutory_industry_code": "C35",
-      "valuation_peer_group": "高端装备 / 机械设备",
+      "valuation_peer_group": "机械设备 / 专用设备",
       "business_tags": [],
-      "industry_confidence": 0.98,
+      "industry_confidence": 0.95,
       "industry_evidence": [
-        "curated_code_mapping"
+        "ifind_sw:2026-10-12",
+        "issuer_business:高性能线束装备的研发、生产和销售。"
       ],
       "old_shares": 0.0,
       "old_shares_desc": "0.00 万股（PDF 提取：上市公告书）",
@@ -3551,7 +3749,13 @@
       "average_price_unit_mode": "volume_shares_amount_yuan",
       "average_price_reference": 39.89,
       "replay_record_source": "",
-      "listing_date_source": ""
+      "listing_date_source": "",
+      "industry_tertiary": "其他专用设备",
+      "chain_tags": [],
+      "industry_status": "confirmed",
+      "industry_candidates": [],
+      "industry_review_reasons": [],
+      "industry_classification_version": 4
     },
     {
       "SECURITY_CODE": "920186",
@@ -3582,16 +3786,17 @@
       "SW_INDUSTRY": "",
       "INDUSTRY": "专用设备制造业",
       "INDUSTRY_CODE": "C35",
-      "industry_primary": "信息技术",
-      "industry_secondary": "半导体制造",
-      "industry_source": "built_in_sample_map",
+      "industry_primary": "电子",
+      "industry_secondary": "半导体",
+      "industry_source": "market_reference",
       "statutory_industry": "专用设备制造业",
       "statutory_industry_code": "C35",
-      "valuation_peer_group": "信息技术 / 半导体制造",
+      "valuation_peer_group": "电子 / 半导体",
       "business_tags": [],
-      "industry_confidence": 0.98,
+      "industry_confidence": 0.95,
       "industry_evidence": [
-        "curated_code_mapping"
+        "ifind_sw:2026-10-12",
+        "issuer_business:干式真空泵、真空仪器设备的研发、生产和销售，并提供相关技术服务。"
       ],
       "old_shares": 4873.0478,
       "old_shares_desc": "4873.05 万股（PDF 提取：上市公告书）",
@@ -3630,7 +3835,15 @@
       "average_price_unit_mode": "volume_shares_amount_yuan",
       "average_price_reference": 67.35,
       "replay_record_source": "",
-      "listing_date_source": ""
+      "listing_date_source": "",
+      "industry_tertiary": "半导体设备",
+      "chain_tags": [
+        "半导体产业链"
+      ],
+      "industry_status": "confirmed",
+      "industry_candidates": [],
+      "industry_review_reasons": [],
+      "industry_classification_version": 4
     },
     {
       "SECURITY_CODE": "920200",
@@ -3661,16 +3874,19 @@
       "SW_INDUSTRY": "",
       "INDUSTRY": "金属制品业",
       "INDUSTRY_CODE": "C33",
-      "industry_primary": "高端装备",
-      "industry_secondary": "机械设备",
-      "industry_source": "built_in_sample_map",
+      "industry_primary": "电力设备",
+      "industry_secondary": "风电设备",
+      "industry_source": "market_reference",
       "statutory_industry": "金属制品业",
       "statutory_industry_code": "C33",
-      "valuation_peer_group": "高端装备 / 机械设备",
-      "business_tags": [],
-      "industry_confidence": 0.98,
+      "valuation_peer_group": "电力设备 / 风电设备",
+      "business_tags": [
+        "风电主轴"
+      ],
+      "industry_confidence": 0.95,
       "industry_evidence": [
-        "curated_code_mapping"
+        "ifind_sw:2026-10-12",
+        "issuer_business:锻造风电主轴和其他大型金属锻件的研发、生产和销售。"
       ],
       "old_shares": 360.0,
       "old_shares_desc": "360.00 万股（PDF 提取：上市公告书）",
@@ -3768,7 +3984,15 @@
       "average_price_unit_mode": "volume_shares_amount_yuan",
       "average_price_reference": 54.32,
       "replay_record_source": "",
-      "listing_date_source": ""
+      "listing_date_source": "",
+      "industry_tertiary": "风电零部件",
+      "chain_tags": [
+        "风电产业链"
+      ],
+      "industry_status": "confirmed",
+      "industry_candidates": [],
+      "industry_review_reasons": [],
+      "industry_classification_version": 4
     },
     {
       "SECURITY_CODE": "920178",
@@ -3799,16 +4023,17 @@
       "SW_INDUSTRY": "",
       "INDUSTRY": "专用设备制造业",
       "INDUSTRY_CODE": "C35",
-      "industry_primary": "高端装备",
-      "industry_secondary": "机械设备",
-      "industry_source": "built_in_sample_map",
+      "industry_primary": "机械设备",
+      "industry_secondary": "自动化设备",
+      "industry_source": "market_reference",
       "statutory_industry": "专用设备制造业",
       "statutory_industry_code": "C35",
-      "valuation_peer_group": "高端装备 / 机械设备",
+      "valuation_peer_group": "机械设备 / 自动化设备",
       "business_tags": [],
-      "industry_confidence": 0.98,
+      "industry_confidence": 0.95,
       "industry_evidence": [
-        "curated_code_mapping"
+        "ifind_sw:2026-10-12",
+        "issuer_business:从事智能制造装备的研发设计、生产、销售。"
       ],
       "old_shares": 223.7989,
       "old_shares_desc": "223.80 万股（PDF 提取：上市公告书）",
@@ -3906,7 +4131,13 @@
       "average_price_unit_mode": "volume_shares_amount_yuan",
       "average_price_reference": 180.485,
       "replay_record_source": "",
-      "listing_date_source": ""
+      "listing_date_source": "",
+      "industry_tertiary": "其他自动化设备",
+      "chain_tags": [],
+      "industry_status": "confirmed",
+      "industry_candidates": [],
+      "industry_review_reasons": [],
+      "industry_classification_version": 4
     },
     {
       "SECURITY_CODE": "920096",
@@ -3937,16 +4168,17 @@
       "SW_INDUSTRY": "",
       "INDUSTRY": "仪器仪表制造业",
       "INDUSTRY_CODE": "C40",
-      "industry_primary": "高端装备",
-      "industry_secondary": "电气设备",
-      "industry_source": "built_in_sample_map",
+      "industry_primary": "机械设备",
+      "industry_secondary": "自动化设备",
+      "industry_source": "market_reference",
       "statutory_industry": "仪器仪表制造业",
       "statutory_industry_code": "C40",
-      "valuation_peer_group": "高端装备 / 电气设备",
+      "valuation_peer_group": "机械设备 / 自动化设备",
       "business_tags": [],
-      "industry_confidence": 0.98,
+      "industry_confidence": 0.95,
       "industry_evidence": [
-        "curated_code_mapping"
+        "ifind_sw:2026-10-12",
+        "issuer_business:电气控制系统产品及整体解决方案的研发、生产和销售。"
       ],
       "old_shares": 0.0,
       "old_shares_desc": "0.00 万股（PDF 提取：上市公告书）",
@@ -4080,7 +4312,13 @@
       "average_price_unit_mode": "volume_shares_amount_yuan",
       "average_price_reference": 90.49000000000001,
       "replay_record_source": "",
-      "listing_date_source": ""
+      "listing_date_source": "",
+      "industry_tertiary": "其他自动化设备",
+      "chain_tags": [],
+      "industry_status": "confirmed",
+      "industry_candidates": [],
+      "industry_review_reasons": [],
+      "industry_classification_version": 4
     },
     {
       "SECURITY_CODE": "920220",
@@ -4111,16 +4349,17 @@
       "SW_INDUSTRY": "",
       "INDUSTRY": "汽车制造业",
       "INDUSTRY_CODE": "C36",
-      "industry_primary": "高端装备",
+      "industry_primary": "汽车",
       "industry_secondary": "汽车零部件",
-      "industry_source": "built_in_sample_map",
+      "industry_source": "market_reference",
       "statutory_industry": "汽车制造业",
       "statutory_industry_code": "C36",
-      "valuation_peer_group": "高端装备 / 汽车零部件",
+      "valuation_peer_group": "汽车 / 汽车零部件",
       "business_tags": [],
-      "industry_confidence": 0.98,
+      "industry_confidence": 0.95,
       "industry_evidence": [
-        "curated_code_mapping"
+        "ifind_sw:2026-10-12",
+        "issuer_business:公司以电驱动为技术核心，主要从事电机总成、电子风扇、电子水泵、空调鼓风机等热管理电驱动零部件产品的研发、生产与销售。"
       ],
       "old_shares": 0.0,
       "old_shares_desc": "0.00 万股（PDF 提取：上市公告书）",
@@ -4254,7 +4493,15 @@
       "average_price_unit_mode": "volume_shares_amount_yuan",
       "average_price_reference": 180.275,
       "replay_record_source": "",
-      "listing_date_source": ""
+      "listing_date_source": "",
+      "industry_tertiary": "底盘与发动机系统",
+      "chain_tags": [
+        "汽车产业链"
+      ],
+      "industry_status": "confirmed",
+      "industry_candidates": [],
+      "industry_review_reasons": [],
+      "industry_classification_version": 4
     },
     {
       "SECURITY_CODE": "920161",
@@ -4285,16 +4532,17 @@
       "SW_INDUSTRY": "",
       "INDUSTRY": "计算机、通信和其他电子设备制造业",
       "INDUSTRY_CODE": "C39",
-      "industry_primary": "化工新材",
-      "industry_secondary": "橡胶和塑料制品业",
-      "industry_source": "built_in_sample_map",
+      "industry_primary": "电子",
+      "industry_secondary": "元件",
+      "industry_source": "market_reference",
       "statutory_industry": "计算机、通信和其他电子设备制造业",
       "statutory_industry_code": "C39",
-      "valuation_peer_group": "化工新材 / 橡胶和塑料制品业",
+      "valuation_peer_group": "电子 / 元件",
       "business_tags": [],
-      "industry_confidence": 0.98,
+      "industry_confidence": 0.95,
       "industry_evidence": [
-        "curated_code_mapping"
+        "ifind_sw:2026-10-12",
+        "issuer_business:薄膜电容器相关BOPP薄膜材料的研发、生产和销售。"
       ],
       "old_shares": 630.019,
       "old_shares_desc": "630.02 万股（PDF 提取：上市公告书）",
@@ -4392,7 +4640,13 @@
       "average_price_unit_mode": "volume_shares_amount_yuan",
       "average_price_reference": 46.025000000000006,
       "replay_record_source": "",
-      "listing_date_source": ""
+      "listing_date_source": "",
+      "industry_tertiary": "被动元件",
+      "chain_tags": [],
+      "industry_status": "confirmed",
+      "industry_candidates": [],
+      "industry_review_reasons": [],
+      "industry_classification_version": 4
     },
     {
       "SECURITY_CODE": "920218",
@@ -4423,16 +4677,17 @@
       "SW_INDUSTRY": "",
       "INDUSTRY": "塑料制品业",
       "INDUSTRY_CODE": "C29",
-      "industry_primary": "化工新材",
-      "industry_secondary": "橡胶和塑料制品业",
-      "industry_source": "built_in_sample_map",
+      "industry_primary": "轻工制造",
+      "industry_secondary": "家居用品",
+      "industry_source": "market_reference",
       "statutory_industry": "塑料制品业",
       "statutory_industry_code": "C29",
-      "valuation_peer_group": "化工新材 / 橡胶和塑料制品业",
+      "valuation_peer_group": "轻工制造 / 家居用品",
       "business_tags": [],
-      "industry_confidence": 0.98,
+      "industry_confidence": 0.95,
       "industry_evidence": [
-        "curated_code_mapping"
+        "ifind_sw:2026-10-12",
+        "issuer_business:食品容器的研发、生产和销售。"
       ],
       "old_shares": 0.02,
       "old_shares_desc": "0.02 万股（PDF 提取：上市公告书）",
@@ -4530,7 +4785,13 @@
       "average_price_unit_mode": "volume_shares_amount_yuan",
       "average_price_reference": 49.05,
       "replay_record_source": "",
-      "listing_date_source": ""
+      "listing_date_source": "",
+      "industry_tertiary": "其他家居用品",
+      "chain_tags": [],
+      "industry_status": "confirmed",
+      "industry_candidates": [],
+      "industry_review_reasons": [],
+      "industry_classification_version": 4
     },
     {
       "SECURITY_CODE": "920211",
@@ -4561,16 +4822,20 @@
       "SW_INDUSTRY": "",
       "INDUSTRY": "仪器仪表制造业",
       "INDUSTRY_CODE": "C40",
-      "industry_primary": "高端装备",
-      "industry_secondary": "机械设备",
-      "industry_source": "built_in_sample_map",
+      "industry_primary": "机械设备",
+      "industry_secondary": "自动化设备",
+      "industry_source": "market_reference",
       "statutory_industry": "仪器仪表制造业",
       "statutory_industry_code": "C40",
-      "valuation_peer_group": "高端装备 / 机械设备",
-      "business_tags": [],
-      "industry_confidence": 0.98,
+      "valuation_peer_group": "机械设备 / 自动化设备",
+      "business_tags": [
+        "工业机器人控制",
+        "伺服系统"
+      ],
+      "industry_confidence": 0.95,
       "industry_evidence": [
-        "curated_code_mapping"
+        "ifind_sw:2026-10-12",
+        "issuer_business:工业机器人控制系统及部件、伺服系统及部件的研发、生产与销售。"
       ],
       "old_shares": 0.0,
       "old_shares_desc": "待确认（当前按 0 万股计）",
@@ -4709,7 +4974,13 @@
       "average_price_unit_mode": "volume_shares_amount_yuan",
       "average_price_reference": 244.075,
       "replay_record_source": "",
-      "listing_date_source": ""
+      "listing_date_source": "",
+      "industry_tertiary": "工控设备",
+      "chain_tags": [],
+      "industry_status": "confirmed",
+      "industry_candidates": [],
+      "industry_review_reasons": [],
+      "industry_classification_version": 4
     },
     {
       "SECURITY_CODE": "920206",
@@ -4740,16 +5011,17 @@
       "SW_INDUSTRY": "",
       "INDUSTRY": "化学原料和化学制品制造业",
       "INDUSTRY_CODE": "C26",
-      "industry_primary": "化工新材",
+      "industry_primary": "基础化工",
       "industry_secondary": "化学制品",
-      "industry_source": "built_in_sample_map",
+      "industry_source": "market_reference",
       "statutory_industry": "化学原料和化学制品制造业",
       "statutory_industry_code": "C26",
-      "valuation_peer_group": "化工新材 / 化学制品",
+      "valuation_peer_group": "基础化工 / 化学制品",
       "business_tags": [],
-      "industry_confidence": 0.98,
+      "industry_confidence": 0.95,
       "industry_evidence": [
-        "curated_code_mapping"
+        "ifind_sw:2026-10-12",
+        "issuer_business:高性能有机颜料中间体、食品添加剂中间体及新材料聚合单体的研发、生产及销售。"
       ],
       "old_shares": 0.0,
       "old_shares_desc": "待确认（当前按 0 万股计）",
@@ -4852,7 +5124,13 @@
       "average_price_unit_mode": "volume_shares_amount_yuan",
       "average_price_reference": 88.0,
       "replay_record_source": "",
-      "listing_date_source": ""
+      "listing_date_source": "",
+      "industry_tertiary": "涂料油墨",
+      "chain_tags": [],
+      "industry_status": "confirmed",
+      "industry_candidates": [],
+      "industry_review_reasons": [],
+      "industry_classification_version": 4
     },
     {
       "SECURITY_CODE": "920083",
@@ -4883,16 +5161,17 @@
       "SW_INDUSTRY": "",
       "INDUSTRY": "非金属矿物制品业",
       "INDUSTRY_CODE": "C30",
-      "industry_primary": "化工新材",
+      "industry_primary": "基础化工",
       "industry_secondary": "非金属材料",
-      "industry_source": "built_in_sample_map",
+      "industry_source": "market_reference",
       "statutory_industry": "非金属矿物制品业",
       "statutory_industry_code": "C30",
-      "valuation_peer_group": "化工新材 / 非金属材料",
+      "valuation_peer_group": "基础化工 / 非金属材料",
       "business_tags": [],
-      "industry_confidence": 0.98,
+      "industry_confidence": 0.95,
       "industry_evidence": [
-        "curated_code_mapping"
+        "ifind_sw:2026-10-12",
+        "issuer_business:功能性材料研发、生产和销售。"
       ],
       "old_shares": 0.0,
       "old_shares_desc": "0.00 万股（PDF 提取：上市公告书）",
@@ -5012,7 +5291,13 @@
       "average_price_unit_mode": "volume_shares_amount_yuan",
       "average_price_reference": 55.06,
       "replay_record_source": "",
-      "listing_date_source": ""
+      "listing_date_source": "",
+      "industry_tertiary": "非金属材料",
+      "chain_tags": [],
+      "industry_status": "confirmed",
+      "industry_candidates": [],
+      "industry_review_reasons": [],
+      "industry_classification_version": 4
     },
     {
       "SECURITY_CODE": "920126",
@@ -5043,16 +5328,17 @@
       "SW_INDUSTRY": "",
       "INDUSTRY": "专用设备制造业",
       "INDUSTRY_CODE": "C35",
-      "industry_primary": "高端装备",
-      "industry_secondary": "机械设备",
-      "industry_source": "built_in_sample_map",
+      "industry_primary": "机械设备",
+      "industry_secondary": "专用设备",
+      "industry_source": "market_reference",
       "statutory_industry": "专用设备制造业",
       "statutory_industry_code": "C35",
-      "valuation_peer_group": "高端装备 / 机械设备",
+      "valuation_peer_group": "机械设备 / 专用设备",
       "business_tags": [],
-      "industry_confidence": 0.98,
+      "industry_confidence": 0.95,
       "industry_evidence": [
-        "curated_code_mapping"
+        "ifind_sw:2026-10-12",
+        "issuer_business:压力容器的研发、设计、制造、销售及相关技术服务"
       ],
       "old_shares": 280.0,
       "old_shares_desc": "280.00 万股（PDF 提取：上市公告书）",
@@ -5186,7 +5472,13 @@
       "average_price_unit_mode": "volume_shares_amount_yuan",
       "average_price_reference": 19.145,
       "replay_record_source": "",
-      "listing_date_source": ""
+      "listing_date_source": "",
+      "industry_tertiary": "能源及重型设备",
+      "chain_tags": [],
+      "industry_status": "confirmed",
+      "industry_candidates": [],
+      "industry_review_reasons": [],
+      "industry_classification_version": 4
     },
     {
       "SECURITY_CODE": "920072",
@@ -5219,14 +5511,15 @@
       "INDUSTRY_CODE": "C35",
       "industry_primary": "医药生物",
       "industry_secondary": "医疗器械",
-      "industry_source": "built_in_sample_map",
+      "industry_source": "market_reference",
       "statutory_industry": "专用设备制造业",
       "statutory_industry_code": "C35",
       "valuation_peer_group": "医药生物 / 医疗器械",
       "business_tags": [],
-      "industry_confidence": 0.98,
+      "industry_confidence": 0.95,
       "industry_evidence": [
-        "curated_code_mapping"
+        "ifind_sw:2026-10-12",
+        "issuer_business:肿瘤放射治疗中的放疗定位装置以及康复治疗中康复辅助器械的研发、生产和销售。"
       ],
       "old_shares": 0.0,
       "old_shares_desc": "待确认（当前按 0 万股计）",
@@ -5343,7 +5636,13 @@
       "average_price_unit_mode": "volume_shares_amount_yuan",
       "average_price_reference": 50.35,
       "replay_record_source": "",
-      "listing_date_source": ""
+      "listing_date_source": "",
+      "industry_tertiary": "医疗耗材",
+      "chain_tags": [],
+      "industry_status": "confirmed",
+      "industry_candidates": [],
+      "industry_review_reasons": [],
+      "industry_classification_version": 4
     },
     {
       "SECURITY_CODE": "920222",
@@ -5374,16 +5673,17 @@
       "SW_INDUSTRY": "",
       "INDUSTRY": "铁路、船舶、航空航天和其他运输设备制造业",
       "INDUSTRY_CODE": "C37",
-      "industry_primary": "高端装备",
-      "industry_secondary": "电气设备",
-      "industry_source": "built_in_sample_map",
+      "industry_primary": "电力设备",
+      "industry_secondary": "电网设备",
+      "industry_source": "market_reference",
       "statutory_industry": "铁路、船舶、航空航天和其他运输设备制造业",
       "statutory_industry_code": "C37",
-      "valuation_peer_group": "高端装备 / 电气设备",
+      "valuation_peer_group": "电力设备 / 电网设备",
       "business_tags": [],
-      "industry_confidence": 0.98,
+      "industry_confidence": 0.95,
       "industry_evidence": [
-        "curated_code_mapping"
+        "ifind_sw:2026-10-12",
+        "issuer_business:绝缘子、避雷器等过电压保护设备及在线监测设备的研发、生产及销售。"
       ],
       "old_shares": 0.0,
       "old_shares_desc": "待确认（当前按 0 万股计）",
@@ -5482,7 +5782,13 @@
       "average_price_unit_mode": "volume_shares_amount_yuan",
       "average_price_reference": 39.485,
       "replay_record_source": "",
-      "listing_date_source": ""
+      "listing_date_source": "",
+      "industry_tertiary": "输变电设备",
+      "chain_tags": [],
+      "industry_status": "confirmed",
+      "industry_candidates": [],
+      "industry_review_reasons": [],
+      "industry_classification_version": 4
     },
     {
       "SECURITY_CODE": "920193",
@@ -5513,16 +5819,17 @@
       "SW_INDUSTRY": "",
       "INDUSTRY": "化学原料及化学制品制造业",
       "INDUSTRY_CODE": "C26",
-      "industry_primary": "化工新材",
+      "industry_primary": "基础化工",
       "industry_secondary": "化学制品",
-      "industry_source": "built_in_sample_map",
+      "industry_source": "market_reference",
       "statutory_industry": "化学原料及化学制品制造业",
       "statutory_industry_code": "C26",
-      "valuation_peer_group": "化工新材 / 化学制品",
+      "valuation_peer_group": "基础化工 / 化学制品",
       "business_tags": [],
-      "industry_confidence": 0.98,
+      "industry_confidence": 0.95,
       "industry_evidence": [
-        "curated_code_mapping"
+        "ifind_sw:2026-10-12",
+        "issuer_business:表面处理行业相关特种功能性材料的研发、生产和销售"
       ],
       "old_shares": 0.0,
       "old_shares_desc": "0.00 万股（PDF 提取：上市公告书）",
@@ -5642,7 +5949,13 @@
       "average_price_unit_mode": "volume_shares_amount_yuan",
       "average_price_reference": 63.5,
       "replay_record_source": "",
-      "listing_date_source": ""
+      "listing_date_source": "",
+      "industry_tertiary": "其他化学制品",
+      "chain_tags": [],
+      "industry_status": "confirmed",
+      "industry_candidates": [],
+      "industry_review_reasons": [],
+      "industry_classification_version": 4
     },
     {
       "SECURITY_CODE": "920189",
@@ -5673,16 +5986,19 @@
       "SW_INDUSTRY": "",
       "INDUSTRY": "计算机、通信和其他电子设备制造业",
       "INDUSTRY_CODE": "C39",
-      "industry_primary": "信息技术",
-      "industry_secondary": "半导体制造",
-      "industry_source": "built_in_sample_map",
+      "industry_primary": "电子",
+      "industry_secondary": "半导体",
+      "industry_source": "market_reference",
       "statutory_industry": "计算机、通信和其他电子设备制造业",
       "statutory_industry_code": "C39",
-      "valuation_peer_group": "信息技术 / 半导体制造",
-      "business_tags": [],
-      "industry_confidence": 0.98,
+      "valuation_peer_group": "电子 / 半导体",
+      "business_tags": [
+        "电子封装材料"
+      ],
+      "industry_confidence": 0.95,
       "industry_evidence": [
-        "curated_code_mapping"
+        "ifind_sw:2026-10-12",
+        "issuer_business:从事电子封装材料及高性能改性塑料等高分子新材料产品研发、生产、销售。"
       ],
       "old_shares": 6577.84,
       "old_shares_desc": "6577.84 万股（PDF 提取：上市公告书）",
@@ -5870,7 +6186,15 @@
       "average_price_unit_mode": "volume_shares_amount_yuan",
       "average_price_reference": 43.065,
       "replay_record_source": "",
-      "listing_date_source": ""
+      "listing_date_source": "",
+      "industry_tertiary": "半导体材料",
+      "chain_tags": [
+        "半导体产业链"
+      ],
+      "industry_status": "confirmed",
+      "industry_candidates": [],
+      "industry_review_reasons": [],
+      "industry_classification_version": 4
     },
     {
       "SECURITY_CODE": "920136",
@@ -5901,16 +6225,19 @@
       "SW_INDUSTRY": "",
       "INDUSTRY": "汽车制造业",
       "INDUSTRY_CODE": "C36",
-      "industry_primary": "高端装备",
+      "industry_primary": "汽车",
       "industry_secondary": "汽车零部件",
-      "industry_source": "built_in_sample_map",
+      "industry_source": "market_reference",
       "statutory_industry": "汽车制造业",
       "statutory_industry_code": "C36",
-      "valuation_peer_group": "高端装备 / 汽车零部件",
-      "business_tags": [],
-      "industry_confidence": 0.98,
+      "valuation_peer_group": "汽车 / 汽车零部件",
+      "business_tags": [
+        "汽车用精密"
+      ],
+      "industry_confidence": 0.95,
       "industry_evidence": [
-        "curated_code_mapping"
+        "ifind_sw:2026-10-12",
+        "issuer_business:汽车用精密钢管及管型零部件的研发、生产和销售。"
       ],
       "old_shares": 300.0,
       "old_shares_desc": "300.00 万股（PDF 提取：上市公告书）",
@@ -5994,7 +6321,15 @@
       "average_price_unit_mode": "volume_shares_amount_yuan",
       "average_price_reference": 35.05,
       "replay_record_source": "",
-      "listing_date_source": ""
+      "listing_date_source": "",
+      "industry_tertiary": "底盘与发动机系统",
+      "chain_tags": [
+        "汽车产业链"
+      ],
+      "industry_status": "confirmed",
+      "industry_candidates": [],
+      "industry_review_reasons": [],
+      "industry_classification_version": 4
     },
     {
       "SECURITY_CODE": "920081",
@@ -6025,16 +6360,17 @@
       "SW_INDUSTRY": "",
       "INDUSTRY": "电气机械和器材制造业",
       "INDUSTRY_CODE": "C38",
-      "industry_primary": "消费服务",
-      "industry_secondary": "家用电器",
-      "industry_source": "built_in_sample_map",
+      "industry_primary": "家用电器",
+      "industry_secondary": "小家电",
+      "industry_source": "market_reference",
       "statutory_industry": "电气机械和器材制造业",
       "statutory_industry_code": "C38",
-      "valuation_peer_group": "消费服务 / 家用电器",
+      "valuation_peer_group": "家用电器 / 小家电",
       "business_tags": [],
-      "industry_confidence": 0.98,
+      "industry_confidence": 0.95,
       "industry_evidence": [
-        "curated_code_mapping"
+        "ifind_sw:2026-10-12",
+        "issuer_business:围绕环境调节设备开展研发、设计、制造、销售和服务一体化业务。"
       ],
       "old_shares": 0.0,
       "old_shares_desc": "待确认（当前按 0 万股计）",
@@ -6169,7 +6505,13 @@
       "average_price_unit_mode": "volume_shares_amount_yuan",
       "average_price_reference": 49.98,
       "replay_record_source": "",
-      "listing_date_source": ""
+      "listing_date_source": "",
+      "industry_tertiary": "清洁小家电",
+      "chain_tags": [],
+      "industry_status": "confirmed",
+      "industry_candidates": [],
+      "industry_review_reasons": [],
+      "industry_classification_version": 4
     },
     {
       "SECURITY_CODE": "920117",
@@ -6200,16 +6542,17 @@
       "SW_INDUSTRY": "",
       "INDUSTRY": "专用设备制造业",
       "INDUSTRY_CODE": "C35",
-      "industry_primary": "高端装备",
-      "industry_secondary": "机械设备",
-      "industry_source": "built_in_sample_map",
+      "industry_primary": "电力设备",
+      "industry_secondary": "电池",
+      "industry_source": "market_reference",
       "statutory_industry": "专用设备制造业",
       "statutory_industry_code": "C35",
-      "valuation_peer_group": "高端装备 / 机械设备",
+      "valuation_peer_group": "电力设备 / 电池",
       "business_tags": [],
-      "industry_confidence": 1.0,
+      "industry_confidence": 0.95,
       "industry_evidence": [
-        "manual_review_2026-09-03"
+        "ifind_sw:2026-10-12",
+        "issuer_business:微纳米高端复合材料制备设备及自动化生产线的研发、生产、销售和服务。"
       ],
       "old_shares": 0.0,
       "old_shares_desc": "0.00 万股（PDF 提取：上市公告书）",
@@ -6332,7 +6675,15 @@
       "average_price_unit_mode": "volume_shares_amount_yuan",
       "average_price_reference": 37.01,
       "replay_record_source": "",
-      "listing_date_source": ""
+      "listing_date_source": "",
+      "industry_tertiary": "锂电专用设备",
+      "chain_tags": [
+        "锂电产业链"
+      ],
+      "industry_status": "confirmed",
+      "industry_candidates": [],
+      "industry_review_reasons": [],
+      "industry_classification_version": 4
     },
     {
       "SECURITY_CODE": "920079",
@@ -6363,16 +6714,19 @@
       "SW_INDUSTRY": "",
       "INDUSTRY": "汽车制造业",
       "INDUSTRY_CODE": "C36",
-      "industry_primary": "高端装备",
+      "industry_primary": "汽车",
       "industry_secondary": "汽车零部件",
-      "industry_source": "built_in_sample_map",
+      "industry_source": "market_reference",
       "statutory_industry": "汽车制造业",
       "statutory_industry_code": "C36",
-      "valuation_peer_group": "高端装备 / 汽车零部件",
-      "business_tags": [],
-      "industry_confidence": 1.0,
+      "valuation_peer_group": "汽车 / 汽车零部件",
+      "business_tags": [
+        "汽车饰件"
+      ],
+      "industry_confidence": 0.95,
       "industry_evidence": [
-        "manual_review_2026-09-03"
+        "ifind_sw:2026-10-12",
+        "issuer_business:汽车饰件的研发、生产和销售。"
       ],
       "old_shares": 0.0,
       "old_shares_desc": "待确认（当前按 0 万股计）",
@@ -6543,7 +6897,15 @@
       "average_price_unit_mode": "volume_shares_amount_yuan",
       "average_price_reference": 18.925,
       "replay_record_source": "",
-      "listing_date_source": ""
+      "listing_date_source": "",
+      "industry_tertiary": "车身附件及饰件",
+      "chain_tags": [
+        "汽车产业链"
+      ],
+      "industry_status": "confirmed",
+      "industry_candidates": [],
+      "industry_review_reasons": [],
+      "industry_classification_version": 4
     },
     {
       "SECURITY_CODE": "920238",
@@ -6574,16 +6936,17 @@
       "SW_INDUSTRY": "",
       "INDUSTRY": "金属制品业",
       "INDUSTRY_CODE": "C33",
-      "industry_primary": "高端装备",
-      "industry_secondary": "金属制品业",
-      "industry_source": "built_in_sample_map",
+      "industry_primary": "机械设备",
+      "industry_secondary": "通用设备",
+      "industry_source": "market_reference",
       "statutory_industry": "金属制品业",
       "statutory_industry_code": "C33",
-      "valuation_peer_group": "高端装备 / 金属制品业",
+      "valuation_peer_group": "机械设备 / 通用设备",
       "business_tags": [],
-      "industry_confidence": 1.0,
+      "industry_confidence": 0.95,
       "industry_evidence": [
-        "manual_review_2026-09-03"
+        "ifind_sw:2026-10-12",
+        "issuer_business:从事硬质合金产品的研发、生产及销售。"
       ],
       "old_shares": 0.0,
       "old_shares_desc": "0.00 万股（PDF 提取：招股文件）",
@@ -6742,7 +7105,13 @@
       "average_price_unit_mode": "volume_shares_amount_yuan",
       "average_price_reference": 57.17,
       "replay_record_source": "",
-      "listing_date_source": ""
+      "listing_date_source": "",
+      "industry_tertiary": "金属制品",
+      "chain_tags": [],
+      "industry_status": "confirmed",
+      "industry_candidates": [],
+      "industry_review_reasons": [],
+      "industry_classification_version": 4
     },
     {
       "SECURITY_CODE": "920176",
@@ -6773,19 +7142,20 @@
       "SW_INDUSTRY": "",
       "INDUSTRY": "化学原料和化学制品制造业",
       "INDUSTRY_CODE": "C26",
-      "industry_primary": "医药生物",
-      "industry_secondary": "生物制品",
-      "industry_source": "built_in_sample_map",
+      "industry_primary": "美容护理",
+      "industry_secondary": "化妆品",
+      "industry_source": "market_reference",
       "statutory_industry": "化学原料和化学制品制造业",
       "statutory_industry_code": "C26",
-      "valuation_peer_group": "医药生物 / 生物制品",
+      "valuation_peer_group": "美容护理 / 化妆品",
       "business_tags": [
         "活性多肽",
         "化妆品功效原料"
       ],
-      "industry_confidence": 1.0,
+      "industry_confidence": 0.95,
       "industry_evidence": [
-        "manual_review_2026-09-03"
+        "ifind_sw:2026-10-12",
+        "issuer_business:化妆品原料和化妆品成品的研发,生产,销售以及相关服务。"
       ],
       "old_shares": 0.0,
       "old_shares_desc": "待确认（当前按 0 万股计）",
@@ -6866,7 +7236,13 @@
       "average_price_unit_mode": "volume_shares_amount_yuan",
       "average_price_reference": 72.02,
       "replay_record_source": "",
-      "listing_date_source": ""
+      "listing_date_source": "",
+      "industry_tertiary": "化妆品制造及其他",
+      "chain_tags": [],
+      "industry_status": "confirmed",
+      "industry_candidates": [],
+      "industry_review_reasons": [],
+      "industry_classification_version": 4
     },
     {
       "SECURITY_CODE": "920065",
@@ -6897,16 +7273,17 @@
       "SW_INDUSTRY": "",
       "INDUSTRY": "",
       "INDUSTRY_CODE": "",
-      "industry_primary": "消费服务",
-      "industry_secondary": "商贸零售",
-      "industry_source": "built_in_sample_map",
+      "industry_primary": "商贸零售",
+      "industry_secondary": "互联网电商",
+      "industry_source": "market_reference",
       "statutory_industry": "",
       "statutory_industry_code": "",
-      "valuation_peer_group": "消费服务 / 商贸零售",
+      "valuation_peer_group": "商贸零售 / 互联网电商",
       "business_tags": [],
-      "industry_confidence": 1.0,
+      "industry_confidence": 0.95,
       "industry_evidence": [
-        "manual_review_2026-09-03"
+        "ifind_sw:2026-10-12",
+        "issuer_business:公司从事自有品牌产品的研发、设计和销售，产品覆盖数码电子、艺术创作、家居庭院、运动户外四大领域。"
       ],
       "old_shares": 0.0,
       "old_shares_desc": "待确认（当前按 0 万股计）",
@@ -6969,7 +7346,13 @@
       "average_price_unit_mode": "volume_shares_amount_yuan",
       "average_price_reference": 66.745,
       "replay_record_source": "",
-      "listing_date_source": ""
+      "listing_date_source": "",
+      "industry_tertiary": "跨境电商",
+      "chain_tags": [],
+      "industry_status": "confirmed",
+      "industry_candidates": [],
+      "industry_review_reasons": [],
+      "industry_classification_version": 4
     },
     {
       "SECURITY_CODE": "920258",
@@ -7000,16 +7383,17 @@
       "SW_INDUSTRY": "",
       "INDUSTRY": "化学原料和化学制品制造业",
       "INDUSTRY_CODE": "C26",
-      "industry_primary": "化工新材",
+      "industry_primary": "基础化工",
       "industry_secondary": "化学制品",
-      "industry_source": "built_in_sample_map",
+      "industry_source": "market_reference",
       "statutory_industry": "化学原料和化学制品制造业",
       "statutory_industry_code": "C26",
-      "valuation_peer_group": "化工新材 / 化学制品",
+      "valuation_peer_group": "基础化工 / 化学制品",
       "business_tags": [],
-      "industry_confidence": 1.0,
+      "industry_confidence": 0.95,
       "industry_evidence": [
-        "manual_review_2026-09-03"
+        "ifind_sw:2026-10-12",
+        "issuer_business:己内酯系列产品的研发、生产和销售。"
       ],
       "old_shares": 36000.0,
       "old_shares_desc": "36000.00 万股（PDF 提取：上市公告书）",
@@ -7161,7 +7545,13 @@
       "average_price_unit_mode": "volume_shares_amount_yuan",
       "average_price_reference": 16.695,
       "replay_record_source": "",
-      "listing_date_source": ""
+      "listing_date_source": "",
+      "industry_tertiary": "其他化学制品",
+      "chain_tags": [],
+      "industry_status": "confirmed",
+      "industry_candidates": [],
+      "industry_review_reasons": [],
+      "industry_classification_version": 4
     },
     {
       "SECURITY_CODE": "920038",
@@ -7192,19 +7582,20 @@
       "SW_INDUSTRY": "",
       "INDUSTRY": "化学原料和化学制品制造业",
       "INDUSTRY_CODE": "C26",
-      "industry_primary": "化工新材",
-      "industry_secondary": "金属新材料",
-      "industry_source": "built_in_sample_map",
+      "industry_primary": "基础化工",
+      "industry_secondary": "化学制品",
+      "industry_source": "market_reference",
       "statutory_industry": "化学原料和化学制品制造业",
       "statutory_industry_code": "C26",
-      "valuation_peer_group": "化工新材 / 金属新材料",
+      "valuation_peer_group": "基础化工 / 化学制品",
       "business_tags": [
         "贵金属选矿剂",
         "矿业化学品"
       ],
-      "industry_confidence": 1.0,
+      "industry_confidence": 0.95,
       "industry_evidence": [
-        "manual_review_2026-09-03"
+        "ifind_sw:2026-10-12",
+        "issuer_business:环保型贵金属选矿剂的研发、生产及销售。"
       ],
       "old_shares": 0.0,
       "old_shares_desc": "待确认（当前按 0 万股计）",
@@ -7244,7 +7635,15 @@
       "average_price_unit_mode": "volume_shares_amount_yuan",
       "average_price_reference": 49.05,
       "replay_record_source": "",
-      "listing_date_source": ""
+      "listing_date_source": "",
+      "industry_tertiary": "其他化学制品",
+      "chain_tags": [
+        "矿业产业链"
+      ],
+      "industry_status": "confirmed",
+      "industry_candidates": [],
+      "industry_review_reasons": [],
+      "industry_classification_version": 4
     },
     {
       "SECURITY_CODE": "920165",
@@ -7275,19 +7674,20 @@
       "SW_INDUSTRY": "",
       "INDUSTRY": "化学原料和化学制品制造业",
       "INDUSTRY_CODE": "C26",
-      "industry_primary": "医药生物",
-      "industry_secondary": "生物制品",
-      "industry_source": "built_in_sample_map",
+      "industry_primary": "美容护理",
+      "industry_secondary": "化妆品",
+      "industry_source": "market_reference",
       "statutory_industry": "化学原料和化学制品制造业",
       "statutory_industry_code": "C26",
-      "valuation_peer_group": "医药生物 / 生物制品",
+      "valuation_peer_group": "美容护理 / 化妆品",
       "business_tags": [
         "天然及发酵原料",
         "化妆品功效原料"
       ],
-      "industry_confidence": 1.0,
+      "industry_confidence": 0.95,
       "industry_evidence": [
-        "manual_review_2026-09-03"
+        "ifind_sw:2026-10-12",
+        "issuer_business:化妆品功效原料的研发、生产及销售。"
       ],
       "old_shares": 0.0,
       "old_shares_desc": "待确认（当前按 0 万股计）",
@@ -7390,7 +7790,13 @@
       "average_price_unit_mode": "volume_shares_amount_yuan",
       "average_price_reference": 52.254999999999995,
       "replay_record_source": "",
-      "listing_date_source": ""
+      "listing_date_source": "",
+      "industry_tertiary": "化妆品制造及其他",
+      "chain_tags": [],
+      "industry_status": "confirmed",
+      "industry_candidates": [],
+      "industry_review_reasons": [],
+      "industry_classification_version": 4
     },
     {
       "SECURITY_CODE": "920138",
@@ -7421,16 +7827,17 @@
       "SW_INDUSTRY": "",
       "INDUSTRY": "",
       "INDUSTRY_CODE": "",
-      "industry_primary": "信息技术",
-      "industry_secondary": "半导体制造",
-      "industry_source": "built_in_sample_map",
+      "industry_primary": "电子",
+      "industry_secondary": "半导体",
+      "industry_source": "market_reference",
       "statutory_industry": "",
       "statutory_industry_code": "",
-      "valuation_peer_group": "信息技术 / 半导体制造",
+      "valuation_peer_group": "电子 / 半导体",
       "business_tags": [],
-      "industry_confidence": 1.0,
+      "industry_confidence": 0.95,
       "industry_evidence": [
-        "manual_review_2026-09-03"
+        "ifind_sw:2026-10-12",
+        "issuer_business:从事集成电路的设计与研发，主要从事射频智能终端、多媒体智能终端等系统级芯片（SoC）的研究和开发。"
       ],
       "old_shares": 0.0,
       "old_shares_desc": "待确认（当前按 0 万股计）",
@@ -7470,7 +7877,15 @@
       "average_price_unit_mode": "volume_shares_amount_yuan",
       "average_price_reference": 54.1,
       "replay_record_source": "",
-      "listing_date_source": ""
+      "listing_date_source": "",
+      "industry_tertiary": "数字芯片设计",
+      "chain_tags": [
+        "半导体产业链"
+      ],
+      "industry_status": "confirmed",
+      "industry_candidates": [],
+      "industry_review_reasons": [],
+      "industry_classification_version": 4
     },
     {
       "SECURITY_CODE": "920107",
@@ -7501,16 +7916,17 @@
       "SW_INDUSTRY": "",
       "INDUSTRY": "化学原料和化学制品制造业",
       "INDUSTRY_CODE": "C26",
-      "industry_primary": "化工新材",
+      "industry_primary": "基础化工",
       "industry_secondary": "化学制品",
-      "industry_source": "built_in_sample_map",
+      "industry_source": "market_reference",
       "statutory_industry": "化学原料和化学制品制造业",
       "statutory_industry_code": "C26",
-      "valuation_peer_group": "化工新材 / 化学制品",
+      "valuation_peer_group": "基础化工 / 化学制品",
       "business_tags": [],
-      "industry_confidence": 1.0,
+      "industry_confidence": 0.95,
       "industry_evidence": [
-        "manual_review_2026-09-03"
+        "ifind_sw:2026-10-12",
+        "issuer_business:专注于紫外光（UV）固化涂料和PUR热熔胶的研发、生产和销售。"
       ],
       "old_shares": 0.0,
       "old_shares_desc": "待确认（当前按 0 万股计）",
@@ -7609,7 +8025,13 @@
       "average_price_unit_mode": "volume_shares_amount_yuan",
       "average_price_reference": 31.18,
       "replay_record_source": "",
-      "listing_date_source": ""
+      "listing_date_source": "",
+      "industry_tertiary": "涂料油墨",
+      "chain_tags": [],
+      "industry_status": "confirmed",
+      "industry_candidates": [],
+      "industry_review_reasons": [],
+      "industry_classification_version": 4
     },
     {
       "SECURITY_CODE": "920059",
@@ -7640,16 +8062,17 @@
       "SW_INDUSTRY": "",
       "INDUSTRY": "汽车制造业",
       "INDUSTRY_CODE": "C36",
-      "industry_primary": "高端装备",
+      "industry_primary": "汽车",
       "industry_secondary": "汽车零部件",
-      "industry_source": "built_in_sample_map",
+      "industry_source": "market_reference",
       "statutory_industry": "汽车制造业",
       "statutory_industry_code": "C36",
-      "valuation_peer_group": "高端装备 / 汽车零部件",
+      "valuation_peer_group": "汽车 / 汽车零部件",
       "business_tags": [],
-      "industry_confidence": 1.0,
+      "industry_confidence": 0.95,
       "industry_evidence": [
-        "manual_review_2026-09-03"
+        "ifind_sw:2026-10-12",
+        "issuer_business:汽车座椅、汽车内外饰件研发、生产和销售。"
       ],
       "old_shares": 0.0,
       "old_shares_desc": "待确认（当前按 0 万股计）",
@@ -7766,7 +8189,15 @@
       "average_price_unit_mode": "volume_shares_amount_yuan",
       "average_price_reference": 26.1,
       "replay_record_source": "",
-      "listing_date_source": ""
+      "listing_date_source": "",
+      "industry_tertiary": "车身附件及饰件",
+      "chain_tags": [
+        "汽车产业链"
+      ],
+      "industry_status": "confirmed",
+      "industry_candidates": [],
+      "industry_review_reasons": [],
+      "industry_classification_version": 4
     },
     {
       "SECURITY_CODE": "920093",
@@ -7797,16 +8228,17 @@
       "SW_INDUSTRY": "",
       "INDUSTRY": "专用设备制造业",
       "INDUSTRY_CODE": "C35",
-      "industry_primary": "高端装备",
-      "industry_secondary": "机械设备",
-      "industry_source": "built_in_sample_map",
+      "industry_primary": "机械设备",
+      "industry_secondary": "专用设备",
+      "industry_source": "market_reference",
       "statutory_industry": "专用设备制造业",
       "statutory_industry_code": "C35",
-      "valuation_peer_group": "高端装备 / 机械设备",
+      "valuation_peer_group": "机械设备 / 专用设备",
       "business_tags": [],
-      "industry_confidence": 1.0,
+      "industry_confidence": 0.95,
       "industry_evidence": [
-        "manual_review_2026-09-03"
+        "ifind_sw:2026-10-12",
+        "issuer_business:电脑刺绣机的研发、生产和销售。"
       ],
       "old_shares": 0.0,
       "old_shares_desc": "0.00 万股（PDF 提取：上市公告书）",
@@ -7922,7 +8354,13 @@
       "average_price_unit_mode": "volume_shares_amount_yuan",
       "average_price_reference": 25.490000000000002,
       "replay_record_source": "",
-      "listing_date_source": ""
+      "listing_date_source": "",
+      "industry_tertiary": "纺织服装设备",
+      "chain_tags": [],
+      "industry_status": "confirmed",
+      "industry_candidates": [],
+      "industry_review_reasons": [],
+      "industry_classification_version": 4
     },
     {
       "SECURITY_CODE": "920288",
@@ -7953,16 +8391,17 @@
       "SW_INDUSTRY": "",
       "INDUSTRY": "造纸和纸制品业",
       "INDUSTRY_CODE": "C22",
-      "industry_primary": "消费服务",
-      "industry_secondary": "轻工制造",
-      "industry_source": "built_in_sample_map",
+      "industry_primary": "轻工制造",
+      "industry_secondary": "造纸",
+      "industry_source": "market_reference",
       "statutory_industry": "造纸和纸制品业",
       "statutory_industry_code": "C22",
-      "valuation_peer_group": "消费服务 / 轻工制造",
+      "valuation_peer_group": "轻工制造 / 造纸",
       "business_tags": [],
-      "industry_confidence": 1.0,
+      "industry_confidence": 0.95,
       "industry_evidence": [
-        "manual_review_2026-09-03"
+        "ifind_sw:2026-10-12",
+        "issuer_business:数码纸基新材料、水性墨材料、食品包装材料及其他的研发、生产和销售。"
       ],
       "old_shares": 0.0,
       "old_shares_desc": "待确认（当前按 0 万股计）",
@@ -8079,7 +8518,13 @@
       "average_price_unit_mode": "volume_shares_amount_yuan",
       "average_price_reference": 29.439999999999998,
       "replay_record_source": "",
-      "listing_date_source": ""
+      "listing_date_source": "",
+      "industry_tertiary": "特种纸",
+      "chain_tags": [],
+      "industry_status": "confirmed",
+      "industry_candidates": [],
+      "industry_review_reasons": [],
+      "industry_classification_version": 4
     },
     {
       "SECURITY_CODE": "920071",
@@ -8110,16 +8555,17 @@
       "SW_INDUSTRY": "",
       "INDUSTRY": "有色金属冶炼和压延加工业",
       "INDUSTRY_CODE": "C32",
-      "industry_primary": "化工新材",
-      "industry_secondary": "金属新材料",
-      "industry_source": "built_in_sample_map",
+      "industry_primary": "有色金属",
+      "industry_secondary": "小金属",
+      "industry_source": "market_reference",
       "statutory_industry": "有色金属冶炼和压延加工业",
       "statutory_industry_code": "C32",
-      "valuation_peer_group": "化工新材 / 金属新材料",
+      "valuation_peer_group": "有色金属 / 小金属",
       "business_tags": [],
-      "industry_confidence": 1.0,
+      "industry_confidence": 0.95,
       "industry_evidence": [
-        "manual_review_2026-09-03"
+        "ifind_sw:2026-10-12",
+        "issuer_business:海绵钛系列产品的研发、生产和销售。"
       ],
       "old_shares": 0.0,
       "old_shares_desc": "0.00 万股（PDF 提取：招股文件）",
@@ -8181,7 +8627,13 @@
       "average_price_unit_mode": "volume_shares_amount_yuan",
       "average_price_reference": 25.23,
       "replay_record_source": "",
-      "listing_date_source": ""
+      "listing_date_source": "",
+      "industry_tertiary": "其他小金属",
+      "chain_tags": [],
+      "industry_status": "confirmed",
+      "industry_candidates": [],
+      "industry_review_reasons": [],
+      "industry_classification_version": 4
     },
     {
       "SECURITY_CODE": "920289",
@@ -8212,16 +8664,19 @@
       "SW_INDUSTRY": "",
       "INDUSTRY": "专用设备制造业",
       "INDUSTRY_CODE": "C35",
-      "industry_primary": "高端装备",
-      "industry_secondary": "机械设备",
-      "industry_source": "record_mapping",
+      "industry_primary": "电力设备",
+      "industry_secondary": "电池",
+      "industry_source": "market_reference",
       "statutory_industry": "专用设备制造业",
       "statutory_industry_code": "C35",
-      "valuation_peer_group": "高端装备 / 机械设备",
-      "business_tags": [],
-      "industry_confidence": 0.8,
+      "valuation_peer_group": "电力设备 / 电池",
+      "business_tags": [
+        "智能装备"
+      ],
+      "industry_confidence": 0.95,
       "industry_evidence": [
-        "INDUSTRY:专用设备制造业"
+        "ifind_sw:2026-10-12",
+        "issuer_business:高端智能装备及其关键部件的研发、生产和销售。"
       ],
       "old_shares": 0.0,
       "old_shares_desc": "待确认（当前按 0 万股计）",
@@ -8342,7 +8797,15 @@
       "average_price_unit_mode": "volume_shares_amount_yuan",
       "average_price_reference": 37.89,
       "replay_record_source": "",
-      "listing_date_source": ""
+      "listing_date_source": "",
+      "industry_tertiary": "锂电专用设备",
+      "chain_tags": [
+        "锂电产业链"
+      ],
+      "industry_status": "confirmed",
+      "industry_candidates": [],
+      "industry_review_reasons": [],
+      "industry_classification_version": 4
     },
     {
       "SECURITY_CODE": "920269",
@@ -8373,16 +8836,17 @@
       "SW_INDUSTRY": "",
       "INDUSTRY": "汽车制造业",
       "INDUSTRY_CODE": "C36",
-      "industry_primary": "高端装备",
+      "industry_primary": "汽车",
       "industry_secondary": "汽车零部件",
-      "industry_source": "industry_code_mapping",
+      "industry_source": "market_reference",
       "statutory_industry": "汽车制造业",
       "statutory_industry_code": "C36",
-      "valuation_peer_group": "高端装备 / 汽车零部件",
+      "valuation_peer_group": "汽车 / 汽车零部件",
       "business_tags": [],
-      "industry_confidence": 0.6,
+      "industry_confidence": 0.95,
       "industry_evidence": [
-        "INDUSTRY_CODE:C36"
+        "ifind_sw:2026-10-12",
+        "issuer_business:汽车排气系统及动力系统等领域零部件产品的研发、设计、生产和销售。"
       ],
       "old_shares": 0.0,
       "old_shares_desc": "待确认（当前按 0 万股计）",
@@ -8463,7 +8927,15 @@
       "average_price_unit_mode": "volume_shares_amount_yuan",
       "average_price_reference": 43.91,
       "replay_record_source": "",
-      "listing_date_source": ""
+      "listing_date_source": "",
+      "industry_tertiary": "底盘与发动机系统",
+      "chain_tags": [
+        "汽车产业链"
+      ],
+      "industry_status": "confirmed",
+      "industry_candidates": [],
+      "industry_review_reasons": [],
+      "industry_classification_version": 4
     },
     {
       "SECURITY_CODE": "920268",
@@ -8496,7 +8968,7 @@
       "INDUSTRY_CODE": "C27",
       "industry_primary": "医药生物",
       "industry_secondary": "医疗器械",
-      "industry_source": "built_in_sample_map",
+      "industry_source": "market_reference",
       "statutory_industry": "医药制造业",
       "statutory_industry_code": "C27",
       "valuation_peer_group": "医药生物 / 医疗器械",
@@ -8505,9 +8977,10 @@
         "介入耗材",
         "制药设备"
       ],
-      "industry_confidence": 1.0,
+      "industry_confidence": 0.95,
       "industry_evidence": [
-        "manual_review_2026-09-03"
+        "ifind_sw:2026-10-12",
+        "issuer_business:以手术缝线为代表的外科手术医疗器械产品和多肽制药设备产品的研发、生产和销售。"
       ],
       "old_shares": 0.0,
       "old_shares_desc": "待确认（当前按 0 万股计）",
@@ -8570,7 +9043,13 @@
       "average_price_unit_mode": "volume_shares_amount_yuan",
       "average_price_reference": 27.82,
       "replay_record_source": "",
-      "listing_date_source": ""
+      "listing_date_source": "",
+      "industry_tertiary": "医疗耗材",
+      "chain_tags": [],
+      "industry_status": "confirmed",
+      "industry_candidates": [],
+      "industry_review_reasons": [],
+      "industry_classification_version": 4
     },
     {
       "SECURITY_CODE": "920298",
@@ -8601,16 +9080,17 @@
       "SW_INDUSTRY": "",
       "INDUSTRY": "通用设备制造业",
       "INDUSTRY_CODE": "C34",
-      "industry_primary": "高端装备",
-      "industry_secondary": "机械设备",
-      "industry_source": "built_in_sample_map",
+      "industry_primary": "机械设备",
+      "industry_secondary": "通用设备",
+      "industry_source": "market_reference",
       "statutory_industry": "通用设备制造业",
       "statutory_industry_code": "C34",
-      "valuation_peer_group": "高端装备 / 机械设备",
+      "valuation_peer_group": "机械设备 / 通用设备",
       "business_tags": [],
-      "industry_confidence": 1.0,
+      "industry_confidence": 0.95,
       "industry_evidence": [
-        "manual_review_2026-09-03"
+        "ifind_sw:2026-10-12",
+        "issuer_business:精密零部件的研发设计、制造和销售。"
       ],
       "old_shares": 0.0,
       "old_shares_desc": "待确认（当前按 0 万股计）",
@@ -8727,7 +9207,13 @@
       "average_price_unit_mode": "volume_shares_amount_yuan",
       "average_price_reference": 58.53,
       "replay_record_source": "",
-      "listing_date_source": ""
+      "listing_date_source": "",
+      "industry_tertiary": "金属制品",
+      "chain_tags": [],
+      "industry_status": "confirmed",
+      "industry_candidates": [],
+      "industry_review_reasons": [],
+      "industry_classification_version": 4
     },
     {
       "SECURITY_CODE": "920157",
@@ -8758,16 +9244,17 @@
       "SW_INDUSTRY": "计算机、通信和其他电子设备制造业",
       "INDUSTRY": "计算机、通信和其他电子设备制造业",
       "INDUSTRY_CODE": "C39",
-      "industry_primary": "信息技术",
-      "industry_secondary": "电子",
-      "industry_source": "industry_code_mapping",
+      "industry_primary": "通信",
+      "industry_secondary": "通信设备",
+      "industry_source": "market_reference",
       "statutory_industry": "计算机、通信和其他电子设备制造业",
       "statutory_industry_code": "C39",
-      "valuation_peer_group": "信息技术 / 电子",
+      "valuation_peer_group": "通信 / 通信设备",
       "business_tags": [],
-      "industry_confidence": 0.6,
+      "industry_confidence": 0.95,
       "industry_evidence": [
-        "INDUSTRY_CODE:C39"
+        "ifind_sw:2026-10-12",
+        "issuer_business:光连接产品的研发设计、精密制造与销售。"
       ],
       "old_shares": 0.0,
       "old_shares_desc": "待确认（当前按 0 万股计）",
@@ -8843,7 +9330,13 @@
         "issue": "920157_宇特光电_发行公告.pdf",
         "result": "920157_宇特光电_发行结果公告.pdf",
         "listing": ""
-      }
+      },
+      "industry_tertiary": "通信网络设备及器件",
+      "chain_tags": [],
+      "industry_status": "confirmed",
+      "industry_candidates": [],
+      "industry_review_reasons": [],
+      "industry_classification_version": 4
     },
     {
       "SECURITY_CODE": "920229",
@@ -8874,19 +9367,20 @@
       "SW_INDUSTRY": "",
       "INDUSTRY": "专用设备制造业",
       "INDUSTRY_CODE": "C35",
-      "industry_primary": "高端装备",
-      "industry_secondary": "机械设备",
-      "industry_source": "built_in_sample_map",
+      "industry_primary": "机械设备",
+      "industry_secondary": "专用设备",
+      "industry_source": "market_reference",
       "statutory_industry": "专用设备制造业",
       "statutory_industry_code": "C35",
-      "valuation_peer_group": "高端装备 / 机械设备",
+      "valuation_peer_group": "机械设备 / 专用设备",
       "business_tags": [
         "工业数字印刷",
         "喷墨打印设备"
       ],
-      "industry_confidence": 1.0,
+      "industry_confidence": 0.95,
       "industry_evidence": [
-        "manual_review_2026-09-03"
+        "ifind_sw:2026-10-12",
+        "issuer_business:数字喷墨打印设备及配件耗材的研发、生产及销售。"
       ],
       "old_shares": 0.0,
       "old_shares_desc": "待确认（当前按 0 万股计）",
@@ -8953,7 +9447,13 @@
       "average_price_unit_mode": "volume_shares_amount_yuan",
       "average_price_reference": 68.755,
       "replay_record_source": "",
-      "listing_date_source": ""
+      "listing_date_source": "",
+      "industry_tertiary": "纺织服装设备",
+      "chain_tags": [],
+      "industry_status": "confirmed",
+      "industry_candidates": [],
+      "industry_review_reasons": [],
+      "industry_classification_version": 4
     },
     {
       "SECURITY_CODE": "920025",
@@ -8984,19 +9484,20 @@
       "SW_INDUSTRY": "",
       "INDUSTRY": "专用设备制造业",
       "INDUSTRY_CODE": "C35",
-      "industry_primary": "高端装备",
-      "industry_secondary": "机械设备",
-      "industry_source": "built_in_sample_map",
+      "industry_primary": "机械设备",
+      "industry_secondary": "专用设备",
+      "industry_source": "market_reference",
       "statutory_industry": "专用设备制造业",
       "statutory_industry_code": "C35",
-      "valuation_peer_group": "高端装备 / 机械设备",
+      "valuation_peer_group": "机械设备 / 专用设备",
       "business_tags": [
         "轧辊",
-        "热轧型钢关键部件"
+        "辊环"
       ],
-      "industry_confidence": 1.0,
+      "industry_confidence": 0.95,
       "industry_evidence": [
-        "manual_review_2026-09-03"
+        "ifind_sw:2026-10-12",
+        "issuer_business:轧辊、辊环等钢材轧制关键部件的研发、生产、销售。"
       ],
       "old_shares": 0.0,
       "old_shares_desc": "待确认（当前按 0 万股计）",
@@ -9087,7 +9588,15 @@
       "average_price_unit_mode": "volume_shares_amount_yuan",
       "average_price_reference": 32.05,
       "replay_record_source": "",
-      "listing_date_source": ""
+      "listing_date_source": "",
+      "industry_tertiary": "其他专用设备",
+      "chain_tags": [
+        "钢铁产业链"
+      ],
+      "industry_status": "confirmed",
+      "industry_candidates": [],
+      "industry_review_reasons": [],
+      "industry_classification_version": 4
     },
     {
       "SECURITY_CODE": "920162",
@@ -9118,16 +9627,17 @@
       "SW_INDUSTRY": "汽车制造业",
       "INDUSTRY": "汽车制造业",
       "INDUSTRY_CODE": "C36",
-      "industry_primary": "高端装备",
+      "industry_primary": "汽车",
       "industry_secondary": "汽车零部件",
-      "industry_source": "industry_code_mapping",
+      "industry_source": "market_reference",
       "statutory_industry": "汽车制造业",
       "statutory_industry_code": "C36",
-      "valuation_peer_group": "高端装备 / 汽车零部件",
+      "valuation_peer_group": "汽车 / 汽车零部件",
       "business_tags": [],
-      "industry_confidence": 0.6,
+      "industry_confidence": 0.95,
       "industry_evidence": [
-        "INDUSTRY_CODE:C36"
+        "ifind_sw:2026-10-12",
+        "issuer_business:汽车天窗、玻璃升降器等汽车开闭器件以及相关电子控制单元的研发、制造及销售，粉末冶金零部件的研发、制造及销售。"
       ],
       "old_shares": 0.0,
       "old_shares_desc": "待确认（当前按 0 万股计）",
@@ -9197,7 +9707,15 @@
         "issue": "920162_莫森泰克_发行公告.pdf",
         "result": "",
         "listing": ""
-      }
+      },
+      "industry_tertiary": "车身附件及饰件",
+      "chain_tags": [
+        "汽车产业链"
+      ],
+      "industry_status": "confirmed",
+      "industry_candidates": [],
+      "industry_review_reasons": [],
+      "industry_classification_version": 4
     },
     {
       "SECURITY_CODE": "920201",
@@ -9230,7 +9748,7 @@
       "INDUSTRY_CODE": "C27",
       "industry_primary": "医药生物",
       "industry_secondary": "医疗器械",
-      "industry_source": "built_in_sample_map",
+      "industry_source": "market_reference",
       "statutory_industry": "医药制造业",
       "statutory_industry_code": "C27",
       "valuation_peer_group": "医药生物 / 医疗器械",
@@ -9238,9 +9756,10 @@
         "生物医用材料",
         "植入耗材"
       ],
-      "industry_confidence": 1.0,
+      "industry_confidence": 0.95,
       "industry_evidence": [
-        "manual_review_2026-09-03"
+        "ifind_sw:2026-10-12",
+        "issuer_business:生物医用材料等产品的研发、生产和销售。"
       ],
       "old_shares": 20.5218,
       "old_shares_desc": "20.52 万股（PDF 提取：上市公告书）",
@@ -9279,7 +9798,13 @@
       "average_price_unit_mode": "volume_shares_amount_yuan",
       "average_price_reference": 80.13,
       "replay_record_source": "",
-      "listing_date_source": ""
+      "listing_date_source": "",
+      "industry_tertiary": "医疗耗材",
+      "chain_tags": [],
+      "industry_status": "confirmed",
+      "industry_candidates": [],
+      "industry_review_reasons": [],
+      "industry_classification_version": 4
     },
     {
       "SECURITY_CODE": "920196",
@@ -9310,16 +9835,17 @@
       "SW_INDUSTRY": "食品制造业",
       "INDUSTRY": "食品制造业",
       "INDUSTRY_CODE": "C14",
-      "industry_primary": "消费服务",
-      "industry_secondary": "食品饮料",
-      "industry_source": "record_mapping",
+      "industry_primary": "食品饮料",
+      "industry_secondary": "饮料乳品",
+      "industry_source": "market_reference",
       "statutory_industry": "食品制造业",
       "statutory_industry_code": "C14",
-      "valuation_peer_group": "消费服务 / 食品饮料",
+      "valuation_peer_group": "食品饮料 / 饮料乳品",
       "business_tags": [],
-      "industry_confidence": 0.8,
+      "industry_confidence": 0.95,
       "industry_evidence": [
-        "SW_INDUSTRY:食品制造业"
+        "ifind_sw:2026-10-12",
+        "issuer_business:乳制品及含乳饮料的制造与销售。"
       ],
       "old_shares": 0.0,
       "old_shares_desc": "待确认（当前按 0 万股计）",
@@ -9401,7 +9927,13 @@
         "issue": "920196_南方乳业_发行公告.pdf",
         "result": "",
         "listing": ""
-      }
+      },
+      "industry_tertiary": "乳品",
+      "chain_tags": [],
+      "industry_status": "confirmed",
+      "industry_candidates": [],
+      "industry_review_reasons": [],
+      "industry_classification_version": 4
     },
     {
       "SECURITY_CODE": "920202",
@@ -9432,19 +9964,20 @@
       "SW_INDUSTRY": "",
       "INDUSTRY": "汽车制造业",
       "INDUSTRY_CODE": "C36",
-      "industry_primary": "高端装备",
+      "industry_primary": "汽车",
       "industry_secondary": "汽车零部件",
-      "industry_source": "built_in_sample_map",
+      "industry_source": "market_reference",
       "statutory_industry": "汽车制造业",
       "statutory_industry_code": "C36",
-      "valuation_peer_group": "高端装备 / 汽车零部件",
+      "valuation_peer_group": "汽车 / 汽车零部件",
       "business_tags": [
         "汽车铝合金精密压铸件",
         "汽车零部件"
       ],
-      "industry_confidence": 1.0,
+      "industry_confidence": 0.95,
       "industry_evidence": [
-        "manual_review_2026-09-03"
+        "ifind_sw:2026-10-12",
+        "issuer_business:汽车领域铝合金精密压铸件的研发、生产和销售。"
       ],
       "old_shares": 0.0,
       "old_shares_desc": "待确认（当前按 0 万股计）",
@@ -9561,7 +10094,24 @@
       "average_price_unit_mode": "volume_shares_amount_yuan",
       "average_price_reference": 28.7,
       "replay_record_source": "",
-      "listing_date_source": ""
+      "listing_date_source": "",
+      "industry_tertiary": "底盘与发动机系统",
+      "chain_tags": [
+        "汽车产业链"
+      ],
+      "industry_status": "confirmed",
+      "industry_candidates": [],
+      "industry_review_reasons": [],
+      "industry_classification_version": 4
     }
-  ]
+  ],
+  "industry_reclassification": {
+    "version": 4,
+    "reference_signature": "0ca50679660321008fb93f48f6a37a6f4fd56146415ee148250f2f4ae5fec6f1",
+    "sample_count": 65,
+    "changed_groups": 58,
+    "review_codes": [],
+    "financial_and_price_fields_preserved": true,
+    "dry_run": false
+  }
 }

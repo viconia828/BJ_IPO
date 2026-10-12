@@ -32,13 +32,21 @@
     "INDUSTRY_CODE": "C27",
     "industry_primary": "医药生物",
     "industry_secondary": "医疗器械",
-    "industry_source": "built_in_sample_map",
+    "industry_source": "market_reference",
     "statutory_industry": "医药制造业",
     "statutory_industry_code": "C27",
     "valuation_peer_group": "医药生物 / 医疗器械",
     "business_tags": "['手术缝线', '介入耗材', '制药设备']",
-    "industry_confidence": 1.0,
-    "industry_evidence": "['manual_review_2026-09-03']"
+    "industry_confidence": 0.95,
+    "industry_evidence": "['ifind_sw:2026-10-12', 'issuer_business:以手术缝线为代表的外科手术医疗器械产品和多肽制药设备产品的研发、生产和销售。']",
+    "industry_tertiary": "医疗耗材",
+    "chain_tags": "[]",
+    "industry_status": "confirmed",
+    "industry_candidates": "[]",
+    "industry_review_reasons": "[]",
+    "industry_classification_version": 4,
+    "ISSUER_BUSINESS": null,
+    "MAIN_BUSINESS": null
   },
   "pdf_signature": {
     "files": {
@@ -93,7 +101,7 @@
     "INDUSTRY_CODE": "C27",
     "industry_primary": "医药生物",
     "industry_secondary": "医疗器械",
-    "industry_source": "built_in_sample_map",
+    "industry_source": "market_reference",
     "statutory_industry": "医药制造业",
     "statutory_industry_code": "C27",
     "valuation_peer_group": "医药生物 / 医疗器械",
@@ -102,9 +110,10 @@
       "介入耗材",
       "制药设备"
     ],
-    "industry_confidence": 1.0,
+    "industry_confidence": 0.95,
     "industry_evidence": [
-      "manual_review_2026-09-03"
+      "ifind_sw:2026-10-12",
+      "issuer_business:以手术缝线为代表的外科手术医疗器械产品和多肽制药设备产品的研发、生产和销售。"
     ],
     "old_shares": 0.0,
     "old_shares_desc": "待确认（当前按 0 万股计）",
@@ -167,6 +176,13 @@
     "average_price_unit_mode": "volume_shares_amount_yuan",
     "average_price_reference": 27.82,
     "replay_record_source": "",
-    "listing_date_source": ""
-  }
+    "listing_date_source": "",
+    "industry_tertiary": "医疗耗材",
+    "chain_tags": [],
+    "industry_status": "confirmed",
+    "industry_candidates": [],
+    "industry_review_reasons": [],
+    "industry_classification_version": 4
+  },
+  "industry_reclassification_version": 4
 }

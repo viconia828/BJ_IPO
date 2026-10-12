@@ -1,0 +1,200 @@
+{
+  "case": {
+    "code": "920165.BJ",
+    "name": "珈凯生物",
+    "listing_date": "2026-08-11 00:00:00",
+    "industry": "美容护理",
+    "chain_tags": [],
+    "candidate_codes": [
+      "300856.SZ",
+      "688363.SH",
+      "832402.NQ",
+      "920982.BJ"
+    ],
+    "evidence": "data/offline_tuning/replay_items/920165.json",
+    "peer_selection_status": "prospectus_candidates_pending_business_review"
+  },
+  "issuer_workpaper": "../companies/920165.BJ.json",
+  "pairs": [
+    {
+      "issuer": "920165.BJ",
+      "peer": "300856.SZ",
+      "peer_name": "科思股份",
+      "role": "candidate_pending_review",
+      "core_eligible": false,
+      "business_evidence": [
+        "data/peer_research/mcp/profiles_07e8e6482f.json",
+        "data/peer_research/mcp/profiles_451657bbe7.json"
+      ],
+      "issuer_product_terms": [],
+      "peer_product_terms": [],
+      "shared_product_terms": [],
+      "peer_to_issuer_revenue_ratio": 5.905701514803736,
+      "same_market": false,
+      "lossmaking_peer_retained": false,
+      "profitability_status": "盈利",
+      "checks": [
+        {
+          "rule": "M01",
+          "title": "业务匹配",
+          "status": "review",
+          "reason": "共同词：无；需阅读全文。仍需产品收入占比、技术/客户、产业链与盈利方式证据",
+          "evidence": [
+            "data/peer_research/mcp/profiles_07e8e6482f.json",
+            "data/peer_research/mcp/profiles_451657bbe7.json"
+          ]
+        },
+        {
+          "rule": "M02",
+          "title": "市场与亏损",
+          "status": "review",
+          "reason": "保留各市场与亏损候选；没有按PE高低筛选可比池",
+          "evidence": []
+        }
+      ],
+      "remaining_evidence": [
+        "主要产品收入占比",
+        "产业链位置及客户用途",
+        "技术及盈利模式",
+        "核心/辅助/题材角色复核",
+        "历史可得版本"
+      ]
+    },
+    {
+      "issuer": "920165.BJ",
+      "peer": "688363.SH",
+      "peer_name": "华熙生物",
+      "role": "candidate_pending_review",
+      "core_eligible": false,
+      "business_evidence": [
+        "data/peer_research/mcp/profiles_451657bbe7.json",
+        "data/peer_research/mcp/profiles_7c5ee99bbf.json"
+      ],
+      "issuer_product_terms": [],
+      "peer_product_terms": [],
+      "shared_product_terms": [],
+      "peer_to_issuer_revenue_ratio": 11.620244634714783,
+      "same_market": false,
+      "lossmaking_peer_retained": false,
+      "profitability_status": "盈利",
+      "checks": [
+        {
+          "rule": "M01",
+          "title": "业务匹配",
+          "status": "review",
+          "reason": "共同词：无；需阅读全文。仍需产品收入占比、技术/客户、产业链与盈利方式证据",
+          "evidence": [
+            "data/peer_research/mcp/profiles_451657bbe7.json",
+            "data/peer_research/mcp/profiles_7c5ee99bbf.json"
+          ]
+        },
+        {
+          "rule": "M02",
+          "title": "市场与亏损",
+          "status": "review",
+          "reason": "保留各市场与亏损候选；没有按PE高低筛选可比池",
+          "evidence": []
+        }
+      ],
+      "remaining_evidence": [
+        "主要产品收入占比",
+        "产业链位置及客户用途",
+        "技术及盈利模式",
+        "核心/辅助/题材角色复核",
+        "历史可得版本"
+      ]
+    },
+    {
+      "issuer": "920165.BJ",
+      "peer": "832402.NQ",
+      "peer_name": "辉文生物",
+      "role": "candidate_pending_review",
+      "core_eligible": false,
+      "business_evidence": [
+        "data/peer_research/mcp/profiles_451657bbe7.json",
+        "data/peer_research/mcp/profiles_f19807915a.json"
+      ],
+      "issuer_product_terms": [],
+      "peer_product_terms": [],
+      "shared_product_terms": [],
+      "peer_to_issuer_revenue_ratio": 0.5995051544690764,
+      "same_market": false,
+      "lossmaking_peer_retained": false,
+      "profitability_status": "盈利",
+      "checks": [
+        {
+          "rule": "M01",
+          "title": "业务匹配",
+          "status": "review",
+          "reason": "共同词：无；需阅读全文。仍需产品收入占比、技术/客户、产业链与盈利方式证据",
+          "evidence": [
+            "data/peer_research/mcp/profiles_451657bbe7.json",
+            "data/peer_research/mcp/profiles_f19807915a.json"
+          ]
+        },
+        {
+          "rule": "M02",
+          "title": "市场与亏损",
+          "status": "review",
+          "reason": "保留各市场与亏损候选；没有按PE高低筛选可比池",
+          "evidence": []
+        }
+      ],
+      "remaining_evidence": [
+        "主要产品收入占比",
+        "产业链位置及客户用途",
+        "技术及盈利模式",
+        "核心/辅助/题材角色复核",
+        "历史可得版本"
+      ]
+    },
+    {
+      "issuer": "920165.BJ",
+      "peer": "920982.BJ",
+      "peer_name": "锦波生物",
+      "role": "candidate_pending_review",
+      "core_eligible": false,
+      "business_evidence": [
+        "data/peer_research/mcp/profiles_4476510579.json",
+        "data/peer_research/mcp/profiles_451657bbe7.json"
+      ],
+      "issuer_product_terms": [],
+      "peer_product_terms": [
+        "医疗器械"
+      ],
+      "shared_product_terms": [],
+      "peer_to_issuer_revenue_ratio": 5.102079096616132,
+      "same_market": true,
+      "lossmaking_peer_retained": false,
+      "profitability_status": "盈利",
+      "checks": [
+        {
+          "rule": "M01",
+          "title": "业务匹配",
+          "status": "review",
+          "reason": "共同词：无；需阅读全文。仍需产品收入占比、技术/客户、产业链与盈利方式证据",
+          "evidence": [
+            "data/peer_research/mcp/profiles_4476510579.json",
+            "data/peer_research/mcp/profiles_451657bbe7.json"
+          ]
+        },
+        {
+          "rule": "M02",
+          "title": "市场与亏损",
+          "status": "pass",
+          "reason": "保留各市场与亏损候选；没有按PE高低筛选可比池",
+          "evidence": []
+        }
+      ],
+      "remaining_evidence": [
+        "主要产品收入占比",
+        "产业链位置及客户用途",
+        "技术及盈利模式",
+        "核心/辅助/题材角色复核",
+        "历史可得版本"
+      ]
+    }
+  ],
+  "pricing_eligible": false,
+  "fundamental_anchor_changed": false
+}

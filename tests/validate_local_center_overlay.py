@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import json
 import math
 import sys
 from pathlib import Path
@@ -11,7 +10,6 @@ CODE = ROOT / "code"
 if str(CODE) not in sys.path:
     sys.path.insert(0, str(CODE))
 
-import config_loader
 import param_tuning
 import valuation_engine
 
@@ -103,15 +101,24 @@ def main() -> None:
     if insufficient.get("local_center_overlay_applied") is not False or insufficient.get("target_price") != 30.0:
         failures.append("insufficient history should preserve the original center")
 
-    dataset = json.loads((ROOT / "data" / "offline_tuning" / "replay_dataset.json").read_text(encoding="utf-8"))
-    formal_params = config_loader.load_params(ROOT / "策略参数.txt")
-    replay_params = dict(formal_params)
-    replay_params.update(_params())
-    replay = param_tuning.evaluate_replay_targets(dataset, replay_params)
-    if not math.isclose(float(replay.get("interval_hit_rate") or 0.0), 5 / 40, rel_tol=1e-9):
-        failures.append("formal replay should hit 5/40 after industry completion and method2 confidence weighting")
-    if not math.isclose(float(replay.get("mae_change_pct") or 0.0), 130.8751441275241, rel_tol=1e-9):
-        failures.append("formal replay MAE should match the current industry and method2-confidence contract")
+    # A frozen, analytically checkable replay replaces a golden statistic tied
+    # to an ever-growing on-disk dataset. Constant 100% history implies a 100%
+    # local prediction. Two same-day targets cannot train on each other's label.
+    flat_history = [{**row, "LD_AVERAGE_CHANGE": 100.0,
+        "AVERAGE_PRICE": float(row["ISSUE_PRICE"]) * 2} for row in history]
+    targets = [{**history[0], "SECURITY_CODE": code, "LISTING_DATE": "2026-02-01",
+        "AVERAGE_PRICE": actual, "LD_AVERAGE_CHANGE": (actual / 10 - 1) * 100,
+        "method1_replay_available": True,
+        "comparable_data": [{"code": "600001.SH", "pe_ttm": 24, "trade_date": "20260130"},
+                            {"code": "600002.SH", "pe_ttm": 24, "trade_date": "20260130"}]}
+        for code, actual in (("920998", 20.0), ("920999", 40.0))]
+    dataset = {"items": flat_history + targets}
+    replay = param_tuning.evaluate_replay_targets(dataset, _params(local_center_alpha=1.0),
+                                                 target_codes=["920998", "920999"])
+    if not math.isclose(float(replay.get("interval_hit_rate") or 0.0), .5, rel_tol=1e-9):
+        failures.append("constant-history replay must hit the 20-yuan target and miss the 40-yuan target")
+    if not math.isclose(float(replay.get("mae_change_pct") or 0.0), 100.0, rel_tol=1e-9):
+        failures.append("constant-history replay must have mean absolute error (0+200)/2 = 100 points")
 
     if failures:
         raise AssertionError("\n".join(failures))

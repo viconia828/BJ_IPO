@@ -2477,7 +2477,15 @@ def build_subscription_prediction(
         all_fractional_scenario.get("time_priority_status")
         or ("must" if time_required else "none")
     )
-    if top_apply_below_guaranteed:
+    fractional_time_priority_known = bool(
+        fractional_amount_wan is not None
+        or leftover_lots is not None
+        or all_fractional_scenario.get("available")
+    )
+    if not fractional_time_priority_known:
+        fractional_time_priority_status = "unknown"
+        fractional_time_priority_overview_text = "待确认"
+    elif top_apply_below_guaranteed:
         fractional_time_priority_overview_text = {
             "must": "必须",
             "possible": "可能",
@@ -2496,7 +2504,9 @@ def build_subscription_prediction(
         time_priority_scope = "possible_top_apply_accounts"
     elif time_required:
         time_priority_scope = "all_top_apply_accounts" if top_apply_time_priority_required else "fractional_cutoff"
-    if top_apply_below_guaranteed and fractional_time_priority_status == "must":
+    if not fractional_time_priority_known:
+        fractional_time_priority_note = "待确认（缺少申购分布或账户池，无法判断碎股门槛与时间优先）"
+    elif top_apply_below_guaranteed and fractional_time_priority_status == "must":
         fractional_time_priority_note = "必须抢时间（全员碎股，顶格账户已超过或覆盖碎股名额）"
     elif top_apply_below_guaranteed and fractional_time_priority_status == "possible":
         fractional_time_priority_note = "可能需要抢时间（全员碎股，分户后门槛可能上移至顶格）"
@@ -2538,7 +2548,7 @@ def build_subscription_prediction(
         ["碎股获配门槛", _fmt_amount_wan(fractional_amount_wan), fractional_basis],
         [
             "碎股是否抢时间",
-            {"must": "必须", "possible": "可能"}.get(fractional_time_priority_status, "否"),
+            {"must": "必须", "possible": "可能", "unknown": "待确认"}.get(fractional_time_priority_status, "否"),
             fractional_basis,
         ],
         ["顶格抢时间提示", top_apply_time_priority_note, "top_apply_vs_guaranteed"],
@@ -2551,7 +2561,7 @@ def build_subscription_prediction(
                 else (
                     "全员碎股，顶格可能抢时间"
                     if top_apply_below_guaranteed and fractional_time_priority_status == "possible"
-                    else ("碎股边界抢时间" if time_required else "否")
+                    else ("待确认" if not fractional_time_priority_known else ("碎股边界抢时间" if time_required else "否"))
                 )
             ),
             fractional_basis,
@@ -2681,6 +2691,7 @@ def build_subscription_prediction(
         "fractional_threshold_shares": fractional_shares,
         "fractional_threshold_amount_wan": fractional_amount_wan,
         "fractional_time_priority_required": time_required,
+        "fractional_time_priority_known": fractional_time_priority_known,
         "fractional_time_priority_status": fractional_time_priority_status,
         "fractional_time_priority_note": fractional_time_priority_note,
         "fractional_time_priority_limit_label": fractional_time_priority_limit_label,

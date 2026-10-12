@@ -24,6 +24,8 @@ import report_generator
 import subscription_ladder_labels
 import subscription_predictor
 import valuation_engine
+import quality_sentiment
+import quality_sentiment_data
 from industry_mapping import IndustryMapper
 
 
@@ -749,7 +751,7 @@ def _apply_issue_document_info(
     limit_wan_shares = _safe_float(fields.get("SUBSCRIPTION_LIMIT_WAN_SHARES"))
     issue_price = _safe_float(fields.get("ISSUE_PRICE")) or _safe_float(ipo_info.get("ISSUE_PRICE"))
     if (
-        _value_is_missing(ipo_info.get("TOP_APPLY_MARKETCAP"))
+        (_value_is_missing(ipo_info.get("TOP_APPLY_MARKETCAP")) or "TOP_APPLY_MARKETCAP" in overwrite_fields)
         and _value_is_missing(fields.get("TOP_APPLY_MARKETCAP"))
         and limit_wan_shares is not None
         and limit_wan_shares > 0
@@ -773,6 +775,11 @@ def _apply_issue_document_info(
             continue
         existing_value = ipo_info.get(field_name)
         existing_missing = _value_is_missing(existing_value)
+        if (
+            field_name == "SECURITY_NAME_ABBR"
+            and str(existing_value or "").strip().split(".", 1)[0] == _target_code(ipo_info)
+        ):
+            existing_missing = True
         if not existing_missing and field_name not in overwrite_fields:
             continue
         if not existing_missing and existing_value != value:
@@ -841,9 +848,9 @@ def _apply_issue_announcement_info(
         supplemented_fields_key="issue_announcement_supplemented_fields",
         info_file_key="issue_announcement_info_file",
         field_sources_key="issue_announcement_field_sources",
-        # 行情接口的网上发行量可能是超额配售启用前口径；申购预测必须
-        # 以发行公告披露的含超额配售网上发行量为准。
-        overwrite_fields=("ONLINE_ISSUE_NUM",),
+        # 发行公告的最终价格及含超额配售网上发行量优先于行情接口或
+        # 较早招股稿；价格更新时也同步其派生的顶格申购金额。
+        overwrite_fields=("ISSUE_PRICE", "TOP_APPLY_MARKETCAP", "ONLINE_ISSUE_NUM"),
     )
 
 
@@ -1149,7 +1156,14 @@ def build_analysis_data(
             issue_result_parse_error = str(exc)
             ipo_data_summary["issue_result_parse_error"] = issue_result_parse_error
 
-    industry = mapper.resolve_stock_industry(code, ipo_info)
+    company_description = (
+        pdf_parser.extract_business_desc(business_pdf)
+        if business_pdf
+        else str(ipo_info.get("MAIN_BUSINESS", "") or "")
+    )
+    if not company_description:
+        company_description = str(ipo_info.get("MAIN_BUSINESS", "") or "")
+    industry = mapper.resolve_stock_industry(code, {**ipo_info, "ISSUER_BUSINESS": company_description})
 
     old_shares, old_shares_desc, old_shares_meta = _resolve_old_shares(params, listing_pdf, old_shares_fallback_pdf)
     total_issue_num = _safe_float(ipo_info.get("TOTAL_ISSUE_NUM")) or 0.0
@@ -1157,6 +1171,7 @@ def build_analysis_data(
 
     comparable_codes = _load_comparable_codes(params, comparable_pdf)
     comparable_data = []
+    comparable_fundamental_candidates = []
     comparable_summary = {
         "provider": str(params.get("comparable_data_source", "wind")),
         "channel": str(params.get("wind_channel", "disabled")),
@@ -1187,18 +1202,11 @@ def build_analysis_data(
             progress_callback(f"公告已读取，正在获取 {len(comparable_codes)} 家可比公司的行情及估值数据，请稍候。")
         comparable_result = comparable_data_helper.get_comparable_valuations(comparable_codes, params)
         comparable_data = comparable_result.get("items") or []
+        comparable_fundamental_candidates = comparable_result.get("fundamental_candidates") or []
         comparable_summary = comparable_result.get("summary") or comparable_summary
 
     if progress_callback is not None:
         progress_callback("资料已整理，正在计算估值并生成报告。")
-
-    company_description = (
-        pdf_parser.extract_business_desc(business_pdf)
-        if business_pdf
-        else str(ipo_info.get("MAIN_BUSINESS", "") or "")
-    )
-    if not company_description:
-        company_description = str(ipo_info.get("MAIN_BUSINESS", "") or "")
 
     recent_ipos = list(ipo_data_bundle.get("recent_ipos") or [])
     recent_ipos = [item for item in recent_ipos if item.get("SECURITY_CODE") != code]
@@ -1274,6 +1282,23 @@ def build_analysis_data(
         top_apply_marketcap=_safe_float(ipo_info.get("TOP_APPLY_MARKETCAP")),
     )
 
+    if str(params.get("quality_sentiment_mode", "shadow")) != "off":
+        quality_history, quality_input_audit = quality_sentiment_data.load_history()
+        known_codes = {str(row.get("SECURITY_CODE")) for row in quality_history}
+        additional = [row for row in recent_ipos if str(row.get("SECURITY_CODE")) not in known_codes]
+        if additional:
+            quality_history.extend(quality_sentiment_data.normalize_history(additional)[0])
+        quality_target = {**ipo_info, "comparable_data": comparable_data,
+                          "industry_primary": industry.primary, "industry_secondary": industry.secondary}
+        quality_target = quality_sentiment_data.with_fundamental_review(quality_target)
+        quality_result = quality_sentiment.evaluate(
+            quality_target, quality_history, params,
+            as_of=quality_sentiment.live_cutoff(ipo_info.get("LISTING_DATE")),
+        )
+        quality_result["input_correction_count"] = len(quality_input_audit)
+        quality_result["forward_snapshot"] = quality_sentiment_data.save_forward_snapshot(quality_target, quality_result)
+        final = quality_sentiment.attach(final, quality_result)
+
     final_change_pct = _calc_change_pct(issue_price, final.get("target_price"))
     range_change_low = _calc_change_pct(issue_price, final.get("range_low"))
     range_change_high = _calc_change_pct(issue_price, final.get("range_high"))
@@ -1310,6 +1335,11 @@ def build_analysis_data(
             "statutory_industry_code": getattr(industry, "statutory_industry_code", str(ipo_info.get("INDUSTRY_CODE") or "").strip()),
             "valuation_peer_group": industry.display_name,
             "business_tags": list(getattr(industry, "business_tags", ())),
+            "chain_tags": list(getattr(industry, "chain_tags", ())),
+            "tertiary": getattr(industry, "tertiary", ""),
+            "status": getattr(industry, "status", "confirmed"),
+            "candidate_groups": list(getattr(industry, "candidate_groups", ())),
+            "review_reasons": list(getattr(industry, "review_reasons", ())),
             "confidence": float(getattr(industry, "confidence", 0.0)),
             "evidence": list(getattr(industry, "evidence", ())),
         },
@@ -1331,6 +1361,7 @@ def build_analysis_data(
         "issue_result_parse_error": issue_result_parse_error,
         "comparable_codes": comparable_codes,
         "comparable_data": comparable_data,
+        "comparable_fundamental_candidates": comparable_fundamental_candidates,
         "comparable_summary": comparable_summary,
         "wind_summary": comparable_summary,
         "ipo_data_summary": ipo_data_summary,

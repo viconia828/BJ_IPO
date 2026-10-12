@@ -282,63 +282,63 @@ def _run_online_issue_priority_cases(failures: list[str]) -> None:
 def _run_industry_mapping_case(failures: list[str]) -> None:
     mapper = IndustryMapper({"industry_mapping": {"矿物制品": "化工新材 / 非金属材料"}})
     industry = mapper.resolve_stock_industry("920083", {"INDUSTRY": "非金属矿物制品业"})
-    _assert(industry.display_name == "化工新材 / 非金属材料", "industry mapping: substring alias mismatch", failures)
+    _assert(industry.display_name == "基础化工 / 非金属材料", "industry mapping: substring alias mismatch", failures)
     auto_parts = mapper.resolve_stock_industry("920079", {"INDUSTRY": "汽车制造业", "INDUSTRY_CODE": "C36"})
-    _assert(auto_parts.display_name == "高端装备 / 汽车零部件", "industry code mapping: C36 should map to auto parts", failures)
-    _assert(auto_parts.source == "built_in_sample_map", "industry mapping: audited code mapping should take precedence", failures)
+    _assert(auto_parts.display_name == "汽车 / 汽车零部件", "industry code mapping: C36 should map to auto parts", failures)
+    _assert(auto_parts.source == "market_reference", "industry mapping: audited code mapping should take precedence", failures)
     known_auto_parts = mapper.resolve_stock_industry("920086", {"INDUSTRY": "汽车制造业", "INDUSTRY_CODE": "C36"})
-    _assert(known_auto_parts.display_name == "高端装备 / 汽车零部件", "industry mapping: known C36 sample should stay auto parts", failures)
+    _assert(known_auto_parts.display_name == "汽车 / 汽车零部件", "industry mapping: known C36 sample should stay auto parts", failures)
     langxin_auto_parts = mapper.resolve_stock_industry("920220", {})
-    _assert(langxin_auto_parts.display_name == "高端装备 / 汽车零部件", "industry mapping: 朗信电气 should be auto parts", failures)
+    _assert(langxin_auto_parts.display_name == "汽车 / 汽车零部件", "industry mapping: 朗信电气 should be auto parts", failures)
     yongli_auto_parts = mapper.resolve_stock_industry("920136", {})
-    _assert(yongli_auto_parts.display_name == "高端装备 / 汽车零部件", "industry mapping: 永励精密 should be auto parts", failures)
+    _assert(yongli_auto_parts.display_name == "汽车 / 汽车零部件", "industry mapping: 永励精密 should be auto parts", failures)
     zhongkeyi_semiconductor = mapper.resolve_stock_industry("920186", {})
-    _assert(zhongkeyi_semiconductor.display_name == "信息技术 / 半导体制造", "industry mapping: 中科仪 should be semiconductor", failures)
+    _assert(zhongkeyi_semiconductor.display_name == "电子 / 半导体", "industry mapping: 中科仪 should be semiconductor", failures)
     oulun_appliance = mapper.resolve_stock_industry("920081", {})
-    _assert(oulun_appliance.display_name == "消费服务 / 家用电器", "industry mapping: 欧伦电气 home appliances should stay separate from consumer electronics", failures)
+    _assert(oulun_appliance.display_name == "家用电器 / 小家电", "industry mapping: 欧伦电气 home appliances should stay separate from consumer electronics", failures)
     nongda_fertilizer = mapper.resolve_stock_industry("920159", {})
-    _assert(nongda_fertilizer.display_name == "化工新材 / 化学制品", "industry mapping: 农大科技 fertilizer should be chemical products", failures)
+    _assert(nongda_fertilizer.display_name == "基础化工 / 农化制品", "industry mapping: 农大科技 fertilizer should be chemical products", failures)
     chuangda_packaging = mapper.resolve_stock_industry("920012", {})
-    _assert(chuangda_packaging.display_name == "信息技术 / 半导体制造", "industry mapping: 创达新材 semiconductor packaging materials should remain semiconductor", failures)
+    _assert(chuangda_packaging.display_name == "电子 / 半导体", "industry mapping: 创达新材 semiconductor packaging materials should remain semiconductor", failures)
     confirmed_industries = {
-        "920025": "高端装备 / 机械设备",
+        "920025": "机械设备 / 专用设备",
         "920072": "医药生物 / 医疗器械",
-        "920076": "化工新材 / 非金属材料",
-        "920083": "化工新材 / 非金属材料",
-        "920096": "高端装备 / 电气设备",
-        "920119": "高端装备 / 机械设备",
-        "920125": "信息技术 / 半导体制造",
-        "920126": "高端装备 / 机械设备",
-        "920156": "高端装备 / 机械设备",
-        "920161": "化工新材 / 橡胶和塑料制品业",
-        "920178": "高端装备 / 机械设备",
-        "920188": "化工新材 / 橡胶和塑料制品业",
-        "920189": "信息技术 / 半导体制造",
-        "920191": "化工新材 / 非金属材料",
-        "920193": "化工新材 / 化学制品",
-        "920200": "高端装备 / 机械设备",
-        "920211": "高端装备 / 机械设备",
-        "920218": "化工新材 / 橡胶和塑料制品业",
-        "920222": "高端装备 / 电气设备",
-        "920229": "高端装备 / 机械设备",
-        "920038": "化工新材 / 金属新材料",
-        "920059": "高端装备 / 汽车零部件",
-        "920065": "消费服务 / 商贸零售",
-        "920071": "化工新材 / 金属新材料",
-        "920079": "高端装备 / 汽车零部件",
-        "920093": "高端装备 / 机械设备",
-        "920107": "化工新材 / 化学制品",
-        "920117": "高端装备 / 机械设备",
-        "920138": "信息技术 / 半导体制造",
-        "920165": "医药生物 / 生物制品",
-        "920176": "医药生物 / 生物制品",
+        "920076": "建筑材料 / 装修建材",
+        "920083": "基础化工 / 非金属材料",
+        "920096": "机械设备 / 自动化设备",
+        "920119": "电力设备 / 电池",
+        "920125": "机械设备 / 自动化设备",
+        "920126": "机械设备 / 专用设备",
+        "920156": "机械设备 / 专用设备",
+        "920161": "电子 / 元件",
+        "920178": "机械设备 / 自动化设备",
+        "920188": "基础化工 / 橡胶",
+        "920189": "电子 / 半导体",
+        "920191": "建筑材料 / 装修建材",
+        "920193": "基础化工 / 化学制品",
+        "920200": "电力设备 / 风电设备",
+        "920211": "机械设备 / 自动化设备",
+        "920218": "轻工制造 / 家居用品",
+        "920222": "电力设备 / 电网设备",
+        "920229": "机械设备 / 专用设备",
+        "920038": "基础化工 / 化学制品",
+        "920059": "汽车 / 汽车零部件",
+        "920065": "商贸零售 / 互联网电商",
+        "920071": "有色金属 / 小金属",
+        "920079": "汽车 / 汽车零部件",
+        "920093": "机械设备 / 专用设备",
+        "920107": "基础化工 / 化学制品",
+        "920117": "电力设备 / 电池",
+        "920138": "电子 / 半导体",
+        "920165": "美容护理 / 化妆品",
+        "920176": "美容护理 / 化妆品",
         "920201": "医药生物 / 医疗器械",
-        "920202": "高端装备 / 汽车零部件",
-        "920238": "高端装备 / 金属制品业",
-        "920258": "化工新材 / 化学制品",
+        "920202": "汽车 / 汽车零部件",
+        "920238": "机械设备 / 通用设备",
+        "920258": "基础化工 / 化学制品",
         "920268": "医药生物 / 医疗器械",
-        "920288": "消费服务 / 轻工制造",
-        "920298": "高端装备 / 机械设备",
+        "920288": "轻工制造 / 造纸",
+        "920298": "机械设备 / 通用设备",
     }
     for code, expected in confirmed_industries.items():
         actual = mapper.resolve_stock_industry(code, {}).display_name
@@ -346,7 +346,7 @@ def _run_industry_mapping_case(failures: list[str]) -> None:
     production_mapper = IndustryMapper(config_loader.load_params(ROOT_DIR / "策略参数.txt"))
     home_appliance = production_mapper.resolve_stock_industry("fixture", {"INDUSTRY": "家用电器"})
     _assert(
-        home_appliance.display_name == "消费服务 / 家用电器",
+        home_appliance.display_name == "家用电器",
         "industry mapping: the production taxonomy must keep home appliances separate from consumer electronics",
         failures,
     )
@@ -360,11 +360,43 @@ def _run_industry_mapping_case(failures: list[str]) -> None:
     _assert(baizhi.display_name == "医药生物 / 医疗器械", "industry mapping: 920201 peer group mismatch", failures)
     _assert(baizhi.statutory_industry == "医药制造业", "industry mapping: legal industry should be retained", failures)
     _assert("植入耗材" in baizhi.business_tags, "industry mapping: 920201 business tags missing", failures)
-    _assert(baizhi.confidence == 1.0, "industry mapping: audited mapping confidence mismatch", failures)
+    _assert(baizhi.confidence == 0.95, "industry mapping: audited mapping confidence mismatch", failures)
     broad_c27 = mapper.resolve_stock_industry("fixture", {"INDUSTRY": "医药制造业", "INDUSTRY_CODE": "C27"})
     _assert(broad_c27.display_name == "未分类", "industry mapping: broad C27 must not invent a peer group", failures)
     paper = production_mapper.resolve_stock_industry("fixture", {"INDUSTRY": "造纸和纸制品业", "INDUSTRY_CODE": "C22"})
-    _assert(paper.display_name == "消费服务 / 轻工制造", "industry mapping: two-character 造纸 alias mismatch", failures)
+    _assert(paper.display_name == "轻工制造 / 造纸", "industry mapping: two-character 造纸 alias mismatch", failures)
+
+
+def _run_price_label_and_precedence_cases(failures: list[str]) -> None:
+    table = """
+本次发行概况
+每股发行价格 20.30
+预计发行日期 2026 年 10 月 14 日
+发行后总股本 6,900.00 万股
+发行人基本情况
+发行后基本每股收益为 1.69 元/股，每股净资产为 11.81 元/股。
+"""
+    for label in ("每股发行价格", "每股发行价格（元/股）"):
+        result = pdf_parser._extract_prospectus_issue_info_from_text(table.replace("每股发行价格", label))
+        _assert_close(result["fields"].get("ISSUE_PRICE"), 20.30, "unitless price table", failures)
+    for text in (
+        "发行后基本每股收益为 1.69 元/股，每股净资产为 11.81 元/股。",
+        "每股发行价格暂未确定，预计发行日期 2026 年 10 月 14 日。每股收益为 1.69 元/股。",
+        "发行后市盈率以发行价格除以发行后的基本每股收益为 1.69 元/股计算。",
+    ):
+        fields = pdf_parser._extract_prospectus_issue_info_from_text(text)["fields"]
+        _assert("ISSUE_PRICE" not in fields, "EPS/NAV must not become issue price", failures)
+
+    ipo_info = {"SECURITY_CODE": "920285", "SECURITY_NAME_ABBR": "920285", "ISSUE_PRICE": 1.69, "TOP_APPLY_MARKETCAP": 152.1}
+    summary: dict[str, Any] = {}
+    info = {"fields": {"SECURITY_NAME_ABBR": "远大健科", "ISSUE_PRICE": 20.30, "SUBSCRIPTION_LIMIT_WAN_SHARES": 90.0}}
+    bse_ipo_valuation._apply_issue_announcement_info(ipo_info, summary, info)
+    _assert(ipo_info["SECURITY_NAME_ABBR"] == "远大健科", "code placeholder name must be supplemented", failures)
+    _assert_close(ipo_info["ISSUE_PRICE"], 20.30, "final issue announcement price precedence", failures)
+    _assert_close(ipo_info["TOP_APPLY_MARKETCAP"], 1827.0, "price correction must update subscription cap", failures)
+    ipo_info["SECURITY_NAME_ABBR"] = "已核实名称"
+    bse_ipo_valuation._apply_issue_announcement_info(ipo_info, summary, info)
+    _assert(ipo_info["SECURITY_NAME_ABBR"] == "已核实名称", "real names must be retained", failures)
 
 
 def main() -> int:
@@ -376,6 +408,7 @@ def main() -> int:
     _run_issue_result_parser_case(failures)
     _run_online_issue_priority_cases(failures)
     _run_industry_mapping_case(failures)
+    _run_price_label_and_precedence_cases(failures)
     if failures:
         for failure in failures:
             print(f"FAIL: {failure}")

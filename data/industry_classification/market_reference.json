@@ -1,0 +1,855 @@
+{
+  "schema": "market_industry_reference_v1",
+  "version": 1,
+  "reference_date": "2026-10-12",
+  "source": "iFind stock_info / SW industry and issuer business",
+  "notes": [
+    "以申万行业名称作为本地市场行业参考；法定行业单独保留。",
+    "行业参考为2026-10-12静态核验快照，业务与产业链标签独立；不写入未来行情或财务数据。"
+  ],
+  "stocks": {
+    "920011": {
+      "name": "晨光电机",
+      "primary": "电力设备",
+      "secondary": "电机",
+      "tertiary": "电机",
+      "main_business": "微特电机研发、生产和销售。",
+      "reference_sw": "电力设备--电机Ⅱ--电机Ⅲ",
+      "reference_ths": "电力设备--电机--电机Ⅲ",
+      "source": "ifind_stock_info",
+      "reference_date": "2026-10-12",
+      "chain_tags": []
+    },
+    "920012": {
+      "name": "创达新材",
+      "primary": "电子",
+      "secondary": "半导体",
+      "tertiary": "半导体材料",
+      "main_business": "高性能热固性复合材料的研发、生产、销售和技术服务",
+      "reference_sw": "电子--半导体--半导体材料",
+      "reference_ths": "电子--半导体--半导体材料",
+      "source": "ifind_stock_info",
+      "reference_date": "2026-10-12",
+      "chain_tags": [
+        "半导体产业链"
+      ]
+    },
+    "920025": {
+      "name": "凯达重工",
+      "primary": "机械设备",
+      "secondary": "专用设备",
+      "tertiary": "其他专用设备",
+      "main_business": "轧辊、辊环等钢材轧制关键部件的研发、生产、销售。",
+      "reference_sw": "机械设备--专用设备--其他专用设备",
+      "reference_ths": "机械设备--专用设备--其他专用设备",
+      "source": "ifind_stock_info",
+      "reference_date": "2026-10-12",
+      "chain_tags": [
+        "钢铁产业链"
+      ]
+    },
+    "920028": {
+      "name": "新恒泰",
+      "primary": "基础化工",
+      "secondary": "塑料",
+      "tertiary": "其他塑料制品",
+      "main_business": "功能性高分子发泡材料的研发、制造和销售",
+      "reference_sw": "基础化工--塑料--其他塑料制品",
+      "reference_ths": "基础化工--塑料制品--其他塑料制品",
+      "source": "ifind_stock_info",
+      "reference_date": "2026-10-12",
+      "chain_tags": []
+    },
+    "920036": {
+      "name": "觅睿科技",
+      "primary": "计算机",
+      "secondary": "计算机设备",
+      "tertiary": "安防设备",
+      "main_business": "集硬件、软件、云服务、AI为一体的智能网络摄像机及物联网视频产品的研发、设计、生产和销售。",
+      "reference_sw": "计算机--计算机设备--安防设备",
+      "reference_ths": "计算机--计算机设备--安防设备",
+      "source": "ifind_stock_info",
+      "reference_date": "2026-10-12",
+      "chain_tags": []
+    },
+    "920038": {
+      "name": "森合高科",
+      "primary": "基础化工",
+      "secondary": "化学制品",
+      "tertiary": "其他化学制品",
+      "main_business": "环保型贵金属选矿剂的研发、生产及销售。",
+      "reference_sw": "基础化工--化学制品--其他化学制品",
+      "reference_ths": "基础化工--化学制品--其他化学制品",
+      "source": "ifind_stock_info",
+      "reference_date": "2026-10-12",
+      "chain_tags": [
+        "矿业产业链"
+      ]
+    },
+    "920050": {
+      "name": "爱伦医疗",
+      "primary": "医药生物",
+      "secondary": "医疗器械",
+      "tertiary": "医疗耗材",
+      "main_business": "一次性医用耗材的研发、生产和销售。",
+      "reference_sw": "医药生物--医疗器械--医疗耗材",
+      "reference_ths": "医药生物--医疗器械--医疗耗材",
+      "source": "ifind_stock_info",
+      "reference_date": "2026-10-12",
+      "chain_tags": []
+    },
+    "920055": {
+      "name": "隆源股份",
+      "primary": "汽车",
+      "secondary": "汽车零部件",
+      "tertiary": "底盘与发动机系统",
+      "main_business": "铝合金精密压铸件的研发、生产与销售。",
+      "reference_sw": "汽车--汽车零部件--底盘与发动机系统",
+      "reference_ths": "汽车--汽车零部件--底盘与发动机系统",
+      "source": "ifind_stock_info",
+      "reference_date": "2026-10-12",
+      "chain_tags": [
+        "汽车产业链"
+      ]
+    },
+    "920059": {
+      "name": "双英集团",
+      "primary": "汽车",
+      "secondary": "汽车零部件",
+      "tertiary": "车身附件及饰件",
+      "main_business": "汽车座椅、汽车内外饰件研发、生产和销售。",
+      "reference_sw": "汽车--汽车零部件--车身附件及饰件",
+      "reference_ths": "汽车--汽车零部件--车身附件及饰件",
+      "source": "ifind_stock_info",
+      "reference_date": "2026-10-12",
+      "chain_tags": [
+        "汽车产业链"
+      ]
+    },
+    "920065": {
+      "name": "千岸科技",
+      "primary": "商贸零售",
+      "secondary": "互联网电商",
+      "tertiary": "跨境电商",
+      "main_business": "公司从事自有品牌产品的研发、设计和销售，产品覆盖数码电子、艺术创作、家居庭院、运动户外四大领域。",
+      "reference_sw": "商贸零售--互联网电商--跨境电商",
+      "reference_ths": "商贸零售--互联网电商--互联网电商Ⅲ",
+      "source": "ifind_stock_info",
+      "reference_date": "2026-10-12",
+      "chain_tags": []
+    },
+    "920069": {
+      "name": "普昂医疗",
+      "primary": "医药生物",
+      "secondary": "医疗器械",
+      "tertiary": "医疗耗材",
+      "main_business": "糖尿病护理、通用给药输注、微创介入类医疗器械的研发、生产和销售。",
+      "reference_sw": "医药生物--医疗器械--医疗耗材",
+      "reference_ths": "医药生物--医疗器械--医疗耗材",
+      "source": "ifind_stock_info",
+      "reference_date": "2026-10-12",
+      "chain_tags": []
+    },
+    "920071": {
+      "name": "金钛股份",
+      "primary": "有色金属",
+      "secondary": "小金属",
+      "tertiary": "其他小金属",
+      "main_business": "海绵钛系列产品的研发、生产和销售。",
+      "reference_sw": "有色金属--小金属--其他小金属",
+      "reference_ths": "有色金属--小金属--其他小金属",
+      "source": "ifind_stock_info",
+      "reference_date": "2026-10-12",
+      "chain_tags": []
+    },
+    "920072": {
+      "name": "科莱瑞迪",
+      "primary": "医药生物",
+      "secondary": "医疗器械",
+      "tertiary": "医疗耗材",
+      "main_business": "肿瘤放射治疗中的放疗定位装置以及康复治疗中康复辅助器械的研发、生产和销售。",
+      "reference_sw": "医药生物--医疗器械--医疗耗材",
+      "reference_ths": "医药生物--医疗器械--医疗耗材",
+      "source": "ifind_stock_info",
+      "reference_date": "2026-10-12",
+      "chain_tags": []
+    },
+    "920076": {
+      "name": "国亮新材",
+      "primary": "建筑材料",
+      "secondary": "装修建材",
+      "tertiary": "耐火材料",
+      "main_business": "提供高温工业用耐火材料整体解决方案。",
+      "reference_sw": "建筑材料--装修建材--耐火材料",
+      "reference_ths": "建筑材料--建筑材料--耐火材料",
+      "source": "ifind_stock_info",
+      "reference_date": "2026-10-12",
+      "chain_tags": [
+        "钢铁产业链",
+        "耐火材料"
+      ]
+    },
+    "920078": {
+      "name": "族兴新材",
+      "primary": "有色金属",
+      "secondary": "金属新材料",
+      "tertiary": "其他金属新材料",
+      "main_business": "微细球形铝粉及其深加工产品铝颜料的研发、生产和销售。",
+      "reference_sw": "有色金属--金属新材料--其他金属新材料",
+      "reference_ths": "有色金属--金属新材料--其他金属新材料",
+      "source": "ifind_stock_info",
+      "reference_date": "2026-10-12",
+      "chain_tags": []
+    },
+    "920079": {
+      "name": "乔路铭",
+      "primary": "汽车",
+      "secondary": "汽车零部件",
+      "tertiary": "车身附件及饰件",
+      "main_business": "汽车饰件的研发、生产和销售。",
+      "reference_sw": "汽车--汽车零部件--车身附件及饰件",
+      "reference_ths": "汽车--汽车零部件--车身附件及饰件",
+      "source": "ifind_stock_info",
+      "reference_date": "2026-10-12",
+      "chain_tags": [
+        "汽车产业链"
+      ]
+    },
+    "920081": {
+      "name": "欧伦电气",
+      "primary": "家用电器",
+      "secondary": "小家电",
+      "tertiary": "清洁小家电",
+      "main_business": "围绕环境调节设备开展研发、设计、制造、销售和服务一体化业务。",
+      "reference_sw": "家用电器--小家电--清洁小家电",
+      "reference_ths": "家用电器--小家电--小家电Ⅲ",
+      "source": "ifind_stock_info",
+      "reference_date": "2026-10-12",
+      "chain_tags": []
+    },
+    "920083": {
+      "name": "金戈新材",
+      "primary": "基础化工",
+      "secondary": "非金属材料",
+      "tertiary": "非金属材料",
+      "main_business": "功能性材料研发、生产和销售。",
+      "reference_sw": "基础化工--非金属材料Ⅱ--非金属材料Ⅲ",
+      "reference_ths": "基础化工--非金属材料--非金属材料Ⅲ",
+      "source": "ifind_stock_info",
+      "reference_date": "2026-10-12",
+      "chain_tags": []
+    },
+    "920086": {
+      "name": "科马材料",
+      "primary": "汽车",
+      "secondary": "汽车零部件",
+      "tertiary": "底盘与发动机系统",
+      "main_business": "干式离合器摩擦片及湿式纸基摩擦片的研发、生产及销售。",
+      "reference_sw": "汽车--汽车零部件--底盘与发动机系统",
+      "reference_ths": "汽车--汽车零部件--底盘与发动机系统",
+      "source": "ifind_stock_info",
+      "reference_date": "2026-10-12",
+      "chain_tags": [
+        "汽车产业链"
+      ]
+    },
+    "920093": {
+      "name": "信胜科技",
+      "primary": "机械设备",
+      "secondary": "专用设备",
+      "tertiary": "纺织服装设备",
+      "main_business": "电脑刺绣机的研发、生产和销售。",
+      "reference_sw": "机械设备--专用设备--纺织服装设备",
+      "reference_ths": "机械设备--专用设备--纺织服装设备",
+      "source": "ifind_stock_info",
+      "reference_date": "2026-10-12",
+      "chain_tags": []
+    },
+    "920096": {
+      "name": "嘉晨智能",
+      "primary": "机械设备",
+      "secondary": "自动化设备",
+      "tertiary": "其他自动化设备",
+      "main_business": "电气控制系统产品及整体解决方案的研发、生产和销售。",
+      "reference_sw": "机械设备--自动化设备--其他自动化设备",
+      "reference_ths": "机械设备--自动化设备--其他自动化设备",
+      "source": "ifind_stock_info",
+      "reference_date": "2026-10-12",
+      "chain_tags": []
+    },
+    "920107": {
+      "name": "恒兴股份",
+      "primary": "基础化工",
+      "secondary": "化学制品",
+      "tertiary": "涂料油墨",
+      "main_business": "专注于紫外光（UV）固化涂料和PUR热熔胶的研发、生产和销售。",
+      "reference_sw": "基础化工--化学制品--涂料油墨",
+      "reference_ths": "基础化工--化学制品--涂料油墨",
+      "source": "ifind_stock_info",
+      "reference_date": "2026-10-12",
+      "chain_tags": []
+    },
+    "920117": {
+      "name": "龙鑫智能",
+      "primary": "电力设备",
+      "secondary": "电池",
+      "tertiary": "锂电专用设备",
+      "main_business": "微纳米高端复合材料制备设备及自动化生产线的研发、生产、销售和服务。",
+      "reference_sw": "电力设备--电池--锂电专用设备",
+      "reference_ths": "电力设备--电池--锂电专用设备",
+      "source": "ifind_stock_info",
+      "reference_date": "2026-10-12",
+      "chain_tags": [
+        "锂电产业链"
+      ]
+    },
+    "920119": {
+      "name": "美德乐",
+      "primary": "电力设备",
+      "secondary": "电池",
+      "tertiary": "锂电专用设备",
+      "main_business": "智能制造装备的研发、设计、制造和销售业务。",
+      "reference_sw": "电力设备--电池--锂电专用设备",
+      "reference_ths": "电力设备--电池--锂电专用设备",
+      "source": "ifind_stock_info",
+      "reference_date": "2026-10-12",
+      "chain_tags": [
+        "锂电产业链"
+      ]
+    },
+    "920125": {
+      "name": "鸿仕达",
+      "primary": "机械设备",
+      "secondary": "自动化设备",
+      "tertiary": "其他自动化设备",
+      "main_business": "智能自动化设备、智能柔性生产线、配件及耗材等产品的研发、生产与销售。",
+      "reference_sw": "机械设备--自动化设备--其他自动化设备",
+      "reference_ths": "机械设备--自动化设备--其他自动化设备",
+      "source": "ifind_stock_info",
+      "reference_date": "2026-10-12",
+      "chain_tags": []
+    },
+    "920126": {
+      "name": "永大股份",
+      "primary": "机械设备",
+      "secondary": "专用设备",
+      "tertiary": "能源及重型设备",
+      "main_business": "压力容器的研发、设计、制造、销售及相关技术服务",
+      "reference_sw": "机械设备--专用设备--能源及重型设备",
+      "reference_ths": "机械设备--专用设备--能源及重型设备",
+      "source": "ifind_stock_info",
+      "reference_date": "2026-10-12",
+      "chain_tags": []
+    },
+    "920136": {
+      "name": "永励精密",
+      "primary": "汽车",
+      "secondary": "汽车零部件",
+      "tertiary": "底盘与发动机系统",
+      "main_business": "汽车用精密钢管及管型零部件的研发、生产和销售。",
+      "reference_sw": "汽车--汽车零部件--底盘与发动机系统",
+      "reference_ths": "汽车--汽车零部件--底盘与发动机系统",
+      "source": "ifind_stock_info",
+      "reference_date": "2026-10-12",
+      "chain_tags": [
+        "汽车产业链"
+      ]
+    },
+    "920138": {
+      "name": "杰理科技",
+      "primary": "电子",
+      "secondary": "半导体",
+      "tertiary": "数字芯片设计",
+      "main_business": "从事集成电路的设计与研发，主要从事射频智能终端、多媒体智能终端等系统级芯片（SoC）的研究和开发。",
+      "reference_sw": "电子--半导体--数字芯片设计",
+      "reference_ths": "电子--半导体--数字芯片设计",
+      "source": "ifind_stock_info",
+      "reference_date": "2026-10-12",
+      "chain_tags": [
+        "半导体产业链"
+      ]
+    },
+    "920156": {
+      "name": "海昌智能",
+      "primary": "机械设备",
+      "secondary": "专用设备",
+      "tertiary": "其他专用设备",
+      "main_business": "高性能线束装备的研发、生产和销售。",
+      "reference_sw": "机械设备--专用设备--其他专用设备",
+      "reference_ths": "机械设备--专用设备--其他专用设备",
+      "source": "ifind_stock_info",
+      "reference_date": "2026-10-12",
+      "chain_tags": []
+    },
+    "920157": {
+      "name": "宇特光电",
+      "primary": "通信",
+      "secondary": "通信设备",
+      "tertiary": "通信网络设备及器件",
+      "main_business": "光连接产品的研发设计、精密制造与销售。",
+      "reference_sw": "通信--通信设备--通信网络设备及器件",
+      "reference_ths": "通信--通信设备--通信网络设备及器件",
+      "source": "ifind_stock_info",
+      "reference_date": "2026-10-12",
+      "chain_tags": []
+    },
+    "920159": {
+      "name": "农大科技",
+      "primary": "基础化工",
+      "secondary": "农化制品",
+      "tertiary": "复合肥",
+      "main_business": "新型肥料及新型肥料中间体的研发、生产、销售和技术服务。",
+      "reference_sw": "基础化工--农化制品--复合肥",
+      "reference_ths": "基础化工--农化制品--复合肥",
+      "source": "ifind_stock_info",
+      "reference_date": "2026-10-12",
+      "chain_tags": []
+    },
+    "920161": {
+      "name": "龙辰科技",
+      "primary": "电子",
+      "secondary": "元件",
+      "tertiary": "被动元件",
+      "main_business": "薄膜电容器相关BOPP薄膜材料的研发、生产和销售。",
+      "reference_sw": "电子--元件--被动元件",
+      "reference_ths": "电子--电子化学品--电子化学品Ⅲ",
+      "source": "ifind_stock_info",
+      "reference_date": "2026-10-12",
+      "chain_tags": []
+    },
+    "920162": {
+      "name": "莫森泰克",
+      "primary": "汽车",
+      "secondary": "汽车零部件",
+      "tertiary": "车身附件及饰件",
+      "main_business": "汽车天窗、玻璃升降器等汽车开闭器件以及相关电子控制单元的研发、制造及销售，粉末冶金零部件的研发、制造及销售。",
+      "reference_sw": "汽车--汽车零部件--车身附件及饰件",
+      "reference_ths": "汽车--汽车零部件--车身附件及饰件",
+      "source": "ifind_stock_info",
+      "reference_date": "2026-10-12",
+      "chain_tags": [
+        "汽车产业链"
+      ]
+    },
+    "920165": {
+      "name": "珈凯生物",
+      "primary": "美容护理",
+      "secondary": "化妆品",
+      "tertiary": "化妆品制造及其他",
+      "main_business": "化妆品功效原料的研发、生产及销售。",
+      "reference_sw": "美容护理--化妆品--化妆品制造及其他",
+      "reference_ths": "美容护理--美容护理--化妆品",
+      "source": "ifind_stock_info",
+      "reference_date": "2026-10-12",
+      "chain_tags": []
+    },
+    "920166": {
+      "name": "海圣医疗",
+      "primary": "医药生物",
+      "secondary": "医疗器械",
+      "tertiary": "医疗耗材",
+      "main_business": "麻醉、监护类医疗器械产品的研发、生产和销售。",
+      "reference_sw": "医药生物--医疗器械--医疗耗材",
+      "reference_ths": "医药生物--医疗器械--医疗耗材",
+      "source": "ifind_stock_info",
+      "reference_date": "2026-10-12",
+      "chain_tags": []
+    },
+    "920168": {
+      "name": "通宝光电",
+      "primary": "汽车",
+      "secondary": "汽车零部件",
+      "tertiary": "车身附件及饰件",
+      "main_business": "汽车照明系统、电子控制系统、能源管理系统等汽车电子零部件的研发、生产和销售。",
+      "reference_sw": "汽车--汽车零部件--车身附件及饰件",
+      "reference_ths": "汽车--汽车零部件--车身附件及饰件",
+      "source": "ifind_stock_info",
+      "reference_date": "2026-10-12",
+      "chain_tags": [
+        "汽车产业链"
+      ]
+    },
+    "920176": {
+      "name": "维琪科技",
+      "primary": "美容护理",
+      "secondary": "化妆品",
+      "tertiary": "化妆品制造及其他",
+      "main_business": "化妆品原料和化妆品成品的研发,生产,销售以及相关服务。",
+      "reference_sw": "美容护理--化妆品--化妆品制造及其他",
+      "reference_ths": "美容护理--美容护理--化妆品",
+      "source": "ifind_stock_info",
+      "reference_date": "2026-10-12",
+      "chain_tags": []
+    },
+    "920177": {
+      "name": "恒道科技",
+      "primary": "机械设备",
+      "secondary": "专用设备",
+      "tertiary": "其他专用设备",
+      "main_business": "注塑模具热流道系统及相关部件的研发、设计、生产和销售。",
+      "reference_sw": "机械设备--专用设备--其他专用设备",
+      "reference_ths": "机械设备--专用设备--其他专用设备",
+      "source": "ifind_stock_info",
+      "reference_date": "2026-10-12",
+      "chain_tags": []
+    },
+    "920178": {
+      "name": "锐翔智能",
+      "primary": "机械设备",
+      "secondary": "自动化设备",
+      "tertiary": "其他自动化设备",
+      "main_business": "从事智能制造装备的研发设计、生产、销售。",
+      "reference_sw": "机械设备--自动化设备--其他自动化设备",
+      "reference_ths": "机械设备--自动化设备--其他自动化设备",
+      "source": "ifind_stock_info",
+      "reference_date": "2026-10-12",
+      "chain_tags": []
+    },
+    "920180": {
+      "name": "爱得科技",
+      "primary": "医药生物",
+      "secondary": "医疗器械",
+      "tertiary": "医疗耗材",
+      "main_business": "骨科耗材为主的医疗器械的研发、生产与销售。",
+      "reference_sw": "医药生物--医疗器械--医疗耗材",
+      "reference_ths": "医药生物--医疗器械--医疗耗材",
+      "source": "ifind_stock_info",
+      "reference_date": "2026-10-12",
+      "chain_tags": []
+    },
+    "920181": {
+      "name": "赛英电子",
+      "primary": "电子",
+      "secondary": "其他电子",
+      "tertiary": "其他电子",
+      "main_business": "电子元器件的生产、销售。",
+      "reference_sw": "电子--其他电子Ⅱ--其他电子Ⅲ",
+      "reference_ths": "电子--其他电子--其他电子Ⅲ",
+      "source": "ifind_stock_info",
+      "reference_date": "2026-10-12",
+      "chain_tags": []
+    },
+    "920183": {
+      "name": "海菲曼",
+      "primary": "电子",
+      "secondary": "消费电子",
+      "tertiary": "品牌消费电子",
+      "main_business": "自主品牌“HIFIMAN”终端电声产品的设计、研发、生产和销售。",
+      "reference_sw": "电子--消费电子--品牌消费电子",
+      "reference_ths": "电子--消费电子--品牌消费电子",
+      "source": "ifind_stock_info",
+      "reference_date": "2026-10-12",
+      "chain_tags": []
+    },
+    "920186": {
+      "name": "中科仪",
+      "primary": "电子",
+      "secondary": "半导体",
+      "tertiary": "半导体设备",
+      "main_business": "干式真空泵、真空仪器设备的研发、生产和销售，并提供相关技术服务。",
+      "reference_sw": "电子--半导体--半导体设备",
+      "reference_ths": "电子--半导体--半导体设备",
+      "source": "ifind_stock_info",
+      "reference_date": "2026-10-12",
+      "chain_tags": [
+        "半导体产业链"
+      ]
+    },
+    "920187": {
+      "name": "通领科技",
+      "primary": "汽车",
+      "secondary": "汽车零部件",
+      "tertiary": "车身附件及饰件",
+      "main_business": "汽车内饰件的研发、生产及销售。",
+      "reference_sw": "汽车--汽车零部件--车身附件及饰件",
+      "reference_ths": "汽车--汽车零部件--车身附件及饰件",
+      "source": "ifind_stock_info",
+      "reference_date": "2026-10-12",
+      "chain_tags": [
+        "汽车产业链"
+      ]
+    },
+    "920188": {
+      "name": "悦龙科技",
+      "primary": "基础化工",
+      "secondary": "橡胶",
+      "tertiary": "其他橡胶制品",
+      "main_business": "公司主要从事流体输送柔性管道及软管总成的研发、生产和销售。",
+      "reference_sw": "基础化工--橡胶--其他橡胶制品",
+      "reference_ths": "基础化工--橡胶制品--其他橡胶制品",
+      "source": "ifind_stock_info",
+      "reference_date": "2026-10-12",
+      "chain_tags": []
+    },
+    "920189": {
+      "name": "康美特",
+      "primary": "电子",
+      "secondary": "半导体",
+      "tertiary": "半导体材料",
+      "main_business": "从事电子封装材料及高性能改性塑料等高分子新材料产品研发、生产、销售。",
+      "reference_sw": "电子--半导体--半导体材料",
+      "reference_ths": "电子--电子化学品--电子化学品Ⅲ",
+      "source": "ifind_stock_info",
+      "reference_date": "2026-10-12",
+      "chain_tags": [
+        "半导体产业链"
+      ]
+    },
+    "920191": {
+      "name": "瑞尔竞达",
+      "primary": "建筑材料",
+      "secondary": "装修建材",
+      "tertiary": "耐火材料",
+      "main_business": "炼铁高炉高效、长寿、节能、绿色、环保等技术与所需耐火材料的研发、生产和销售",
+      "reference_sw": "建筑材料--装修建材--耐火材料",
+      "reference_ths": "建筑材料--建筑材料--耐火材料",
+      "source": "ifind_stock_info",
+      "reference_date": "2026-10-12",
+      "chain_tags": [
+        "钢铁产业链",
+        "耐火材料"
+      ]
+    },
+    "920193": {
+      "name": "吉和昌",
+      "primary": "基础化工",
+      "secondary": "化学制品",
+      "tertiary": "其他化学制品",
+      "main_business": "表面处理行业相关特种功能性材料的研发、生产和销售",
+      "reference_sw": "基础化工--化学制品--其他化学制品",
+      "reference_ths": "电力设备--电池--电池化学品",
+      "source": "ifind_stock_info",
+      "reference_date": "2026-10-12",
+      "chain_tags": []
+    },
+    "920196": {
+      "name": "南方乳业",
+      "primary": "食品饮料",
+      "secondary": "饮料乳品",
+      "tertiary": "乳品",
+      "main_business": "乳制品及含乳饮料的制造与销售。",
+      "reference_sw": "食品饮料--饮料乳品--乳品",
+      "reference_ths": "食品饮料--饮料制造--乳品",
+      "source": "ifind_stock_info",
+      "reference_date": "2026-10-12",
+      "chain_tags": []
+    },
+    "920200": {
+      "name": "振宏股份",
+      "primary": "电力设备",
+      "secondary": "风电设备",
+      "tertiary": "风电零部件",
+      "main_business": "锻造风电主轴和其他大型金属锻件的研发、生产和销售。",
+      "reference_sw": "电力设备--风电设备--风电零部件",
+      "reference_ths": "电力设备--风电设备--风电零部件",
+      "source": "ifind_stock_info",
+      "reference_date": "2026-10-12",
+      "chain_tags": [
+        "风电产业链"
+      ]
+    },
+    "920201": {
+      "name": "百瑞吉",
+      "primary": "医药生物",
+      "secondary": "医疗器械",
+      "tertiary": "医疗耗材",
+      "main_business": "生物医用材料等产品的研发、生产和销售。",
+      "reference_sw": "医药生物--医疗器械--医疗耗材",
+      "reference_ths": "医药生物--医疗器械--医疗耗材",
+      "source": "ifind_stock_info",
+      "reference_date": "2026-10-12",
+      "chain_tags": []
+    },
+    "920202": {
+      "name": "安达股份",
+      "primary": "汽车",
+      "secondary": "汽车零部件",
+      "tertiary": "底盘与发动机系统",
+      "main_business": "汽车领域铝合金精密压铸件的研发、生产和销售。",
+      "reference_sw": "汽车--汽车零部件--底盘与发动机系统",
+      "reference_ths": "汽车--汽车零部件--底盘与发动机系统",
+      "source": "ifind_stock_info",
+      "reference_date": "2026-10-12",
+      "chain_tags": [
+        "汽车产业链"
+      ]
+    },
+    "920206": {
+      "name": "彩客科技",
+      "primary": "基础化工",
+      "secondary": "化学制品",
+      "tertiary": "涂料油墨",
+      "main_business": "高性能有机颜料中间体、食品添加剂中间体及新材料聚合单体的研发、生产及销售。",
+      "reference_sw": "基础化工--化学制品--涂料油墨",
+      "reference_ths": "基础化工--化学制品--涂料油墨",
+      "source": "ifind_stock_info",
+      "reference_date": "2026-10-12",
+      "chain_tags": []
+    },
+    "920211": {
+      "name": "新睿电子",
+      "primary": "机械设备",
+      "secondary": "自动化设备",
+      "tertiary": "工控设备",
+      "main_business": "工业机器人控制系统及部件、伺服系统及部件的研发、生产与销售。",
+      "reference_sw": "机械设备--自动化设备--工控设备",
+      "reference_ths": "机械设备--自动化设备--机器人",
+      "source": "ifind_stock_info",
+      "reference_date": "2026-10-12",
+      "chain_tags": []
+    },
+    "920218": {
+      "name": "新天力",
+      "primary": "轻工制造",
+      "secondary": "家居用品",
+      "tertiary": "其他家居用品",
+      "main_business": "食品容器的研发、生产和销售。",
+      "reference_sw": "轻工制造--家居用品--其他家居用品",
+      "reference_ths": "轻工制造--家居用品--其他家居用品",
+      "source": "ifind_stock_info",
+      "reference_date": "2026-10-12",
+      "chain_tags": []
+    },
+    "920220": {
+      "name": "朗信电气",
+      "primary": "汽车",
+      "secondary": "汽车零部件",
+      "tertiary": "底盘与发动机系统",
+      "main_business": "公司以电驱动为技术核心，主要从事电机总成、电子风扇、电子水泵、空调鼓风机等热管理电驱动零部件产品的研发、生产与销售。",
+      "reference_sw": "汽车--汽车零部件--底盘与发动机系统",
+      "reference_ths": "汽车--汽车零部件--底盘与发动机系统",
+      "source": "ifind_stock_info",
+      "reference_date": "2026-10-12",
+      "chain_tags": [
+        "汽车产业链"
+      ]
+    },
+    "920222": {
+      "name": "益坤电气",
+      "primary": "电力设备",
+      "secondary": "电网设备",
+      "tertiary": "输变电设备",
+      "main_business": "绝缘子、避雷器等过电压保护设备及在线监测设备的研发、生产及销售。",
+      "reference_sw": "电力设备--电网设备--输变电设备",
+      "reference_ths": "电力设备--电网设备--输变电设备",
+      "source": "ifind_stock_info",
+      "reference_date": "2026-10-12",
+      "chain_tags": []
+    },
+    "920229": {
+      "name": "世纪数码",
+      "primary": "机械设备",
+      "secondary": "专用设备",
+      "tertiary": "纺织服装设备",
+      "main_business": "数字喷墨打印设备及配件耗材的研发、生产及销售。",
+      "reference_sw": "机械设备--专用设备--纺织服装设备",
+      "reference_ths": "机械设备--专用设备--纺织服装设备",
+      "source": "ifind_stock_info",
+      "reference_date": "2026-10-12",
+      "chain_tags": []
+    },
+    "920238": {
+      "name": "长鹰硬科",
+      "primary": "机械设备",
+      "secondary": "通用设备",
+      "tertiary": "金属制品",
+      "main_business": "从事硬质合金产品的研发、生产及销售。",
+      "reference_sw": "机械设备--通用设备--金属制品",
+      "reference_ths": "机械设备--通用设备--金属制品",
+      "source": "ifind_stock_info",
+      "reference_date": "2026-10-12",
+      "chain_tags": []
+    },
+    "920258": {
+      "name": "聚仁新材",
+      "primary": "基础化工",
+      "secondary": "化学制品",
+      "tertiary": "其他化学制品",
+      "main_business": "己内酯系列产品的研发、生产和销售。",
+      "reference_sw": "基础化工--化学制品--其他化学制品",
+      "reference_ths": "基础化工--化学制品--其他化学制品",
+      "source": "ifind_stock_info",
+      "reference_date": "2026-10-12",
+      "chain_tags": []
+    },
+    "920268": {
+      "name": "百迈科",
+      "primary": "医药生物",
+      "secondary": "医疗器械",
+      "tertiary": "医疗耗材",
+      "main_business": "以手术缝线为代表的外科手术医疗器械产品和多肽制药设备产品的研发、生产和销售。",
+      "reference_sw": "医药生物--医疗器械--医疗耗材",
+      "reference_ths": "医药生物--医疗器械--医疗耗材",
+      "source": "ifind_stock_info",
+      "reference_date": "2026-10-12",
+      "chain_tags": []
+    },
+    "920269": {
+      "name": "杰锋动力",
+      "primary": "汽车",
+      "secondary": "汽车零部件",
+      "tertiary": "底盘与发动机系统",
+      "main_business": "汽车排气系统及动力系统等领域零部件产品的研发、设计、生产和销售。",
+      "reference_sw": "汽车--汽车零部件--底盘与发动机系统",
+      "reference_ths": "汽车--汽车零部件--底盘与发动机系统",
+      "source": "ifind_stock_info",
+      "reference_date": "2026-10-12",
+      "chain_tags": [
+        "汽车产业链"
+      ]
+    },
+    "920285": {
+      "name": "远大健科",
+      "primary": "家用电器",
+      "secondary": "家电零部件",
+      "tertiary": "家电零部件",
+      "main_business": "冰箱滤水器、泳池类滤芯、家用净水滤芯、咖啡机滤芯、整机等多品类净水器件及相关功能材料的研发、生产和销售。",
+      "reference_sw": "家用电器--家电零部件Ⅱ--家电零部件Ⅲ",
+      "reference_ths": "家用电器--白色家电--家电零部件",
+      "source": "ifind_stock_info",
+      "reference_date": "2026-10-12",
+      "chain_tags": [
+        "净水产业链",
+        "跨境电商"
+      ]
+    },
+    "920288": {
+      "name": "华大海天",
+      "primary": "轻工制造",
+      "secondary": "造纸",
+      "tertiary": "特种纸",
+      "main_business": "数码纸基新材料、水性墨材料、食品包装材料及其他的研发、生产和销售。",
+      "reference_sw": "轻工制造--造纸--特种纸",
+      "reference_ths": "基础化工--化学制品--涂料油墨",
+      "source": "ifind_stock_info",
+      "reference_date": "2026-10-12",
+      "chain_tags": []
+    },
+    "920289": {
+      "name": "华汇智能",
+      "primary": "电力设备",
+      "secondary": "电池",
+      "tertiary": "锂电专用设备",
+      "main_business": "高端智能装备及其关键部件的研发、生产和销售。",
+      "reference_sw": "电力设备--电池--锂电专用设备",
+      "reference_ths": "电力设备--电池--锂电专用设备",
+      "source": "ifind_stock_info",
+      "reference_date": "2026-10-12",
+      "chain_tags": [
+        "锂电产业链"
+      ]
+    },
+    "920298": {
+      "name": "腾信精密",
+      "primary": "机械设备",
+      "secondary": "通用设备",
+      "tertiary": "金属制品",
+      "main_business": "精密零部件的研发设计、制造和销售。",
+      "reference_sw": "机械设备--通用设备--金属制品",
+      "reference_ths": "机械设备--专用设备--能源及重型设备",
+      "source": "ifind_stock_info",
+      "reference_date": "2026-10-12",
+      "chain_tags": []
+    }
+  }
+}

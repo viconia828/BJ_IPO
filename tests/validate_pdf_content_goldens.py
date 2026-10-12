@@ -42,6 +42,11 @@ def resolve_pdf_path(relative_path: str) -> Path:
 
 COMPARABLE_CASES = (
     {
+        "label": "920285 name-only comparables",
+        "path": "公告文件/920285_远大健科_招股说明书.pdf",
+        "expected_codes": ["300272.SZ", "301332.SZ", "603408.SH", "920065.BJ", "300866.SZ"],
+    },
+    {
         "label": "920028 comparables",
         "path": "公告文件/920028_新恒泰_招股说明书.pdf",
         "expected_codes": ["300980.SZ", "300920.SZ"],
@@ -194,6 +199,12 @@ COMPARABLE_CASES = (
 )
 
 BUSINESS_CASES = (
+    {
+        "label": "920285 issuer business",
+        "path": "公告文件/920285_远大健科_招股说明书.pdf",
+        "must_contain": ["净水器件", "冰箱滤水器", "泳池类滤芯"],
+        "must_not_contain": ["全球人居", "开能健康", "德尔玛", "跨境电商零售业务"],
+    },
     {
         "label": "920156 business",
         "path": "公告文件/920156海昌智能招股说明书.pdf",

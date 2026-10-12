@@ -16,7 +16,7 @@ if str(CODE_DIR) not in sys.path:
     sys.path.insert(0, str(CODE_DIR))
 
 import config_loader
-from industry_mapping import IndustryMapper, is_valid_valuation_group
+from industry_mapping import IndustryMapper, is_valid_valuation_group, infer_business_groups
 import param_tuning
 import pdf_parser
 
@@ -28,63 +28,6 @@ DEFAULT_JSON = DEFAULT_OUTPUT_DIR / "行业分类审计_latest.json"
 DEFAULT_MARKDOWN = DEFAULT_OUTPUT_DIR / "行业分类审计_latest.md"
 
 
-INFERENCE_RULES: tuple[dict[str, Any], ...] = (
-    {
-        "label": "高端装备 / 汽车零部件",
-        "strong": True,
-        "patterns": (r"汽车零部件", r"汽车热管理", r"车载零部件", r"汽车内饰", r"汽车电子", r"汽车饰件"),
-    },
-    {
-        "label": "医药生物 / 医疗器械",
-        "strong": True,
-        "patterns": (r"手术缝线", r"介入耗材", r"植入耗材", r"医用耗材", r"体外诊断", r"医用影像", r"医疗器械(?:的)?(?:研发|生产|制造|销售)"),
-    },
-    {
-        "label": "医药生物 / 生物制品",
-        "strong": True,
-        "patterns": (r"活性多肽", r"生物发酵", r"化妆品功效原料", r"重组蛋白", r"生物制品(?:的)?(?:研发|生产|制造|销售)"),
-    },
-    {
-        "label": "信息技术 / 半导体制造",
-        "strong": True,
-        "patterns": (r"半导体设备", r"集成电路(?:的)?(?:研发|设计|制造|封装)", r"晶圆制造", r"芯片封装", r"光刻"),
-    },
-    {
-        "label": "消费服务 / 消费电子",
-        "strong": True,
-        "patterns": (r"消费电子", r"智能音箱", r"耳机", r"音响产品", r"智能家居"),
-    },
-    {
-        "label": "消费服务 / 家用电器",
-        "strong": True,
-        "patterns": (r"除湿机", r"家用空调", r"商用空调", r"空气调节设备"),
-    },
-    {
-        "label": "消费服务 / 农林牧渔",
-        "strong": True,
-        "patterns": (r"生猪养殖", r"种猪", r"饲料生产", r"水产养殖", r"农产品种植"),
-    },
-    {
-        "label": "高端装备 / 电气设备",
-        "strong": False,
-        "patterns": (r"电气设备", r"输配电", r"开关柜", r"变压器", r"电机控制", r"变频器"),
-    },
-    {
-        "label": "高端装备 / 机械设备",
-        "strong": False,
-        "patterns": (r"专用设备", r"智能装备", r"工业机器人", r"数控机床", r"机械设备", r"自动化设备"),
-    },
-    {
-        "label": "化工新材 / 化学制品",
-        "strong": False,
-        "patterns": (r"化学制品", r"精细化工", r"化工助剂", r"树脂", r"涂料", r"胶黏剂"),
-    },
-    {
-        "label": "化工新材 / 金属新材料",
-        "strong": True,
-        "patterns": (r"贵金属选矿", r"选矿药剂", r"有色金属冶炼", r"金属新材料"),
-    },
-)
 
 
 def _parse_args() -> argparse.Namespace:
@@ -132,19 +75,7 @@ def _local_statutory_industry(code: str) -> tuple[str, str, str, str]:
 
 
 def _infer_industries(text: str) -> list[dict[str, Any]]:
-    compact = re.sub(r"\s+", "", str(text or ""))
-    suggestions: list[dict[str, Any]] = []
-    for rule in INFERENCE_RULES:
-        hits = [pattern for pattern in rule["patterns"] if re.search(pattern, compact, flags=re.IGNORECASE)]
-        if hits:
-            suggestions.append(
-                {
-                    "label": rule["label"],
-                    "strong": bool(rule["strong"]),
-                    "evidence_patterns": hits,
-                }
-            )
-    return suggestions
+    return [{**item, "evidence_patterns": item["matched_patterns"]} for item in infer_business_groups(text)]
 
 
 def _is_compatible(current: str, suggestion: str) -> bool:
@@ -164,7 +95,7 @@ def _audit_item(
     current = current_primary if current_secondary in {"", "未分类", current_primary} else f"{current_primary} / {current_secondary}"
     record_for_resolution = dict(item)
     preliminary = mapper.resolve_stock_industry(code, record_for_resolution)
-    should_parse_statutory = deep_business_audit or preliminary.source not in {"manual", "built_in_sample_map"}
+    should_parse_statutory = deep_business_audit or preliminary.source not in {"manual", "market_reference"}
     statutory_pdf = ""
     statutory_error = ""
     if should_parse_statutory:
@@ -175,7 +106,7 @@ def _audit_item(
             record_for_resolution["INDUSTRY_CODE"] = local_industry_code
     resolved = mapper.resolve_stock_industry(code, record_for_resolution)
     resolved_display = resolved.display_name
-    should_audit_business = deep_business_audit or resolved.source not in {"manual", "built_in_sample_map"} or resolved.confidence < 0.9
+    should_audit_business = deep_business_audit or resolved.source not in {"manual", "market_reference"} or resolved.confidence < 0.9
     if should_audit_business:
         business_desc, pdf_path, subject_conflict = _business_description(code)
     else:
@@ -190,7 +121,7 @@ def _audit_item(
         )
     )
     suggestions = [] if subject_conflict else _infer_industries(inference_text)
-    reasons: list[str] = []
+    reasons: list[str] = list(resolved.review_reasons)
     if current_primary == "未分类":
         reasons.append("unclassified")
     if current != resolved_display:
@@ -222,6 +153,9 @@ def _audit_item(
         "statutory_parse_error": statutory_error,
         "valuation_peer_group": resolved_display,
         "business_tags": list(resolved.business_tags),
+        "chain_tags": list(resolved.chain_tags),
+        "industry_status": resolved.status,
+        "candidate_groups": list(resolved.candidate_groups),
         "confidence": resolved.confidence,
         "evidence": list(resolved.evidence),
         "raw_industry": str(record_for_resolution.get("INDUSTRY") or record_for_resolution.get("SW_INDUSTRY") or ""),
@@ -254,7 +188,7 @@ def _write_markdown(payload: dict[str, Any], path: Path) -> None:
         "",
         "## 待复核清单",
         "",
-        "| 代码 | 名称 | 法定行业 | 当前分类 | 最新估值组 | 标签 | 置信度 | 触发原因 |",
+        "| 代码 | 名称 | 法定行业 | 当前分类 | 最新估值组 | 主营 / 产业链 | 置信度 | 触发原因 |",
         "|---|---|---|---|---|---|---:|---|",
     ]
     for item in payload["review_items"]:
@@ -265,7 +199,7 @@ def _write_markdown(payload: dict[str, Any], path: Path) -> None:
         reasons = "；".join(item["review_reasons"])
         lines.append(
             f"| {item['code']} | {item['name']} | {item['statutory_industry']} ({item['statutory_industry_code']}) | "
-            f"{item['current_industry']} | {item['valuation_peer_group']} | {','.join(item['business_tags']) or '—'} | "
+            f"{item['current_industry']} | {item['valuation_peer_group']} | {','.join(item['business_tags'] + item['chain_tags']) or '—'} | "
             f"{item['confidence']:.2f} | {reasons} |"
         )
         desc = re.sub(r"\s+", " ", item["business_desc"]).strip()[:360]
@@ -276,14 +210,14 @@ def _write_markdown(payload: dict[str, Any], path: Path) -> None:
         (
             "## 全样本分类",
             "",
-            "| 代码 | 名称 | 法定行业 | 估值同类组 | 标签 | 置信度 | 来源 |",
+            "| 代码 | 名称 | 法定行业 | 估值同类组 | 主营 / 产业链 | 置信度 | 来源 |",
             "|---|---|---|---|---|---:|---|",
         )
     )
     for item in payload["items"]:
         lines.append(
             f"| {item['code']} | {item['name']} | {item['statutory_industry']} ({item['statutory_industry_code']}) | "
-            f"{item['valuation_peer_group']} | {','.join(item['business_tags']) or '—'} | {item['confidence']:.2f} | "
+            f"{item['valuation_peer_group']} | {','.join(item['business_tags'] + item['chain_tags']) or '—'} | {item['confidence']:.2f} | "
             f"{item['resolved_source']} |"
         )
     path.parent.mkdir(parents=True, exist_ok=True)

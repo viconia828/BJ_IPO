@@ -30,15 +30,23 @@
     "SW_INDUSTRY": "汽车制造业",
     "INDUSTRY": "汽车制造业",
     "INDUSTRY_CODE": "C36",
-    "industry_primary": "高端装备",
+    "industry_primary": "汽车",
     "industry_secondary": "汽车零部件",
-    "industry_source": "industry_code_mapping",
+    "industry_source": "market_reference",
     "statutory_industry": "汽车制造业",
     "statutory_industry_code": "C36",
-    "valuation_peer_group": "高端装备 / 汽车零部件",
+    "valuation_peer_group": "汽车 / 汽车零部件",
     "business_tags": "[]",
-    "industry_confidence": 0.6,
-    "industry_evidence": "['INDUSTRY_CODE:C36']"
+    "industry_confidence": 0.95,
+    "industry_evidence": "['ifind_sw:2026-10-12', 'issuer_business:汽车天窗、玻璃升降器等汽车开闭器件以及相关电子控制单元的研发、制造及销售，粉末冶金零部件的研发、制造及销售。']",
+    "industry_tertiary": "车身附件及饰件",
+    "chain_tags": "['汽车产业链']",
+    "industry_status": "confirmed",
+    "industry_candidates": "[]",
+    "industry_review_reasons": "[]",
+    "industry_classification_version": 4,
+    "ISSUER_BUSINESS": null,
+    "MAIN_BUSINESS": null
   },
   "pdf_signature": {
     "files": {
@@ -91,16 +99,17 @@
     "SW_INDUSTRY": "汽车制造业",
     "INDUSTRY": "汽车制造业",
     "INDUSTRY_CODE": "C36",
-    "industry_primary": "高端装备",
+    "industry_primary": "汽车",
     "industry_secondary": "汽车零部件",
-    "industry_source": "industry_code_mapping",
+    "industry_source": "market_reference",
     "statutory_industry": "汽车制造业",
     "statutory_industry_code": "C36",
-    "valuation_peer_group": "高端装备 / 汽车零部件",
+    "valuation_peer_group": "汽车 / 汽车零部件",
     "business_tags": [],
-    "industry_confidence": 0.6,
+    "industry_confidence": 0.95,
     "industry_evidence": [
-      "INDUSTRY_CODE:C36"
+      "ifind_sw:2026-10-12",
+      "issuer_business:汽车天窗、玻璃升降器等汽车开闭器件以及相关电子控制单元的研发、制造及销售，粉末冶金零部件的研发、制造及销售。"
     ],
     "old_shares": 0.0,
     "old_shares_desc": "待确认（当前按 0 万股计）",
@@ -170,6 +179,15 @@
       "issue": "920162_莫森泰克_发行公告.pdf",
       "result": "",
       "listing": ""
-    }
-  }
+    },
+    "industry_tertiary": "车身附件及饰件",
+    "chain_tags": [
+      "汽车产业链"
+    ],
+    "industry_status": "confirmed",
+    "industry_candidates": [],
+    "industry_review_reasons": [],
+    "industry_classification_version": 4
+  },
+  "industry_reclassification_version": 4
 }

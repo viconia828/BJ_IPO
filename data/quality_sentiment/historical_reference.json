@@ -1,0 +1,646 @@
+{
+  "schema": "quality_sentiment_historical_reference_v1",
+  "prepared_date": "2026-10-12",
+  "caveat": "日期、价格经日线核验；股数为上市时固定流通股数的事后结构核验，非原始事前PIT档案；仅用于影子模型",
+  "sources": [
+    {
+      "path": "outputs\\研究产物\\最新\\新股基本面与情绪检验_20261012\\canonical_samples.csv",
+      "sha256": "ebf9d0542f6c986b444e2779f07fefa46cf5c0a78fca04d94ddd14e207275088"
+    },
+    {
+      "path": "outputs\\研究产物\\最新\\新股基本面与情绪检验_20261012\\sources\\yute_historical_comparables.json",
+      "sha256": "093f48fd2b730e9bee3f366ec6fc0a395063c1bcf0eb3db1bc7775dd6427ca69"
+    },
+    {
+      "path": "outputs\\研究产物\\最新\\新股基本面与情绪检验_20261012\\sources\\ifind_float_reference.json",
+      "sha256": "dc5b6c657f0b55670e3451b68acfe07a3a95cac1689eba4116579f92ce6de687"
+    }
+  ],
+  "items": {
+    "920086": {
+      "ISSUE_PRICE": 11.66,
+      "LISTING_DATE": "2026-01-16",
+      "AVERAGE_PRICE": 54.55912543948199,
+      "CLOSE_PRICE": 54.95,
+      "verified_float_shares": 1882.799906388954,
+      "verified_float_source": "ifind_listing_day_volume_div_turnover_structural_reconstruction",
+      "structure_vintage": "retrospective_reconstruction"
+    },
+    "920050": {
+      "ISSUE_PRICE": 15.98,
+      "LISTING_DATE": "2026-01-21",
+      "AVERAGE_PRICE": 48.64295846657594,
+      "CLOSE_PRICE": 44.04,
+      "verified_float_shares": 1810.2641290439688,
+      "verified_float_source": "ifind_listing_day_volume_div_turnover_structural_reconstruction",
+      "structure_vintage": "retrospective_reconstruction"
+    },
+    "920076": {
+      "ISSUE_PRICE": 10.76,
+      "LISTING_DATE": "2026-01-22",
+      "AVERAGE_PRICE": 29.912335558708023,
+      "CLOSE_PRICE": 28.06,
+      "verified_float_shares": 1976.1416649435912,
+      "verified_float_source": "ifind_listing_day_volume_div_turnover_structural_reconstruction",
+      "structure_vintage": "retrospective_reconstruction"
+    },
+    "920159": {
+      "ISSUE_PRICE": 25.0,
+      "LISTING_DATE": "2026-01-28",
+      "AVERAGE_PRICE": 51.40855681867675,
+      "CLOSE_PRICE": 52.89,
+      "verified_float_shares": 1440.0005892900738,
+      "verified_float_source": "ifind_listing_day_volume_div_turnover_structural_reconstruction",
+      "structure_vintage": "retrospective_reconstruction"
+    },
+    "920119": {
+      "ISSUE_PRICE": 41.88,
+      "LISTING_DATE": "2026-01-30",
+      "AVERAGE_PRICE": 120.16805492729864,
+      "CLOSE_PRICE": 109.5,
+      "verified_float_shares": 1440.0008653392547,
+      "verified_float_source": "ifind_listing_day_volume_div_turnover_structural_reconstruction",
+      "structure_vintage": "retrospective_reconstruction"
+    },
+    "920180": {
+      "ISSUE_PRICE": 7.67,
+      "LISTING_DATE": "2026-02-10",
+      "AVERAGE_PRICE": 23.23710907830547,
+      "CLOSE_PRICE": 21.23,
+      "verified_float_shares": 2657.7680520280487,
+      "verified_float_source": "ifind_listing_day_volume_div_turnover_structural_reconstruction",
+      "structure_vintage": "retrospective_reconstruction"
+    },
+    "920166": {
+      "ISSUE_PRICE": 12.64,
+      "LISTING_DATE": "2026-02-12",
+      "AVERAGE_PRICE": 30.627913731031416,
+      "CLOSE_PRICE": 34.49,
+      "verified_float_shares": 2376.4678580827294,
+      "verified_float_source": "ifind_listing_day_volume_div_turnover_structural_reconstruction",
+      "structure_vintage": "retrospective_reconstruction"
+    },
+    "920168": {
+      "ISSUE_PRICE": 16.17,
+      "LISTING_DATE": "2026-02-26",
+      "AVERAGE_PRICE": 29.448189549449722,
+      "CLOSE_PRICE": 27.49,
+      "verified_float_shares": 2817.4516501131034,
+      "verified_float_source": "ifind_listing_day_volume_div_turnover_structural_reconstruction",
+      "structure_vintage": "retrospective_reconstruction"
+    },
+    "920183": {
+      "ISSUE_PRICE": 19.71,
+      "LISTING_DATE": "2026-03-04",
+      "AVERAGE_PRICE": 54.68884135068119,
+      "CLOSE_PRICE": 53.3,
+      "verified_float_shares": 1124.9823580501575,
+      "verified_float_source": "ifind_listing_day_volume_div_turnover_structural_reconstruction",
+      "structure_vintage": "retrospective_reconstruction"
+    },
+    "920187": {
+      "ISSUE_PRICE": 29.62,
+      "LISTING_DATE": "2026-03-05",
+      "AVERAGE_PRICE": 45.088701218865985,
+      "CLOSE_PRICE": 41.89,
+      "verified_float_shares": 2095.387597302508,
+      "verified_float_source": "ifind_listing_day_volume_div_turnover_structural_reconstruction",
+      "structure_vintage": "retrospective_reconstruction"
+    },
+    "920036": {
+      "ISSUE_PRICE": 21.52,
+      "LISTING_DATE": "2026-03-09",
+      "AVERAGE_PRICE": 43.62645824954569,
+      "CLOSE_PRICE": 41.3,
+      "verified_float_shares": 1306.1280434283553,
+      "verified_float_source": "ifind_listing_day_volume_div_turnover_structural_reconstruction",
+      "structure_vintage": "retrospective_reconstruction"
+    },
+    "920078": {
+      "ISSUE_PRICE": 6.98,
+      "LISTING_DATE": "2026-03-18",
+      "AVERAGE_PRICE": 35.707314180999305,
+      "CLOSE_PRICE": 35.3,
+      "verified_float_shares": 2070.000103744125,
+      "verified_float_source": "ifind_listing_day_volume_div_turnover_structural_reconstruction",
+      "structure_vintage": "retrospective_reconstruction"
+    },
+    "920028": {
+      "ISSUE_PRICE": 9.4,
+      "LISTING_DATE": "2026-03-20",
+      "AVERAGE_PRICE": 21.21701028266926,
+      "CLOSE_PRICE": 22.7,
+      "verified_float_shares": 4255.9117960268395,
+      "verified_float_source": "ifind_listing_day_volume_div_turnover_structural_reconstruction",
+      "structure_vintage": "retrospective_reconstruction"
+    },
+    "920069": {
+      "ISSUE_PRICE": 18.38,
+      "LISTING_DATE": "2026-03-27",
+      "AVERAGE_PRICE": 42.34166168392811,
+      "CLOSE_PRICE": 43.48,
+      "verified_float_shares": 1477.7725890927738,
+      "verified_float_source": "ifind_listing_day_volume_div_turnover_structural_reconstruction",
+      "structure_vintage": "retrospective_reconstruction"
+    },
+    "920188": {
+      "ISSUE_PRICE": 14.04,
+      "LISTING_DATE": "2026-03-30",
+      "AVERAGE_PRICE": 33.94043858533747,
+      "CLOSE_PRICE": 30.2,
+      "verified_float_shares": 1979.3873576769543,
+      "verified_float_source": "ifind_listing_day_volume_div_turnover_structural_reconstruction",
+      "structure_vintage": "retrospective_reconstruction"
+    },
+    "920055": {
+      "ISSUE_PRICE": 24.7,
+      "LISTING_DATE": "2026-03-31",
+      "AVERAGE_PRICE": 38.075692985697714,
+      "CLOSE_PRICE": 37.8,
+      "verified_float_shares": 1530.0007284382286,
+      "verified_float_source": "ifind_listing_day_volume_div_turnover_structural_reconstruction",
+      "structure_vintage": "retrospective_reconstruction"
+    },
+    "920011": {
+      "ISSUE_PRICE": 15.5,
+      "LISTING_DATE": "2026-04-08",
+      "AVERAGE_PRICE": 29.66128413163004,
+      "CLOSE_PRICE": 29.04,
+      "verified_float_shares": 1860.0008839369257,
+      "verified_float_source": "ifind_listing_day_volume_div_turnover_structural_reconstruction",
+      "structure_vintage": "retrospective_reconstruction"
+    },
+    "920181": {
+      "ISSUE_PRICE": 28.0,
+      "LISTING_DATE": "2026-04-10",
+      "AVERAGE_PRICE": 62.999635707198955,
+      "CLOSE_PRICE": 61.8,
+      "verified_float_shares": 1001.999962819872,
+      "verified_float_source": "ifind_listing_day_volume_div_turnover_structural_reconstruction",
+      "structure_vintage": "retrospective_reconstruction"
+    },
+    "920012": {
+      "ISSUE_PRICE": 19.58,
+      "LISTING_DATE": "2026-04-13",
+      "AVERAGE_PRICE": 46.36499865971817,
+      "CLOSE_PRICE": 51.67,
+      "verified_float_shares": 1326.8661591645268,
+      "verified_float_source": "ifind_listing_day_volume_div_turnover_structural_reconstruction",
+      "structure_vintage": "retrospective_reconstruction"
+    },
+    "920177": {
+      "ISSUE_PRICE": 21.8,
+      "LISTING_DATE": "2026-04-16",
+      "AVERAGE_PRICE": 38.377196329627246,
+      "CLOSE_PRICE": 36.58,
+      "verified_float_shares": 1177.2003984456628,
+      "verified_float_source": "ifind_listing_day_volume_div_turnover_structural_reconstruction",
+      "structure_vintage": "retrospective_reconstruction"
+    },
+    "920191": {
+      "ISSUE_PRICE": 7.71,
+      "LISTING_DATE": "2026-04-20",
+      "AVERAGE_PRICE": 15.188138415395326,
+      "CLOSE_PRICE": 14.88,
+      "verified_float_shares": 3991.499759558238,
+      "verified_float_source": "ifind_listing_day_volume_div_turnover_structural_reconstruction",
+      "structure_vintage": "retrospective_reconstruction"
+    },
+    "920125": {
+      "ISSUE_PRICE": 16.57,
+      "LISTING_DATE": "2026-04-24",
+      "AVERAGE_PRICE": 49.36095846883949,
+      "CLOSE_PRICE": 50.02,
+      "verified_float_shares": 1648.1535287363834,
+      "verified_float_source": "ifind_listing_day_volume_div_turnover_structural_reconstruction",
+      "structure_vintage": "retrospective_reconstruction"
+    },
+    "920156": {
+      "ISSUE_PRICE": 20.93,
+      "LISTING_DATE": "2026-04-27",
+      "AVERAGE_PRICE": 40.36485801089309,
+      "CLOSE_PRICE": 40.6,
+      "verified_float_shares": 2170.7992318695406,
+      "verified_float_source": "ifind_listing_day_volume_div_turnover_structural_reconstruction",
+      "structure_vintage": "retrospective_reconstruction"
+    },
+    "920186": {
+      "ISSUE_PRICE": 16.21,
+      "LISTING_DATE": "2026-04-29",
+      "AVERAGE_PRICE": 64.76480820996827,
+      "CLOSE_PRICE": 71.98,
+      "verified_float_shares": 9553.041778777771,
+      "verified_float_source": "ifind_listing_day_volume_div_turnover_structural_reconstruction",
+      "structure_vintage": "retrospective_reconstruction"
+    },
+    "920200": {
+      "ISSUE_PRICE": 20.58,
+      "LISTING_DATE": "2026-05-07",
+      "AVERAGE_PRICE": 53.69558599528841,
+      "CLOSE_PRICE": 94.02,
+      "verified_float_shares": 2421.899094612995,
+      "verified_float_source": "ifind_listing_day_volume_div_turnover_structural_reconstruction",
+      "structure_vintage": "retrospective_reconstruction"
+    },
+    "920178": {
+      "ISSUE_PRICE": 29.47,
+      "LISTING_DATE": "2026-05-15",
+      "AVERAGE_PRICE": 176.48200815443897,
+      "CLOSE_PRICE": 173.99,
+      "verified_float_shares": 1460.9555539892156,
+      "verified_float_source": "ifind_listing_day_volume_div_turnover_structural_reconstruction",
+      "structure_vintage": "retrospective_reconstruction"
+    },
+    "920096": {
+      "ISSUE_PRICE": 14.43,
+      "LISTING_DATE": "2026-05-18",
+      "AVERAGE_PRICE": 79.4564761935583,
+      "CLOSE_PRICE": 112.01,
+      "verified_float_shares": 1619.9998736703808,
+      "verified_float_source": "ifind_listing_day_volume_div_turnover_structural_reconstruction",
+      "structure_vintage": "retrospective_reconstruction"
+    },
+    "920220": {
+      "ISSUE_PRICE": 28.29,
+      "LISTING_DATE": "2026-05-22",
+      "AVERAGE_PRICE": 175.0023074826834,
+      "CLOSE_PRICE": 138.8,
+      "verified_float_shares": 1191.7125068676887,
+      "verified_float_source": "ifind_listing_day_volume_div_turnover_structural_reconstruction",
+      "structure_vintage": "retrospective_reconstruction"
+    },
+    "920161": {
+      "ISSUE_PRICE": 9.21,
+      "LISTING_DATE": "2026-05-27",
+      "AVERAGE_PRICE": 50.61606087806141,
+      "CLOSE_PRICE": 40.95,
+      "verified_float_shares": 3689.884430881417,
+      "verified_float_source": "ifind_listing_day_volume_div_turnover_structural_reconstruction",
+      "structure_vintage": "retrospective_reconstruction"
+    },
+    "920218": {
+      "ISSUE_PRICE": 12.19,
+      "LISTING_DATE": "2026-05-29",
+      "AVERAGE_PRICE": 44.19208726033698,
+      "CLOSE_PRICE": 45.2,
+      "verified_float_shares": 2107.6226243503893,
+      "verified_float_source": "ifind_listing_day_volume_div_turnover_structural_reconstruction",
+      "structure_vintage": "retrospective_reconstruction"
+    },
+    "920211": {
+      "ISSUE_PRICE": 25.19,
+      "LISTING_DATE": "2026-06-05",
+      "AVERAGE_PRICE": 253.432080553813,
+      "CLOSE_PRICE": 226.88,
+      "verified_float_shares": 576.0002153497956,
+      "verified_float_source": "ifind_listing_day_volume_div_turnover_structural_reconstruction",
+      "structure_vintage": "retrospective_reconstruction"
+    },
+    "920206": {
+      "ISSUE_PRICE": 30.28,
+      "LISTING_DATE": "2026-06-08",
+      "AVERAGE_PRICE": 90.0393905379624,
+      "CLOSE_PRICE": 81.87,
+      "verified_float_shares": 1425.5839030205007,
+      "verified_float_source": "ifind_listing_day_volume_div_turnover_structural_reconstruction",
+      "structure_vintage": "retrospective_reconstruction"
+    },
+    "920083": {
+      "ISSUE_PRICE": 9.65,
+      "LISTING_DATE": "2026-06-11",
+      "AVERAGE_PRICE": 52.844380059787134,
+      "CLOSE_PRICE": 51.51,
+      "verified_float_shares": 2008.9399934487258,
+      "verified_float_source": "ifind_listing_day_volume_div_turnover_structural_reconstruction",
+      "structure_vintage": "retrospective_reconstruction"
+    },
+    "920126": {
+      "ISSUE_PRICE": 7.79,
+      "LISTING_DATE": "2026-06-15",
+      "AVERAGE_PRICE": 19.735668015360517,
+      "CLOSE_PRICE": 17.68,
+      "verified_float_shares": 4466.799050880477,
+      "verified_float_source": "ifind_listing_day_volume_div_turnover_structural_reconstruction",
+      "structure_vintage": "retrospective_reconstruction"
+    },
+    "920072": {
+      "ISSUE_PRICE": 15.62,
+      "LISTING_DATE": "2026-06-29",
+      "AVERAGE_PRICE": 49.77383878444457,
+      "CLOSE_PRICE": 48.68,
+      "verified_float_shares": 1446.5003411083485,
+      "verified_float_source": "ifind_listing_day_volume_div_turnover_structural_reconstruction",
+      "structure_vintage": "retrospective_reconstruction"
+    },
+    "920222": {
+      "ISSUE_PRICE": 10.09,
+      "LISTING_DATE": "2026-06-30",
+      "AVERAGE_PRICE": 42.073096070634854,
+      "CLOSE_PRICE": 36.17,
+      "verified_float_shares": 1156.2589293609021,
+      "verified_float_source": "ifind_listing_day_volume_div_turnover_structural_reconstruction",
+      "structure_vintage": "retrospective_reconstruction"
+    },
+    "920193": {
+      "ISSUE_PRICE": 8.52,
+      "LISTING_DATE": "2026-07-02",
+      "AVERAGE_PRICE": 60.56118718824747,
+      "CLOSE_PRICE": 61.05,
+      "verified_float_shares": 2519.9995870882494,
+      "verified_float_source": "ifind_listing_day_volume_div_turnover_structural_reconstruction",
+      "structure_vintage": "retrospective_reconstruction"
+    },
+    "920189": {
+      "ISSUE_PRICE": 8.14,
+      "LISTING_DATE": "2026-07-08",
+      "AVERAGE_PRICE": 45.95455525346833,
+      "CLOSE_PRICE": 40.75,
+      "verified_float_shares": 8486.749959313462,
+      "verified_float_source": "ifind_listing_day_volume_div_turnover_structural_reconstruction",
+      "structure_vintage": "retrospective_reconstruction"
+    },
+    "920136": {
+      "ISSUE_PRICE": 19.28,
+      "LISTING_DATE": "2026-07-09",
+      "AVERAGE_PRICE": 35.78526768453804,
+      "CLOSE_PRICE": 34.0,
+      "verified_float_shares": 2099.9998817768465,
+      "verified_float_source": "ifind_listing_day_volume_div_turnover_structural_reconstruction",
+      "structure_vintage": "retrospective_reconstruction"
+    },
+    "920081": {
+      "ISSUE_PRICE": 38.69,
+      "LISTING_DATE": "2026-07-10",
+      "AVERAGE_PRICE": 51.60916145937602,
+      "CLOSE_PRICE": 47.02,
+      "verified_float_shares": 1710.0006988687344,
+      "verified_float_source": "ifind_listing_day_volume_div_turnover_structural_reconstruction",
+      "structure_vintage": "retrospective_reconstruction"
+    },
+    "920117": {
+      "ISSUE_PRICE": 17.83,
+      "LISTING_DATE": "2026-07-16",
+      "AVERAGE_PRICE": 37.6600568495391,
+      "CLOSE_PRICE": 35.34,
+      "verified_float_shares": 2021.400928958699,
+      "verified_float_source": "ifind_listing_day_volume_div_turnover_structural_reconstruction",
+      "structure_vintage": "retrospective_reconstruction"
+    },
+    "920079": {
+      "ISSUE_PRICE": 14.36,
+      "LISTING_DATE": "2026-07-22",
+      "AVERAGE_PRICE": 18.181011938586085,
+      "CLOSE_PRICE": 18.81,
+      "verified_float_shares": 4499.998410747584,
+      "verified_float_source": "ifind_listing_day_volume_div_turnover_structural_reconstruction",
+      "structure_vintage": "retrospective_reconstruction"
+    },
+    "920238": {
+      "ISSUE_PRICE": 18.89,
+      "LISTING_DATE": "2026-07-24",
+      "AVERAGE_PRICE": 61.806563523341445,
+      "CLOSE_PRICE": 56.03,
+      "verified_float_shares": 1940.6948979094586,
+      "verified_float_source": "ifind_listing_day_volume_div_turnover_structural_reconstruction",
+      "structure_vintage": "retrospective_reconstruction"
+    },
+    "920176": {
+      "ISSUE_PRICE": 22.16,
+      "LISTING_DATE": "2026-07-27",
+      "AVERAGE_PRICE": 54.42041621958547,
+      "CLOSE_PRICE": 155.01,
+      "verified_float_shares": 794.7000029358378,
+      "verified_float_source": "ifind_listing_day_volume_div_turnover_structural_reconstruction",
+      "structure_vintage": "retrospective_reconstruction"
+    },
+    "920065": {
+      "ISSUE_PRICE": 24.3,
+      "LISTING_DATE": "2026-07-29",
+      "AVERAGE_PRICE": 62.439535892796364,
+      "CLOSE_PRICE": 58.03,
+      "verified_float_shares": 1575.0003646281523,
+      "verified_float_source": "ifind_listing_day_volume_div_turnover_structural_reconstruction",
+      "structure_vintage": "retrospective_reconstruction"
+    },
+    "920258": {
+      "ISSUE_PRICE": 4.48,
+      "LISTING_DATE": "2026-08-03",
+      "AVERAGE_PRICE": 17.287847340441452,
+      "CLOSE_PRICE": 15.72,
+      "verified_float_shares": 3599.999151532121,
+      "verified_float_source": "ifind_listing_day_volume_div_turnover_structural_reconstruction",
+      "structure_vintage": "retrospective_reconstruction"
+    },
+    "920038": {
+      "ISSUE_PRICE": 29.06,
+      "LISTING_DATE": "2026-08-05",
+      "AVERAGE_PRICE": 49.92140977555286,
+      "CLOSE_PRICE": 48.31,
+      "verified_float_shares": 3416.608077797722,
+      "verified_float_source": "ifind_listing_day_volume_div_turnover_structural_reconstruction",
+      "structure_vintage": "retrospective_reconstruction"
+    },
+    "920165": {
+      "ISSUE_PRICE": 19.26,
+      "LISTING_DATE": "2026-08-11",
+      "AVERAGE_PRICE": 52.62868033210781,
+      "CLOSE_PRICE": 45.94,
+      "verified_float_shares": 960.5041874343066,
+      "verified_float_source": "ifind_listing_day_volume_div_turnover_structural_reconstruction",
+      "structure_vintage": "retrospective_reconstruction"
+    },
+    "920138": {
+      "ISSUE_PRICE": 18.86,
+      "LISTING_DATE": "2026-08-12",
+      "AVERAGE_PRICE": 55.03189064658913,
+      "CLOSE_PRICE": 53.26,
+      "verified_float_shares": 3461.3736435688234,
+      "verified_float_source": "ifind_listing_day_volume_div_turnover_structural_reconstruction",
+      "structure_vintage": "retrospective_reconstruction"
+    },
+    "920107": {
+      "ISSUE_PRICE": 16.02,
+      "LISTING_DATE": "2026-08-17",
+      "AVERAGE_PRICE": 31.110350792161253,
+      "CLOSE_PRICE": 30.05,
+      "verified_float_shares": 1887.3005600291956,
+      "verified_float_source": "ifind_listing_day_volume_div_turnover_structural_reconstruction",
+      "structure_vintage": "retrospective_reconstruction"
+    },
+    "920059": {
+      "ISSUE_PRICE": 11.13,
+      "LISTING_DATE": "2026-08-19",
+      "AVERAGE_PRICE": 26.01599083764992,
+      "CLOSE_PRICE": 24.75,
+      "verified_float_shares": 3231.8327850780447,
+      "verified_float_source": "ifind_listing_day_volume_div_turnover_structural_reconstruction",
+      "structure_vintage": "retrospective_reconstruction"
+    },
+    "920093": {
+      "ISSUE_PRICE": 14.35,
+      "LISTING_DATE": "2026-08-21",
+      "AVERAGE_PRICE": 27.179366479086625,
+      "CLOSE_PRICE": 23.19,
+      "verified_float_shares": 2520.0004515745436,
+      "verified_float_source": "ifind_listing_day_volume_div_turnover_structural_reconstruction",
+      "structure_vintage": "retrospective_reconstruction"
+    },
+    "920288": {
+      "ISSUE_PRICE": 12.57,
+      "LISTING_DATE": "2026-08-28",
+      "AVERAGE_PRICE": 27.299160130075105,
+      "CLOSE_PRICE": 28.51,
+      "verified_float_shares": 1787.9996454660884,
+      "verified_float_source": "ifind_listing_day_volume_div_turnover_structural_reconstruction",
+      "structure_vintage": "retrospective_reconstruction"
+    },
+    "920071": {
+      "ISSUE_PRICE": 9.72,
+      "LISTING_DATE": "2026-09-03",
+      "AVERAGE_PRICE": 26.982596224489388,
+      "CLOSE_PRICE": 24.23,
+      "verified_float_shares": 3150.0014801876882,
+      "verified_float_source": "ifind_listing_day_volume_div_turnover_structural_reconstruction",
+      "structure_vintage": "retrospective_reconstruction"
+    },
+    "920289": {
+      "ISSUE_PRICE": 17.71,
+      "LISTING_DATE": "2026-09-04",
+      "AVERAGE_PRICE": 37.398690810490365,
+      "CLOSE_PRICE": 37.5,
+      "verified_float_shares": 1445.0013316793566,
+      "verified_float_source": "ifind_listing_day_volume_div_turnover_structural_reconstruction",
+      "structure_vintage": "retrospective_reconstruction"
+    },
+    "920269": {
+      "ISSUE_PRICE": 30.7,
+      "LISTING_DATE": "2026-09-07",
+      "AVERAGE_PRICE": 44.792345000255565,
+      "CLOSE_PRICE": 41.25,
+      "verified_float_shares": 889.9495814357891,
+      "verified_float_source": "ifind_listing_day_volume_div_turnover_structural_reconstruction",
+      "structure_vintage": "retrospective_reconstruction"
+    },
+    "920268": {
+      "ISSUE_PRICE": 17.1,
+      "LISTING_DATE": "2026-09-09",
+      "AVERAGE_PRICE": 28.493969108318783,
+      "CLOSE_PRICE": 26.88,
+      "verified_float_shares": 1444.8126500603666,
+      "verified_float_source": "ifind_listing_day_volume_div_turnover_structural_reconstruction",
+      "structure_vintage": "retrospective_reconstruction"
+    },
+    "920298": {
+      "ISSUE_PRICE": 35.78,
+      "LISTING_DATE": "2026-09-16",
+      "AVERAGE_PRICE": 58.10795029080462,
+      "CLOSE_PRICE": 64.3,
+      "verified_float_shares": 1529.9995691860872,
+      "verified_float_source": "ifind_listing_day_volume_div_turnover_structural_reconstruction",
+      "structure_vintage": "retrospective_reconstruction"
+    },
+    "920229": {
+      "ISSUE_PRICE": 15.67,
+      "LISTING_DATE": "2026-09-22",
+      "AVERAGE_PRICE": 68.74499595763183,
+      "CLOSE_PRICE": 132.0,
+      "verified_float_shares": 1134.9998888716023,
+      "verified_float_source": "ifind_listing_day_volume_div_turnover_structural_reconstruction",
+      "structure_vintage": "retrospective_reconstruction"
+    },
+    "920025": {
+      "ISSUE_PRICE": 4.26,
+      "LISTING_DATE": "2026-09-23",
+      "AVERAGE_PRICE": 31.40242614026083,
+      "CLOSE_PRICE": 29.0,
+      "verified_float_shares": 5100.000826734955,
+      "verified_float_source": "ifind_listing_day_volume_div_turnover_structural_reconstruction",
+      "structure_vintage": "retrospective_reconstruction"
+    },
+    "920201": {
+      "ISSUE_PRICE": 16.77,
+      "LISTING_DATE": "2026-09-24",
+      "AVERAGE_PRICE": 82.24977934833652,
+      "CLOSE_PRICE": 72.35,
+      "verified_float_shares": 760.846922407406,
+      "verified_float_source": "ifind_listing_day_volume_div_turnover_structural_reconstruction",
+      "structure_vintage": "retrospective_reconstruction"
+    },
+    "920202": {
+      "ISSUE_PRICE": 7.55,
+      "LISTING_DATE": "2026-09-29",
+      "AVERAGE_PRICE": 27.984159658343,
+      "CLOSE_PRICE": 26.16,
+      "verified_float_shares": 2380.0,
+      "verified_float_source": "ifind_case_flow_shares_crosschecked_by_volume_div_turnover",
+      "structure_vintage": "retrospective_reconstruction"
+    },
+    "920157": {
+      "ISSUE_PRICE": 13.75,
+      "LISTING_DATE": "2026-10-09",
+      "AVERAGE_PRICE": 78.57959808353718,
+      "CLOSE_PRICE": 75.55,
+      "verified_float_shares": 1281.5467,
+      "verified_float_source": "ifind_case_flow_shares_crosschecked_by_volume_div_turnover",
+      "structure_vintage": "retrospective_reconstruction",
+      "comparable_data": [
+        {
+          "code": "300394.SZ",
+          "name": "300394.SZ",
+          "close": 235.07,
+          "pe_ttm": 110.416,
+          "pb_lf": 41.0366,
+          "mkt_cap": 2564.2023274999997,
+          "trade_date": "20261008",
+          "source": "tushare_historical",
+          "close_source": "tushare_historical",
+          "pe_source": "tushare_historical",
+          "pb_source": "tushare_historical",
+          "mkt_cap_source": "tushare_historical"
+        },
+        {
+          "code": "300570.SZ",
+          "name": "300570.SZ",
+          "close": 199.0,
+          "pe_ttm": 149.7021,
+          "pb_lf": 27.0944,
+          "mkt_cap": 451.98253099999994,
+          "trade_date": "20261008",
+          "source": "tushare_historical",
+          "close_source": "tushare_historical",
+          "pe_source": "tushare_historical",
+          "pb_source": "tushare_historical",
+          "mkt_cap_source": "tushare_historical"
+        },
+        {
+          "code": "002179.SZ",
+          "name": "002179.SZ",
+          "close": 33.18,
+          "pe_ttm": 37.7999,
+          "pb_lf": 2.8716,
+          "mkt_cap": 696.8617223399999,
+          "trade_date": "20261008",
+          "source": "tushare_historical",
+          "close_source": "tushare_historical",
+          "pe_source": "tushare_historical",
+          "pb_source": "tushare_historical",
+          "mkt_cap_source": "tushare_historical"
+        },
+        {
+          "code": "920045.BJ",
+          "name": "920045.BJ",
+          "close": 481.66,
+          "pe_ttm": 98.3865,
+          "pb_lf": 34.4116,
+          "mkt_cap": 459.02278437,
+          "trade_date": "20261008",
+          "source": "tushare_historical",
+          "close_source": "tushare_historical",
+          "pe_source": "tushare_historical",
+          "pb_source": "tushare_historical",
+          "mkt_cap_source": "tushare_historical"
+        }
+      ]
+    }
+  }
+}

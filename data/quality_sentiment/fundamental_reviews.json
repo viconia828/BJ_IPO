@@ -1,0 +1,5 @@
+{
+  "schema": "ipo_fundamental_reviews_v1",
+  "description": "逐股复核入口。items以股票代码为键；须提供source、available_date及剔除炒新情绪后的center/low/high/excludes_ipo_sentiment，或eps/earnings_basis/quality_factor/quality_reason。不得用含情绪的目标价填写基本面。",
+  "items": {}
+}

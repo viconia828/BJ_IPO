@@ -1,0 +1,172 @@
+{
+  "case": {
+    "code": "920218.BJ",
+    "name": "新天力",
+    "listing_date": "2026-05-29 00:00:00",
+    "industry": "轻工制造",
+    "chain_tags": [],
+    "candidate_codes": [
+      "001356.SZ",
+      "301193.SZ",
+      "301501.SZ"
+    ],
+    "evidence": "data/offline_tuning/replay_items/920218.json",
+    "peer_selection_status": "prospectus_candidates_pending_business_review"
+  },
+  "issuer_workpaper": "../companies/920218.BJ.json",
+  "pairs": [
+    {
+      "issuer": "920218.BJ",
+      "peer": "001356.SZ",
+      "peer_name": "富岭股份",
+      "role": "candidate_pending_review",
+      "core_eligible": false,
+      "business_evidence": [
+        "data/peer_research/mcp/profiles_ebb0431b07.json",
+        "data/peer_research/mcp/profiles_ffa5b63068.json"
+      ],
+      "issuer_product_terms": [
+        "塑料"
+      ],
+      "peer_product_terms": [
+        "塑料"
+      ],
+      "shared_product_terms": [
+        "塑料"
+      ],
+      "peer_to_issuer_revenue_ratio": 2.468470419172935,
+      "same_market": false,
+      "lossmaking_peer_retained": false,
+      "profitability_status": "盈利",
+      "checks": [
+        {
+          "rule": "M01",
+          "title": "业务匹配",
+          "status": "review",
+          "reason": "共同词：塑料。仍需产品收入占比、技术/客户、产业链与盈利方式证据",
+          "evidence": [
+            "data/peer_research/mcp/profiles_ebb0431b07.json",
+            "data/peer_research/mcp/profiles_ffa5b63068.json"
+          ]
+        },
+        {
+          "rule": "M02",
+          "title": "市场与亏损",
+          "status": "review",
+          "reason": "保留各市场与亏损候选；没有按PE高低筛选可比池",
+          "evidence": []
+        }
+      ],
+      "remaining_evidence": [
+        "主要产品收入占比",
+        "产业链位置及客户用途",
+        "技术及盈利模式",
+        "核心/辅助/题材角色复核",
+        "历史可得版本"
+      ]
+    },
+    {
+      "issuer": "920218.BJ",
+      "peer": "301193.SZ",
+      "peer_name": "家联科技",
+      "role": "candidate_pending_review",
+      "core_eligible": false,
+      "business_evidence": [
+        "data/peer_research/mcp/profiles_47e95b7312.json",
+        "data/peer_research/mcp/profiles_ffa5b63068.json"
+      ],
+      "issuer_product_terms": [
+        "塑料"
+      ],
+      "peer_product_terms": [
+        "塑料"
+      ],
+      "shared_product_terms": [
+        "塑料"
+      ],
+      "peer_to_issuer_revenue_ratio": 3.6192440829100567,
+      "same_market": false,
+      "lossmaking_peer_retained": true,
+      "profitability_status": "亏损",
+      "checks": [
+        {
+          "rule": "M01",
+          "title": "业务匹配",
+          "status": "review",
+          "reason": "共同词：塑料。仍需产品收入占比、技术/客户、产业链与盈利方式证据",
+          "evidence": [
+            "data/peer_research/mcp/profiles_47e95b7312.json",
+            "data/peer_research/mcp/profiles_ffa5b63068.json"
+          ]
+        },
+        {
+          "rule": "M02",
+          "title": "市场与亏损",
+          "status": "review",
+          "reason": "保留各市场与亏损候选；没有按PE高低筛选可比池",
+          "evidence": []
+        }
+      ],
+      "remaining_evidence": [
+        "主要产品收入占比",
+        "产业链位置及客户用途",
+        "技术及盈利模式",
+        "核心/辅助/题材角色复核",
+        "历史可得版本"
+      ]
+    },
+    {
+      "issuer": "920218.BJ",
+      "peer": "301501.SZ",
+      "peer_name": "恒鑫生活",
+      "role": "candidate_pending_review",
+      "core_eligible": false,
+      "business_evidence": [
+        "data/peer_research/mcp/profiles_47e95b7312.json",
+        "data/peer_research/mcp/profiles_ffa5b63068.json"
+      ],
+      "issuer_product_terms": [
+        "塑料"
+      ],
+      "peer_product_terms": [
+        "塑料",
+        "包装"
+      ],
+      "shared_product_terms": [
+        "塑料"
+      ],
+      "peer_to_issuer_revenue_ratio": 1.82196478124066,
+      "same_market": false,
+      "lossmaking_peer_retained": false,
+      "profitability_status": "盈利",
+      "checks": [
+        {
+          "rule": "M01",
+          "title": "业务匹配",
+          "status": "review",
+          "reason": "共同词：塑料。仍需产品收入占比、技术/客户、产业链与盈利方式证据",
+          "evidence": [
+            "data/peer_research/mcp/profiles_47e95b7312.json",
+            "data/peer_research/mcp/profiles_ffa5b63068.json"
+          ]
+        },
+        {
+          "rule": "M02",
+          "title": "市场与亏损",
+          "status": "review",
+          "reason": "保留各市场与亏损候选；没有按PE高低筛选可比池",
+          "evidence": []
+        }
+      ],
+      "remaining_evidence": [
+        "主要产品收入占比",
+        "产业链位置及客户用途",
+        "技术及盈利模式",
+        "核心/辅助/题材角色复核",
+        "历史可得版本"
+      ]
+    }
+  ],
+  "pricing_eligible": false,
+  "fundamental_anchor_changed": false
+}

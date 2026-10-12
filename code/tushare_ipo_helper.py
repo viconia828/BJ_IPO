@@ -1297,6 +1297,8 @@ def _build_recent_ipo_record(
         "LD_CLOSE_CHANGE": ld_close_change,
         "LD_AVERAGE_CHANGE": ld_average_change,
         "NEXT_DAY_CLOSE": tushare_helper._safe_float(post_listing.get("next_close")),
+        "NEXT_TRADE_DATE": post_listing.get("next_trade_date"),
+        "THIRD_TRADE_DATE": post_listing.get("third_trade_date"),
         "THIRD_DAY_CLOSE": tushare_helper._safe_float(post_listing.get("third_close")),
         "NEXT_DAY_CLOSE_CHANGE": tushare_helper._safe_float(post_listing.get("next_day_change_pct")),
         "THIRD_DAY_CLOSE_CHANGE": tushare_helper._safe_float(post_listing.get("third_day_change_pct")),

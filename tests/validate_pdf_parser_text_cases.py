@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 from pathlib import Path
+from tempfile import TemporaryDirectory
+from unittest.mock import patch
 import sys
 
 
@@ -86,6 +88,43 @@ SOUTH_DAIRY_COMPARABLE_TEXT = """
 
 def main() -> int:
     failures: list[str] = []
+    # Same-path replacements must invalidate in-process extracted text too.
+    temp_root = ROOT_DIR / "tests" / "_tmp"
+    temp_root.mkdir(parents=True, exist_ok=True)
+    with TemporaryDirectory(dir=temp_root) as temp_dir:
+        temp_path = Path(temp_dir) / "cache_replace.bin"
+        with patch.object(pdf_parser, "_iter_page_texts", side_effect=lambda p: [p.read_text(encoding="utf-8")]):
+            temp_path.write_text("old", encoding="utf-8")
+            if pdf_parser._read_pdf_text(temp_path) != "old":
+                failures.append("PDF text cache: initial read failed")
+            temp_path.write_text("replacement", encoding="utf-8")
+            if pdf_parser._read_pdf_text(temp_path) != "replacement":
+                failures.append("PDF text cache: same-path replacement returned stale text")
+
+    yuanda_text = """
+三、发行人主营业务情况
+公司是一家专注于净水器件领域的高新技术企业，主营业务为冰箱滤水器、泳池类滤芯、家用净水滤芯、咖啡机滤芯、整机等多品类净水器件及相关功能材料的研发、生产和销售。
+第五节业务和技术
+1、同行业可比公司选择依据
+公司及可比公司具体情况如下：
+企业名称 主营业务 可比企业相似度
+开能健康 开能健康是一家全球人居水处理综合解决方案及产品和服务的提供商。
+德尔玛 德尔玛是一家集自主研发、原创设计、自有生产、自营销售于一体的创新家电品牌企业。
+建霖家居 建霖家居主要从事厨卫产品、净水产品和其他产品的研发、设计、生产和销售。
+望圆科技 望圆科技主要从事泳池清洁机器人的研发、设计、生产及销售。
+千岸科技 千岸科技主要从事跨境电商零售业务，产品类别包括艺术创作、数码电子、运动户外、家居庭院四大领域。
+安克创新 安克创新主要从事智能产品的研发、生产和销售。
+三、发行人主营业务情况
+（一）销售情况和主要客户
+产能、产量及销量情况如下。
+"""
+    expected_yuanda = ["300272.SZ", "301332.SZ", "603408.SH", "920065.BJ", "300866.SZ"]
+    yuanda_codes = pdf_parser._extract_comparable_companies_from_text(yuanda_text, "920285")
+    if yuanda_codes != expected_yuanda:
+        failures.append(f"920285 name-only peer table: expected {expected_yuanda}, got {yuanda_codes}")
+    yuanda_description = pdf_parser._extract_business_desc_from_text(yuanda_text)
+    if "净水器件" not in yuanda_description or "全球人居" in yuanda_description:
+        failures.append(f"920285 business subject: {yuanda_description}")
 
     comparable_codes = pdf_parser._extract_comparable_companies_from_text(
         COMPARABLE_TEXT,

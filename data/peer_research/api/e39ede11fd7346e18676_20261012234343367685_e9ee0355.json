@@ -1,0 +1,385 @@
+{
+  "schema": "ifind_http_evidence_v1",
+  "retrieved_at": "2026-10-12T23:43:43.150176+08:00",
+  "source": "https://quantapi.51ifind.com/api/v1/basic_data_service",
+  "request": {
+    "codes": "301097.SZ,301122.SZ,301128.SZ,301173.SZ,301187.SZ,301189.SZ,301193.SZ,301226.SZ,301234.SZ,301332.SZ,301469.SZ,301501.SZ,301510.SZ,301518.SZ,301529.SZ,301558.SZ,301581.SZ,301662.SZ,430482.NQ,600237.SH,600302.SH,600419.SH,600429.SH,600433.SH,600456.SH",
+    "indipara": [
+      {
+        "indicator": "ths_revenue_stock",
+        "indiparams": [
+          "20251231",
+          "100"
+        ]
+      },
+      {
+        "indicator": "ths_np_atoopc_stock",
+        "indiparams": [
+          "20251231",
+          "100"
+        ]
+      }
+    ]
+  },
+  "http_status": 200,
+  "response": {
+    "errorcode": 0,
+    "errmsg": "",
+    "tables": [
+      {
+        "thscode": "301097.SZ",
+        "table": {
+          "ths_revenue_stock": [
+            575755706.89
+          ],
+          "ths_np_atoopc_stock": [
+            -16220422.56
+          ]
+        }
+      },
+      {
+        "thscode": "301122.SZ",
+        "table": {
+          "ths_revenue_stock": [
+            356690670.31
+          ],
+          "ths_np_atoopc_stock": [
+            5620712.92
+          ]
+        }
+      },
+      {
+        "thscode": "301128.SZ",
+        "table": {
+          "ths_revenue_stock": [
+            1818941785.65
+          ],
+          "ths_np_atoopc_stock": [
+            141650740.75
+          ]
+        }
+      },
+      {
+        "thscode": "301173.SZ",
+        "table": {
+          "ths_revenue_stock": [
+            2280326315.08
+          ],
+          "ths_np_atoopc_stock": [
+            173039639.18
+          ]
+        }
+      },
+      {
+        "thscode": "301187.SZ",
+        "table": {
+          "ths_revenue_stock": [
+            1980781225.52
+          ],
+          "ths_np_atoopc_stock": [
+            104508804.02
+          ]
+        }
+      },
+      {
+        "thscode": "301189.SZ",
+        "table": {
+          "ths_revenue_stock": [
+            945777699.87
+          ],
+          "ths_np_atoopc_stock": [
+            -156902306.57
+          ]
+        }
+      },
+      {
+        "thscode": "301193.SZ",
+        "table": {
+          "ths_revenue_stock": [
+            2687386910.65
+          ],
+          "ths_np_atoopc_stock": [
+            -75706978.08
+          ]
+        }
+      },
+      {
+        "thscode": "301226.SZ",
+        "table": {
+          "ths_revenue_stock": [
+            507964593.09
+          ],
+          "ths_np_atoopc_stock": [
+            16600296.73
+          ]
+        }
+      },
+      {
+        "thscode": "301234.SZ",
+        "table": {
+          "ths_revenue_stock": [
+            458282116.04
+          ],
+          "ths_np_atoopc_stock": [
+            18893021.58
+          ]
+        }
+      },
+      {
+        "thscode": "301332.SZ",
+        "table": {
+          "ths_revenue_stock": [
+            3431720308.12
+          ],
+          "ths_np_atoopc_stock": [
+            129640637.42
+          ]
+        }
+      },
+      {
+        "thscode": "301469.SZ",
+        "table": {
+          "ths_revenue_stock": [
+            1151154274.03
+          ],
+          "ths_np_atoopc_stock": [
+            80314701.0
+          ]
+        }
+      },
+      {
+        "thscode": "301501.SZ",
+        "table": {
+          "ths_revenue_stock": [
+            1844869202.99
+          ],
+          "ths_np_atoopc_stock": [
+            223841648.6
+          ]
+        }
+      },
+      {
+        "thscode": "301510.SZ",
+        "table": {
+          "ths_revenue_stock": [
+            549585556.38
+          ],
+          "ths_np_atoopc_stock": [
+            62955193.39
+          ]
+        }
+      },
+      {
+        "thscode": "301518.SZ",
+        "table": {
+          "ths_revenue_stock": [
+            2755040032.3
+          ],
+          "ths_np_atoopc_stock": [
+            97218075.98
+          ]
+        }
+      },
+      {
+        "thscode": "301529.SZ",
+        "table": {
+          "ths_revenue_stock": [
+            1726119798.05
+          ],
+          "ths_np_atoopc_stock": [
+            132764854.35
+          ]
+        }
+      },
+      {
+        "thscode": "301558.SZ",
+        "table": {
+          "ths_revenue_stock": [
+            1691878162.64
+          ],
+          "ths_np_atoopc_stock": [
+            48640825.81
+          ]
+        }
+      },
+      {
+        "thscode": "301581.SZ",
+        "table": {
+          "ths_revenue_stock": [
+            848051451.45
+          ],
+          "ths_np_atoopc_stock": [
+            55029622.0
+          ]
+        }
+      },
+      {
+        "thscode": "301662.SZ",
+        "table": {
+          "ths_revenue_stock": [
+            2031512700.89
+          ],
+          "ths_np_atoopc_stock": [
+            59875952.26
+          ]
+        }
+      },
+      {
+        "thscode": "430482.NQ",
+        "table": {
+          "ths_revenue_stock": [
+            320310118.77
+          ],
+          "ths_np_atoopc_stock": [
+            30196808.89
+          ]
+        }
+      },
+      {
+        "thscode": "600237.SH",
+        "table": {
+          "ths_revenue_stock": [
+            1395082598.8
+          ],
+          "ths_np_atoopc_stock": [
+            119899335.77
+          ]
+        }
+      },
+      {
+        "thscode": "600302.SH",
+        "table": {
+          "ths_revenue_stock": [
+            337238620.57
+          ],
+          "ths_np_atoopc_stock": [
+            -143876543.64
+          ]
+        }
+      },
+      {
+        "thscode": "600419.SH",
+        "table": {
+          "ths_revenue_stock": [
+            2751970256.62
+          ],
+          "ths_np_atoopc_stock": [
+            41482810.7
+          ]
+        }
+      },
+      {
+        "thscode": "600429.SH",
+        "table": {
+          "ths_revenue_stock": [
+            6340356841.64
+          ],
+          "ths_np_atoopc_stock": [
+            -225581449.06
+          ]
+        }
+      },
+      {
+        "thscode": "600433.SH",
+        "table": {
+          "ths_revenue_stock": [
+            7151760711.36
+          ],
+          "ths_np_atoopc_stock": [
+            -303664094.34
+          ]
+        }
+      },
+      {
+        "thscode": "600456.SH",
+        "table": {
+          "ths_revenue_stock": [
+            6124089437.31
+          ],
+          "ths_np_atoopc_stock": [
+            400901760.98
+          ]
+        }
+      }
+    ],
+    "datatype": [
+      {
+        "itemid": "ths_revenue_stock",
+        "type": "DT_DOUBLE"
+      },
+      {
+        "itemid": "ths_np_atoopc_stock",
+        "type": "DT_DOUBLE"
+      }
+    ],
+    "inputParams": {
+      "jsonrpc": true,
+      "params": [
+        {
+          "function": "ths_revenue_stock",
+          "id": "01082",
+          "params": [
+            {
+              "name": "THSCODE",
+              "system": "false",
+              "value": ""
+            },
+            {
+              "name": "FDREPORT",
+              "system": "false",
+              "value": "20251231"
+            },
+            {
+              "name": "FL",
+              "system": "false",
+              "value": "100"
+            },
+            {
+              "name": "FDIR",
+              "system": "false",
+              "value": ""
+            },
+            {
+              "name": "UNIT",
+              "system": "false",
+              "value": ""
+            }
+          ]
+        },
+        {
+          "function": "ths_np_atoopc_stock",
+          "id": "01113",
+          "params": [
+            {
+              "name": "THSCODE",
+              "system": "false",
+              "value": ""
+            },
+            {
+              "name": "FDREPORT",
+              "system": "false",
+              "value": "20251231"
+            },
+            {
+              "name": "FL",
+              "system": "false",
+              "value": "100"
+            },
+            {
+              "name": "FDIR",
+              "system": "false",
+              "value": ""
+            },
+            {
+              "name": "UNIT",
+              "system": "false",
+              "value": ""
+            }
+          ]
+        }
+      ]
+    },
+    "dataVol": 50,
+    "perf": 42
+  }
+}

@@ -5,7 +5,7 @@ import os
 import re
 import shutil
 import subprocess
-from datetime import date
+from datetime import date, timedelta
 from types import SimpleNamespace
 from pathlib import Path
 import sys
@@ -136,6 +136,9 @@ def _make_item_with_comparables(
         "SECURITY_NAME_ABBR": f"样本{code}",
         "APPLY_DATE": listing_date,
         "LISTING_DATE": listing_date,
+        # Explicit observation dates for this synthetic daily sequence.
+        "NEXT_TRADE_DATE": (date.fromisoformat(listing_date) + timedelta(days=1)).isoformat(),
+        "THIRD_TRADE_DATE": (date.fromisoformat(listing_date) + timedelta(days=2)).isoformat(),
         "ISSUE_PRICE": issue_price,
         "AFTER_ISSUE_PE": 10.0,
         "INDUSTRY_PE_NEW": 20.0,
@@ -271,6 +274,8 @@ def _make_sentiment_dataset() -> dict[str, Any]:
         item["POST_LISTING_PROFIT_EFFECT_PCT"] = 100.0
         item["NEXT_DAY_FROM_LISTING_CLOSE_PCT"] = 100.0
         item["THIRD_DAY_FROM_LISTING_CLOSE_PCT"] = 100.0
+        item["NEXT_DAY_CLOSE"] = item["CLOSE_PRICE"] * 2
+        item["THIRD_DAY_CLOSE"] = item["CLOSE_PRICE"] * 2
     return {
         "schema": param_tuning.DATASET_SCHEMA,
         "replay_item_cache_version": param_tuning.REPLAY_ITEM_CACHE_VERSION,

@@ -190,8 +190,8 @@ REGRESSION_CASES = (
             "方法二实际样本代码",
             "基础估值公式",
             "区间宽度",
-            "偏PE估值区间",
-            "偏情绪估值区间",
+            "原综合参考区间",
+            "旧版情绪区间",
             "东方财富（仅展示补充：定价方式、有效申购户数、主营业务）",
         ),
     ),
@@ -207,8 +207,8 @@ REGRESSION_CASES = (
             "没有同二级行业历史新股样本",
             "基础权重 = 方法一 100%",
             "区间宽度",
-            "偏PE估值区间",
-            "偏情绪估值区间",
+            "原综合参考区间",
+            "旧版情绪区间",
         ),
     ),
 )
@@ -901,10 +901,11 @@ def _assert_report_overview_text(failures: list[str]) -> None:
     )
     _assert_contains(
         estimated_overview,
-        ("代码 920222", "1+0门槛（万元）", "正股抢时间 否", "碎股抢时间 碎股门槛"),
+        ("代码 920222", "1+0门槛（万元）", "正股抢时间 否", "碎股抢时间 待确认"),
         failures,
         "estimated overview",
     )
+    _assert_not_contains(estimated_overview, ("碎股抢时间 否", "碎股抢时间 门槛"), failures, "unknown fractional overview")
 
 
 def _assert_note_builder_focus_scope(params: dict[str, Any], failures: list[str]) -> None:

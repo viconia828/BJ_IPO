@@ -17,7 +17,7 @@ import subscription_ladder_labels
 import tushare_helper
 import tushare_ipo_helper
 import valuation_engine
-from industry_mapping import INDUSTRY_CLASSIFICATION_VERSION, IndustryMapper
+from industry_mapping import INDUSTRY_CLASSIFICATION_VERSION, INDUSTRY_REFERENCE_SIGNATURE, IndustryMapper, KNOWN_BSE_INDUSTRY_MAP
 from local_file_db import LocalFileDB
 
 
@@ -34,8 +34,8 @@ INTRADAY_DIR = listing_average_price_helper.DEFAULT_INTRADAY_DIR
 PDF_DIR = REPO_ROOT / "公告文件"
 DATASET_SCHEMA = "offline_tuning_replay_v1"
 REPLAY_ITEM_SCHEMA = "offline_tuning_replay_item_v1"
-REPLAY_ITEM_CACHE_VERSION = 9
-REPLAY_RECORD_SIGNATURE_VERSION = 3
+REPLAY_ITEM_CACHE_VERSION = 10
+REPLAY_RECORD_SIGNATURE_VERSION = 4
 REPLAY_AVERAGE_PRICE_CALC_VERSION = listing_average_price_helper.AVERAGE_PRICE_CALC_VERSION
 METHOD2_ONLY_SCOPE = "method2_only"
 COMPOSITE_EVALUATION_SCOPE = "composite"
@@ -130,6 +130,8 @@ REPLAY_RECORD_SIGNATURE_KEYS = (
     "CLOSE_PRICE",
     "LD_CLOSE_CHANGE",
     "NEXT_DAY_CLOSE",
+    "NEXT_TRADE_DATE",
+    "THIRD_TRADE_DATE",
     "THIRD_DAY_CLOSE",
     "NEXT_DAY_CLOSE_CHANGE",
     "THIRD_DAY_CLOSE_CHANGE",
@@ -149,8 +151,18 @@ REPLAY_RECORD_SIGNATURE_KEYS = (
     "business_tags",
     "industry_confidence",
     "industry_evidence",
+    "industry_tertiary",
+    "chain_tags",
+    "industry_status",
+    "industry_candidates",
+    "industry_review_reasons",
+    "industry_classification_version",
+    "ISSUER_BUSINESS",
+    "MAIN_BUSINESS",
 )
 REPLAY_DERIVED_POST_LISTING_KEYS = {
+    "NEXT_TRADE_DATE",
+    "THIRD_TRADE_DATE",
     "NEXT_DAY_CLOSE",
     "THIRD_DAY_CLOSE",
     "NEXT_DAY_CLOSE_CHANGE",
@@ -343,6 +355,7 @@ def _build_replay_refresh_contract() -> dict[str, Any]:
         "record_signature_version": REPLAY_RECORD_SIGNATURE_VERSION,
         "record_signature_keys": list(REPLAY_RECORD_SIGNATURE_KEYS),
         "industry_classification_version": INDUSTRY_CLASSIFICATION_VERSION,
+        "industry_reference_signature": INDUSTRY_REFERENCE_SIGNATURE,
         "pdf_parser_versions": dict(pdf_parser.PARSE_CACHE_KIND_VERSIONS),
     }
 
@@ -506,6 +519,8 @@ def _resolve_post_listing_performance(
     record: dict[str, Any],
 ) -> dict[str, Any]:
     existing = {
+        "next_trade_date": record.get("NEXT_TRADE_DATE"),
+        "third_trade_date": record.get("THIRD_TRADE_DATE"),
         "next_close": _safe_float(record.get("NEXT_DAY_CLOSE")),
         "third_close": _safe_float(record.get("THIRD_DAY_CLOSE")),
         "next_day_change_pct": _safe_float(record.get("NEXT_DAY_CLOSE_CHANGE") or record.get("NEXT_DAY_CHANGE")),
@@ -818,6 +833,13 @@ def _supplement_replay_record_industry(
     replay records unclassified.
     """
     current = dict(record)
+    prospectus_path = pdf_paths.get("old_shares") or pdf_paths.get("comparables")
+    code = str(current.get("SECURITY_CODE") or "").split(".")[0]
+    if code not in KNOWN_BSE_INDUSTRY_MAP and not current.get("ISSUER_BUSINESS") and prospectus_path:
+        try:
+            current["ISSUER_BUSINESS"] = pdf_parser.extract_business_desc(prospectus_path)
+        except Exception as exc:
+            current["replay_business_parse_error"] = f"{type(exc).__name__}: {exc}"
     if not _is_missing_replay_value(current.get("INDUSTRY")) and not _is_missing_replay_value(
         current.get("INDUSTRY_CODE")
     ):
@@ -1071,6 +1093,8 @@ def _build_replay_item(
         "LD_CLOSE_CHANGE": _safe_float(record.get("LD_CLOSE_CHANGE")),
         "LD_AVERAGE_CHANGE": average_change,
         "NEXT_DAY_CLOSE": _safe_float(post_listing_result.get("next_close")),
+        "NEXT_TRADE_DATE": post_listing_result.get("next_trade_date"),
+        "THIRD_TRADE_DATE": post_listing_result.get("third_trade_date"),
         "THIRD_DAY_CLOSE": _safe_float(post_listing_result.get("third_close")),
         "NEXT_DAY_CLOSE_CHANGE": _safe_float(post_listing_result.get("next_day_change_pct")),
         "THIRD_DAY_CLOSE_CHANGE": _safe_float(post_listing_result.get("third_day_change_pct")),
@@ -1094,6 +1118,14 @@ def _build_replay_item(
             industry.primary if industry.secondary in {"", "未分类", industry.primary} else f"{industry.primary} / {industry.secondary}",
         ),
         "business_tags": list(getattr(industry, "business_tags", ())),
+        "chain_tags": list(getattr(industry, "chain_tags", ())),
+        "industry_tertiary": getattr(industry, "tertiary", ""),
+        "industry_status": getattr(industry, "status", "confirmed"),
+        "industry_candidates": list(getattr(industry, "candidate_groups", ())),
+        "industry_review_reasons": list(getattr(industry, "review_reasons", ())),
+        "industry_classification_version": INDUSTRY_CLASSIFICATION_VERSION,
+        "ISSUER_BUSINESS": str(record.get("ISSUER_BUSINESS") or ""),
+        "MAIN_BUSINESS": str(record.get("MAIN_BUSINESS") or ""),
         "industry_confidence": float(getattr(industry, "confidence", 0.0)),
         "industry_evidence": list(getattr(industry, "evidence", ())),
         "old_shares": old_shares,
@@ -1772,6 +1804,8 @@ def _build_recent_pool(items: list[dict[str, Any]]) -> list[dict[str, Any]]:
             "LD_CLOSE_CHANGE": item.get("LD_CLOSE_CHANGE"),
             "LD_AVERAGE_CHANGE": item.get("LD_AVERAGE_CHANGE"),
             "NEXT_DAY_CLOSE": item.get("NEXT_DAY_CLOSE"),
+            "NEXT_TRADE_DATE": item.get("NEXT_TRADE_DATE"),
+            "THIRD_TRADE_DATE": item.get("THIRD_TRADE_DATE"),
             "THIRD_DAY_CLOSE": item.get("THIRD_DAY_CLOSE"),
             "NEXT_DAY_CLOSE_CHANGE": item.get("NEXT_DAY_CLOSE_CHANGE"),
             "THIRD_DAY_CLOSE_CHANGE": item.get("THIRD_DAY_CLOSE_CHANGE"),
@@ -1783,6 +1817,12 @@ def _build_recent_pool(items: list[dict[str, Any]]) -> list[dict[str, Any]]:
             "industry_secondary": item.get("industry_secondary"),
             "old_shares": item.get("old_shares"),
             "float_shares": item.get("float_shares"),
+            "verified_float_shares": item.get("verified_float_shares"),
+            "verified_float_source": item.get("verified_float_source"),
+            "comparable_data": item.get("comparable_data"),
+            "fundamental_review": item.get("fundamental_review"),
+            "fundamental_snapshot": item.get("fundamental_snapshot"),
+            "sentiment_snapshot": item.get("sentiment_snapshot"),
         }
         for item in items
     ]
@@ -1877,6 +1917,13 @@ def _evaluate_replay_prediction(
         online_issue_num=_safe_float(item.get("ONLINE_ISSUE_NUM")),
         top_apply_marketcap=_safe_float(item.get("TOP_APPLY_MARKETCAP")),
     )
+    if str(params.get("quality_sentiment_mode", "shadow")) == "active":
+        import quality_sentiment
+        import quality_sentiment_data
+        corrected, _ = quality_sentiment_data.normalize_history([*recent_pool, item])
+        target = next(row for row in reversed(corrected) if str(row.get("SECURITY_CODE")) == code)
+        result = quality_sentiment.evaluate(target, corrected, params, as_of=target.get("LISTING_DATE"))
+        final = quality_sentiment.attach(final, result)
     return final, method1, method2, method3
 
 

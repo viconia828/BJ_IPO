@@ -120,6 +120,15 @@ def build_ipo_source_text(all_data: dict[str, Any]) -> str:
 
 
 def build_comparable_source_text(all_data: dict[str, Any]) -> str:
+    text = _build_comparable_quote_source_text(all_data)
+    summary = all_data.get("comparable_summary") or all_data.get("wind_summary") or {}
+    fundamentals = summary.get("fundamentals") or {}
+    if fundamentals.get("available"):
+        text += f"；iFind基本面资料 {fundamentals.get('attached', 0)} 家（复核参考，未用于定价）"
+    return text
+
+
+def _build_comparable_quote_source_text(all_data: dict[str, Any]) -> str:
     comparable_summary = all_data.get("comparable_summary") or all_data.get("wind_summary", {}) or {}
     provider = str(comparable_summary.get("provider") or all_data.get("params", {}).get("comparable_data_source", "wind")).strip().lower() or "wind"
     provider_label = "Tushare" if provider == "tushare" else "Wind"

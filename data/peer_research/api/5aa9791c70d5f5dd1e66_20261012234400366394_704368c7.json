@@ -1,0 +1,275 @@
+{
+  "schema": "ifind_http_evidence_v1",
+  "retrieved_at": "2026-10-12T23:44:00.032114+08:00",
+  "source": "https://quantapi.51ifind.com/api/v1/basic_data_service",
+  "request": {
+    "codes": "920268.BJ,920269.BJ,920284.BJ,920285.BJ,920288.BJ,920289.BJ,920298.BJ,920522.BJ,920526.BJ,920634.BJ,920694.BJ,920703.BJ,920871.BJ,920971.BJ,920982.BJ",
+    "indipara": [
+      {
+        "indicator": "ths_revenue_stock",
+        "indiparams": [
+          "20191231",
+          "100"
+        ]
+      },
+      {
+        "indicator": "ths_np_atoopc_stock",
+        "indiparams": [
+          "20191231",
+          "100"
+        ]
+      }
+    ]
+  },
+  "http_status": 200,
+  "response": {
+    "errorcode": 0,
+    "errmsg": "",
+    "tables": [
+      {
+        "thscode": "920268.BJ",
+        "table": {
+          "ths_revenue_stock": [
+            null
+          ],
+          "ths_np_atoopc_stock": [
+            null
+          ]
+        }
+      },
+      {
+        "thscode": "920269.BJ",
+        "table": {
+          "ths_revenue_stock": [
+            null
+          ],
+          "ths_np_atoopc_stock": [
+            null
+          ]
+        }
+      },
+      {
+        "thscode": "920284.BJ",
+        "table": {
+          "ths_revenue_stock": [
+            71674854.67
+          ],
+          "ths_np_atoopc_stock": [
+            -15205207.79
+          ]
+        }
+      },
+      {
+        "thscode": "920285.BJ",
+        "table": {
+          "ths_revenue_stock": [
+            null
+          ],
+          "ths_np_atoopc_stock": [
+            null
+          ]
+        }
+      },
+      {
+        "thscode": "920288.BJ",
+        "table": {
+          "ths_revenue_stock": [
+            null
+          ],
+          "ths_np_atoopc_stock": [
+            null
+          ]
+        }
+      },
+      {
+        "thscode": "920289.BJ",
+        "table": {
+          "ths_revenue_stock": [
+            null
+          ],
+          "ths_np_atoopc_stock": [
+            null
+          ]
+        }
+      },
+      {
+        "thscode": "920298.BJ",
+        "table": {
+          "ths_revenue_stock": [
+            null
+          ],
+          "ths_np_atoopc_stock": [
+            null
+          ]
+        }
+      },
+      {
+        "thscode": "920522.BJ",
+        "table": {
+          "ths_revenue_stock": [
+            220998817.86
+          ],
+          "ths_np_atoopc_stock": [
+            5918646.14
+          ]
+        }
+      },
+      {
+        "thscode": "920526.BJ",
+        "table": {
+          "ths_revenue_stock": [
+            93802968.17
+          ],
+          "ths_np_atoopc_stock": [
+            15537068.03
+          ]
+        }
+      },
+      {
+        "thscode": "920634.BJ",
+        "table": {
+          "ths_revenue_stock": [
+            413851877.73
+          ],
+          "ths_np_atoopc_stock": [
+            12740756.57
+          ]
+        }
+      },
+      {
+        "thscode": "920694.BJ",
+        "table": {
+          "ths_revenue_stock": [
+            331967099.34
+          ],
+          "ths_np_atoopc_stock": [
+            69919858.51
+          ]
+        }
+      },
+      {
+        "thscode": "920703.BJ",
+        "table": {
+          "ths_revenue_stock": [
+            356006525.05
+          ],
+          "ths_np_atoopc_stock": [
+            92353832.35
+          ]
+        }
+      },
+      {
+        "thscode": "920871.BJ",
+        "table": {
+          "ths_revenue_stock": [
+            130040649.6
+          ],
+          "ths_np_atoopc_stock": [
+            18250236.24
+          ]
+        }
+      },
+      {
+        "thscode": "920971.BJ",
+        "table": {
+          "ths_revenue_stock": [
+            112036329.33
+          ],
+          "ths_np_atoopc_stock": [
+            17155118.44
+          ]
+        }
+      },
+      {
+        "thscode": "920982.BJ",
+        "table": {
+          "ths_revenue_stock": [
+            155935989.28
+          ],
+          "ths_np_atoopc_stock": [
+            45268269.83
+          ]
+        }
+      }
+    ],
+    "datatype": [
+      {
+        "itemid": "ths_revenue_stock",
+        "type": "DT_DOUBLE"
+      },
+      {
+        "itemid": "ths_np_atoopc_stock",
+        "type": "DT_DOUBLE"
+      }
+    ],
+    "inputParams": {
+      "jsonrpc": true,
+      "params": [
+        {
+          "function": "ths_revenue_stock",
+          "id": "01082",
+          "params": [
+            {
+              "name": "THSCODE",
+              "system": "false",
+              "value": ""
+            },
+            {
+              "name": "FDREPORT",
+              "system": "false",
+              "value": "20191231"
+            },
+            {
+              "name": "FL",
+              "system": "false",
+              "value": "100"
+            },
+            {
+              "name": "FDIR",
+              "system": "false",
+              "value": ""
+            },
+            {
+              "name": "UNIT",
+              "system": "false",
+              "value": ""
+            }
+          ]
+        },
+        {
+          "function": "ths_np_atoopc_stock",
+          "id": "01113",
+          "params": [
+            {
+              "name": "THSCODE",
+              "system": "false",
+              "value": ""
+            },
+            {
+              "name": "FDREPORT",
+              "system": "false",
+              "value": "20191231"
+            },
+            {
+              "name": "FL",
+              "system": "false",
+              "value": "100"
+            },
+            {
+              "name": "FDIR",
+              "system": "false",
+              "value": ""
+            },
+            {
+              "name": "UNIT",
+              "system": "false",
+              "value": ""
+            }
+          ]
+        }
+      ]
+    },
+    "dataVol": 30,
+    "perf": 171
+  }
+}

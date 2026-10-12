@@ -1,0 +1,252 @@
+{
+  "case": {
+    "code": "920193.BJ",
+    "name": "吉和昌",
+    "listing_date": "2026-07-02 00:00:00",
+    "industry": "基础化工",
+    "chain_tags": [],
+    "candidate_codes": [
+      "300530.SZ",
+      "603181.SH",
+      "688353.SH",
+      "688359.SH",
+      "870303.NQ"
+    ],
+    "evidence": "data/offline_tuning/replay_items/920193.json",
+    "peer_selection_status": "prospectus_candidates_pending_business_review"
+  },
+  "issuer_workpaper": "../companies/920193.BJ.json",
+  "pairs": [
+    {
+      "issuer": "920193.BJ",
+      "peer": "300530.SZ",
+      "peer_name": "领湃科技",
+      "role": "candidate_pending_review",
+      "core_eligible": false,
+      "business_evidence": [
+        "data/peer_research/mcp/profiles_07e8e6482f.json",
+        "data/peer_research/mcp/profiles_ffa5b63068.json"
+      ],
+      "issuer_product_terms": [],
+      "peer_product_terms": [
+        "汽车"
+      ],
+      "shared_product_terms": [],
+      "peer_to_issuer_revenue_ratio": 0.2572355456519582,
+      "same_market": false,
+      "lossmaking_peer_retained": true,
+      "profitability_status": "亏损",
+      "checks": [
+        {
+          "rule": "M01",
+          "title": "业务匹配",
+          "status": "review",
+          "reason": "共同词：无；需阅读全文。仍需产品收入占比、技术/客户、产业链与盈利方式证据",
+          "evidence": [
+            "data/peer_research/mcp/profiles_07e8e6482f.json",
+            "data/peer_research/mcp/profiles_ffa5b63068.json"
+          ]
+        },
+        {
+          "rule": "M02",
+          "title": "市场与亏损",
+          "status": "review",
+          "reason": "保留各市场与亏损候选；没有按PE高低筛选可比池",
+          "evidence": []
+        }
+      ],
+      "remaining_evidence": [
+        "主要产品收入占比",
+        "产业链位置及客户用途",
+        "技术及盈利模式",
+        "核心/辅助/题材角色复核",
+        "历史可得版本"
+      ]
+    },
+    {
+      "issuer": "920193.BJ",
+      "peer": "603181.SH",
+      "peer_name": "皇马科技",
+      "role": "candidate_pending_review",
+      "core_eligible": false,
+      "business_evidence": [
+        "data/peer_research/mcp/profiles_718b65f933.json",
+        "data/peer_research/mcp/profiles_ffa5b63068.json"
+      ],
+      "issuer_product_terms": [],
+      "peer_product_terms": [
+        "电子化学品",
+        "树脂",
+        "涂料",
+        "润滑"
+      ],
+      "shared_product_terms": [],
+      "peer_to_issuer_revenue_ratio": 4.162310783336821,
+      "same_market": false,
+      "lossmaking_peer_retained": false,
+      "profitability_status": "盈利",
+      "checks": [
+        {
+          "rule": "M01",
+          "title": "业务匹配",
+          "status": "review",
+          "reason": "共同词：无；需阅读全文。仍需产品收入占比、技术/客户、产业链与盈利方式证据",
+          "evidence": [
+            "data/peer_research/mcp/profiles_718b65f933.json",
+            "data/peer_research/mcp/profiles_ffa5b63068.json"
+          ]
+        },
+        {
+          "rule": "M02",
+          "title": "市场与亏损",
+          "status": "review",
+          "reason": "保留各市场与亏损候选；没有按PE高低筛选可比池",
+          "evidence": []
+        }
+      ],
+      "remaining_evidence": [
+        "主要产品收入占比",
+        "产业链位置及客户用途",
+        "技术及盈利模式",
+        "核心/辅助/题材角色复核",
+        "历史可得版本"
+      ]
+    },
+    {
+      "issuer": "920193.BJ",
+      "peer": "688353.SH",
+      "peer_name": "华盛锂电",
+      "role": "candidate_pending_review",
+      "core_eligible": false,
+      "business_evidence": [
+        "data/peer_research/mcp/profiles_7c5ee99bbf.json",
+        "data/peer_research/mcp/profiles_ffa5b63068.json"
+      ],
+      "issuer_product_terms": [],
+      "peer_product_terms": [],
+      "shared_product_terms": [],
+      "peer_to_issuer_revenue_ratio": 2.5030848216232946,
+      "same_market": false,
+      "lossmaking_peer_retained": false,
+      "profitability_status": "盈利",
+      "checks": [
+        {
+          "rule": "M01",
+          "title": "业务匹配",
+          "status": "review",
+          "reason": "共同词：无；需阅读全文。仍需产品收入占比、技术/客户、产业链与盈利方式证据",
+          "evidence": [
+            "data/peer_research/mcp/profiles_7c5ee99bbf.json",
+            "data/peer_research/mcp/profiles_ffa5b63068.json"
+          ]
+        },
+        {
+          "rule": "M02",
+          "title": "市场与亏损",
+          "status": "review",
+          "reason": "保留各市场与亏损候选；没有按PE高低筛选可比池",
+          "evidence": []
+        }
+      ],
+      "remaining_evidence": [
+        "主要产品收入占比",
+        "产业链位置及客户用途",
+        "技术及盈利模式",
+        "核心/辅助/题材角色复核",
+        "历史可得版本"
+      ]
+    },
+    {
+      "issuer": "920193.BJ",
+      "peer": "688359.SH",
+      "peer_name": "三孚新科",
+      "role": "candidate_pending_review",
+      "core_eligible": false,
+      "business_evidence": [
+        "data/peer_research/mcp/profiles_7c5ee99bbf.json",
+        "data/peer_research/mcp/profiles_ffa5b63068.json"
+      ],
+      "issuer_product_terms": [],
+      "peer_product_terms": [
+        "电子化学品"
+      ],
+      "shared_product_terms": [],
+      "peer_to_issuer_revenue_ratio": 1.0775580481030023,
+      "same_market": false,
+      "lossmaking_peer_retained": false,
+      "profitability_status": "盈利",
+      "checks": [
+        {
+          "rule": "M01",
+          "title": "业务匹配",
+          "status": "review",
+          "reason": "共同词：无；需阅读全文。仍需产品收入占比、技术/客户、产业链与盈利方式证据",
+          "evidence": [
+            "data/peer_research/mcp/profiles_7c5ee99bbf.json",
+            "data/peer_research/mcp/profiles_ffa5b63068.json"
+          ]
+        },
+        {
+          "rule": "M02",
+          "title": "市场与亏损",
+          "status": "review",
+          "reason": "保留各市场与亏损候选；没有按PE高低筛选可比池",
+          "evidence": []
+        }
+      ],
+      "remaining_evidence": [
+        "主要产品收入占比",
+        "产业链位置及客户用途",
+        "技术及盈利模式",
+        "核心/辅助/题材角色复核",
+        "历史可得版本"
+      ]
+    },
+    {
+      "issuer": "920193.BJ",
+      "peer": "870303.NQ",
+      "peer_name": "松石科技",
+      "role": "candidate_pending_review",
+      "core_eligible": false,
+      "business_evidence": [
+        "data/peer_research/mcp/profiles_f19807915a.json",
+        "data/peer_research/mcp/profiles_ffa5b63068.json"
+      ],
+      "issuer_product_terms": [],
+      "peer_product_terms": [],
+      "shared_product_terms": [],
+      "peer_to_issuer_revenue_ratio": null,
+      "same_market": false,
+      "lossmaking_peer_retained": false,
+      "profitability_status": "未知",
+      "checks": [
+        {
+          "rule": "M01",
+          "title": "业务匹配",
+          "status": "review",
+          "reason": "共同词：无；需阅读全文。仍需产品收入占比、技术/客户、产业链与盈利方式证据",
+          "evidence": [
+            "data/peer_research/mcp/profiles_f19807915a.json",
+            "data/peer_research/mcp/profiles_ffa5b63068.json"
+          ]
+        },
+        {
+          "rule": "M02",
+          "title": "市场与亏损",
+          "status": "review",
+          "reason": "保留各市场与亏损候选；没有按PE高低筛选可比池",
+          "evidence": []
+        }
+      ],
+      "remaining_evidence": [
+        "主要产品收入占比",
+        "产业链位置及客户用途",
+        "技术及盈利模式",
+        "核心/辅助/题材角色复核",
+        "历史可得版本"
+      ]
+    }
+  ],
+  "pricing_eligible": false,
+  "fundamental_anchor_changed": false
+}

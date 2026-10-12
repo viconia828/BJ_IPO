@@ -30,15 +30,23 @@
     "SW_INDUSTRY": null,
     "INDUSTRY": "铁路、船舶、航空航天和其他运输设备制造业",
     "INDUSTRY_CODE": "C37",
-    "industry_primary": "高端装备",
-    "industry_secondary": "电气设备",
-    "industry_source": "built_in_sample_map",
+    "industry_primary": "电力设备",
+    "industry_secondary": "电网设备",
+    "industry_source": "market_reference",
     "statutory_industry": "铁路、船舶、航空航天和其他运输设备制造业",
     "statutory_industry_code": "C37",
-    "valuation_peer_group": "高端装备 / 电气设备",
+    "valuation_peer_group": "电力设备 / 电网设备",
     "business_tags": "[]",
-    "industry_confidence": 0.98,
-    "industry_evidence": "['curated_code_mapping']"
+    "industry_confidence": 0.95,
+    "industry_evidence": "['ifind_sw:2026-10-12', 'issuer_business:绝缘子、避雷器等过电压保护设备及在线监测设备的研发、生产及销售。']",
+    "industry_tertiary": "输变电设备",
+    "chain_tags": "[]",
+    "industry_status": "confirmed",
+    "industry_candidates": "[]",
+    "industry_review_reasons": "[]",
+    "industry_classification_version": 4,
+    "ISSUER_BUSINESS": null,
+    "MAIN_BUSINESS": null
   },
   "pdf_signature": {
     "files": {
@@ -91,16 +99,17 @@
     "SW_INDUSTRY": "",
     "INDUSTRY": "铁路、船舶、航空航天和其他运输设备制造业",
     "INDUSTRY_CODE": "C37",
-    "industry_primary": "高端装备",
-    "industry_secondary": "电气设备",
-    "industry_source": "built_in_sample_map",
+    "industry_primary": "电力设备",
+    "industry_secondary": "电网设备",
+    "industry_source": "market_reference",
     "statutory_industry": "铁路、船舶、航空航天和其他运输设备制造业",
     "statutory_industry_code": "C37",
-    "valuation_peer_group": "高端装备 / 电气设备",
+    "valuation_peer_group": "电力设备 / 电网设备",
     "business_tags": [],
-    "industry_confidence": 0.98,
+    "industry_confidence": 0.95,
     "industry_evidence": [
-      "curated_code_mapping"
+      "ifind_sw:2026-10-12",
+      "issuer_business:绝缘子、避雷器等过电压保护设备及在线监测设备的研发、生产及销售。"
     ],
     "old_shares": 0.0,
     "old_shares_desc": "待确认（当前按 0 万股计）",
@@ -199,6 +208,13 @@
     "average_price_unit_mode": "volume_shares_amount_yuan",
     "average_price_reference": 39.485,
     "replay_record_source": "",
-    "listing_date_source": ""
-  }
+    "listing_date_source": "",
+    "industry_tertiary": "输变电设备",
+    "chain_tags": [],
+    "industry_status": "confirmed",
+    "industry_candidates": [],
+    "industry_review_reasons": [],
+    "industry_classification_version": 4
+  },
+  "industry_reclassification_version": 4
 }

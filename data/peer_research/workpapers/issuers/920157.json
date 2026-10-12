@@ -1,0 +1,262 @@
+{
+  "case": {
+    "code": "920157.BJ",
+    "name": "宇特光电",
+    "listing_date": "2026-09-21",
+    "industry": "通信",
+    "chain_tags": [],
+    "candidate_codes": [
+      "002179.SZ",
+      "300394.SZ",
+      "300570.SZ",
+      "920045.BJ"
+    ],
+    "evidence": "data/offline_tuning/replay_items/920157.json",
+    "peer_selection_status": "prospectus_candidates_pending_business_review"
+  },
+  "issuer_workpaper": "../companies/920157.BJ.json",
+  "pairs": [
+    {
+      "issuer": "920157.BJ",
+      "peer": "002179.SZ",
+      "peer_name": "中航光电",
+      "role": "candidate_pending_review",
+      "core_eligible": false,
+      "business_evidence": [
+        "data/peer_fundamentals/mcp/profiles_other.json",
+        "data/peer_research/mcp/profiles_451657bbe7.json",
+        "data/peer_research/mcp/profiles_ebb0431b07.json"
+      ],
+      "issuer_product_terms": [
+        "汽车",
+        "连接器",
+        "光纤连接",
+        "光纤",
+        "光模块"
+      ],
+      "peer_product_terms": [
+        "连接器"
+      ],
+      "shared_product_terms": [
+        "连接器"
+      ],
+      "peer_to_issuer_revenue_ratio": 61.9846445915482,
+      "same_market": false,
+      "lossmaking_peer_retained": false,
+      "profitability_status": "盈利",
+      "checks": [
+        {
+          "rule": "M01",
+          "title": "业务匹配",
+          "status": "review",
+          "reason": "共同词：连接器。仍需产品收入占比、技术/客户、产业链与盈利方式证据",
+          "evidence": [
+            "data/peer_fundamentals/mcp/profiles_other.json",
+            "data/peer_research/mcp/profiles_451657bbe7.json",
+            "data/peer_research/mcp/profiles_ebb0431b07.json"
+          ]
+        },
+        {
+          "rule": "M02",
+          "title": "市场与亏损",
+          "status": "review",
+          "reason": "保留各市场与亏损候选；没有按PE高低筛选可比池",
+          "evidence": []
+        }
+      ],
+      "remaining_evidence": [
+        "主要产品收入占比",
+        "产业链位置及客户用途",
+        "技术及盈利模式",
+        "核心/辅助/题材角色复核",
+        "历史可得版本"
+      ]
+    },
+    {
+      "issuer": "920157.BJ",
+      "peer": "300394.SZ",
+      "peer_name": "天孚通信",
+      "role": "candidate_pending_review",
+      "core_eligible": false,
+      "business_evidence": [
+        "data/peer_fundamentals/mcp/profiles_other.json",
+        "data/peer_research/mcp/profiles_07e8e6482f.json",
+        "data/peer_research/mcp/profiles_451657bbe7.json"
+      ],
+      "issuer_product_terms": [
+        "汽车",
+        "连接器",
+        "光纤连接",
+        "光纤",
+        "光模块"
+      ],
+      "peer_product_terms": [
+        "光通信",
+        "光器件",
+        "光学",
+        "封装"
+      ],
+      "shared_product_terms": [],
+      "peer_to_issuer_revenue_ratio": 15.595628792497196,
+      "same_market": false,
+      "lossmaking_peer_retained": false,
+      "profitability_status": "盈利",
+      "checks": [
+        {
+          "rule": "M01",
+          "title": "业务匹配",
+          "status": "review",
+          "reason": "共同词：无；需阅读全文。仍需产品收入占比、技术/客户、产业链与盈利方式证据",
+          "evidence": [
+            "data/peer_fundamentals/mcp/profiles_other.json",
+            "data/peer_research/mcp/profiles_07e8e6482f.json",
+            "data/peer_research/mcp/profiles_451657bbe7.json"
+          ]
+        },
+        {
+          "rule": "M02",
+          "title": "市场与亏损",
+          "status": "review",
+          "reason": "保留各市场与亏损候选；没有按PE高低筛选可比池",
+          "evidence": []
+        }
+      ],
+      "remaining_evidence": [
+        "主要产品收入占比",
+        "产业链位置及客户用途",
+        "技术及盈利模式",
+        "核心/辅助/题材角色复核",
+        "历史可得版本"
+      ]
+    },
+    {
+      "issuer": "920157.BJ",
+      "peer": "300570.SZ",
+      "peer_name": "太辰光",
+      "role": "candidate_pending_review",
+      "core_eligible": false,
+      "business_evidence": [
+        "data/peer_fundamentals/mcp/profiles_other.json",
+        "data/peer_research/mcp/profiles_07e8e6482f.json",
+        "data/peer_research/mcp/profiles_451657bbe7.json"
+      ],
+      "issuer_product_terms": [
+        "汽车",
+        "连接器",
+        "光纤连接",
+        "光纤",
+        "光模块"
+      ],
+      "peer_product_terms": [
+        "连接器",
+        "光纤连接",
+        "光纤",
+        "光模块",
+        "光器件"
+      ],
+      "shared_product_terms": [
+        "连接器",
+        "光纤连接",
+        "光纤",
+        "光模块"
+      ],
+      "peer_to_issuer_revenue_ratio": 5.519866646017107,
+      "same_market": false,
+      "lossmaking_peer_retained": false,
+      "profitability_status": "盈利",
+      "checks": [
+        {
+          "rule": "M01",
+          "title": "业务匹配",
+          "status": "review",
+          "reason": "共同词：连接器、光纤连接、光纤、光模块。仍需产品收入占比、技术/客户、产业链与盈利方式证据",
+          "evidence": [
+            "data/peer_fundamentals/mcp/profiles_other.json",
+            "data/peer_research/mcp/profiles_07e8e6482f.json",
+            "data/peer_research/mcp/profiles_451657bbe7.json"
+          ]
+        },
+        {
+          "rule": "M02",
+          "title": "市场与亏损",
+          "status": "review",
+          "reason": "保留各市场与亏损候选；没有按PE高低筛选可比池",
+          "evidence": []
+        }
+      ],
+      "remaining_evidence": [
+        "主要产品收入占比",
+        "产业链位置及客户用途",
+        "技术及盈利模式",
+        "核心/辅助/题材角色复核",
+        "历史可得版本"
+      ]
+    },
+    {
+      "issuer": "920157.BJ",
+      "peer": "920045.BJ",
+      "peer_name": "蘅东光",
+      "role": "candidate_pending_review",
+      "core_eligible": false,
+      "business_evidence": [
+        "data/peer_fundamentals/mcp/profiles_other.json",
+        "data/peer_research/mcp/profiles_3923fc5eba.json",
+        "data/peer_research/mcp/profiles_451657bbe7.json"
+      ],
+      "issuer_product_terms": [
+        "汽车",
+        "连接器",
+        "光纤连接",
+        "光纤",
+        "光模块"
+      ],
+      "peer_product_terms": [
+        "连接器",
+        "光纤连接",
+        "光纤",
+        "光通信",
+        "光模块",
+        "光器件"
+      ],
+      "shared_product_terms": [
+        "连接器",
+        "光纤连接",
+        "光纤",
+        "光模块"
+      ],
+      "peer_to_issuer_revenue_ratio": 9.95633037567092,
+      "same_market": true,
+      "lossmaking_peer_retained": false,
+      "profitability_status": "盈利",
+      "checks": [
+        {
+          "rule": "M01",
+          "title": "业务匹配",
+          "status": "review",
+          "reason": "共同词：连接器、光纤连接、光纤、光模块。仍需产品收入占比、技术/客户、产业链与盈利方式证据",
+          "evidence": [
+            "data/peer_fundamentals/mcp/profiles_other.json",
+            "data/peer_research/mcp/profiles_3923fc5eba.json",
+            "data/peer_research/mcp/profiles_451657bbe7.json"
+          ]
+        },
+        {
+          "rule": "M02",
+          "title": "市场与亏损",
+          "status": "pass",
+          "reason": "保留各市场与亏损候选；没有按PE高低筛选可比池",
+          "evidence": []
+        }
+      ],
+      "remaining_evidence": [
+        "主要产品收入占比",
+        "产业链位置及客户用途",
+        "技术及盈利模式",
+        "核心/辅助/题材角色复核",
+        "历史可得版本"
+      ]
+    }
+  ],
+  "pricing_eligible": false,
+  "fundamental_anchor_changed": false
+}
