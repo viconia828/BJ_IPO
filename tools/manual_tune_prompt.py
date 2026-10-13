@@ -46,8 +46,8 @@ def _print_header() -> None:
     print("6. 如无特殊需要，按提示逐步输入即可。")
     print("7. 若只输入权重组中的一个因子：二因子会自动补足到 1，多因子组会按当前策略参数比例缩放其余权重。")
     print("8. 自动调参会先输出建议修改项，只有确认接受后才会写入 策略参数.txt。")
-    print("9. 估值自动调参每轮都会用本地 proxy、动态宽度、regime-break 和滚动中枢重排核心候选。")
-    print("10. 接受、退出或无变化时会继续刷新 proxy、滚动中枢、regime-break 和盘中指导影子报告。")
+    print("9. 默认估值自动调参使用当前情绪组合影子combined：只搜索情绪半衰期，固定基本面和宽可比池。")
+    print("10. 输出正式价、原情绪、当前组合和候选对照；先训练选择再检验，接受后仍保持shadow。旧综合调参保留在选项5。")
     print("")
 
 
@@ -234,25 +234,26 @@ def _build_valuation_manual_command() -> tuple[list[str], dict[str, str]]:
     return command, summary
 
 
-def _build_valuation_auto_command() -> tuple[list[str], dict[str, str]]:
+def _build_valuation_auto_command(*, legacy: bool = False) -> tuple[list[str], dict[str, str]]:
     command = [
         sys.executable,
         "-u",
         str(TUNE_PARAMS_PATH),
         "--mode",
-        "auto",
+        "auto" if legacy else "sentiment-auto",
         "--dataset-path",
         str(DEFAULT_DATASET_PATH),
         "--no-auto-refresh-dataset",
     ]
     summary = {
         "category": "估值",
-        "mode": "估值自动调参",
+        "mode": "旧综合估值自动调参" if legacy else "情绪组合影子估值自动调参（默认）",
         "input_mode": "系统自动搜索",
         "manual_name": "不适用",
-        "candidate_summary": "按近期样本区间命中加权评分，自动选择参数组合；确认接受后写入参数文件",
+        "candidate_summary": ("旧综合参数搜索及本地重排；确认接受后写入参数文件" if legacy else
+                              "combined影子：仅搜索情绪半衰期；固定基本面及区间宽度；训练选择、后段检验后可接受"),
         "dataset_path": str(DEFAULT_DATASET_PATH.relative_to(ROOT_DIR)),
-        "auto_kind": "valuation",
+        "auto_kind": "valuation" if legacy else "sentiment",
     }
     return command, summary
 
@@ -334,10 +335,11 @@ def _build_command() -> tuple[list[str], dict[str, str]]:
     tuning_mode = _prompt_choice(
         "请选择调参模式：",
         [
-            ("1", "估值自动调参：系统搜索估值参数组合，确认后写入 策略参数.txt"),
+            ("1", "估值自动调参（默认情绪组合影子）：固定基本面，搜索情绪半衰期"),
             ("2", "估值手动调参：候选参数复核 / replay 观察"),
             ("3", "申购资金自动调参：系统搜索申购资金参数组合，确认后写入 策略参数.txt"),
             ("4", "申购资金手动调参：baseline / search / robustness 等诊断"),
+            ("5", "旧综合估值自动调参：原参数网格与本地学习重排"),
         ],
         default="1",
     )
@@ -347,6 +349,8 @@ def _build_command() -> tuple[list[str], dict[str, str]]:
         return _build_valuation_manual_command()
     if tuning_mode == "3":
         return _build_subscription_auto_command()
+    if tuning_mode == "5":
+        return _build_valuation_auto_command(legacy=True)
     return _build_subscription_manual_command()
 
 
@@ -375,7 +379,10 @@ def main() -> int:
     _print_summary(summary)
     _refresh_sample_sets_before_tuning()
     print("")
-    if summary.get("auto_kind") == "valuation":
+    if summary.get("auto_kind") == "sentiment":
+        print("正在启动情绪组合影子自动调参，完成后展示共同样本对照与检验结果。")
+        print("正式价格保持原模型；只有接受后才修改情绪半衰期。")
+    elif summary.get("auto_kind") == "valuation":
         print("正在启动自动调参子程序。它会先检查回放数据集，再进入粗步长暴力搜索；每轮完成后可选择是否继续细步长搜索。")
         print("未出现“自动调参完成”前表示仍未跑完。")
         print("")
@@ -387,7 +394,9 @@ def main() -> int:
     completed = subprocess.run(command, cwd=ROOT_DIR, check=False)
     print("")
     if completed.returncode == 0:
-        if summary.get("auto_kind") == "valuation":
+        if summary.get("auto_kind") == "sentiment":
+            print("情绪影子自动调参流程已结束，参数是否写入及报告路径见上方输出。")
+        elif summary.get("auto_kind") == "valuation":
             print("自动调参流程已结束。若上方没有出现“本次建议修改的参数”，表示本轮未找到优于当前参数的修改方案。")
         elif summary.get("auto_kind") == "subscription":
             print("申购资金自动调参流程已结束。若上方没有写入提示，表示本轮未写入参数。")

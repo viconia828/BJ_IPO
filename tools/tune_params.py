@@ -172,7 +172,7 @@ def _should_auto_refresh_dataset(
         return False
     if args.no_auto_refresh_dataset:
         return False
-    if args.mode not in {"offline", "observe", "auto"}:
+    if args.mode not in {"offline", "observe", "auto", "sentiment-auto"}:
         return False
     if sample_codes is not None:
         return True
@@ -224,6 +224,8 @@ def _resolve_params_file(argv: list[str] | None) -> str:
 
 
 def _validate_args(parser: argparse.ArgumentParser, args: argparse.Namespace) -> None:
+    if args.sentiment_evaluate_only and args.mode != "sentiment-auto":
+        parser.error("--sentiment-evaluate-only 仅用于 --mode sentiment-auto")
     has_param_values = bool(args.param_name or args.candidate_values)
     has_group_candidates = bool(args.candidate)
     has_candidate_file = bool(args.candidate_file)
@@ -234,7 +236,7 @@ def _validate_args(parser: argparse.ArgumentParser, args: argparse.Namespace) ->
             parser.error("--mode search 不支持 --param-name / --candidate-values / --candidate / --candidate-file")
         return
 
-    if args.mode == "auto":
+    if args.mode in {"auto", "sentiment-auto"}:
         if has_manual_inputs:
             parser.error("--mode auto 不支持手动候选输入")
         if args.grid_file:
@@ -266,9 +268,10 @@ def build_parser(params_file: str, tuning_settings: dict[str, Any]) -> argparse.
     parser.add_argument(
         "--mode",
         default="search",
-        choices=["search", "offline", "observe", "auto"],
-        help="search=按阶段批量调参，offline=手动候选离线复核，observe=手动候选 replay 观察，auto=自动调参并确认写入",
+        choices=["search", "offline", "observe", "auto", "sentiment-auto"],
+        help="search=批量调参，offline=手动复核，observe=replay观察，auto=旧综合自动调参，sentiment-auto=默认组合影子调参",
     )
+    parser.add_argument("--sentiment-evaluate-only", action="store_true", help="情绪影子仅评估并输出报告，不提示写回")
     parser.add_argument("--params-file", default=params_file, help="参数文件路径")
     parser.add_argument("--dataset-path", default=str(param_tuning.DEFAULT_DATASET_PATH), help="回放数据集路径")
     parser.add_argument("--rebuild-dataset", action="store_true", help="重新构建历史回放数据集")
@@ -984,6 +987,9 @@ def main(argv: list[str] | None = None) -> int:
             ),
             flush=True,
         )
+    if args.mode == "sentiment-auto":
+        import sentiment_tune_console
+        return sentiment_tune_console.run(args, params, dataset, write_updates=_write_param_updates)
     if args.mode == "auto":
         return _run_auto_mode(args, params, dataset)
 
