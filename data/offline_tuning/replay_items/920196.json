@@ -1,7 +1,7 @@
 {
   "schema": "offline_tuning_replay_item_v1",
-  "cache_version": 9,
-  "generated_at": "2026-09-29 20:13:51",
+  "cache_version": 10,
+  "generated_at": "2026-10-13 23:20:56",
   "code": "920196",
   "listing_date": "2026-09-28",
   "record_signature": {
@@ -20,6 +20,8 @@
     "CLOSE_PRICE": null,
     "LD_CLOSE_CHANGE": null,
     "NEXT_DAY_CLOSE": null,
+    "NEXT_TRADE_DATE": null,
+    "THIRD_TRADE_DATE": null,
     "THIRD_DAY_CLOSE": null,
     "NEXT_DAY_CLOSE_CHANGE": null,
     "THIRD_DAY_CLOSE_CHANGE": null,
@@ -63,11 +65,11 @@
       }
     },
     "pdf_parser_versions": {
-      "prospectus_issue_info": 10,
-      "issue_announcement_info": 8,
-      "issue_result_info": 5,
-      "comparable_companies": 25,
-      "business_desc": 7
+      "prospectus_issue_info": 11,
+      "issue_announcement_info": 9,
+      "issue_result_info": 6,
+      "comparable_companies": 27,
+      "business_desc": 8
     }
   },
   "item": {
@@ -87,6 +89,8 @@
     "LD_CLOSE_CHANGE": null,
     "LD_AVERAGE_CHANGE": null,
     "NEXT_DAY_CLOSE": null,
+    "NEXT_TRADE_DATE": null,
+    "THIRD_TRADE_DATE": null,
     "THIRD_DAY_CLOSE": null,
     "NEXT_DAY_CLOSE_CHANGE": null,
     "THIRD_DAY_CLOSE_CHANGE": null,
@@ -106,6 +110,14 @@
     "statutory_industry_code": "C14",
     "valuation_peer_group": "食品饮料 / 饮料乳品",
     "business_tags": [],
+    "chain_tags": [],
+    "industry_tertiary": "乳品",
+    "industry_status": "confirmed",
+    "industry_candidates": [],
+    "industry_review_reasons": [],
+    "industry_classification_version": 4,
+    "ISSUER_BUSINESS": "",
+    "MAIN_BUSINESS": "",
     "industry_confidence": 0.95,
     "industry_evidence": [
       "ifind_sw:2026-10-12",
@@ -183,21 +195,18 @@
       "INDUSTRY_PE_NEW": "issue_announcement:全文",
       "TOP_APPLY_MARKETCAP": "issue_announcement:全文",
       "SUBSCRIPTION_LIMIT_WAN_SHARES": "issue_announcement:全文",
-      "ONLINE_ISSUE_NUM": "issue_announcement:全文"
+      "ONLINE_ISSUE_NUM": "issue_announcement:全文",
+      "ONLINE_VA_NUM": "issue_result:result",
+      "ONLINE_ALLOCATED_ACCOUNTS": "issue_result:result",
+      "ONLINE_VA_SHARES": "issue_result:result",
+      "ONLINE_ES_MULTIPLE": "issue_result:result"
     },
     "announcement_fallback_parse_errors": [],
     "announcement_fallback_pdf_files": {
       "prospectus": "920196_南方乳业_招股说明书.pdf",
       "issue": "920196_南方乳业_发行公告.pdf",
-      "result": "",
+      "result": "920196_南方乳业_发行结果公告.pdf",
       "listing": ""
-    },
-    "industry_tertiary": "乳品",
-    "chain_tags": [],
-    "industry_status": "confirmed",
-    "industry_candidates": [],
-    "industry_review_reasons": [],
-    "industry_classification_version": 4
-  },
-  "industry_reclassification_version": 4
+    }
+  }
 }

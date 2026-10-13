@@ -1,7 +1,7 @@
 {
   "schema": "offline_tuning_replay_item_v1",
-  "cache_version": 9,
-  "generated_at": "2026-09-24 20:23:48",
+  "cache_version": 10,
+  "generated_at": "2026-10-13 22:47:46",
   "code": "920025",
   "listing_date": "2026-09-23 00:00:00",
   "record_signature": {
@@ -20,6 +20,8 @@
     "CLOSE_PRICE": 29.0,
     "LD_CLOSE_CHANGE": 580.7512,
     "NEXT_DAY_CLOSE": null,
+    "NEXT_TRADE_DATE": null,
+    "THIRD_TRADE_DATE": null,
     "THIRD_DAY_CLOSE": null,
     "NEXT_DAY_CLOSE_CHANGE": null,
     "THIRD_DAY_CLOSE_CHANGE": null,
@@ -46,7 +48,7 @@
     "industry_review_reasons": "[]",
     "industry_classification_version": 4,
     "ISSUER_BUSINESS": null,
-    "MAIN_BUSINESS": null
+    "MAIN_BUSINESS": "轧辊、辊环等钢材轧制关键部件的研发、生产、销售"
   },
   "pdf_signature": {
     "files": {
@@ -63,11 +65,11 @@
       }
     },
     "pdf_parser_versions": {
-      "prospectus_issue_info": 10,
-      "issue_announcement_info": 8,
-      "issue_result_info": 5,
-      "comparable_companies": 25,
-      "business_desc": 7
+      "prospectus_issue_info": 11,
+      "issue_announcement_info": 9,
+      "issue_result_info": 6,
+      "comparable_companies": 27,
+      "business_desc": 8
     }
   },
   "item": {
@@ -87,12 +89,14 @@
     "LD_CLOSE_CHANGE": 580.7512,
     "LD_AVERAGE_CHANGE": 637.5992515351697,
     "NEXT_DAY_CLOSE": 20.3,
-    "THIRD_DAY_CLOSE": null,
+    "NEXT_TRADE_DATE": "20260924",
+    "THIRD_TRADE_DATE": "20260928",
+    "THIRD_DAY_CLOSE": 15.2,
     "NEXT_DAY_CLOSE_CHANGE": 376.5258215962442,
-    "THIRD_DAY_CLOSE_CHANGE": null,
+    "THIRD_DAY_CLOSE_CHANGE": 256.8075117370892,
     "NEXT_DAY_FROM_LISTING_CLOSE_PCT": -29.999999999999993,
-    "THIRD_DAY_FROM_LISTING_CLOSE_PCT": null,
-    "POST_LISTING_PROFIT_EFFECT_PCT": -29.999999999999993,
+    "THIRD_DAY_FROM_LISTING_CLOSE_PCT": -47.58620689655173,
+    "POST_LISTING_PROFIT_EFFECT_PCT": -38.79310344827586,
     "post_listing_performance_source": "tushare_daily",
     "post_listing_performance_reason": "",
     "TURNOVERRATE": 96.7662,
@@ -109,6 +113,16 @@
       "轧辊",
       "辊环"
     ],
+    "chain_tags": [
+      "钢铁产业链"
+    ],
+    "industry_tertiary": "其他专用设备",
+    "industry_status": "confirmed",
+    "industry_candidates": [],
+    "industry_review_reasons": [],
+    "industry_classification_version": 4,
+    "ISSUER_BUSINESS": "",
+    "MAIN_BUSINESS": "轧辊、辊环等钢材轧制关键部件的研发、生产、销售",
     "industry_confidence": 0.95,
     "industry_evidence": [
       "ifind_sw:2026-10-12",
@@ -203,15 +217,6 @@
     "average_price_unit_mode": "volume_shares_amount_yuan",
     "average_price_reference": 32.05,
     "replay_record_source": "",
-    "listing_date_source": "",
-    "industry_tertiary": "其他专用设备",
-    "chain_tags": [
-      "钢铁产业链"
-    ],
-    "industry_status": "confirmed",
-    "industry_candidates": [],
-    "industry_review_reasons": [],
-    "industry_classification_version": 4
-  },
-  "industry_reclassification_version": 4
+    "listing_date_source": ""
+  }
 }

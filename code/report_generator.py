@@ -609,8 +609,7 @@ def _prepare_report_context(all_data: dict[str, Any]) -> dict[str, Any]:
         "正股抢时间",
         "碎股抢时间",
         "上市日期",
-        "偏PE估值区间（元）",
-        "偏情绪估值区间（元）",
+        "正式综合区间（元）",
     ]
     overview_row = [
         str(ipo.get("SECURITY_CODE", "") or ""),
@@ -624,8 +623,7 @@ def _prepare_report_context(all_data: dict[str, Any]) -> dict[str, Any]:
         _build_time_priority_text(subscription_prediction, "top_apply_time_priority_required", overview=True),
         _build_time_priority_text(subscription_prediction, "fractional_time_priority_required", overview=True),
         overview_listing_date,
-        _format_interval(user_ranges.get("baseline_low"), user_ranges.get("baseline_high")),
-        _format_interval(user_ranges.get("rolling_low"), user_ranges.get("rolling_high")),
+        _format_interval(user_ranges.get("formal_low"), user_ranges.get("formal_high")),
     ]
 
     quality = final.get("quality_sentiment") or {}
@@ -634,7 +632,6 @@ def _prepare_report_context(all_data: dict[str, Any]) -> dict[str, Any]:
         anchor, sentiment, state = quality.get("anchor", {}), quality.get("sentiment", {}), quality.get("state", {})
         shadow = quality.get("mode") != "active"
         if shadow:
-            overview_headers[-2:] = ["原综合参考区间（元）", "旧版情绪区间（元）"]
             for row in valuation_rows:
                 if row[0] == "偏PE估值区间":
                     row[0], row[2] = "原综合参考区间", "旧版三方法中枢，含情绪"
@@ -646,8 +643,6 @@ def _prepare_report_context(all_data: dict[str, Any]) -> dict[str, Any]:
                     row[2] = "独立个股PE基础"
                 elif row[0] == "偏情绪估值区间":
                     row[2] = "个股PE基础 × 情绪倍数"
-        overview_headers.append("情绪观察（影子）" if shadow else "情绪观察")
-        overview_row.append(str(state.get("label") or "无法判断"))
         quality_rows = [
             ["PE基础区间", _format_interval(anchor.get("low"), anchor.get("high")), anchor.get("reason") or "已剔除炒新及流通盘加价"],
             ["个股情绪区间", _format_interval(sentiment.get("low"), sentiment.get("high")), sentiment.get("reason") or "相对自身PE基础的额外定价"],
@@ -784,9 +779,8 @@ def build_report_markdown(all_data: dict[str, Any]) -> str:
     composite_text = "\n".join(f"- {line}" for line in context["composite_lines"])
     quality_text = ""
     if context["quality_rows"]:
-        quality_text = "\n### 个股资质与情绪观察\n\n" + "\n".join(f"- {line}" for line in context["quality_lines"])
-        quality_text += "\n\n" + _markdown_table(["指标", "结果", "口径"], context["quality_rows"])
-        quality_text += "\n\n" + _markdown_table(["股票", "上市日", "PE基础", "情绪预期", "实际均价", "相对基础溢价", "预期偏离", "预期来源"], context["quality_details"])
+        quality_text = "\n### 个股资质与情绪观察\n\n"
+        quality_text += _markdown_table(["指标", "结果", "口径"], context["quality_rows"])
 
     return f"""# {context['title']}
 
@@ -904,9 +898,8 @@ def _build_report_html(context: dict[str, Any]) -> str:
     notes_html = "".join(f"<li>{html.escape(item)}</li>" for item in context["note_items"])
     quality_html = ""
     if context["quality_rows"]:
-        quality_html = '<section style="break-before: page;"><h3>个股资质与情绪观察</h3><ul>' + "".join(f"<li>{html.escape(line)}</li>" for line in context["quality_lines"]) + "</ul>"
+        quality_html = '<section><h3>个股资质与情绪观察</h3>'
         quality_html += _html_table(["指标", "结果", "口径"], context["quality_rows"])
-        quality_html += _html_table(["股票", "上市日", "PE基础", "情绪预期", "实际均价", "相对基础溢价", "预期偏离", "预期来源"], context["quality_details"])
         quality_html += "</section>"
 
     return f"""<!doctype html>

@@ -1,7 +1,7 @@
 {
   "schema": "offline_tuning_replay_item_v1",
-  "cache_version": 9,
-  "generated_at": "2026-09-29 20:13:51",
+  "cache_version": 10,
+  "generated_at": "2026-10-13 23:17:09",
   "code": "920186",
   "listing_date": "2026-04-29 00:00:00",
   "record_signature": {
@@ -20,6 +20,8 @@
     "CLOSE_PRICE": 71.98,
     "LD_CLOSE_CHANGE": 344.0469,
     "NEXT_DAY_CLOSE": null,
+    "NEXT_TRADE_DATE": null,
+    "THIRD_TRADE_DATE": null,
     "THIRD_DAY_CLOSE": null,
     "NEXT_DAY_CLOSE_CHANGE": null,
     "THIRD_DAY_CLOSE_CHANGE": null,
@@ -46,7 +48,7 @@
     "industry_review_reasons": "[]",
     "industry_classification_version": 4,
     "ISSUER_BUSINESS": null,
-    "MAIN_BUSINESS": null
+    "MAIN_BUSINESS": "干式真空泵和真空科学仪器设备的研发、生产、销售,及相关技术服务"
   },
   "pdf_signature": {
     "files": {
@@ -67,11 +69,11 @@
       }
     },
     "pdf_parser_versions": {
-      "prospectus_issue_info": 10,
-      "issue_announcement_info": 8,
-      "issue_result_info": 5,
-      "comparable_companies": 25,
-      "business_desc": 7
+      "prospectus_issue_info": 11,
+      "issue_announcement_info": 9,
+      "issue_result_info": 6,
+      "comparable_companies": 27,
+      "business_desc": 8
     }
   },
   "item": {
@@ -91,6 +93,8 @@
     "LD_CLOSE_CHANGE": 344.0469,
     "LD_AVERAGE_CHANGE": 299.1593876378381,
     "NEXT_DAY_CLOSE": 76.4,
+    "NEXT_TRADE_DATE": "20260430",
+    "THIRD_TRADE_DATE": "20260506",
     "THIRD_DAY_CLOSE": 77.0,
     "NEXT_DAY_CLOSE_CHANGE": 371.3140037014189,
     "THIRD_DAY_CLOSE_CHANGE": 375.01542257865515,
@@ -110,6 +114,16 @@
     "statutory_industry_code": "C35",
     "valuation_peer_group": "电子 / 半导体",
     "business_tags": [],
+    "chain_tags": [
+      "半导体产业链"
+    ],
+    "industry_tertiary": "半导体设备",
+    "industry_status": "confirmed",
+    "industry_candidates": [],
+    "industry_review_reasons": [],
+    "industry_classification_version": 4,
+    "ISSUER_BUSINESS": "",
+    "MAIN_BUSINESS": "干式真空泵和真空科学仪器设备的研发、生产、销售,及相关技术服务",
     "industry_confidence": 0.95,
     "industry_evidence": [
       "ifind_sw:2026-10-12",
@@ -152,15 +166,6 @@
     "average_price_unit_mode": "volume_shares_amount_yuan",
     "average_price_reference": 67.35,
     "replay_record_source": "",
-    "listing_date_source": "",
-    "industry_tertiary": "半导体设备",
-    "chain_tags": [
-      "半导体产业链"
-    ],
-    "industry_status": "confirmed",
-    "industry_candidates": [],
-    "industry_review_reasons": [],
-    "industry_classification_version": 4
-  },
-  "industry_reclassification_version": 4
+    "listing_date_source": ""
+  }
 }

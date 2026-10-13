@@ -1,7 +1,7 @@
 {
   "schema": "offline_tuning_replay_item_v1",
-  "cache_version": 9,
-  "generated_at": "2026-09-24 20:53:09",
+  "cache_version": 10,
+  "generated_at": "2026-10-13 23:07:16",
   "code": "920138",
   "listing_date": "2026-08-12 00:00:00",
   "record_signature": {
@@ -20,6 +20,8 @@
     "CLOSE_PRICE": 53.26,
     "LD_CLOSE_CHANGE": 182.3966,
     "NEXT_DAY_CLOSE": null,
+    "NEXT_TRADE_DATE": null,
+    "THIRD_TRADE_DATE": null,
     "THIRD_DAY_CLOSE": null,
     "NEXT_DAY_CLOSE_CHANGE": null,
     "THIRD_DAY_CLOSE_CHANGE": null,
@@ -46,7 +48,7 @@
     "industry_review_reasons": "[]",
     "industry_classification_version": 4,
     "ISSUER_BUSINESS": null,
-    "MAIN_BUSINESS": null
+    "MAIN_BUSINESS": "专注于系统级芯片(SoC)的集成电路设计企业,主要面向蓝牙音视频、智能穿戴、智能物联终端等领域,为全球市场提供高规格、高灵活性与高集成度的芯片产品"
   },
   "pdf_signature": {
     "files": {
@@ -63,11 +65,11 @@
       }
     },
     "pdf_parser_versions": {
-      "prospectus_issue_info": 10,
-      "issue_announcement_info": 8,
-      "issue_result_info": 5,
-      "comparable_companies": 25,
-      "business_desc": 7
+      "prospectus_issue_info": 11,
+      "issue_announcement_info": 9,
+      "issue_result_info": 6,
+      "comparable_companies": 27,
+      "business_desc": 8
     }
   },
   "item": {
@@ -87,6 +89,8 @@
     "LD_CLOSE_CHANGE": 182.3966,
     "LD_AVERAGE_CHANGE": 191.850542847551,
     "NEXT_DAY_CLOSE": 46.59,
+    "NEXT_TRADE_DATE": "20260813",
+    "THIRD_TRADE_DATE": "20260814",
     "THIRD_DAY_CLOSE": 45.24,
     "NEXT_DAY_CLOSE_CHANGE": 147.03075291622483,
     "THIRD_DAY_CLOSE_CHANGE": 139.87274655355253,
@@ -106,6 +110,16 @@
     "statutory_industry_code": "",
     "valuation_peer_group": "电子 / 半导体",
     "business_tags": [],
+    "chain_tags": [
+      "半导体产业链"
+    ],
+    "industry_tertiary": "数字芯片设计",
+    "industry_status": "confirmed",
+    "industry_candidates": [],
+    "industry_review_reasons": [],
+    "industry_classification_version": 4,
+    "ISSUER_BUSINESS": "",
+    "MAIN_BUSINESS": "专注于系统级芯片(SoC)的集成电路设计企业,主要面向蓝牙音视频、智能穿戴、智能物联终端等领域,为全球市场提供高规格、高灵活性与高集成度的芯片产品",
     "industry_confidence": 0.95,
     "industry_evidence": [
       "ifind_sw:2026-10-12",
@@ -149,15 +163,6 @@
     "average_price_unit_mode": "volume_shares_amount_yuan",
     "average_price_reference": 54.1,
     "replay_record_source": "",
-    "listing_date_source": "",
-    "industry_tertiary": "数字芯片设计",
-    "chain_tags": [
-      "半导体产业链"
-    ],
-    "industry_status": "confirmed",
-    "industry_candidates": [],
-    "industry_review_reasons": [],
-    "industry_classification_version": 4
-  },
-  "industry_reclassification_version": 4
+    "listing_date_source": ""
+  }
 }

@@ -68,11 +68,13 @@ def main() -> None:
     payload = _payload()
     overview = report_generator.build_report_overview_text(payload)
     for expected in (
-        "偏PE估值区间（元） 18.00 - 22.00",
-        "偏情绪估值区间（元） 22.50 - 27.50",
+        "正式综合区间（元） 20.25 - 24.75",
     ):
         if expected not in overview:
             failures.append(f"overview missing: {expected}")
+    for removed in ("偏PE估值区间", "偏情绪估值区间", "原综合参考区间", "旧版情绪区间", "情绪观察"):
+        if removed in overview:
+            failures.append(f"overview contains removed field: {removed}")
 
     markdown = report_generator.build_report_markdown(payload)
     for expected in (

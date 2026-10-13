@@ -1,7 +1,7 @@
 {
   "schema": "offline_tuning_replay_item_v1",
-  "cache_version": 9,
-  "generated_at": "2026-09-24 20:21:59",
+  "cache_version": 10,
+  "generated_at": "2026-10-13 22:46:07",
   "code": "920011",
   "listing_date": "2026-04-08 00:00:00",
   "record_signature": {
@@ -20,6 +20,8 @@
     "CLOSE_PRICE": 29.04,
     "LD_CLOSE_CHANGE": 87.3548,
     "NEXT_DAY_CLOSE": null,
+    "NEXT_TRADE_DATE": null,
+    "THIRD_TRADE_DATE": null,
     "THIRD_DAY_CLOSE": null,
     "NEXT_DAY_CLOSE_CHANGE": null,
     "THIRD_DAY_CLOSE_CHANGE": null,
@@ -46,7 +48,7 @@
     "industry_review_reasons": "[]",
     "industry_classification_version": 4,
     "ISSUER_BUSINESS": null,
-    "MAIN_BUSINESS": null
+    "MAIN_BUSINESS": "公司专业从事微特电机的研发、生产和销售,产品广泛应用于以吸尘器为主的清洁电器领域"
   },
   "pdf_signature": {
     "files": {
@@ -67,11 +69,11 @@
       }
     },
     "pdf_parser_versions": {
-      "prospectus_issue_info": 10,
-      "issue_announcement_info": 8,
-      "issue_result_info": 5,
-      "comparable_companies": 25,
-      "business_desc": 7
+      "prospectus_issue_info": 11,
+      "issue_announcement_info": 9,
+      "issue_result_info": 6,
+      "comparable_companies": 27,
+      "business_desc": 8
     }
   },
   "item": {
@@ -91,6 +93,8 @@
     "LD_CLOSE_CHANGE": 87.3548,
     "LD_AVERAGE_CHANGE": 91.36312342987121,
     "NEXT_DAY_CLOSE": 25.21,
+    "NEXT_TRADE_DATE": "20260409",
+    "THIRD_TRADE_DATE": "20260410",
     "THIRD_DAY_CLOSE": 25.04,
     "NEXT_DAY_CLOSE_CHANGE": 62.645161290322584,
     "THIRD_DAY_CLOSE_CHANGE": 61.54838709677419,
@@ -112,6 +116,14 @@
     "business_tags": [
       "微特电机"
     ],
+    "chain_tags": [],
+    "industry_tertiary": "电机",
+    "industry_status": "confirmed",
+    "industry_candidates": [],
+    "industry_review_reasons": [],
+    "industry_classification_version": 4,
+    "ISSUER_BUSINESS": "",
+    "MAIN_BUSINESS": "公司专业从事微特电机的研发、生产和销售,产品广泛应用于以吸尘器为主的清洁电器领域",
     "industry_confidence": 0.95,
     "industry_evidence": [
       "ifind_sw:2026-10-12",
@@ -253,13 +265,6 @@
     "average_price_unit_mode": "volume_shares_amount_yuan",
     "average_price_reference": 29.27,
     "replay_record_source": "",
-    "listing_date_source": "",
-    "industry_tertiary": "电机",
-    "chain_tags": [],
-    "industry_status": "confirmed",
-    "industry_candidates": [],
-    "industry_review_reasons": [],
-    "industry_classification_version": 4
-  },
-  "industry_reclassification_version": 4
+    "listing_date_source": ""
+  }
 }

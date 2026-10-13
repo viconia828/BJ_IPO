@@ -1,7 +1,7 @@
 {
   "schema": "offline_tuning_replay_item_v1",
-  "cache_version": 9,
-  "generated_at": "2026-09-24 21:09:35",
+  "cache_version": 10,
+  "generated_at": "2026-10-13 23:16:33",
   "code": "920183",
   "listing_date": "2026-03-04 00:00:00",
   "record_signature": {
@@ -20,6 +20,8 @@
     "CLOSE_PRICE": 53.3,
     "LD_CLOSE_CHANGE": 170.4211,
     "NEXT_DAY_CLOSE": null,
+    "NEXT_TRADE_DATE": null,
+    "THIRD_TRADE_DATE": null,
     "THIRD_DAY_CLOSE": null,
     "NEXT_DAY_CLOSE_CHANGE": null,
     "THIRD_DAY_CLOSE_CHANGE": null,
@@ -46,7 +48,7 @@
     "industry_review_reasons": "[]",
     "industry_classification_version": 4,
     "ISSUER_BUSINESS": null,
-    "MAIN_BUSINESS": null
+    "MAIN_BUSINESS": "主要从事自主品牌“HIFIMAN”终端电声产品的设计、研发、生产和销售"
   },
   "pdf_signature": {
     "files": {
@@ -67,11 +69,11 @@
       }
     },
     "pdf_parser_versions": {
-      "prospectus_issue_info": 10,
-      "issue_announcement_info": 8,
-      "issue_result_info": 5,
-      "comparable_companies": 25,
-      "business_desc": 7
+      "prospectus_issue_info": 11,
+      "issue_announcement_info": 9,
+      "issue_result_info": 6,
+      "comparable_companies": 27,
+      "business_desc": 8
     }
   },
   "item": {
@@ -91,6 +93,8 @@
     "LD_CLOSE_CHANGE": 170.4211,
     "LD_AVERAGE_CHANGE": 177.46748529011253,
     "NEXT_DAY_CLOSE": 45.18,
+    "NEXT_TRADE_DATE": "20260305",
+    "THIRD_TRADE_DATE": "20260306",
     "THIRD_DAY_CLOSE": 45.3,
     "NEXT_DAY_CLOSE_CHANGE": 129.22374429223743,
     "THIRD_DAY_CLOSE_CHANGE": 129.8325722983257,
@@ -110,6 +114,14 @@
     "statutory_industry_code": "C39",
     "valuation_peer_group": "电子 / 消费电子",
     "business_tags": [],
+    "chain_tags": [],
+    "industry_tertiary": "品牌消费电子",
+    "industry_status": "confirmed",
+    "industry_candidates": [],
+    "industry_review_reasons": [],
+    "industry_classification_version": 4,
+    "ISSUER_BUSINESS": "",
+    "MAIN_BUSINESS": "主要从事自主品牌“HIFIMAN”终端电声产品的设计、研发、生产和销售",
     "industry_confidence": 0.95,
     "industry_evidence": [
       "ifind_sw:2026-10-12",
@@ -197,13 +209,6 @@
     "average_price_unit_mode": "volume_shares_amount_yuan",
     "average_price_reference": 55.02,
     "replay_record_source": "",
-    "listing_date_source": "",
-    "industry_tertiary": "品牌消费电子",
-    "chain_tags": [],
-    "industry_status": "confirmed",
-    "industry_candidates": [],
-    "industry_review_reasons": [],
-    "industry_classification_version": 4
-  },
-  "industry_reclassification_version": 4
+    "listing_date_source": ""
+  }
 }

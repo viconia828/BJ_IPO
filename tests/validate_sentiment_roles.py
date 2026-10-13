@@ -129,7 +129,7 @@ class SentimentRolesTests(unittest.TestCase):
                         report_generator._build_report_html(report_generator._prepare_report_context(payload))]:
             self.assertIn('信号分工候选区间（研究）',content)
             self.assertIn('转向响应候选区间（研究）',content)
-            self.assertIn('未替换默认',content)
+            self.assertIn('尚未用于正式定价',content)
         bad=timing.attach_shadow(base,self.target,self.history+[{**self.history[-1],'AVERAGE_PRICE':1}],PARAMS,as_of='2026-03-10')
         self.assertEqual(bad['sentiment'],base['sentiment'])
         self.assertIn('不可用',bad['response_experiment_error'])

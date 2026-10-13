@@ -1,6 +1,6 @@
 {
   "schema": "offline_tuning_sample_manifest_v1",
-  "generated_at": "2026-10-11 11:54:41",
+  "generated_at": "2026-10-13 23:41:12",
   "paths": {
     "dataset": "D:\\BJ_IPO\\data\\offline_tuning\\replay_dataset.json",
     "replay_items": "D:\\BJ_IPO\\data\\offline_tuning\\replay_items",
@@ -10,35 +10,38 @@
   },
   "summary": {
     "intraday_csv_count": 63,
-    "replay_item_count": 65,
-    "replay_dataset_count": 65,
-    "replay_requested_count": 65,
-    "subscription_history_count": 65,
-    "ladder_label_count": 65,
+    "replay_item_count": 66,
+    "replay_dataset_count": 66,
+    "replay_requested_count": 66,
+    "subscription_history_count": 66,
+    "ladder_label_count": 66,
     "label_only_count": 0,
     "intraday_only_count": 0,
-    "dataset_only_count": 2,
-    "method1_ready_count": 65,
-    "model_ready_count": 65,
-    "manual_ladder_ready_count": 65,
-    "listing_data_retry_count": 0
+    "dataset_only_count": 3,
+    "method1_ready_count": 66,
+    "model_ready_count": 66,
+    "manual_ladder_ready_count": 66,
+    "listing_data_retry_count": 1
   },
   "differences": {
     "label_only_codes": [],
     "intraday_only_codes": [],
     "dataset_only_codes": [
       "920162",
-      "920196"
+      "920196",
+      "920296"
     ],
-    "listing_data_retry_codes": []
+    "listing_data_retry_codes": [
+      "920296"
+    ]
   },
   "sync_summary": {
     "replay": {
-      "available_count": 65,
-      "method1_ready_count": 65,
+      "available_count": 66,
+      "method1_ready_count": 66,
       "item_cache": {
         "action": "dataset_unchanged",
-        "dataset_reused": 65,
+        "dataset_reused": 66,
         "hits": 0,
         "existing_dataset_reused": 0,
         "misses": 0,
@@ -47,15 +50,15 @@
     },
     "subscription_history": {
       "output_path": "D:\\BJ_IPO\\data\\offline_tuning\\subscription_history_sample.csv",
-      "row_count": 65,
-      "model_ready_count": 65,
-      "fractional_label_ready_count": 65,
+      "row_count": 66,
+      "model_ready_count": 66,
+      "fractional_label_ready_count": 66,
       "result_pdf_count": 65,
-      "issue_pdf_count": 65,
+      "issue_pdf_count": 66,
       "incremental": true,
       "force_rebuild": false,
       "rebuilt_count": 0,
-      "reused_count": 65,
+      "reused_count": 66,
       "rebuilt_codes": [],
       "reused_codes": [
         "920011",
@@ -122,6 +125,7 @@
         "920269",
         "920288",
         "920289",
+        "920296",
         "920298"
       ],
       "changed_count": 0,
@@ -130,8 +134,8 @@
       "earliest_changed_code": "",
       "label_only_history_item_count": 0,
       "ladder_label_path": "D:\\BJ_IPO\\data\\offline_tuning\\subscription_ladder_labels.csv",
-      "ladder_label_rows": 65,
-      "ladder_label_filled": 65,
+      "ladder_label_rows": 66,
+      "ladder_label_filled": 66,
       "ladder_label_added_codes": []
     },
     "account_pool_history": {
@@ -319,12 +323,12 @@
         2949.2
       ],
       "requested_thresholds_wan": [],
-      "sample_count": 65,
-      "history_row_count": 65,
-      "label_row_count": 65,
+      "sample_count": 66,
+      "history_row_count": 66,
+      "label_row_count": 66,
       "point_count": 180,
       "usable_point_count": 180,
-      "threshold_row_count": 65,
+      "threshold_row_count": 66,
       "usable_threshold_row_count": 65,
       "snapshot_cutpoint_count": 176,
       "calibrated_threshold_count": 176,
@@ -1214,7 +1218,7 @@
       "incremental": true,
       "force_rebuild": false,
       "rebuild_mode": "no_change",
-      "reused_prefix_count": 65,
+      "reused_prefix_count": 66,
       "rebuilt_suffix_count": 0,
       "rebuild_from_index": null,
       "rebuild_from_code": "",
@@ -1251,13 +1255,13 @@
       "source_directory": "D:\\BJ_IPO\\公告文件",
       "action": "cache_hit",
       "reason": "directory_unchanged",
-      "file_count": 243,
-      "complete_count": 243,
+      "file_count": 251,
+      "complete_count": 251,
       "incomplete_count": 0,
-      "indexed_code_count": 66,
-      "generated_at": "2026-10-11 10:59:31",
+      "indexed_code_count": 72,
+      "generated_at": "2026-10-13 22:05:16",
       "full_scan_count": 1,
-      "incremental_update_count": 24,
+      "incremental_update_count": 29,
       "added_count": 0,
       "changed_count": 0,
       "removed_count": 0,
@@ -1266,12 +1270,18 @@
     },
     "listing_data_retry": {
       "marker_path": "D:\\BJ_IPO\\data\\offline_tuning\\deferred_listing_data_codes.json",
-      "pending_before": [],
-      "pending_after": [],
-      "pending_after_count": 0,
+      "pending_before": [
+        "920296"
+      ],
+      "pending_after": [
+        "920296"
+      ],
+      "pending_after_count": 1,
       "download_missing_announcements": true,
-      "same_day_download_cooldown_codes": [],
-      "same_day_download_cooldown_count": 0,
+      "same_day_download_cooldown_codes": [
+        "920296"
+      ],
+      "same_day_download_cooldown_count": 1,
       "download_attempted_codes": [],
       "download_attempted_count": 0,
       "download_retries": 1,
@@ -1309,8 +1319,8 @@
       "listing_data_retry_reasons": [],
       "top_apply_amount_wan": 1441.5,
       "online_issue_shares": 18600001.0,
-      "replay_item_generated_at": "2026-09-24 20:21:59",
-      "replay_item_cache_version": 9,
+      "replay_item_generated_at": "2026-10-13 22:46:07",
+      "replay_item_cache_version": 10,
       "replay_pdf_signature": {
         "keys": [
           "files",
@@ -1349,8 +1359,8 @@
       "listing_data_retry_reasons": [],
       "top_apply_amount_wan": 1086.2984,
       "online_issue_shares": 11096411.0,
-      "replay_item_generated_at": "2026-09-24 20:22:51",
-      "replay_item_cache_version": 9,
+      "replay_item_generated_at": "2026-10-13 22:46:51",
+      "replay_item_cache_version": 10,
       "replay_pdf_signature": {
         "keys": [
           "files",
@@ -1389,8 +1399,8 @@
       "listing_data_retry_reasons": [],
       "top_apply_amount_wan": 1086.3,
       "online_issue_shares": 51000000.0,
-      "replay_item_generated_at": "2026-09-24 20:23:48",
-      "replay_item_cache_version": 9,
+      "replay_item_generated_at": "2026-10-13 22:47:46",
+      "replay_item_cache_version": 10,
       "replay_pdf_signature": {
         "keys": [
           "files",
@@ -1429,8 +1439,8 @@
       "listing_data_retry_reasons": [],
       "top_apply_amount_wan": 1738.06,
       "online_issue_shares": 36981000.0,
-      "replay_item_generated_at": "2026-09-24 20:24:55",
-      "replay_item_cache_version": 9,
+      "replay_item_generated_at": "2026-10-13 22:48:46",
+      "replay_item_cache_version": 10,
       "replay_pdf_signature": {
         "keys": [
           "files",
@@ -1469,8 +1479,8 @@
       "listing_data_retry_reasons": [],
       "top_apply_amount_wan": 1317.4544,
       "online_issue_shares": 12244950.0,
-      "replay_item_generated_at": "2026-09-24 20:26:02",
-      "replay_item_cache_version": 9,
+      "replay_item_generated_at": "2026-10-13 22:50:02",
+      "replay_item_cache_version": 10,
       "replay_pdf_signature": {
         "keys": [
           "files",
@@ -1509,8 +1519,8 @@
       "listing_data_retry_reasons": [],
       "top_apply_amount_wan": 2499.16,
       "online_issue_shares": 17201881.0,
-      "replay_item_generated_at": "2026-09-24 20:26:46",
-      "replay_item_cache_version": 9,
+      "replay_item_generated_at": "2026-10-13 22:51:03",
+      "replay_item_cache_version": 10,
       "replay_pdf_signature": {
         "keys": [
           "files",
@@ -1549,8 +1559,8 @@
       "listing_data_retry_reasons": [],
       "top_apply_amount_wan": 1216.5574,
       "online_issue_shares": 15227851.0,
-      "replay_item_generated_at": "2026-09-24 20:27:59",
-      "replay_item_cache_version": 9,
+      "replay_item_generated_at": "2026-10-13 22:52:13",
+      "replay_item_cache_version": 10,
       "replay_pdf_signature": {
         "keys": [
           "files",
@@ -1589,8 +1599,8 @@
       "listing_data_retry_reasons": [],
       "top_apply_amount_wan": 1889.55,
       "online_issue_shares": 15300000.0,
-      "replay_item_generated_at": "2026-09-24 20:29:07",
-      "replay_item_cache_version": 9,
+      "replay_item_generated_at": "2026-10-13 22:53:15",
+      "replay_item_cache_version": 10,
       "replay_pdf_signature": {
         "keys": [
           "files",
@@ -1629,8 +1639,8 @@
       "listing_data_retry_reasons": [],
       "top_apply_amount_wan": 1798.4967,
       "online_issue_shares": 32318326.0,
-      "replay_item_generated_at": "2026-09-24 20:30:46",
-      "replay_item_cache_version": 9,
+      "replay_item_generated_at": "2026-10-13 22:54:42",
+      "replay_item_cache_version": 10,
       "replay_pdf_signature": {
         "keys": [
           "files",
@@ -1669,8 +1679,8 @@
       "listing_data_retry_reasons": [],
       "top_apply_amount_wan": 1913.625,
       "online_issue_shares": 15750000.0,
-      "replay_item_generated_at": "2026-09-24 20:32:08",
-      "replay_item_cache_version": 9,
+      "replay_item_generated_at": "2026-10-13 22:56:01",
+      "replay_item_cache_version": 10,
       "replay_pdf_signature": {
         "keys": [
           "files",
@@ -1709,8 +1719,8 @@
       "listing_data_retry_reasons": [],
       "top_apply_amount_wan": 875.2556,
       "online_issue_shares": 9524520.0,
-      "replay_item_generated_at": "2026-09-24 20:33:25",
-      "replay_item_cache_version": 9,
+      "replay_item_generated_at": "2026-10-13 22:57:02",
+      "replay_item_cache_version": 10,
       "replay_pdf_signature": {
         "keys": [
           "files",
@@ -1749,8 +1759,8 @@
       "listing_data_retry_reasons": [],
       "top_apply_amount_wan": 1530.9,
       "online_issue_shares": 31500000.0,
-      "replay_item_generated_at": "2026-09-24 20:34:30",
-      "replay_item_cache_version": 9,
+      "replay_item_generated_at": "2026-10-13 22:57:41",
+      "replay_item_cache_version": 10,
       "replay_pdf_signature": {
         "keys": [
           "files",
@@ -1789,8 +1799,8 @@
       "listing_data_retry_reasons": [],
       "top_apply_amount_wan": 416.1168,
       "online_issue_shares": 6660000.0,
-      "replay_item_generated_at": "2026-09-24 20:35:52",
-      "replay_item_cache_version": 9,
+      "replay_item_generated_at": "2026-10-13 22:58:28",
+      "replay_item_cache_version": 10,
       "replay_pdf_signature": {
         "keys": [
           "files",
@@ -1829,8 +1839,8 @@
       "listing_data_retry_reasons": [],
       "top_apply_amount_wan": 873.712,
       "online_issue_shares": 16240368.0,
-      "replay_item_generated_at": "2026-09-24 20:36:52",
-      "replay_item_cache_version": 9,
+      "replay_item_generated_at": "2026-10-13 22:59:07",
+      "replay_item_cache_version": 10,
       "replay_pdf_signature": {
         "keys": [
           "files",
@@ -1869,8 +1879,8 @@
       "listing_data_retry_reasons": [],
       "top_apply_amount_wan": 722.43,
       "online_issue_shares": 20700000.0,
-      "replay_item_generated_at": "2026-09-24 20:38:16",
-      "replay_item_cache_version": 9,
+      "replay_item_generated_at": "2026-10-13 22:59:51",
+      "replay_item_cache_version": 10,
       "replay_pdf_signature": {
         "keys": [
           "files",
@@ -1909,8 +1919,8 @@
       "listing_data_retry_reasons": [],
       "top_apply_amount_wan": 3231.0,
       "online_issue_shares": 45000000.0,
-      "replay_item_generated_at": "2026-09-24 20:39:28",
-      "replay_item_cache_version": 9,
+      "replay_item_generated_at": "2026-10-13 23:00:29",
+      "replay_item_cache_version": 10,
       "replay_pdf_signature": {
         "keys": [
           "files",
@@ -1949,8 +1959,8 @@
       "listing_data_retry_reasons": [],
       "top_apply_amount_wan": 3307.995,
       "online_issue_shares": 17100000.0,
-      "replay_item_generated_at": "2026-09-24 20:40:44",
-      "replay_item_cache_version": 9,
+      "replay_item_generated_at": "2026-10-13 23:01:13",
+      "replay_item_cache_version": 10,
       "replay_pdf_signature": {
         "keys": [
           "files",
@@ -1989,8 +1999,8 @@
       "listing_data_retry_reasons": [],
       "top_apply_amount_wan": 969.246,
       "online_issue_shares": 20089392.0,
-      "replay_item_generated_at": "2026-09-24 20:41:45",
-      "replay_item_cache_version": 9,
+      "replay_item_generated_at": "2026-10-13 23:01:48",
+      "replay_item_cache_version": 10,
       "replay_pdf_signature": {
         "keys": [
           "files",
@@ -2029,8 +2039,8 @@
       "listing_data_retry_reasons": [],
       "top_apply_amount_wan": 1097.6724,
       "online_issue_shares": 18828000.0,
-      "replay_item_generated_at": "2026-09-24 20:42:57",
-      "replay_item_cache_version": 9,
+      "replay_item_generated_at": "2026-10-13 23:02:27",
+      "replay_item_cache_version": 10,
       "replay_pdf_signature": {
         "keys": [
           "files",
@@ -2069,8 +2079,8 @@
       "listing_data_retry_reasons": [],
       "top_apply_amount_wan": 1808.1,
       "online_issue_shares": 25200000.0,
-      "replay_item_generated_at": "2026-09-24 20:44:04",
-      "replay_item_cache_version": 9,
+      "replay_item_generated_at": "2026-10-13 23:03:05",
+      "replay_item_cache_version": 10,
       "replay_pdf_signature": {
         "keys": [
           "files",
@@ -2109,8 +2119,8 @@
       "listing_data_retry_reasons": [],
       "top_apply_amount_wan": 1168.83,
       "online_issue_shares": 16200000.0,
-      "replay_item_generated_at": "2026-09-24 20:45:23",
-      "replay_item_cache_version": 9,
+      "replay_item_generated_at": "2026-10-13 23:03:46",
+      "replay_item_cache_version": 10,
       "replay_pdf_signature": {
         "keys": [
           "files",
@@ -2149,8 +2159,8 @@
       "listing_data_retry_reasons": [],
       "top_apply_amount_wan": 1511.6472,
       "online_issue_shares": 18873000.0,
-      "replay_item_generated_at": "2026-09-24 20:46:31",
-      "replay_item_cache_version": 9,
+      "replay_item_generated_at": "2026-10-13 23:04:25",
+      "replay_item_cache_version": 10,
       "replay_pdf_signature": {
         "keys": [
           "files",
@@ -2189,8 +2199,8 @@
       "listing_data_retry_reasons": [],
       "top_apply_amount_wan": 1802.0781,
       "online_issue_shares": 20214003.0,
-      "replay_item_generated_at": "2026-09-24 20:47:33",
-      "replay_item_cache_version": 9,
+      "replay_item_generated_at": "2026-10-13 23:05:00",
+      "replay_item_cache_version": 10,
       "replay_pdf_signature": {
         "keys": [
           "files",
@@ -2229,8 +2239,8 @@
       "listing_data_retry_reasons": [],
       "top_apply_amount_wan": 3015.36,
       "online_issue_shares": 14400000.0,
-      "replay_item_generated_at": "2026-09-24 20:48:43",
-      "replay_item_cache_version": 9,
+      "replay_item_generated_at": "2026-10-13 23:05:01",
+      "replay_item_cache_version": 10,
       "replay_pdf_signature": {
         "keys": [
           "files",
@@ -2269,8 +2279,8 @@
       "listing_data_retry_reasons": [],
       "top_apply_amount_wan": 1006.6275,
       "online_issue_shares": 12150000.0,
-      "replay_item_generated_at": "2026-09-24 20:49:42",
-      "replay_item_cache_version": 9,
+      "replay_item_generated_at": "2026-10-13 23:05:33",
+      "replay_item_cache_version": 10,
       "replay_pdf_signature": {
         "keys": [
           "files",
@@ -2309,8 +2319,8 @@
       "listing_data_retry_reasons": [],
       "top_apply_amount_wan": 1630.7586,
       "online_issue_shares": 41868000.0,
-      "replay_item_generated_at": "2026-09-24 20:50:49",
-      "replay_item_cache_version": 9,
+      "replay_item_generated_at": "2026-10-13 23:06:08",
+      "replay_item_cache_version": 10,
       "replay_pdf_signature": {
         "keys": [
           "files",
@@ -2349,8 +2359,8 @@
       "listing_data_retry_reasons": [],
       "top_apply_amount_wan": 1735.2,
       "online_issue_shares": 18000000.0,
-      "replay_item_generated_at": "2026-09-24 20:51:53",
-      "replay_item_cache_version": 9,
+      "replay_item_generated_at": "2026-10-13 23:06:40",
+      "replay_item_cache_version": 10,
       "replay_pdf_signature": {
         "keys": [
           "files",
@@ -2389,8 +2399,8 @@
       "listing_data_retry_reasons": [],
       "top_apply_amount_wan": 2800.71,
       "online_issue_shares": 29700000.0,
-      "replay_item_generated_at": "2026-09-24 20:53:09",
-      "replay_item_cache_version": 9,
+      "replay_item_generated_at": "2026-10-13 23:07:16",
+      "replay_item_cache_version": 10,
       "replay_pdf_signature": {
         "keys": [
           "files",
@@ -2429,8 +2439,8 @@
       "listing_data_retry_reasons": [],
       "top_apply_amount_wan": 2271.7422,
       "online_issue_shares": 21708000.0,
-      "replay_item_generated_at": "2026-09-24 20:54:13",
-      "replay_item_cache_version": 9,
+      "replay_item_generated_at": "2026-10-13 23:07:51",
+      "replay_item_cache_version": 10,
       "replay_pdf_signature": {
         "keys": [
           "files",
@@ -2443,21 +2453,21 @@
     {
       "security_code": "920157",
       "security_name_abbr": "宇特光电",
-      "apply_date": "2026-09-21",
-      "listing_date": "2026-09-21",
+      "apply_date": "2026-09-21 00:00:00",
+      "listing_date": "2026-10-09 00:00:00",
       "in_intraday_csv": true,
       "in_replay_dataset": true,
       "has_replay_item": true,
       "in_subscription_history": true,
       "in_ladder_labels": true,
       "method1_replay_available": true,
-      "has_intraday_file_in_replay": false,
+      "has_intraday_file_in_replay": true,
       "old_shares_source": "待确认",
       "old_shares_confidence": 0.0,
       "old_shares_pending_reason": "未找到上市公告书，且招股文件未提取到有效老股数据",
       "comparable_code_count": 4,
-      "comparable_returned_count": 0,
-      "comparable_reason": "上市日期缺失，无法构建方法一历史快照。",
+      "comparable_returned_count": 4,
+      "comparable_reason": "",
       "history_quality_score": 225,
       "model_ready": true,
       "allocation_fit_ready": true,
@@ -2469,8 +2479,8 @@
       "listing_data_retry_reasons": [],
       "top_apply_amount_wan": 850.1625,
       "online_issue_shares": 12366667.0,
-      "replay_item_generated_at": "2026-09-24 20:55:15",
-      "replay_item_cache_version": 9,
+      "replay_item_generated_at": "2026-10-13 23:08:26",
+      "replay_item_cache_version": 10,
       "replay_pdf_signature": {
         "keys": [
           "files",
@@ -2509,8 +2519,8 @@
       "listing_data_retry_reasons": [],
       "top_apply_amount_wan": 1800.0,
       "online_issue_shares": 14400000.0,
-      "replay_item_generated_at": "2026-09-24 20:56:45",
-      "replay_item_cache_version": 9,
+      "replay_item_generated_at": "2026-10-13 23:09:17",
+      "replay_item_cache_version": 10,
       "replay_pdf_signature": {
         "keys": [
           "files",
@@ -2549,8 +2559,8 @@
       "listing_data_retry_reasons": [],
       "top_apply_amount_wan": 1409.0379,
       "online_issue_shares": 30598650.0,
-      "replay_item_generated_at": "2026-09-24 20:57:50",
-      "replay_item_cache_version": 9,
+      "replay_item_generated_at": "2026-10-13 23:10:21",
+      "replay_item_cache_version": 10,
       "replay_pdf_signature": {
         "keys": [
           "files",
@@ -2589,8 +2599,8 @@
       "listing_data_retry_reasons": [],
       "top_apply_amount_wan": 1328.805,
       "online_issue_shares": 15300000.0,
-      "replay_item_generated_at": "2026-09-24 20:59:02",
-      "replay_item_cache_version": 9,
+      "replay_item_generated_at": "2026-10-13 23:11:06",
+      "replay_item_cache_version": 10,
       "replay_pdf_signature": {
         "keys": [
           "files",
@@ -2629,8 +2639,8 @@
       "listing_data_retry_reasons": [],
       "top_apply_amount_wan": 627.4908,
       "online_issue_shares": 6517038.0,
-      "replay_item_generated_at": "2026-09-24 21:00:14",
-      "replay_item_cache_version": 9,
+      "replay_item_generated_at": "2026-10-13 23:11:43",
+      "replay_item_cache_version": 10,
       "replay_pdf_signature": {
         "keys": [
           "files",
@@ -2669,8 +2679,8 @@
       "listing_data_retry_reasons": [],
       "top_apply_amount_wan": 642.3648,
       "online_issue_shares": 10164707.0,
-      "replay_item_generated_at": "2026-09-24 21:01:21",
-      "replay_item_cache_version": 9,
+      "replay_item_generated_at": "2026-10-13 23:12:18",
+      "replay_item_cache_version": 10,
       "replay_pdf_signature": {
         "keys": [
           "files",
@@ -2709,8 +2719,8 @@
       "listing_data_retry_reasons": [],
       "top_apply_amount_wan": 1367.4969,
       "online_issue_shares": 16914060.0,
-      "replay_item_generated_at": "2026-09-24 21:02:33",
-      "replay_item_cache_version": 9,
+      "replay_item_generated_at": "2026-10-13 23:12:53",
+      "replay_item_cache_version": 10,
       "replay_pdf_signature": {
         "keys": [
           "files",
@@ -2749,8 +2759,8 @@
       "listing_data_retry_reasons": [],
       "top_apply_amount_wan": 880.4168,
       "online_issue_shares": 7947000.0,
-      "replay_item_generated_at": "2026-09-24 21:03:42",
-      "replay_item_cache_version": 9,
+      "replay_item_generated_at": "2026-10-13 23:13:31",
+      "replay_item_cache_version": 10,
       "replay_pdf_signature": {
         "keys": [
           "files",
@@ -2789,8 +2799,8 @@
       "listing_data_retry_reasons": [],
       "top_apply_amount_wan": 1283.148,
       "online_issue_shares": 11772000.0,
-      "replay_item_generated_at": "2026-09-24 21:04:36",
-      "replay_item_cache_version": 9,
+      "replay_item_generated_at": "2026-10-13 23:13:58",
+      "replay_item_cache_version": 10,
       "replay_pdf_signature": {
         "keys": [
           "files",
@@ -2829,8 +2839,8 @@
       "listing_data_retry_reasons": [],
       "top_apply_amount_wan": 1822.7195,
       "online_issue_shares": 12371562.0,
-      "replay_item_generated_at": "2026-09-24 21:05:46",
-      "replay_item_cache_version": 9,
+      "replay_item_generated_at": "2026-10-13 23:14:35",
+      "replay_item_cache_version": 10,
       "replay_pdf_signature": {
         "keys": [
           "files",
@@ -2869,8 +2879,8 @@
       "listing_data_retry_reasons": [],
       "top_apply_amount_wan": 1019.1896,
       "online_issue_shares": 26577686.0,
-      "replay_item_generated_at": "2026-09-24 21:07:13",
-      "replay_item_cache_version": 9,
+      "replay_item_generated_at": "2026-10-13 23:15:19",
+      "replay_item_cache_version": 10,
       "replay_pdf_signature": {
         "keys": [
           "files",
@@ -2909,8 +2919,8 @@
       "listing_data_retry_reasons": [],
       "top_apply_amount_wan": 1360.8,
       "online_issue_shares": 9720000.0,
-      "replay_item_generated_at": "2026-09-24 21:08:05",
-      "replay_item_cache_version": 9,
+      "replay_item_generated_at": "2026-10-13 23:15:47",
+      "replay_item_cache_version": 10,
       "replay_pdf_signature": {
         "keys": [
           "files",
@@ -2949,8 +2959,8 @@
       "listing_data_retry_reasons": [],
       "top_apply_amount_wan": 933.6627,
       "online_issue_shares": 9474318.0,
-      "replay_item_generated_at": "2026-09-24 21:09:35",
-      "replay_item_cache_version": 9,
+      "replay_item_generated_at": "2026-10-13 23:16:33",
+      "replay_item_cache_version": 10,
       "replay_pdf_signature": {
         "keys": [
           "files",
@@ -2989,8 +2999,8 @@
       "listing_data_retry_reasons": [],
       "top_apply_amount_wan": 1517.256,
       "online_issue_shares": 23400000.0,
-      "replay_item_generated_at": "2026-09-29 20:13:51",
-      "replay_item_cache_version": 9,
+      "replay_item_generated_at": "2026-10-13 23:17:09",
+      "replay_item_cache_version": 10,
       "replay_pdf_signature": {
         "keys": [
           "files",
@@ -3029,8 +3039,8 @@
       "listing_data_retry_reasons": [],
       "top_apply_amount_wan": 2079.324,
       "online_issue_shares": 14040000.0,
-      "replay_item_generated_at": "2026-09-24 21:11:59",
-      "replay_item_cache_version": 9,
+      "replay_item_generated_at": "2026-10-13 23:17:51",
+      "replay_item_cache_version": 10,
       "replay_pdf_signature": {
         "keys": [
           "files",
@@ -3069,8 +3079,8 @@
       "listing_data_retry_reasons": [],
       "top_apply_amount_wan": 1389.3984,
       "online_issue_shares": 19793879.0,
-      "replay_item_generated_at": "2026-09-24 21:13:10",
-      "replay_item_cache_version": 9,
+      "replay_item_generated_at": "2026-10-13 23:18:26",
+      "replay_item_cache_version": 10,
       "replay_pdf_signature": {
         "keys": [
           "files",
@@ -3109,8 +3119,8 @@
       "listing_data_retry_reasons": [],
       "top_apply_amount_wan": 776.8816,
       "online_issue_shares": 19089000.0,
-      "replay_item_generated_at": "2026-09-24 21:14:19",
-      "replay_item_cache_version": 9,
+      "replay_item_generated_at": "2026-10-13 23:19:03",
+      "replay_item_cache_version": 10,
       "replay_pdf_signature": {
         "keys": [
           "files",
@@ -3149,8 +3159,8 @@
       "listing_data_retry_reasons": [],
       "top_apply_amount_wan": 1538.6847,
       "online_issue_shares": 39915000.0,
-      "replay_item_generated_at": "2026-09-24 21:15:28",
-      "replay_item_cache_version": 9,
+      "replay_item_generated_at": "2026-10-13 23:19:38",
+      "replay_item_cache_version": 10,
       "replay_pdf_signature": {
         "keys": [
           "files",
@@ -3189,8 +3199,8 @@
       "listing_data_retry_reasons": [],
       "top_apply_amount_wan": 1073.52,
       "online_issue_shares": 25200000.0,
-      "replay_item_generated_at": "2026-09-24 21:16:38",
-      "replay_item_cache_version": 9,
+      "replay_item_generated_at": "2026-10-13 23:20:16",
+      "replay_item_cache_version": 10,
       "replay_pdf_signature": {
         "keys": [
           "files",
@@ -3229,8 +3239,8 @@
       "listing_data_retry_reasons": [],
       "top_apply_amount_wan": 1749.8194,
       "online_issue_shares": 24629630.0,
-      "replay_item_generated_at": "2026-09-29 20:13:51",
-      "replay_item_cache_version": 9,
+      "replay_item_generated_at": "2026-10-13 23:20:56",
+      "replay_item_cache_version": 10,
       "replay_pdf_signature": {
         "keys": [
           "files",
@@ -3269,8 +3279,8 @@
       "listing_data_retry_reasons": [],
       "top_apply_amount_wan": 2121.5922,
       "online_issue_shares": 20619000.0,
-      "replay_item_generated_at": "2026-09-24 21:17:58",
-      "replay_item_cache_version": 9,
+      "replay_item_generated_at": "2026-10-13 23:21:29",
+      "replay_item_cache_version": 10,
       "replay_pdf_signature": {
         "keys": [
           "files",
@@ -3309,8 +3319,8 @@
       "listing_data_retry_reasons": [],
       "top_apply_amount_wan": 620.6577,
       "online_issue_shares": 7403249.0,
-      "replay_item_generated_at": "2026-09-24 21:17:58",
-      "replay_item_cache_version": 9,
+      "replay_item_generated_at": "2026-10-13 23:22:03",
+      "replay_item_cache_version": 10,
       "replay_pdf_signature": {
         "keys": [
           "files",
@@ -3349,8 +3359,8 @@
       "listing_data_retry_reasons": [],
       "top_apply_amount_wan": 898.45,
       "online_issue_shares": 23800000.0,
-      "replay_item_generated_at": "2026-09-29 20:13:52",
-      "replay_item_cache_version": 9,
+      "replay_item_generated_at": "2026-10-13 23:22:37",
+      "replay_item_cache_version": 10,
       "replay_pdf_signature": {
         "keys": [
           "files",
@@ -3389,8 +3399,8 @@
       "listing_data_retry_reasons": [],
       "top_apply_amount_wan": 1086.4464,
       "online_issue_shares": 7177320.0,
-      "replay_item_generated_at": "2026-09-24 21:20:14",
-      "replay_item_cache_version": 9,
+      "replay_item_generated_at": "2026-10-13 23:23:12",
+      "replay_item_cache_version": 10,
       "replay_pdf_signature": {
         "keys": [
           "files",
@@ -3429,8 +3439,8 @@
       "listing_data_retry_reasons": [],
       "top_apply_amount_wan": 725.472,
       "online_issue_shares": 5760000.0,
-      "replay_item_generated_at": "2026-09-24 21:21:15",
-      "replay_item_cache_version": 9,
+      "replay_item_generated_at": "2026-10-13 23:23:43",
+      "replay_item_cache_version": 10,
       "replay_pdf_signature": {
         "keys": [
           "files",
@@ -3469,8 +3479,8 @@
       "listing_data_retry_reasons": [],
       "top_apply_amount_wan": 1284.5822,
       "online_issue_shares": 21076029.0,
-      "replay_item_generated_at": "2026-09-24 21:22:18",
-      "replay_item_cache_version": 9,
+      "replay_item_generated_at": "2026-10-13 23:24:17",
+      "replay_item_cache_version": 10,
       "replay_pdf_signature": {
         "keys": [
           "files",
@@ -3509,8 +3519,8 @@
       "listing_data_retry_reasons": [],
       "top_apply_amount_wan": 1685.5182,
       "online_issue_shares": 11917127.0,
-      "replay_item_generated_at": "2026-09-24 21:23:32",
-      "replay_item_cache_version": 9,
+      "replay_item_generated_at": "2026-10-13 23:24:57",
+      "replay_item_cache_version": 10,
       "replay_pdf_signature": {
         "keys": [
           "files",
@@ -3549,8 +3559,8 @@
       "listing_data_retry_reasons": [],
       "top_apply_amount_wan": 583.3029,
       "online_issue_shares": 11562390.0,
-      "replay_item_generated_at": "2026-09-24 21:24:29",
-      "replay_item_cache_version": 9,
+      "replay_item_generated_at": "2026-10-13 23:25:51",
+      "replay_item_cache_version": 10,
       "replay_pdf_signature": {
         "keys": [
           "files",
@@ -3589,8 +3599,8 @@
       "listing_data_retry_reasons": [],
       "top_apply_amount_wan": 732.5725,
       "online_issue_shares": 9350000.0,
-      "replay_item_generated_at": "2026-09-24 21:25:29",
-      "replay_item_cache_version": 9,
+      "replay_item_generated_at": "2026-10-13 23:26:50",
+      "replay_item_cache_version": 10,
       "replay_pdf_signature": {
         "keys": [
           "files",
@@ -3629,8 +3639,8 @@
       "listing_data_retry_reasons": [],
       "top_apply_amount_wan": 1538.0238,
       "online_issue_shares": 16285860.0,
-      "replay_item_generated_at": "2026-09-24 21:26:37",
-      "replay_item_cache_version": 9,
+      "replay_item_generated_at": "2026-10-13 23:27:53",
+      "replay_item_cache_version": 10,
       "replay_pdf_signature": {
         "keys": [
           "files",
@@ -3669,8 +3679,8 @@
       "listing_data_retry_reasons": [],
       "top_apply_amount_wan": 806.4,
       "online_issue_shares": 36000000.0,
-      "replay_item_generated_at": "2026-09-24 21:27:41",
-      "replay_item_cache_version": 9,
+      "replay_item_generated_at": "2026-10-13 23:28:54",
+      "replay_item_cache_version": 10,
       "replay_pdf_signature": {
         "keys": [
           "files",
@@ -3709,8 +3719,8 @@
       "listing_data_retry_reasons": [],
       "top_apply_amount_wan": 810.882,
       "online_issue_shares": 9485000.0,
-      "replay_item_generated_at": "2026-09-24 21:28:55",
-      "replay_item_cache_version": 9,
+      "replay_item_generated_at": "2026-10-13 23:29:58",
+      "replay_item_cache_version": 10,
       "replay_pdf_signature": {
         "keys": [
           "files",
@@ -3749,8 +3759,8 @@
       "listing_data_retry_reasons": [],
       "top_apply_amount_wan": 1365.843,
       "online_issue_shares": 8899500.0,
-      "replay_item_generated_at": "2026-09-24 21:30:02",
-      "replay_item_cache_version": 9,
+      "replay_item_generated_at": "2026-10-13 23:30:59",
+      "replay_item_cache_version": 10,
       "replay_pdf_signature": {
         "keys": [
           "files",
@@ -3789,8 +3799,8 @@
       "listing_data_retry_reasons": [],
       "top_apply_amount_wan": 1123.758,
       "online_issue_shares": 17880000.0,
-      "replay_item_generated_at": "2026-09-24 21:31:03",
-      "replay_item_cache_version": 9,
+      "replay_item_generated_at": "2026-10-13 23:32:01",
+      "replay_item_cache_version": 10,
       "replay_pdf_signature": {
         "keys": [
           "files",
@@ -3829,8 +3839,51 @@
       "listing_data_retry_reasons": [],
       "top_apply_amount_wan": 1279.5475,
       "online_issue_shares": 14450017.0,
-      "replay_item_generated_at": "2026-09-24 21:32:17",
-      "replay_item_cache_version": 9,
+      "replay_item_generated_at": "2026-10-13 23:32:48",
+      "replay_item_cache_version": 10,
+      "replay_pdf_signature": {
+        "keys": [
+          "files",
+          "pdf_parser_versions"
+        ],
+        "present_count": 2,
+        "missing_count": 0
+      }
+    },
+    {
+      "security_code": "920296",
+      "security_name_abbr": "文峰光电",
+      "apply_date": "2026-10-12",
+      "listing_date": "2026-10-12",
+      "in_intraday_csv": false,
+      "in_replay_dataset": true,
+      "has_replay_item": true,
+      "in_subscription_history": true,
+      "in_ladder_labels": true,
+      "method1_replay_available": true,
+      "has_intraday_file_in_replay": false,
+      "old_shares_source": "招股文件",
+      "old_shares_confidence": 0.8,
+      "old_shares_pending_reason": "",
+      "comparable_code_count": 8,
+      "comparable_returned_count": 0,
+      "comparable_reason": "上市日期缺失，无法构建方法一历史快照。",
+      "history_quality_score": 225,
+      "model_ready": true,
+      "allocation_fit_ready": false,
+      "allocation_fit_usable_for_tuning": true,
+      "manual_ladder_label_ready": true,
+      "manual_ladder_item_count": 2,
+      "needs_listing_data_retry": true,
+      "pending_listing_data_retry_before": true,
+      "listing_data_retry_reasons": [
+        "missing_result_announcement",
+        "download_errors"
+      ],
+      "top_apply_amount_wan": 1145.0,
+      "online_issue_shares": 20000000.0,
+      "replay_item_generated_at": "2026-10-13 23:33:32",
+      "replay_item_cache_version": 10,
       "replay_pdf_signature": {
         "keys": [
           "files",
@@ -3869,8 +3922,8 @@
       "listing_data_retry_reasons": [],
       "top_apply_amount_wan": 2737.17,
       "online_issue_shares": 15300000.0,
-      "replay_item_generated_at": "2026-09-24 21:33:25",
-      "replay_item_cache_version": 9,
+      "replay_item_generated_at": "2026-10-13 23:34:34",
+      "replay_item_cache_version": 10,
       "replay_pdf_signature": {
         "keys": [
           "files",

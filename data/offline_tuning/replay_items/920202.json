@@ -1,7 +1,7 @@
 {
   "schema": "offline_tuning_replay_item_v1",
-  "cache_version": 9,
-  "generated_at": "2026-09-29 20:13:52",
+  "cache_version": 10,
+  "generated_at": "2026-10-13 23:22:37",
   "code": "920202",
   "listing_date": "2026-09-29 00:00:00",
   "record_signature": {
@@ -20,6 +20,8 @@
     "CLOSE_PRICE": 26.16,
     "LD_CLOSE_CHANGE": 246.4901,
     "NEXT_DAY_CLOSE": null,
+    "NEXT_TRADE_DATE": null,
+    "THIRD_TRADE_DATE": null,
     "THIRD_DAY_CLOSE": null,
     "NEXT_DAY_CLOSE_CHANGE": null,
     "THIRD_DAY_CLOSE_CHANGE": null,
@@ -46,7 +48,7 @@
     "industry_review_reasons": "[]",
     "industry_classification_version": 4,
     "ISSUER_BUSINESS": null,
-    "MAIN_BUSINESS": null
+    "MAIN_BUSINESS": "汽车铝合金精密压铸件的研发、生产和销售"
   },
   "pdf_signature": {
     "files": {
@@ -67,11 +69,11 @@
       }
     },
     "pdf_parser_versions": {
-      "prospectus_issue_info": 10,
-      "issue_announcement_info": 8,
-      "issue_result_info": 5,
-      "comparable_companies": 25,
-      "business_desc": 7
+      "prospectus_issue_info": 11,
+      "issue_announcement_info": 9,
+      "issue_result_info": 6,
+      "comparable_companies": 27,
+      "business_desc": 8
     }
   },
   "item": {
@@ -90,13 +92,15 @@
     "AVERAGE_PRICE": 27.993502245167278,
     "LD_CLOSE_CHANGE": 246.4901,
     "LD_AVERAGE_CHANGE": 270.77486417440105,
-    "NEXT_DAY_CLOSE": null,
-    "THIRD_DAY_CLOSE": null,
-    "NEXT_DAY_CLOSE_CHANGE": null,
-    "THIRD_DAY_CLOSE_CHANGE": null,
-    "NEXT_DAY_FROM_LISTING_CLOSE_PCT": null,
-    "THIRD_DAY_FROM_LISTING_CLOSE_PCT": null,
-    "POST_LISTING_PROFIT_EFFECT_PCT": null,
+    "NEXT_DAY_CLOSE": 18.32,
+    "NEXT_TRADE_DATE": "20260930",
+    "THIRD_TRADE_DATE": "20261008",
+    "THIRD_DAY_CLOSE": 14.3,
+    "NEXT_DAY_CLOSE_CHANGE": 142.64900662251657,
+    "THIRD_DAY_CLOSE_CHANGE": 89.40397350993379,
+    "NEXT_DAY_FROM_LISTING_CLOSE_PCT": -29.969418960244642,
+    "THIRD_DAY_FROM_LISTING_CLOSE_PCT": -45.33639143730886,
+    "POST_LISTING_PROFIT_EFFECT_PCT": -37.65290519877675,
     "post_listing_performance_source": "tushare_daily",
     "post_listing_performance_reason": "",
     "TURNOVERRATE": 96.7012,
@@ -113,6 +117,16 @@
       "汽车铝合金精密压铸件",
       "汽车零部件"
     ],
+    "chain_tags": [
+      "汽车产业链"
+    ],
+    "industry_tertiary": "底盘与发动机系统",
+    "industry_status": "confirmed",
+    "industry_candidates": [],
+    "industry_review_reasons": [],
+    "industry_classification_version": 4,
+    "ISSUER_BUSINESS": "",
+    "MAIN_BUSINESS": "汽车铝合金精密压铸件的研发、生产和销售",
     "industry_confidence": 0.95,
     "industry_evidence": [
       "ifind_sw:2026-10-12",
@@ -233,15 +247,6 @@
     "average_price_unit_mode": "volume_shares_amount_yuan",
     "average_price_reference": 28.7,
     "replay_record_source": "",
-    "listing_date_source": "",
-    "industry_tertiary": "底盘与发动机系统",
-    "chain_tags": [
-      "汽车产业链"
-    ],
-    "industry_status": "confirmed",
-    "industry_candidates": [],
-    "industry_review_reasons": [],
-    "industry_classification_version": 4
-  },
-  "industry_reclassification_version": 4
+    "listing_date_source": ""
+  }
 }

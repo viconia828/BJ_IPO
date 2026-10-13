@@ -141,6 +141,19 @@ class QualitySentimentTests(unittest.TestCase):
             self.assertIn("个股资质与情绪观察", content)
             self.assertIn("历史模拟", content)
             self.assertIn("旧版三方法中枢，含情绪", content)
+            observation = content.split("个股资质与情绪观察", 1)[1].split("五、关注提示", 1)[0]
+            self.assertIn("PE基础区间", observation)
+            self.assertNotIn("数据截断", observation)
+            self.assertNotIn("预期来源", observation)
+            self.assertNotIn("<ul>", observation)
+            self.assertNotIn("\n- ", observation)
+            headings = ["综合估值", "个股资质与情绪观察", "五、关注提示", "近期北交所新股首日表现一览"]
+            positions = [content.index(heading) for heading in headings]
+            self.assertEqual(positions, sorted(positions))
+        overview = report_generator.build_report_overview_text(payload)
+        self.assertIn("正式综合区间（元） 20.25 - 24.75", overview)
+        for removed in ("原综合参考区间", "旧版情绪区间", "情绪观察"):
+            self.assertNotIn(removed, overview)
         active = {**result, "mode": "active"}
         payload["final"] = qs.attach(old, active)
         ranges = report_generator._build_user_valuation_ranges(payload["final"], 10, .1)

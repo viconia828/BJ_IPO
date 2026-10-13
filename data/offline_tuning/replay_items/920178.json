@@ -1,7 +1,7 @@
 {
   "schema": "offline_tuning_replay_item_v1",
-  "cache_version": 9,
-  "generated_at": "2026-09-24 21:05:46",
+  "cache_version": 10,
+  "generated_at": "2026-10-13 23:14:35",
   "code": "920178",
   "listing_date": "2026-05-15 00:00:00",
   "record_signature": {
@@ -20,6 +20,8 @@
     "CLOSE_PRICE": 173.99,
     "LD_CLOSE_CHANGE": 490.397,
     "NEXT_DAY_CLOSE": null,
+    "NEXT_TRADE_DATE": null,
+    "THIRD_TRADE_DATE": null,
     "THIRD_DAY_CLOSE": null,
     "NEXT_DAY_CLOSE_CHANGE": null,
     "THIRD_DAY_CLOSE_CHANGE": null,
@@ -46,7 +48,7 @@
     "industry_review_reasons": "[]",
     "industry_classification_version": 4,
     "ISSUER_BUSINESS": null,
-    "MAIN_BUSINESS": null
+    "MAIN_BUSINESS": "智能制造装备的研发设计、生产、销售"
   },
   "pdf_signature": {
     "files": {
@@ -67,11 +69,11 @@
       }
     },
     "pdf_parser_versions": {
-      "prospectus_issue_info": 10,
-      "issue_announcement_info": 8,
-      "issue_result_info": 5,
-      "comparable_companies": 25,
-      "business_desc": 7
+      "prospectus_issue_info": 11,
+      "issue_announcement_info": 9,
+      "issue_result_info": 6,
+      "comparable_companies": 27,
+      "business_desc": 8
     }
   },
   "item": {
@@ -91,6 +93,8 @@
     "LD_CLOSE_CHANGE": 490.397,
     "LD_AVERAGE_CHANGE": 498.9056374608708,
     "NEXT_DAY_CLOSE": 226.18,
+    "NEXT_TRADE_DATE": "20260518",
+    "THIRD_TRADE_DATE": "20260519",
     "THIRD_DAY_CLOSE": 248.0,
     "NEXT_DAY_CLOSE_CHANGE": 667.4923651170683,
     "THIRD_DAY_CLOSE_CHANGE": 741.5337631489651,
@@ -110,6 +114,14 @@
     "statutory_industry_code": "C35",
     "valuation_peer_group": "机械设备 / 自动化设备",
     "business_tags": [],
+    "chain_tags": [],
+    "industry_tertiary": "其他自动化设备",
+    "industry_status": "confirmed",
+    "industry_candidates": [],
+    "industry_review_reasons": [],
+    "industry_classification_version": 4,
+    "ISSUER_BUSINESS": "",
+    "MAIN_BUSINESS": "智能制造装备的研发设计、生产、销售",
     "industry_confidence": 0.95,
     "industry_evidence": [
       "ifind_sw:2026-10-12",
@@ -211,13 +223,6 @@
     "average_price_unit_mode": "volume_shares_amount_yuan",
     "average_price_reference": 180.485,
     "replay_record_source": "",
-    "listing_date_source": "",
-    "industry_tertiary": "其他自动化设备",
-    "chain_tags": [],
-    "industry_status": "confirmed",
-    "industry_candidates": [],
-    "industry_review_reasons": [],
-    "industry_classification_version": 4
-  },
-  "industry_reclassification_version": 4
+    "listing_date_source": ""
+  }
 }

@@ -1,7 +1,16 @@
 {
   "schema": "offline_tuning_listing_data_retry_v1",
-  "updated_at": "2026-10-11 11:54:41",
-  "pending_codes": [],
-  "reasons_by_code": {},
-  "last_download_attempt_date_by_code": {}
+  "updated_at": "2026-10-13 23:41:12",
+  "pending_codes": [
+    "920296"
+  ],
+  "reasons_by_code": {
+    "920296": [
+      "missing_result_announcement",
+      "download_errors"
+    ]
+  },
+  "last_download_attempt_date_by_code": {
+    "920296": "2026-10-13"
+  }
 }

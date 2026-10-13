@@ -1,7 +1,7 @@
 {
   "schema": "offline_tuning_replay_item_v1",
-  "cache_version": 9,
-  "generated_at": "2026-09-24 21:07:13",
+  "cache_version": 10,
+  "generated_at": "2026-10-13 23:15:19",
   "code": "920180",
   "listing_date": "2026-02-10 00:00:00",
   "record_signature": {
@@ -20,6 +20,8 @@
     "CLOSE_PRICE": 21.23,
     "LD_CLOSE_CHANGE": 176.7927,
     "NEXT_DAY_CLOSE": null,
+    "NEXT_TRADE_DATE": null,
+    "THIRD_TRADE_DATE": null,
     "THIRD_DAY_CLOSE": null,
     "NEXT_DAY_CLOSE_CHANGE": null,
     "THIRD_DAY_CLOSE_CHANGE": null,
@@ -46,7 +48,7 @@
     "industry_review_reasons": "[]",
     "industry_classification_version": 4,
     "ISSUER_BUSINESS": null,
-    "MAIN_BUSINESS": null
+    "MAIN_BUSINESS": "以骨科耗材为主的医疗器械的研发、生产与销售"
   },
   "pdf_signature": {
     "files": {
@@ -67,11 +69,11 @@
       }
     },
     "pdf_parser_versions": {
-      "prospectus_issue_info": 10,
-      "issue_announcement_info": 8,
-      "issue_result_info": 5,
-      "comparable_companies": 25,
-      "business_desc": 7
+      "prospectus_issue_info": 11,
+      "issue_announcement_info": 9,
+      "issue_result_info": 6,
+      "comparable_companies": 27,
+      "business_desc": 8
     }
   },
   "item": {
@@ -91,6 +93,8 @@
     "LD_CLOSE_CHANGE": 176.7927,
     "LD_AVERAGE_CHANGE": 202.9610049322747,
     "NEXT_DAY_CLOSE": 20.01,
+    "NEXT_TRADE_DATE": "20260211",
+    "THIRD_TRADE_DATE": "20260212",
     "THIRD_DAY_CLOSE": 19.26,
     "NEXT_DAY_CLOSE_CHANGE": 160.88657105606262,
     "THIRD_DAY_CLOSE_CHANGE": 151.10821382007825,
@@ -112,6 +116,14 @@
     "business_tags": [
       "医疗器械的研发"
     ],
+    "chain_tags": [],
+    "industry_tertiary": "医疗耗材",
+    "industry_status": "confirmed",
+    "industry_candidates": [],
+    "industry_review_reasons": [],
+    "industry_classification_version": 4,
+    "ISSUER_BUSINESS": "",
+    "MAIN_BUSINESS": "以骨科耗材为主的医疗器械的研发、生产与销售",
     "industry_confidence": 0.95,
     "industry_evidence": [
       "ifind_sw:2026-10-12",
@@ -249,13 +261,6 @@
     "average_price_unit_mode": "volume_shares_amount_yuan",
     "average_price_reference": 22.695,
     "replay_record_source": "",
-    "listing_date_source": "",
-    "industry_tertiary": "医疗耗材",
-    "chain_tags": [],
-    "industry_status": "confirmed",
-    "industry_candidates": [],
-    "industry_review_reasons": [],
-    "industry_classification_version": 4
-  },
-  "industry_reclassification_version": 4
+    "listing_date_source": ""
+  }
 }
