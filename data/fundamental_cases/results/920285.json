@@ -1,0 +1,470 @@
+{
+  "old": {
+    "available": true,
+    "center": 20.688558916666672,
+    "low": 18.619703025000007,
+    "high": 22.75741480833334,
+    "confidence": 0.423743692603819,
+    "basis": "comparable_proxy",
+    "peer_count": 5,
+    "peer_codes": [
+      "300272.SZ",
+      "301332.SZ",
+      "603408.SH",
+      "920065.BJ",
+      "300866.SZ"
+    ],
+    "reference_dates": [
+      "20261012"
+    ],
+    "eps": 1.6916666666666667,
+    "earnings_basis": "发行静态EPS × 同行TTM PE",
+    "peer_pe": 22.2358,
+    "bse_discount": 0.55,
+    "quality_factor": 1.0,
+    "dispersion_ratio": 1.6519419928085348,
+    "limitations": [
+      "发行静态盈利与同行TTM尚未完全同口径",
+      "成长性、竞争力等个股差异尚未完成逐股复核"
+    ],
+    "as_of": "2026-10-13"
+  },
+  "matched": {
+    "available": true,
+    "basis": "fundamental_anchor_v2",
+    "as_of": "2026-10-13",
+    "historical_pit_eligible": false,
+    "research_reconstruction": true,
+    "earnings": {
+      "net_profit_parent": {
+        "available": true,
+        "value": 121045241.91,
+        "metric": "net_profit_parent",
+        "end": "2026-06-30",
+        "basis": "TTM",
+        "components": {
+          "2025-12-31": 118386982.96,
+          "2026-06-30": 67868724.89,
+          "2025-06-30": 65210465.94
+        },
+        "evidence": [
+          "data/peer_research/api/57d02b2fabb1093d9cea_20261012234402515658_7f798405.json",
+          "data/peer_research/api/687bda9df96dde6ed9bf_20261012234402298159_1cb0878c.json",
+          "data/peer_research/api/da0e84f29bdff1261aba_20261012234402070686_0ac9c076.json",
+          "data/peer_research/workpapers/companies/920285.BJ.json"
+        ],
+        "historical_pit_eligible": false
+      },
+      "adjusted_net_profit_parent": {
+        "available": true,
+        "value": 114779160.0,
+        "metric": "adjusted_net_profit_parent",
+        "end": "2026-06-30",
+        "basis": "TTM",
+        "components": {
+          "2025-12-31": 116714924.38,
+          "2026-06-30": 62479787.62,
+          "2025-06-30": 64415552.0
+        },
+        "evidence": [
+          "data/fundamental_cases/evidence/920285_p15.json",
+          "data/peer_research/mcp/financials_20250630_4476510579.json",
+          "data/peer_research/workpapers/companies/920285.BJ.json"
+        ],
+        "historical_pit_eligible": false
+      }
+    },
+    "scenarios": {
+      "net_profit_parent": {
+        "available": true,
+        "center": 22.53384780496457,
+        "low": 11.997686053633009,
+        "high": 29.14922882059426,
+        "eps": 1.7542788682608694,
+        "peer_multiple": 12.845077377751142,
+        "peer_count": 4,
+        "peer_codes": [
+          "301332.SZ",
+          "603408.SH",
+          "920065.BJ",
+          "300866.SZ"
+        ],
+        "profit": {
+          "available": true,
+          "value": 121045241.91,
+          "metric": "net_profit_parent",
+          "end": "2026-06-30",
+          "basis": "TTM",
+          "components": {
+            "2025-12-31": 118386982.96,
+            "2026-06-30": 67868724.89,
+            "2025-06-30": 65210465.94
+          },
+          "evidence": [
+            "data/peer_research/api/57d02b2fabb1093d9cea_20261012234402515658_7f798405.json",
+            "data/peer_research/api/687bda9df96dde6ed9bf_20261012234402298159_1cb0878c.json",
+            "data/peer_research/api/da0e84f29bdff1261aba_20261012234402070686_0ac9c076.json",
+            "data/peer_research/workpapers/companies/920285.BJ.json"
+          ],
+          "historical_pit_eligible": false
+        }
+      },
+      "adjusted_net_profit_parent": {
+        "available": true,
+        "center": 23.28832091154236,
+        "low": 12.039528582687954,
+        "high": 55.44943952740408,
+        "eps": 1.6634660869565217,
+        "peer_multiple": 13.999877180634734,
+        "peer_count": 4,
+        "peer_codes": [
+          "301332.SZ",
+          "603408.SH",
+          "920065.BJ",
+          "300866.SZ"
+        ],
+        "profit": {
+          "available": true,
+          "value": 114779160.0,
+          "metric": "adjusted_net_profit_parent",
+          "end": "2026-06-30",
+          "basis": "TTM",
+          "components": {
+            "2025-12-31": 116714924.38,
+            "2026-06-30": 62479787.62,
+            "2025-06-30": 64415552.0
+          },
+          "evidence": [
+            "data/fundamental_cases/evidence/920285_p15.json",
+            "data/peer_research/mcp/financials_20250630_4476510579.json",
+            "data/peer_research/workpapers/companies/920285.BJ.json"
+          ],
+          "historical_pit_eligible": false
+        }
+      }
+    },
+    "peer_details": [
+      {
+        "code": "300272.SZ",
+        "name": "开能健康",
+        "match": "related",
+        "weight": 0.5,
+        "market": "SZ",
+        "market_factor": 0.55,
+        "reason": "水处理产品及核心部件，整机占比与渠道不同；同期基数异常未解决时阻断TTM，保留业务参照",
+        "trade_date": "20261012",
+        "mkt_cap_yi": 36.87160916,
+        "metrics": {
+          "net_profit_parent": {
+            "available": false,
+            "reason": "2025-12-31/net_profit_parent缺失或口径冲突",
+            "profit": {
+              "available": false,
+              "reason": "2025-12-31/net_profit_parent缺失或口径冲突"
+            }
+          },
+          "adjusted_net_profit_parent": {
+            "available": false,
+            "reason": "2025-12-31/adjusted_net_profit_parent缺失或口径冲突",
+            "profit": {
+              "available": false,
+              "reason": "2025-12-31/adjusted_net_profit_parent缺失或口径冲突"
+            }
+          }
+        }
+      },
+      {
+        "code": "301332.SZ",
+        "name": "德尔玛",
+        "match": "related",
+        "weight": 0.5,
+        "market": "SZ",
+        "market_factor": 0.55,
+        "reason": "水健康/小家电品牌，同类终端需求，产品组合不同",
+        "trade_date": "20261012",
+        "mkt_cap_yi": 35.77109375,
+        "metrics": {
+          "net_profit_parent": {
+            "available": true,
+            "pe": 30.211045013708038,
+            "market_adjusted_pe": 16.616074757539423,
+            "profit": {
+              "available": true,
+              "value": 118404026.52,
+              "metric": "net_profit_parent",
+              "end": "2026-06-30",
+              "basis": "TTM",
+              "components": {
+                "2025-12-31": 129640637.42,
+                "2026-06-30": 57444037.24,
+                "2025-06-30": 68680648.14
+              },
+              "evidence": [
+                "data/peer_fundamentals/api/4bd8de69748670383f26_20261012230646476510_6d4856dc.json",
+                "data/peer_fundamentals/api/708d8ae43a8f227dae62_20261012230646004324_b3c48c69.json",
+                "data/peer_fundamentals/api/af48f215f4329261e710_20261012230646252616_4bdca6ce.json",
+                "data/peer_research/workpapers/companies/301332.SZ.json"
+              ],
+              "historical_pit_eligible": false
+            }
+          },
+          "adjusted_net_profit_parent": {
+            "available": true,
+            "pe": 60.60668357931688,
+            "market_adjusted_pe": 33.333675968624284,
+            "profit": {
+              "available": true,
+              "value": 59021698.0,
+              "metric": "adjusted_net_profit_parent",
+              "end": "2026-06-30",
+              "basis": "TTM",
+              "components": {
+                "2025-12-31": 78477435.0,
+                "2026-06-30": 44497020.0,
+                "2025-06-30": 63952757.0
+              },
+              "evidence": [
+                "data/peer_fundamentals/mcp/financials_20250630.json",
+                "data/peer_fundamentals/mcp/financials_20251231.json",
+                "data/peer_fundamentals/mcp/financials_20260630.json",
+                "data/peer_research/workpapers/companies/301332.SZ.json"
+              ],
+              "historical_pit_eligible": false
+            }
+          }
+        }
+      },
+      {
+        "code": "603408.SH",
+        "name": "建霖家居",
+        "match": "related",
+        "weight": 0.5,
+        "market": "SH",
+        "market_factor": 0.55,
+        "reason": "净水产品与配件同类制造需求，厨卫及ODM结构不同",
+        "trade_date": "20261012",
+        "mkt_cap_yi": 52.7688567,
+        "metrics": {
+          "net_profit_parent": {
+            "available": true,
+            "pe": 12.92130080638611,
+            "market_adjusted_pe": 7.106715443512361,
+            "profit": {
+              "available": true,
+              "value": 408386566.41999996,
+              "metric": "net_profit_parent",
+              "end": "2026-06-30",
+              "basis": "TTM",
+              "components": {
+                "2025-12-31": 440713121.24,
+                "2026-06-30": 205912800.57,
+                "2025-06-30": 238239355.39
+              },
+              "evidence": [
+                "data/peer_fundamentals/api/4bd8de69748670383f26_20261012230646476510_6d4856dc.json",
+                "data/peer_fundamentals/api/708d8ae43a8f227dae62_20261012230646004324_b3c48c69.json",
+                "data/peer_fundamentals/api/af48f215f4329261e710_20261012230646252616_4bdca6ce.json",
+                "data/peer_research/workpapers/companies/603408.SH.json"
+              ],
+              "historical_pit_eligible": false
+            }
+          },
+          "adjusted_net_profit_parent": {
+            "available": true,
+            "pe": 13.674230811090956,
+            "market_adjusted_pe": 7.520826946100026,
+            "profit": {
+              "available": true,
+              "value": 385900000.0,
+              "metric": "adjusted_net_profit_parent",
+              "end": "2026-06-30",
+              "basis": "TTM",
+              "components": {
+                "2025-12-31": 398150000.0,
+                "2026-06-30": 190160000.0,
+                "2025-06-30": 202409999.99999997
+              },
+              "evidence": [
+                "data/peer_fundamentals/mcp/financials_20250630.json",
+                "data/peer_fundamentals/mcp/financials_20251231.json",
+                "data/peer_fundamentals/mcp/financials_20260630.json",
+                "data/peer_research/workpapers/companies/603408.SH.json"
+              ],
+              "historical_pit_eligible": false
+            }
+          }
+        }
+      },
+      {
+        "code": "920065.BJ",
+        "name": "千岸科技",
+        "match": "channel",
+        "weight": 0.25,
+        "market": "BJ",
+        "market_factor": 1.0,
+        "reason": "跨境自主品牌、亚马逊/自营站渠道相近，产品不同，低权重且展示移除影响",
+        "trade_date": "20261012",
+        "mkt_cap_yi": 29.0605,
+        "metrics": {
+          "net_profit_parent": {
+            "available": true,
+            "pe": 13.460439224550354,
+            "market_adjusted_pe": 13.460439224550354,
+            "profit": {
+              "available": true,
+              "value": 215895629.52000004,
+              "metric": "net_profit_parent",
+              "end": "2026-06-30",
+              "basis": "TTM",
+              "components": {
+                "2025-12-31": 219506626.96,
+                "2026-06-30": 111558675.27,
+                "2025-06-30": 115169672.71
+              },
+              "evidence": [
+                "data/peer_fundamentals/api/4bd8de69748670383f26_20261012230646476510_6d4856dc.json",
+                "data/peer_fundamentals/api/708d8ae43a8f227dae62_20261012230646004324_b3c48c69.json",
+                "data/peer_fundamentals/api/af48f215f4329261e710_20261012230646252616_4bdca6ce.json",
+                "data/peer_research/workpapers/companies/920065.BJ.json"
+              ],
+              "historical_pit_eligible": false
+            }
+          },
+          "adjusted_net_profit_parent": {
+            "available": true,
+            "pe": 13.819906790945407,
+            "market_adjusted_pe": 13.819906790945407,
+            "profit": {
+              "available": true,
+              "value": 210280000.0,
+              "metric": "adjusted_net_profit_parent",
+              "end": "2026-06-30",
+              "basis": "TTM",
+              "components": {
+                "2025-12-31": 213370000.00000003,
+                "2026-06-30": 109120000.0,
+                "2025-06-30": 112210000.00000001
+              },
+              "evidence": [
+                "data/peer_fundamentals/mcp/financials_20250630.json",
+                "data/peer_fundamentals/mcp/financials_20251231.json",
+                "data/peer_fundamentals/mcp/financials_20260630.json",
+                "data/peer_research/workpapers/companies/920065.BJ.json"
+              ],
+              "historical_pit_eligible": false
+            }
+          }
+        }
+      },
+      {
+        "code": "300866.SZ",
+        "name": "安克创新",
+        "match": "channel",
+        "weight": 0.25,
+        "market": "SZ",
+        "market_factor": 0.55,
+        "reason": "全球消费品牌/跨境渠道参照，消费电子产品、品牌和规模不同，低权重",
+        "trade_date": "20261012",
+        "mkt_cap_yi": 684.9201536500001,
+        "metrics": {
+          "net_profit_parent": {
+            "available": true,
+            "pe": 22.235846419912598,
+            "market_adjusted_pe": 12.22971553095193,
+            "profit": {
+              "available": true,
+              "value": 3080252222.99,
+              "metric": "net_profit_parent",
+              "end": "2026-06-30",
+              "basis": "TTM",
+              "components": {
+                "2025-12-31": 2545131880.4,
+                "2026-06-30": 1702037215.39,
+                "2025-06-30": 1166916872.8
+              },
+              "evidence": [
+                "data/peer_fundamentals/api/4bd8de69748670383f26_20261012230646476510_6d4856dc.json",
+                "data/peer_fundamentals/api/708d8ae43a8f227dae62_20261012230646004324_b3c48c69.json",
+                "data/peer_fundamentals/api/af48f215f4329261e710_20261012230646252616_4bdca6ce.json",
+                "data/peer_research/workpapers/companies/300866.SZ.json"
+              ],
+              "historical_pit_eligible": false
+            }
+          },
+          "adjusted_net_profit_parent": {
+            "available": true,
+            "pe": 25.781541036952834,
+            "market_adjusted_pe": 14.17984757032406,
+            "profit": {
+              "available": true,
+              "value": 2656630000.0,
+              "metric": "adjusted_net_profit_parent",
+              "end": "2026-06-30",
+              "basis": "TTM",
+              "components": {
+                "2025-12-31": 2179260000.0,
+                "2026-06-30": 1438780000.0,
+                "2025-06-30": 961410000.0
+              },
+              "evidence": [
+                "data/peer_fundamentals/mcp/financials_20250630.json",
+                "data/peer_fundamentals/mcp/financials_20251231.json",
+                "data/peer_fundamentals/mcp/financials_20260630.json",
+                "data/peer_research/workpapers/companies/300866.SZ.json"
+              ],
+              "historical_pit_eligible": false
+            }
+          }
+        }
+      }
+    ],
+    "coverage": {
+      "candidates": 5,
+      "usable": 4
+    },
+    "review_source": "data/fundamental_cases/cases/920285.json",
+    "cycle": {
+      "classification": "消费更换需求，兼有贸易/渠道/产品结构风险",
+      "normalization_approved": false,
+      "reason": "不因归入家电就按纯制造或高增长电商估值；产品复购与贸易风险分别说明。资料不足以证明完整周期，采用同口径TTM，扣非及绿鞋摊薄单列。",
+      "pages": [
+        9,
+        106,
+        257,
+        286
+      ]
+    },
+    "stage": "matched",
+    "limitations": [
+      "市场统一折价仍为既有研究参数，需单列敏感性",
+      "前瞻与周期正常化尚无完整同口径同行估值，未加入主F",
+      "部分扣非利润仅有供应商来源，披露日/历史版本未达到真实PIT要求",
+      "当前资料历史重建不是原始事前PIT",
+      "匹配档位为固定研究规则，未按首日涨幅调参",
+      "区间是盈利口径、可比离散与绿鞋摊薄情景，不是统计置信区间"
+    ],
+    "market_policy": {
+      "SH_SZ": 0.55,
+      "BJ": 1.0,
+      "NQ": null
+    },
+    "center": 23.28832091154236,
+    "low": 11.997686053633009,
+    "high": 55.44943952740408,
+    "confidence": 0.29399439880763817,
+    "peer_count": 4,
+    "peer_codes": [
+      "301332.SZ",
+      "603408.SH",
+      "920065.BJ",
+      "300866.SZ"
+    ],
+    "eps": 1.6634660869565217,
+    "peer_pe": 13.999877180634734,
+    "bse_discount": 0.55,
+    "earnings_basis": "扣非TTM/发行后股本 × 同行市值/扣非TTM（分市场调整）",
+    "reference_dates": [
+      "20261012"
+    ]
+  }
+}

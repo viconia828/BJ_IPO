@@ -1,0 +1,441 @@
+{
+  "old": {
+    "available": true,
+    "center": 52.6707440376918,
+    "low": 47.40366963392262,
+    "high": 57.93781844146098,
+    "confidence": 0.5674816846633755,
+    "basis": "comparable_proxy",
+    "peer_count": 4,
+    "peer_codes": [
+      "300394.SZ",
+      "300570.SZ",
+      "002179.SZ",
+      "920045.BJ"
+    ],
+    "reference_dates": [
+      "20261008"
+    ],
+    "eps": 0.9172781854569713,
+    "earnings_basis": "发行静态EPS × 同行TTM PE",
+    "peer_pe": 104.40125,
+    "bse_discount": 0.55,
+    "quality_factor": 1.0,
+    "dispersion_ratio": 1.2335199864912523,
+    "limitations": [
+      "发行静态盈利与同行TTM尚未完全同口径",
+      "成长性、竞争力等个股差异尚未完成逐股复核"
+    ],
+    "as_of": "2026-10-09"
+  },
+  "matched": {
+    "available": true,
+    "basis": "fundamental_anchor_v2",
+    "as_of": "2026-10-09",
+    "historical_pit_eligible": false,
+    "research_reconstruction": true,
+    "earnings": {
+      "net_profit_parent": {
+        "available": true,
+        "value": 68716739.7,
+        "metric": "net_profit_parent",
+        "end": "2026-06-30",
+        "basis": "TTM",
+        "components": {
+          "2025-12-31": 69169480.4,
+          "2026-06-30": 36895653.22,
+          "2025-06-30": 37348393.92
+        },
+        "evidence": [
+          "data/peer_research/api/1ef3c7ce995c9349fd49_20261012234357856872_bd2d569a.json",
+          "data/peer_research/api/52e8458ea84c8c15dc2a_20261012234357441767_f403f5cd.json",
+          "data/peer_research/api/687433b1df08e868a352_20261012234357214786_740f0d33.json",
+          "data/peer_research/workpapers/companies/920157.BJ.json"
+        ],
+        "historical_pit_eligible": false
+      },
+      "adjusted_net_profit_parent": {
+        "available": true,
+        "value": 62573011.50999999,
+        "metric": "adjusted_net_profit_parent",
+        "end": "2026-06-30",
+        "basis": "TTM",
+        "components": {
+          "2025-12-31": 64820475.51,
+          "2026-06-30": 32810736.0,
+          "2025-06-30": 35058200.0
+        },
+        "evidence": [
+          "data/fundamental_cases/evidence/920157_p16.json",
+          "data/peer_research/mcp/financials_20250630_451657bbe7.json",
+          "data/peer_research/mcp/financials_20260630_451657bbe7.json",
+          "data/peer_research/workpapers/companies/920157.BJ.json"
+        ],
+        "historical_pit_eligible": false
+      }
+    },
+    "scenarios": {
+      "net_profit_parent": {
+        "available": true,
+        "center": 80.06422014601829,
+        "low": 59.05310726381754,
+        "high": 95.67165776618882,
+        "eps": 0.9724066892811005,
+        "peer_multiple": 82.33614703453932,
+        "peer_count": 4,
+        "peer_codes": [
+          "300570.SZ",
+          "920045.BJ",
+          "300394.SZ",
+          "002179.SZ"
+        ],
+        "profit": {
+          "available": true,
+          "value": 68716739.7,
+          "metric": "net_profit_parent",
+          "end": "2026-06-30",
+          "basis": "TTM",
+          "components": {
+            "2025-12-31": 69169480.4,
+            "2026-06-30": 36895653.22,
+            "2025-06-30": 37348393.92
+          },
+          "evidence": [
+            "data/peer_research/api/1ef3c7ce995c9349fd49_20261012234357856872_bd2d569a.json",
+            "data/peer_research/api/52e8458ea84c8c15dc2a_20261012234357441767_f403f5cd.json",
+            "data/peer_research/api/687433b1df08e868a352_20261012234357214786_740f0d33.json",
+            "data/peer_research/workpapers/companies/920157.BJ.json"
+          ],
+          "historical_pit_eligible": false
+        }
+      },
+      "adjusted_net_profit_parent": {
+        "available": true,
+        "center": 79.53986537486578,
+        "low": 54.40567308637055,
+        "high": 88.39896300357708,
+        "eps": 0.8854671398327021,
+        "peer_multiple": 89.82813906554888,
+        "peer_count": 4,
+        "peer_codes": [
+          "300570.SZ",
+          "920045.BJ",
+          "300394.SZ",
+          "002179.SZ"
+        ],
+        "profit": {
+          "available": true,
+          "value": 62573011.50999999,
+          "metric": "adjusted_net_profit_parent",
+          "end": "2026-06-30",
+          "basis": "TTM",
+          "components": {
+            "2025-12-31": 64820475.51,
+            "2026-06-30": 32810736.0,
+            "2025-06-30": 35058200.0
+          },
+          "evidence": [
+            "data/fundamental_cases/evidence/920157_p16.json",
+            "data/peer_research/mcp/financials_20250630_451657bbe7.json",
+            "data/peer_research/mcp/financials_20260630_451657bbe7.json",
+            "data/peer_research/workpapers/companies/920157.BJ.json"
+          ],
+          "historical_pit_eligible": false
+        }
+      }
+    },
+    "peer_details": [
+      {
+        "code": "300570.SZ",
+        "name": "太辰光",
+        "match": "direct",
+        "weight": 1.0,
+        "market": "SZ",
+        "market_factor": 0.55,
+        "reason": "光器件97.96%、MPO/MTP连接及数据中心需求，产品和盈利方式接近",
+        "trade_date": "20261008",
+        "mkt_cap_yi": 451.98253099999994,
+        "metrics": {
+          "net_profit_parent": {
+            "available": true,
+            "pe": 149.70208551734422,
+            "market_adjusted_pe": 82.33614703453932,
+            "profit": {
+              "available": true,
+              "value": 301921332.25,
+              "metric": "net_profit_parent",
+              "end": "2026-06-30",
+              "basis": "TTM",
+              "components": {
+                "2025-12-31": 298963613.77,
+                "2026-06-30": 176314614.13,
+                "2025-06-30": 173356895.65
+              },
+              "evidence": [
+                "data/peer_fundamentals/api/4bd8de69748670383f26_20261012230646476510_6d4856dc.json",
+                "data/peer_fundamentals/api/708d8ae43a8f227dae62_20261012230646004324_b3c48c69.json",
+                "data/peer_fundamentals/api/af48f215f4329261e710_20261012230646252616_4bdca6ce.json",
+                "data/peer_research/workpapers/companies/300570.SZ.json"
+              ],
+              "historical_pit_eligible": false
+            }
+          },
+          "adjusted_net_profit_parent": {
+            "available": true,
+            "pe": 163.32388921008885,
+            "market_adjusted_pe": 89.82813906554888,
+            "profit": {
+              "available": true,
+              "value": 276740000.0,
+              "metric": "adjusted_net_profit_parent",
+              "end": "2026-06-30",
+              "basis": "TTM",
+              "components": {
+                "2025-12-31": 281040000.0,
+                "2026-06-30": 164320000.0,
+                "2025-06-30": 168620000.0
+              },
+              "evidence": [
+                "data/peer_fundamentals/mcp/financials_20250630.json",
+                "data/peer_fundamentals/mcp/financials_20251231.json",
+                "data/peer_fundamentals/mcp/financials_20260630.json",
+                "data/peer_research/workpapers/companies/300570.SZ.json"
+              ],
+              "historical_pit_eligible": false
+            }
+          }
+        }
+      },
+      {
+        "code": "920045.BJ",
+        "name": "蘅东光",
+        "match": "direct",
+        "weight": 1.0,
+        "market": "BJ",
+        "market_factor": 1.0,
+        "reason": "无源光纤布线/内连器件，数据中心和电信应用；北交所可比单独保留市场口径",
+        "trade_date": "20261008",
+        "mkt_cap_yi": 459.02278437,
+        "metrics": {
+          "net_profit_parent": {
+            "available": true,
+            "pe": 98.38646609570199,
+            "market_adjusted_pe": 98.38646609570199,
+            "profit": {
+              "available": true,
+              "value": 466550738.72,
+              "metric": "net_profit_parent",
+              "end": "2026-06-30",
+              "basis": "TTM",
+              "components": {
+                "2025-12-31": 304714374.44,
+                "2026-06-30": 304643830.2,
+                "2025-06-30": 142807465.92
+              },
+              "evidence": [
+                "data/peer_fundamentals/api/4bd8de69748670383f26_20261012230646476510_6d4856dc.json",
+                "data/peer_fundamentals/api/708d8ae43a8f227dae62_20261012230646004324_b3c48c69.json",
+                "data/peer_fundamentals/api/af48f215f4329261e710_20261012230646252616_4bdca6ce.json",
+                "data/peer_research/workpapers/companies/920045.BJ.json"
+              ],
+              "historical_pit_eligible": false
+            }
+          },
+          "adjusted_net_profit_parent": {
+            "available": true,
+            "pe": 99.8331378172644,
+            "market_adjusted_pe": 99.8331378172644,
+            "profit": {
+              "available": true,
+              "value": 459790000.0,
+              "metric": "adjusted_net_profit_parent",
+              "end": "2026-06-30",
+              "basis": "TTM",
+              "components": {
+                "2025-12-31": 299100000.0,
+                "2026-06-30": 302670000.0,
+                "2025-06-30": 141980000.0
+              },
+              "evidence": [
+                "data/peer_fundamentals/mcp/financials_20250630.json",
+                "data/peer_fundamentals/mcp/financials_20251231.json",
+                "data/peer_fundamentals/mcp/financials_20260630.json",
+                "data/peer_research/workpapers/companies/920045.BJ.json"
+              ],
+              "historical_pit_eligible": false
+            }
+          }
+        }
+      },
+      {
+        "code": "300394.SZ",
+        "name": "天孚通信",
+        "match": "related",
+        "weight": 0.5,
+        "market": "SZ",
+        "market_factor": 0.55,
+        "reason": "精密光器件及光引擎封装，2025年无源收入40.37%；同需求链条但组合与成长规模不同",
+        "trade_date": "20261008",
+        "mkt_cap_yi": 2564.2023274999997,
+        "metrics": {
+          "net_profit_parent": {
+            "available": true,
+            "pe": 110.41602975149391,
+            "market_adjusted_pe": 60.728816363321656,
+            "profit": {
+              "available": true,
+              "value": 2322309843.3,
+              "metric": "net_profit_parent",
+              "end": "2026-06-30",
+              "basis": "TTM",
+              "components": {
+                "2025-12-31": 2017266034.08,
+                "2026-06-30": 1204285104.14,
+                "2025-06-30": 899241294.92
+              },
+              "evidence": [
+                "data/peer_fundamentals/api/4bd8de69748670383f26_20261012230646476510_6d4856dc.json",
+                "data/peer_fundamentals/api/708d8ae43a8f227dae62_20261012230646004324_b3c48c69.json",
+                "data/peer_fundamentals/api/af48f215f4329261e710_20261012230646252616_4bdca6ce.json",
+                "data/peer_research/workpapers/companies/300394.SZ.json"
+              ],
+              "historical_pit_eligible": false
+            }
+          },
+          "adjusted_net_profit_parent": {
+            "available": true,
+            "pe": 111.71437217904256,
+            "market_adjusted_pe": 61.44290469847341,
+            "profit": {
+              "available": true,
+              "value": 2295320000.0,
+              "metric": "adjusted_net_profit_parent",
+              "end": "2026-06-30",
+              "basis": "TTM",
+              "components": {
+                "2025-12-31": 1976450000.0000002,
+                "2026-06-30": 1186260000.0,
+                "2025-06-30": 867390000.0
+              },
+              "evidence": [
+                "data/peer_fundamentals/mcp/financials_20250630.json",
+                "data/peer_fundamentals/mcp/financials_20251231.json",
+                "data/peer_fundamentals/mcp/financials_20260630.json",
+                "data/peer_research/workpapers/companies/300394.SZ.json"
+              ],
+              "historical_pit_eligible": false
+            }
+          }
+        }
+      },
+      {
+        "code": "002179.SZ",
+        "name": "中航光电",
+        "match": "related",
+        "weight": 0.5,
+        "market": "SZ",
+        "market_factor": 0.55,
+        "reason": "保留连接器平台参照；电连接及军工比重大，光相关2025年占17.11%，降低权重",
+        "trade_date": "20261008",
+        "mkt_cap_yi": 696.8617223399999,
+        "metrics": {
+          "net_profit_parent": {
+            "available": true,
+            "pe": 37.799883427963415,
+            "market_adjusted_pe": 20.78993588537988,
+            "profit": {
+              "available": true,
+              "value": 1843555215.37,
+              "metric": "net_profit_parent",
+              "end": "2026-06-30",
+              "basis": "TTM",
+              "components": {
+                "2025-12-31": 2161521950.25,
+                "2026-06-30": 1118877253.31,
+                "2025-06-30": 1436843988.19
+              },
+              "evidence": [
+                "data/peer_fundamentals/api/4bd8de69748670383f26_20261012230646476510_6d4856dc.json",
+                "data/peer_fundamentals/api/708d8ae43a8f227dae62_20261012230646004324_b3c48c69.json",
+                "data/peer_fundamentals/api/af48f215f4329261e710_20261012230646252616_4bdca6ce.json",
+                "data/peer_research/workpapers/companies/002179.SZ.json"
+              ],
+              "historical_pit_eligible": false
+            }
+          },
+          "adjusted_net_profit_parent": {
+            "available": true,
+            "pe": 39.31452344050594,
+            "market_adjusted_pe": 21.622987892278267,
+            "profit": {
+              "available": true,
+              "value": 1772530000.0,
+              "metric": "adjusted_net_profit_parent",
+              "end": "2026-06-30",
+              "basis": "TTM",
+              "components": {
+                "2025-12-31": 2103300000.0000002,
+                "2026-06-30": 1083830000.0,
+                "2025-06-30": 1414600000.0
+              },
+              "evidence": [
+                "data/peer_fundamentals/mcp/financials_20250630.json",
+                "data/peer_fundamentals/mcp/financials_20251231.json",
+                "data/peer_fundamentals/mcp/financials_20260630.json",
+                "data/peer_research/workpapers/companies/002179.SZ.json"
+              ],
+              "historical_pit_eligible": false
+            }
+          }
+        }
+      }
+    ],
+    "coverage": {
+      "candidates": 4,
+      "usable": 4
+    },
+    "review_source": "data/fundamental_cases/cases/920157.json",
+    "cycle": {
+      "classification": "结构增长与电信资本开支周期并存",
+      "normalization_approved": false,
+      "reason": "高速产品占比增长不能代替全公司盈利兑现；2026H1收入增长4.14%、归母下降1.21%。没有完整周期证据，不加行业概念质量系数。",
+      "pages": [
+        134,
+        138,
+        300
+      ]
+    },
+    "stage": "matched",
+    "limitations": [
+      "市场统一折价仍为既有研究参数，需单列敏感性",
+      "前瞻与周期正常化尚无完整同口径同行估值，未加入主F",
+      "部分扣非利润仅有供应商来源，披露日/历史版本未达到真实PIT要求",
+      "当前资料历史重建不是原始事前PIT",
+      "匹配档位为固定研究规则，未按首日涨幅调参",
+      "区间是盈利口径、可比离散与绿鞋摊薄情景，不是统计置信区间"
+    ],
+    "market_policy": {
+      "SH_SZ": 0.55,
+      "BJ": 1.0,
+      "NQ": null
+    },
+    "center": 79.53986537486578,
+    "low": 54.40567308637055,
+    "high": 95.67165776618882,
+    "confidence": 0.47880356574621175,
+    "peer_count": 4,
+    "peer_codes": [
+      "300570.SZ",
+      "920045.BJ",
+      "300394.SZ",
+      "002179.SZ"
+    ],
+    "eps": 0.8854671398327021,
+    "peer_pe": 89.82813906554888,
+    "bse_discount": 0.55,
+    "earnings_basis": "扣非TTM/发行后股本 × 同行市值/扣非TTM（分市场调整）",
+    "reference_dates": [
+      "20261008"
+    ]
+  }
+}

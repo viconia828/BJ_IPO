@@ -75,7 +75,21 @@ def load_history(root: Path = ROOT) -> tuple[list[dict], list[dict]]:
 def with_fundamental_review(item: dict, root: Path = ROOT) -> dict:
     reviews = _json(root / "data/quality_sentiment/fundamental_reviews.json").get("items", {})
     review = reviews.get(str(item.get("SECURITY_CODE") or ""))
-    return {**item, "fundamental_review": review} if isinstance(review, dict) else dict(item)
+    result = {**item, "fundamental_review": review} if isinstance(review, dict) else dict(item)
+    index = _json(root / 'data/fundamental_cases/index.json').get('items', {})
+    entry = index.get(str(item.get('SECURITY_CODE') or ''))
+    if isinstance(entry, dict):
+        path = (root / str(entry.get('path') or '')).resolve()
+        folder = (root / 'data/fundamental_cases/cases').resolve()
+        if path.parent != folder or not path.is_file():
+            result['fundamental_case'] = {'integrity_error': '基本面复核文件路径无效'}
+        elif hashlib.sha256(path.read_bytes()).hexdigest() != entry.get('sha256'):
+            result['fundamental_case'] = {'integrity_error': '基本面复核文件哈希不一致，请重新审计底稿'}
+        else:
+            case = _json(path)
+            result['fundamental_case'] = (case if case.get('code') == str(item.get('SECURITY_CODE') or '')
+                                         else {'integrity_error': '基本面复核公司代码不匹配'})
+    return result
 
 
 def save_forward_snapshot(target: dict, result: dict, root: Path = ROOT) -> dict:

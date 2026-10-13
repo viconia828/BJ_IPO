@@ -51,6 +51,17 @@ def build_anchor(item: dict, as_of: Any, params: dict) -> dict:
     if (frozen.get("source") and day(frozen.get("available_date")) and day(frozen["available_date"]) < cutoff
             and frozen.get("available") and _positive(frozen.get("center"))):
         return dict(frozen)
+    case = item.get('fundamental_case') or {}
+    if case:
+        from fundamental_anchor import build_reviewed_anchor
+        reconstruction = item.get('_fundamental_reconstruction') is True
+        available_date = day(case.get('available_not_before'))
+        if case.get('integrity_error'):
+            return {"available": False, "reason": case['integrity_error']}
+        if reconstruction or (available_date and available_date < cutoff):
+            return build_reviewed_anchor(case, item.get('comparable_data') or [], as_of, params,
+                reconstruction=reconstruction, stage=item.get('_fundamental_stage', 'matched'),
+                market_policy=item.get('_fundamental_market_policy', 'per_market'))
     peers = []
     for peer in item.get("comparable_data") or []:
         observed = day(peer.get("trade_date"))

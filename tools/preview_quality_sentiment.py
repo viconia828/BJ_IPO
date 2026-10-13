@@ -1,5 +1,6 @@
 """Render a saved analysis payload with the new shadow diagnostics, offline."""
 import argparse
+from datetime import timedelta
 import json
 from pathlib import Path
 import sys
@@ -18,19 +19,22 @@ def main():
     parser.add_argument("--payload", type=Path, required=True)
     parser.add_argument("--as-of", required=True, help="exclusive cutoff date")
     parser.add_argument("--pdf", action="store_true")
+    parser.add_argument("--output", type=Path, help="optional versioned preview directory")
     args = parser.parse_args()
     payload = json.loads(args.payload.read_text(encoding="utf-8"))
+    payload['analysis_date'] = (qs.day(args.as_of) - timedelta(days=1)).isoformat()
     params = config_loader.load_params()
     params["quality_sentiment_mode"] = "shadow"
     payload["params"] = params
     target = {**payload["ipo_info"], "comparable_data": payload["comparable_data"],
               "industry_primary": payload["industry"]["primary"], "industry_secondary": payload["industry"]["secondary"]}
     history, audit = data.load_history()
+    target = data.with_fundamental_review(target)
     result = qs.evaluate(target, history, params, as_of=args.as_of)
     result["input_correction_count"] = len(audit)
     payload["final"] = qs.attach(payload["final"], result)
     payload["notes"].insert(0, "本报告为保存输入的离线预览；旧版价格保留用于对照，新情绪线处于影子验证。")
-    out = ROOT / "outputs/研究产物/最新/个股资质情绪模型_20261012"
+    out = args.output or ROOT / "outputs/研究产物/最新/个股资质情绪模型_20261012"
     out.mkdir(parents=True, exist_ok=True)
     stem = str(target["SECURITY_CODE"]) + "_个股资质情绪预览"
     context = report_generator._prepare_report_context(payload)

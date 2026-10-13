@@ -669,6 +669,13 @@ def _prepare_report_context(all_data: dict[str, Any]) -> dict[str, Any]:
         quality_lines = ["影子试算：正式价格仍沿用旧模型。" if shadow else "个股基础与情绪区间共用同一估值基础。",
                          f"数据截断：{quality.get('as_of_exclusive')}之前；有效历史{quality.get('history_count', 0)}只。",
                          str(state.get("note") or ""), *anchor.get("limitations", []), *quality.get("limitations", [])]
+        if anchor.get('basis') == 'fundamental_anchor_v2':
+            coverage = anchor.get('coverage') or {}
+            quality_lines.extend([
+                '基本面口径：' + str(anchor.get('earnings_basis') or anchor.get('reason') or '待复核'),
+                f"宽可比池：{coverage.get('candidates', 0)}家；同口径有效PE：{coverage.get('usable', 0)}家。",
+                '宽可比池按主营、相邻产品/工艺、渠道参照分档；亏损公司保留业务身份。',
+                '基本面区间采用可比离散及盈利/股本情景；情绪区间仍保留固定宽度用于对照。'])
         if (_safe_float(sentiment.get("effective_n")) or 0) < 3:
             quality_lines.append("近期有效权重样本不足3只，情绪试算对单只股票较敏感。")
         snapshot = quality.get("forward_snapshot") or {}

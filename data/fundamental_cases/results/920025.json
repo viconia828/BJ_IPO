@@ -1,0 +1,442 @@
+{
+  "old": {
+    "available": true,
+    "center": 23.592664818313953,
+    "low": 21.23339833648256,
+    "high": 25.95193130014535,
+    "confidence": 0.2468219317598513,
+    "basis": "comparable_proxy",
+    "peer_count": 2,
+    "peer_codes": [
+      "603917.SH",
+      "002760.SZ"
+    ],
+    "reference_dates": [
+      "20260922"
+    ],
+    "eps": 0.30959302325581395,
+    "earnings_basis": "发行静态EPS × 同行TTM PE",
+    "peer_pe": 138.5553,
+    "bse_discount": 0.55,
+    "quality_factor": 1.0,
+    "dispersion_ratio": 1.4180263378723459,
+    "limitations": [
+      "发行静态盈利与同行TTM尚未完全同口径",
+      "成长性、竞争力等个股差异尚未完成逐股复核"
+    ],
+    "as_of": "2026-09-23"
+  },
+  "matched": {
+    "available": false,
+    "basis": "fundamental_anchor_v2",
+    "as_of": "2026-09-23",
+    "historical_pit_eligible": false,
+    "research_reconstruction": true,
+    "earnings": {
+      "net_profit_parent": {
+        "available": true,
+        "value": 67408730.02,
+        "metric": "net_profit_parent",
+        "end": "2026-06-30",
+        "basis": "TTM",
+        "components": {
+          "2025-12-31": 70853230.02,
+          "2026-06-30": 33134200.0,
+          "2025-06-30": 36578700.0
+        },
+        "evidence": [
+          "data/fundamental_cases/evidence/920025_p312.json",
+          "data/peer_research/api/ea4136c6d077466db782_20261012234354720966_7607da32.json",
+          "data/peer_research/workpapers/companies/920025.BJ.json"
+        ],
+        "historical_pit_eligible": false
+      },
+      "adjusted_net_profit_parent": {
+        "available": true,
+        "value": 67303175.6,
+        "metric": "adjusted_net_profit_parent",
+        "end": "2026-06-30",
+        "basis": "TTM",
+        "components": {
+          "2025-12-31": 69650275.6,
+          "2026-06-30": 33781700.0,
+          "2025-06-30": 36128800.0
+        },
+        "evidence": [
+          "data/fundamental_cases/evidence/920025_p202.json",
+          "data/fundamental_cases/evidence/920025_p312.json"
+        ],
+        "historical_pit_eligible": false
+      }
+    },
+    "scenarios": {
+      "net_profit_parent": {
+        "available": true,
+        "center": 22.83070678482977,
+        "low": 14.582576209174977,
+        "high": 30.495534312117563,
+        "eps": 0.2995943556444444,
+        "peer_multiple": 76.20539691316823,
+        "peer_count": 2,
+        "peer_codes": [
+          "002760.SZ",
+          "603917.SH"
+        ],
+        "profit": {
+          "available": true,
+          "value": 67408730.02,
+          "metric": "net_profit_parent",
+          "end": "2026-06-30",
+          "basis": "TTM",
+          "components": {
+            "2025-12-31": 70853230.02,
+            "2026-06-30": 33134200.0,
+            "2025-06-30": 36578700.0
+          },
+          "evidence": [
+            "data/fundamental_cases/evidence/920025_p312.json",
+            "data/peer_research/api/ea4136c6d077466db782_20261012234354720966_7607da32.json",
+            "data/peer_research/workpapers/companies/920025.BJ.json"
+          ],
+          "historical_pit_eligible": false
+        }
+      },
+      "adjusted_net_profit_parent": {
+        "available": false,
+        "reason": "正盈利有效可比不足两家",
+        "peer_count": 1
+      }
+    },
+    "peer_details": [
+      {
+        "code": "873650.NQ",
+        "name": "腾升科技",
+        "match": "direct",
+        "weight": 1.0,
+        "market": "NQ",
+        "market_factor": null,
+        "reason": "铸造轧辊及铸件，业务直接相近；缺乏可验证流动性报价时不直接参与A股价格映射",
+        "trade_date": null,
+        "mkt_cap_yi": null,
+        "metrics": {
+          "net_profit_parent": {
+            "available": false,
+            "reason": "跨市场缺少可验证流动性/折价口径，保留业务参照",
+            "profit": {
+              "available": true,
+              "value": 17808423.29,
+              "metric": "net_profit_parent",
+              "end": "2026-06-30",
+              "basis": "TTM",
+              "components": {
+                "2025-12-31": 18712011.3,
+                "2026-06-30": 5476604.67,
+                "2025-06-30": 6380192.68
+              },
+              "evidence": [
+                "data/peer_fundamentals/api/4bd8de69748670383f26_20261012230646476510_6d4856dc.json",
+                "data/peer_fundamentals/api/708d8ae43a8f227dae62_20261012230646004324_b3c48c69.json",
+                "data/peer_fundamentals/api/af48f215f4329261e710_20261012230646252616_4bdca6ce.json",
+                "data/peer_research/workpapers/companies/873650.NQ.json"
+              ],
+              "historical_pit_eligible": false
+            }
+          },
+          "adjusted_net_profit_parent": {
+            "available": false,
+            "reason": "跨市场缺少可验证流动性/折价口径，保留业务参照",
+            "profit": {
+              "available": true,
+              "value": 15549328.0,
+              "metric": "adjusted_net_profit_parent",
+              "end": "2026-06-30",
+              "basis": "TTM",
+              "components": {
+                "2025-12-31": 15866215.0,
+                "2026-06-30": 5471203.0,
+                "2025-06-30": 5788090.0
+              },
+              "evidence": [
+                "data/peer_fundamentals/mcp/nq_20250630.json",
+                "data/peer_fundamentals/mcp/nq_20251231.json",
+                "data/peer_fundamentals/mcp/nq_20260630.json",
+                "data/peer_research/workpapers/companies/873650.NQ.json"
+              ],
+              "historical_pit_eligible": false
+            }
+          }
+        }
+      },
+      {
+        "code": "872643.NQ",
+        "name": "华冶股份",
+        "match": "related",
+        "weight": 0.5,
+        "market": "NQ",
+        "market_factor": null,
+        "reason": "锻钢冷轧辊，制造工艺与应用侧重不同；亏损身份保留",
+        "trade_date": null,
+        "mkt_cap_yi": null,
+        "metrics": {
+          "net_profit_parent": {
+            "available": false,
+            "reason": "跨市场缺少可验证流动性/折价口径，保留业务参照",
+            "profit": {
+              "available": true,
+              "value": -9916465.360000001,
+              "metric": "net_profit_parent",
+              "end": "2026-06-30",
+              "basis": "TTM",
+              "components": {
+                "2025-12-31": -8185838.48,
+                "2026-06-30": -3936162.46,
+                "2025-06-30": -2205535.58
+              },
+              "evidence": [
+                "data/peer_fundamentals/api/4bd8de69748670383f26_20261012230646476510_6d4856dc.json",
+                "data/peer_fundamentals/api/708d8ae43a8f227dae62_20261012230646004324_b3c48c69.json",
+                "data/peer_fundamentals/api/af48f215f4329261e710_20261012230646252616_4bdca6ce.json",
+                "data/peer_research/workpapers/companies/872643.NQ.json"
+              ],
+              "historical_pit_eligible": false
+            }
+          },
+          "adjusted_net_profit_parent": {
+            "available": false,
+            "reason": "跨市场缺少可验证流动性/折价口径，保留业务参照",
+            "profit": {
+              "available": true,
+              "value": -10070729.66,
+              "metric": "adjusted_net_profit_parent",
+              "end": "2026-06-30",
+              "basis": "TTM",
+              "components": {
+                "2025-12-31": -8538686.04,
+                "2026-06-30": -3936162.46,
+                "2025-06-30": -2404118.84
+              },
+              "evidence": [
+                "data/peer_fundamentals/mcp/nq_20250630.json",
+                "data/peer_fundamentals/mcp/nq_20251231.json",
+                "data/peer_fundamentals/mcp/nq_20260630.json",
+                "data/peer_research/workpapers/companies/872643.NQ.json"
+              ],
+              "historical_pit_eligible": false
+            }
+          }
+        }
+      },
+      {
+        "code": "874437.NQ",
+        "name": "中原辊轴",
+        "match": "related",
+        "weight": 0.5,
+        "market": "NQ",
+        "market_factor": null,
+        "reason": "锻钢轧辊及管模，同冶金设备链但产品组合不同",
+        "trade_date": null,
+        "mkt_cap_yi": null,
+        "metrics": {
+          "net_profit_parent": {
+            "available": false,
+            "reason": "跨市场缺少可验证流动性/折价口径，保留业务参照",
+            "profit": {
+              "available": true,
+              "value": 22154095.709999993,
+              "metric": "net_profit_parent",
+              "end": "2026-06-30",
+              "basis": "TTM",
+              "components": {
+                "2025-12-31": 46794693.26,
+                "2026-06-30": 11409758.15,
+                "2025-06-30": 36050355.7
+              },
+              "evidence": [
+                "data/peer_fundamentals/api/4bd8de69748670383f26_20261012230646476510_6d4856dc.json",
+                "data/peer_fundamentals/api/708d8ae43a8f227dae62_20261012230646004324_b3c48c69.json",
+                "data/peer_fundamentals/api/af48f215f4329261e710_20261012230646252616_4bdca6ce.json",
+                "data/peer_research/workpapers/companies/874437.NQ.json"
+              ],
+              "historical_pit_eligible": false
+            }
+          },
+          "adjusted_net_profit_parent": {
+            "available": false,
+            "reason": "跨市场缺少可验证流动性/折价口径，保留业务参照",
+            "profit": {
+              "available": true,
+              "value": 21823347.0,
+              "metric": "adjusted_net_profit_parent",
+              "end": "2026-06-30",
+              "basis": "TTM",
+              "components": {
+                "2025-12-31": 45395096.0,
+                "2026-06-30": 11483751.0,
+                "2025-06-30": 35055500.0
+              },
+              "evidence": [
+                "data/peer_fundamentals/mcp/nq_20250630.json",
+                "data/peer_fundamentals/mcp/nq_20251231.json",
+                "data/peer_fundamentals/mcp/nq_20260630.json",
+                "data/peer_research/workpapers/companies/874437.NQ.json"
+              ],
+              "historical_pit_eligible": false
+            }
+          }
+        }
+      },
+      {
+        "code": "002760.SZ",
+        "name": "凤形股份",
+        "match": "related",
+        "weight": 0.5,
+        "market": "SZ",
+        "market_factor": 0.55,
+        "reason": "铸造耐磨材料工艺参照，船电/电机业务有差异，保留但不视为同类轧辊",
+        "trade_date": "20260922",
+        "mkt_cap_yi": 19.02760894,
+        "metrics": {
+          "net_profit_parent": {
+            "available": true,
+            "pe": 92.03886990290472,
+            "market_adjusted_pe": 50.6213784465976,
+            "profit": {
+              "available": true,
+              "value": 20673449.119999997,
+              "metric": "net_profit_parent",
+              "end": "2026-06-30",
+              "basis": "TTM",
+              "components": {
+                "2025-12-31": 20171087.59,
+                "2026-06-30": 7783088.13,
+                "2025-06-30": 7280726.6
+              },
+              "evidence": [
+                "data/peer_fundamentals/api/4bd8de69748670383f26_20261012230646476510_6d4856dc.json",
+                "data/peer_fundamentals/api/708d8ae43a8f227dae62_20261012230646004324_b3c48c69.json",
+                "data/peer_fundamentals/api/af48f215f4329261e710_20261012230646252616_4bdca6ce.json",
+                "data/peer_research/workpapers/companies/002760.SZ.json"
+              ],
+              "historical_pit_eligible": false
+            }
+          },
+          "adjusted_net_profit_parent": {
+            "available": true,
+            "pe": 123.3674384184265,
+            "market_adjusted_pe": 67.85209113013458,
+            "profit": {
+              "available": true,
+              "value": 15423526.0,
+              "metric": "adjusted_net_profit_parent",
+              "end": "2026-06-30",
+              "basis": "TTM",
+              "components": {
+                "2025-12-31": 10984453.0,
+                "2026-06-30": 7292082.0,
+                "2025-06-30": 2853009.0
+              },
+              "evidence": [
+                "data/peer_fundamentals/mcp/financials_20250630.json",
+                "data/peer_fundamentals/mcp/financials_20251231.json",
+                "data/peer_fundamentals/mcp/financials_20260630.json",
+                "data/peer_research/workpapers/companies/002760.SZ.json"
+              ],
+              "historical_pit_eligible": false
+            }
+          }
+        }
+      },
+      {
+        "code": "603917.SH",
+        "name": "合力科技",
+        "match": "related",
+        "weight": 0.5,
+        "market": "SH",
+        "market_factor": 0.55,
+        "reason": "铸造模具及汽车部件制造参照；扣非TTM为负时不能使用其正归母高PE代表常态盈利",
+        "trade_date": "20260922",
+        "mkt_cap_yi": 29.271424,
+        "metrics": {
+          "net_profit_parent": {
+            "available": true,
+            "pe": 185.0716643267979,
+            "market_adjusted_pe": 101.78941537973886,
+            "profit": {
+              "available": true,
+              "value": 15816264.530000001,
+              "metric": "net_profit_parent",
+              "end": "2026-06-30",
+              "basis": "TTM",
+              "components": {
+                "2025-12-31": 28720108.87,
+                "2026-06-30": -3054611.23,
+                "2025-06-30": 9849233.11
+              },
+              "evidence": [
+                "data/peer_fundamentals/api/4bd8de69748670383f26_20261012230646476510_6d4856dc.json",
+                "data/peer_fundamentals/api/708d8ae43a8f227dae62_20261012230646004324_b3c48c69.json",
+                "data/peer_fundamentals/api/af48f215f4329261e710_20261012230646252616_4bdca6ce.json",
+                "data/peer_research/workpapers/companies/603917.SH.json"
+              ],
+              "historical_pit_eligible": false
+            }
+          },
+          "adjusted_net_profit_parent": {
+            "available": false,
+            "reason": "盈利非正，保留业务身份但PE不可用",
+            "profit": {
+              "available": true,
+              "value": -6875044.85,
+              "metric": "adjusted_net_profit_parent",
+              "end": "2026-06-30",
+              "basis": "TTM",
+              "components": {
+                "2025-12-31": 9695858.0,
+                "2026-06-30": -14962898.85,
+                "2025-06-30": 1608004.0
+              },
+              "evidence": [
+                "data/peer_fundamentals/mcp/financials_20250630.json",
+                "data/peer_fundamentals/mcp/financials_20251231.json",
+                "data/peer_fundamentals/mcp/financials_20260630.json",
+                "data/peer_research/workpapers/companies/603917.SH.json"
+              ],
+              "historical_pit_eligible": false
+            }
+          }
+        }
+      }
+    ],
+    "coverage": {
+      "candidates": 5,
+      "usable": 1
+    },
+    "review_source": "data/fundamental_cases/cases/920025.json",
+    "cycle": {
+      "classification": "钢铁需求和原料周期暴露，同行当前盈利分母代表性偏弱",
+      "normalization_approved": false,
+      "reason": "发行人2026H1归母下降9.42%，研发和汇兑解释明确，不能仅凭钢铁标签判断处于周期底。合力扣非亏损、凤形分母较小，高TTM PE只作敏感性。正常化要求同行同步核验利润率与恢复期，本轮不自动批准。",
+      "pages": [
+        7,
+        135,
+        274,
+        312
+      ]
+    },
+    "stage": "matched",
+    "limitations": [
+      "市场统一折价仍为既有研究参数，需单列敏感性",
+      "前瞻与周期正常化尚无完整同口径同行估值，未加入主F",
+      "部分扣非利润仅有供应商来源，披露日/历史版本未达到真实PIT要求",
+      "当前资料历史重建不是原始事前PIT",
+      "匹配档位为固定研究规则，未按首日涨幅调参",
+      "区间是盈利口径、可比离散与绿鞋摊薄情景，不是统计置信区间"
+    ],
+    "market_policy": {
+      "SH_SZ": 0.55,
+      "BJ": 1.0,
+      "NQ": null
+    },
+    "reason": "正盈利有效可比不足两家"
+  }
+}

@@ -1,0 +1,143 @@
+{
+  "schema": "ifind_http_evidence_v1",
+  "retrieved_at": "2026-10-13T20:29:00.828459+08:00",
+  "source": "https://quantapi.51ifind.com/api/v1/basic_data_service",
+  "request": {
+    "codes": "002101.SZ,300176.SZ,603982.SH",
+    "indipara": [
+      {
+        "indicator": "ths_revenue_stock",
+        "indiparams": [
+          "20260630",
+          "100"
+        ]
+      },
+      {
+        "indicator": "ths_np_atoopc_stock",
+        "indiparams": [
+          "20260630",
+          "100"
+        ]
+      }
+    ]
+  },
+  "http_status": 200,
+  "response": {
+    "errorcode": 0,
+    "errmsg": "",
+    "tables": [
+      {
+        "thscode": "002101.SZ",
+        "table": {
+          "ths_revenue_stock": [
+            4186177644.33
+          ],
+          "ths_np_atoopc_stock": [
+            39836955.81
+          ]
+        }
+      },
+      {
+        "thscode": "300176.SZ",
+        "table": {
+          "ths_revenue_stock": [
+            932980464.05
+          ],
+          "ths_np_atoopc_stock": [
+            -16945134.93
+          ]
+        }
+      },
+      {
+        "thscode": "603982.SH",
+        "table": {
+          "ths_revenue_stock": [
+            1169289076.93
+          ],
+          "ths_np_atoopc_stock": [
+            -184750821.48
+          ]
+        }
+      }
+    ],
+    "datatype": [
+      {
+        "itemid": "ths_revenue_stock",
+        "type": "DT_DOUBLE"
+      },
+      {
+        "itemid": "ths_np_atoopc_stock",
+        "type": "DT_DOUBLE"
+      }
+    ],
+    "inputParams": {
+      "jsonrpc": true,
+      "params": [
+        {
+          "function": "ths_revenue_stock",
+          "id": "01082",
+          "params": [
+            {
+              "name": "THSCODE",
+              "system": "false",
+              "value": ""
+            },
+            {
+              "name": "FDREPORT",
+              "system": "false",
+              "value": "20260630"
+            },
+            {
+              "name": "FL",
+              "system": "false",
+              "value": "100"
+            },
+            {
+              "name": "FDIR",
+              "system": "false",
+              "value": ""
+            },
+            {
+              "name": "UNIT",
+              "system": "false",
+              "value": ""
+            }
+          ]
+        },
+        {
+          "function": "ths_np_atoopc_stock",
+          "id": "01113",
+          "params": [
+            {
+              "name": "THSCODE",
+              "system": "false",
+              "value": ""
+            },
+            {
+              "name": "FDREPORT",
+              "system": "false",
+              "value": "20260630"
+            },
+            {
+              "name": "FL",
+              "system": "false",
+              "value": "100"
+            },
+            {
+              "name": "FDIR",
+              "system": "false",
+              "value": ""
+            },
+            {
+              "name": "UNIT",
+              "system": "false",
+              "value": ""
+            }
+          ]
+        }
+      ]
+    },
+    "dataVol": 6,
+    "perf": 52
+  }
+}

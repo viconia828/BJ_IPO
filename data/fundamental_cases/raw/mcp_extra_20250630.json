@@ -1,0 +1,14 @@
+{
+  "source": "ifind_mcp",
+  "retrieved_at": "2026-10-13T12:27:27.869Z",
+  "query": "查询广东鸿图002101.SZ、泉峰汽车603982.SH、鸿特科技300176.SZ，仅20250630报告期的营业收入、归属于母公司所有者的净利润、扣除非经常性损益后的归属母公司股东净利润、定期报告实际披露日期。合并报表，金额人民币元，明确报告期与单位，不要其他报告期。",
+  "result": {
+    "content": [
+      {
+        "type": "text",
+        "text": "tool call error: tool call failed for `ifind_stock/get_stock_financials`\n\nCaused by:\n    Transport send error: Transport [codex_rmcp_client::event_notification_transport::EventNotificationTransport<rmcp::transport::worker::WorkerTransport<rmcp::transport::streamable_http_client::StreamableHttpClientWorker<codex_rmcp_client::http_client_adapter::StreamableHttpClientAdapter>>>] error: Client error: HTTP request failed: http/request failed: error sending request for url (https://api-mcp.51ifind.com:8643/ds-mcp-servers/hexin-ifind-ds-stock-mcp)"
+      }
+    ],
+    "isError": true
+  }
+}
