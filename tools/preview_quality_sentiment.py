@@ -11,7 +11,7 @@ sys.path.insert(0, str(ROOT / "code"))
 import config_loader
 import quality_sentiment as qs
 import quality_sentiment_data as data
-import sentiment_pricing
+import sentiment_timing
 import report_generator
 
 
@@ -32,7 +32,7 @@ def main():
     history, audit = data.load_history()
     target = data.with_fundamental_review(target)
     result = qs.evaluate(target, history, params, as_of=args.as_of)
-    result = sentiment_pricing.attach_shadow(result, target, history, params, as_of=args.as_of)
+    result = sentiment_timing.attach_shadow(result, target, history, params, as_of=args.as_of)
     result["input_correction_count"] = len(audit)
     payload["final"] = qs.attach(payload["final"], result)
     payload["notes"].insert(0, "本报告为保存输入的离线预览；旧版价格保留用于对照，新情绪线处于影子验证。")

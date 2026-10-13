@@ -1,0 +1,24 @@
+{
+  "status": "passed",
+  "audited_at": "2026-10-13T22:28:17.089408+08:00",
+  "validation_scripts_passed": 38,
+  "sequential_protocols_verified": true,
+  "frozen_input_files": 39,
+  "baseline_and_wide_peers_unchanged": true,
+  "existing_forward_snapshot_unchanged": true,
+  "market_or_sector_data_added": false,
+  "default_shadow_rule": "combined",
+  "formal_promotion": false,
+  "source_sha256_lf": {
+    "code/sentiment_roles.py": "fc9f2662086e952a4821fa6e608f31f6e0b678f2f5d07ebcb89bc352e6173a35",
+    "code/sentiment_timing.py": "b92b386225c941348eb9caa1019e72c39485f6a4ad4970e82554a0cb93dfd7ae",
+    "code/bse_ipo_valuation.py": "be12365c7d10460b25ce12bcbbd54ebf65c74d726d6145f46a2d8173efcc58c0",
+    "code/report_generator.py": "42dada52a951623a207d5d7ad3eb46be773494901cb81b0d5e4376bf0284e601",
+    "tools/evaluate_sentiment_roles.py": "ca93785cfdde2205f2c069c409e391aaa4c8d759cf5b3447e7da8ae356a325b5",
+    "tools/evaluate_sentiment_timing.py": "ba91cc56667d931e019c50cebe66d5f904aa694b468f26731fdd1999ca2d8548",
+    "tools/prepare_sentiment_roles_protocol.py": "9f9e4665a6ef414bb6b8a27910880880dc3d823a86dcbee9c14cea871fff0baa",
+    "tools/preview_quality_sentiment.py": "66a26f7d97abbc906eb2808455ea0992ad0cd6a60a3ab4fc1c771dae7ff092ed",
+    "tools/audit_sentiment_roles.py": "04e0fe8fbabab50866732a53ea51799c59cb9d1b61939a73d163de5c2d8f0c5c",
+    "tests/validate_sentiment_roles.py": "616353d4282bf86a3823fb6d91123c83d217ee8512ecff38a56e7dac31384ed3"
+  }
+}

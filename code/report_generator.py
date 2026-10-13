@@ -695,6 +695,22 @@ def _prepare_report_context(all_data: dict[str, Any]) -> dict[str, Any]:
                     if signal.get('available') else '资料不足',
                     f"有效{signal.get('group_count',0)}个上市日组；缺资料不代表中性"])
             quality_lines.append('反馈试算为固定规则影子实验：上涨下跌对称，整体调幅限制约-20%至+25%；没有修改PE基础或正式价格。')
+        experiments = quality.get('response_experiments') or {}
+        for rule, label in [('role_split','信号分工候选区间（研究）'),('role_adaptive','转向响应候选区间（研究）')]:
+            experiment = experiments.get(rule) or {}
+            if not experiment:
+                continue
+            estimate = experiment.get('sentiment') or {}
+            diagnostic = experiment.get('pricing_response') or {}
+            explanation = estimate.get('reason') or diagnostic.get('confidence_note') or '独立研究候选'
+            if rule == 'role_adaptive':
+                timing = diagnostic.get('timing') or {}
+                explanation = ('采用最近两组；' if timing.get('fast_mode') else '采用最近三组；') + explanation
+            quality_rows.append([label, _format_interval(estimate.get('low'), estimate.get('high')), explanation])
+        if experiments:
+            quality_lines.append('分工与转向两个候选尚未通过全部回放保护条件，未替换默认情绪反馈试算或正式价格。')
+        if quality.get('response_experiment_error'):
+            quality_lines.append(str(quality['response_experiment_error']))
         snapshot = quality.get("forward_snapshot") or {}
         if snapshot.get("previous_path"):
             quality_lines.append(f"相对上次：PE基础{_fmt_signed_pct(snapshot.get('anchor_change_pct'))}；情绪中枢{_fmt_signed_pct(snapshot.get('sentiment_change_pct'))}。")

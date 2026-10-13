@@ -1,0 +1,38 @@
+{
+  "schema": "sentiment_roles_protocol_v1",
+  "stage": "timing",
+  "frozen_at": "2026-10-13T22:21:43.458702+08:00",
+  "reference_commit": "438d3937638e1b2d38437bf9efa9ca8aba3ca99a",
+  "frozen_sources": {
+    "data/sentiment_pricing/protocol.json": "32a7babada34255a1f599c8cb1ec522d42d1c3bdd5610301e94ed228598875be",
+    "data/sentiment_pricing/replay.json": "e810a8a7adf311dc93dfd8dbab9b756baddf60afd1a34414da46fe103b6e7ad0",
+    "data/sentiment_pricing/roles/roles_protocol.json": "8ef830a31fcaadcca8727e2a73f46c3a9e8534e01e1eb319b8add63a8dd5f829",
+    "data/sentiment_pricing/roles/roles_replay.json": "2c45a8de174880cb8da8ce7d3435ae24b426476ef42a8883bddb42de396d5d40"
+  },
+  "unchanged": [
+    "基本面和宽池",
+    "旧情绪基准",
+    "最近3组信号原始取样",
+    "承接的同期限参照",
+    "±10%区间",
+    "约-20%至+25%调幅上限"
+  ],
+  "role_rule": "兑现e决定方向；同向承接a补充sign(e)*min(abs(e),abs(a))，反向或缺失a只提示风险不调价；e不可用时不以a单独出价",
+  "timing_rule": "最新两个实际上市日组均有兑现预测且各自原始log误差同向超过ln1.10时，使用这两组均值乘2/(2+3)；否则回到三组。上涨下跌对称，最新一组反向即解除两组模式；不向更早补缺失组",
+  "timing_material_log": 0.09531017980432493,
+  "primary_rule": "role_adaptive",
+  "control": "role_split",
+  "sample_policy": "沿用全部63条有首日结果、共同预测48条及已知近期10条；缺失2条另列，时间顺序及群组不变",
+  "subsets": "沿用基准降温；冲突子集使用旧e/a异号定义；第二步另外展示实际触发两组模式的集合，不用后续结果选股",
+  "guardrails": {
+    "earlier_underestimate_max_increase_pp": 1.0,
+    "overall_mape_must_not_worsen": true,
+    "recent_mape_must_not_worsen": true,
+    "cooling_positive_error_must_not_worsen": true
+  },
+  "decision": "只有主候选相对直接上一版通过全部保护条件才可替换默认影子展示；正式价格始终不变",
+  "no_grid_search": true,
+  "market_or_sector_data_added": false,
+  "historical_pit_eligible": false,
+  "limitation": "规则由已知失败案例启发，本轮全部回放属于再次使用既有样本，不是独立验证；未按结果选择参数"
+}

@@ -26,7 +26,7 @@ import subscription_predictor
 import valuation_engine
 import quality_sentiment
 import quality_sentiment_data
-import sentiment_pricing
+import sentiment_timing
 from industry_mapping import IndustryMapper
 
 
@@ -1296,7 +1296,7 @@ def build_analysis_data(
             quality_target, quality_history, params,
             as_of=quality_sentiment.live_cutoff(ipo_info.get("LISTING_DATE")),
         )
-        quality_result = sentiment_pricing.attach_shadow(
+        quality_result = sentiment_timing.attach_shadow(
             quality_result, quality_target, quality_history, params,
             as_of=quality_result['as_of_exclusive'],
         )
