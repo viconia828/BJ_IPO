@@ -705,7 +705,8 @@ def _assert_report_overview_text(failures: list[str]) -> None:
         "正股抢时间 否\n"
         "碎股抢时间 门槛6.00万元，56.00万元以下可能\n"
         "上市日期\n"
-        "正式综合区间（元） 12.30 - 14.50\n"
+        "正式估值区间（元） 12.30 - 14.50\n"
+        "情绪反馈区间（元） 暂不可用\n"
     )
     if overview != expected:
         failures.append(f"overview text mismatch: {overview!r}")

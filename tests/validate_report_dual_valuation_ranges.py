@@ -68,7 +68,8 @@ def main() -> None:
     payload = _payload()
     overview = report_generator.build_report_overview_text(payload)
     for expected in (
-        "正式综合区间（元） 20.25 - 24.75",
+        "正式估值区间（元） 20.25 - 24.75",
+        "情绪反馈区间（元） 暂不可用",
     ):
         if expected not in overview:
             failures.append(f"overview missing: {expected}")

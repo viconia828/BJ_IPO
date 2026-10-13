@@ -609,7 +609,7 @@ def _prepare_report_context(all_data: dict[str, Any]) -> dict[str, Any]:
         "正股抢时间",
         "碎股抢时间",
         "上市日期",
-        "正式综合区间（元）",
+        "正式估值区间（元）",
     ]
     overview_row = [
         str(ipo.get("SECURITY_CODE", "") or ""),
@@ -627,6 +627,13 @@ def _prepare_report_context(all_data: dict[str, Any]) -> dict[str, Any]:
     ]
 
     quality = final.get("quality_sentiment") or {}
+    response_shadow = quality.get("response_shadow") or {}
+    feedback_sentiment = response_shadow.get("sentiment") or {}
+    overview_headers.append("情绪反馈区间（元）")
+    overview_row.append(
+        _format_interval(feedback_sentiment.get("low"), feedback_sentiment.get("high"), fallback="暂不可用")
+        if response_shadow.get("available") else "暂不可用"
+    )
     quality_rows, quality_details, quality_lines = [], [], []
     if quality:
         anchor, sentiment, state = quality.get("anchor", {}), quality.get("sentiment", {}), quality.get("state", {})

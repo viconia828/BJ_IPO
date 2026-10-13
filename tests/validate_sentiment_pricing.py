@@ -143,6 +143,12 @@ class SentimentPricingTests(unittest.TestCase):
             self.assertIn('情绪反馈试算区间（影子）',content)
             self.assertIn('尚未用于正式定价',content)
         self.assertEqual(payload['final']['target_price'],old['target_price'])
+        overview = report_generator.build_report_overview_text(payload)
+        feedback = result['response_shadow']['sentiment']
+        self.assertIn('正式估值区间（元） 20.25 - 24.75', overview)
+        self.assertIn(f"情绪反馈区间（元） {feedback['low']:.2f} - {feedback['high']:.2f}", overview)
+        self.assertNotIn('旧版情绪区间', overview)
+        self.assertNotIn('情绪观察', overview)
 
     def test_invalid_shadow_input_preserves_baseline_and_reports_failure(self):
         baseline=qs.evaluate(self.target,self.history,PARAMS,as_of=self.cutoff)
@@ -151,6 +157,9 @@ class SentimentPricingTests(unittest.TestCase):
         self.assertEqual(result['sentiment'],baseline['sentiment'])
         self.assertFalse(result['response_shadow']['available'])
         self.assertIn('conflicting duplicate',result['response_shadow']['sentiment']['reason'])
+        payload = _payload()
+        payload['final'] = qs.attach(payload['final'], result)
+        self.assertIn('情绪反馈区间（元） 暂不可用', report_generator.build_report_overview_text(payload))
 
     def test_archived_metrics_keep_all_cases_and_same_coverage(self):
         output=json.loads((ROOT/'data/sentiment_pricing/replay.json').read_text('utf-8'))

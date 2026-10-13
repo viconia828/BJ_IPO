@@ -151,7 +151,7 @@ class QualitySentimentTests(unittest.TestCase):
             positions = [content.index(heading) for heading in headings]
             self.assertEqual(positions, sorted(positions))
         overview = report_generator.build_report_overview_text(payload)
-        self.assertIn("正式综合区间（元） 20.25 - 24.75", overview)
+        self.assertIn("正式估值区间（元） 20.25 - 24.75", overview)
         for removed in ("原综合参考区间", "旧版情绪区间", "情绪观察"):
             self.assertNotIn(removed, overview)
         active = {**result, "mode": "active"}
