@@ -3,6 +3,8 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
+import sentiment_settings
+
 
 SECTION_INDUSTRY_MAPPING = "industry_mapping"
 ROOT_DIR = Path(__file__).resolve().parents[1]
@@ -98,10 +100,7 @@ def resolve_recent_days(params: dict[str, Any]) -> int:
 
 
 def _validate_params(params: dict[str, Any]) -> None:
-    if str(params.get("quality_sentiment_mode", "shadow")) not in {"off", "shadow", "active"}:
-        raise ValueError("quality_sentiment_mode 仅支持 off / shadow / active")
-    if float(params.get("quality_sentiment_half_life_days", 8)) <= 0:
-        raise ValueError("quality_sentiment_half_life_days 必须大于0")
+    sentiment_settings.resolve(params)
     comparable_data_source = str(params.get("comparable_data_source", SYSTEM_SOURCE_DEFAULTS["comparable_data_source"])).strip().lower() or SYSTEM_SOURCE_DEFAULTS["comparable_data_source"]
     if comparable_data_source not in {"wind", "tushare"}:
         raise ValueError("comparable_data_source 仅支持 wind / tushare")
@@ -372,6 +371,8 @@ def load_params(filepath: str | Path = ROOT_DIR / "策略参数.txt") -> dict[st
         params["recent_months"] = max((int(params["recent_days"]) + 29) // 30, 1)
     for key, default_value in TUNING_RUNTIME_DEFAULTS.items():
         params[key] = params.get(key, default_value)
+
+    params.update(sentiment_settings.resolve(params))
 
     _validate_params(params)
     return params

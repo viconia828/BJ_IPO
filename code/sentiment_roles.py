@@ -7,6 +7,7 @@ from copy import deepcopy
 import math
 
 import sentiment_pricing as previous
+import sentiment_settings as settings
 
 VERSION='sentiment_roles_v1'
 
@@ -15,7 +16,9 @@ def direction(value):
     return 0 if abs(value)<1e-12 else (1 if value>0 else -1)
 
 
-def response(signals):
+def response(signals, params=None):
+    cfg=settings.resolve(params)
+    maximum=math.log(cfg['sentiment_response_max_multiplier'])
     expectation=signals['expectation']
     aftermarket=signals['aftermarket']
     e=expectation['log_correction'] if expectation['available'] else 0.0
@@ -27,7 +30,7 @@ def response(signals):
         note='兑现反馈不足，承接仅作观察，未据其单独调价'
     elif ed and ad and ed==ad:
         agreement='same_direction'
-        confirmation=ed*min(abs(e),abs(a))
+        confirmation=ed*min(abs(e)*cfg['sentiment_role_confirmation_cap_ratio'],abs(a))
         note='兑现与承接同向；承接确认幅度不超过兑现本身'
     elif ed and ad and ed!=ad:
         agreement='conflict'
@@ -38,11 +41,11 @@ def response(signals):
     else:
         agreement='neutral'
         note='没有同向承接确认，采用兑现反馈'
-    correction=previous.clipped(e+confirmation,previous.MAX_CORRECTION)
+    correction=previous.clipped(e+confirmation,maximum)
     return {'rule':'role_split','expectation_log_correction':e,
         'aftermarket_log_correction':confirmation,'raw_aftermarket_log_correction':a,
         'agreement':agreement,'confidence_note':note,'log_correction':correction,
-        'price_change_pct':math.expm1(correction)*100,'maximum_log_correction':previous.MAX_CORRECTION,
+        'price_change_pct':math.expm1(correction)*100,'maximum_log_correction':maximum,
         'signals':deepcopy(signals)}
 
 
@@ -64,5 +67,5 @@ def apply_response(baseline, response_result):
 def evaluate_all(target, history, params, *, as_of):
     results=previous.evaluate_all(target,history,params,as_of=as_of)
     signals=results['combined']['pricing_response']['signals']
-    results['role_split']=apply_response(results['baseline'],response(signals))
+    results['role_split']=apply_response(results['baseline'],response(signals,params))
     return results

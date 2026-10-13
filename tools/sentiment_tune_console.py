@@ -34,10 +34,12 @@ def run(args, params, dataset, *, write_updates):
     params_path = Path(args.params_file)
     before = hashlib.sha256(params_path.read_bytes()).hexdigest()
     print('情绪组合影子自动调参：combined；基本面、宽池、反馈规则和区间宽度固定。', flush=True)
-    print('只搜索情绪半衰期4/8/12/16天及当前值；不会运行旧综合参数搜索或研究候选重排。', flush=True)
     try:
         if config_loader.load_params(params_path) != params:
             raise ValueError('参数文件在加载数据集时发生变化，请重新运行')
+        cfg = tuning.settings.resolve(params)
+        values = '/'.join(f'{v:g}' for v in cfg['sentiment_tuning_half_life_candidates'])
+        print(f'只搜索情绪半衰期{values}天及当前值；不会运行旧综合参数搜索或研究候选重排。', flush=True)
         history, audit = tuning.prepare_history(dataset)
         result = tuning.tune(history, params, train_ratio=args.train_ratio,
                              min_train_samples=args.min_train_samples,
@@ -53,7 +55,7 @@ def run(args, params, dataset, *, write_updates):
         'params_path': str(params_path.resolve()), 'params_sha256': before,
         'dataset_path': str(Path(args.dataset_path).resolve()), 'dataset_content_sha256': tuning.digest(dataset),
         'sources_sha256': {str(p.relative_to(root)): hashlib.sha256(p.read_bytes()).hexdigest() for p in
-                            [root / 'code' / name for name in ('sentiment_tuning.py', 'sentiment_pricing.py',
+                            [root / 'code' / name for name in ('sentiment_tuning.py', 'sentiment_settings.py', 'sentiment_pricing.py',
                              'sentiment_timing.py', 'quality_sentiment.py', 'quality_sentiment_data.py',
                              'fundamental_anchor.py', 'param_tuning.py')] +
                             [Path(__file__), root/'tools/tune_params.py', root/'tools/manual_tune_prompt.py']},

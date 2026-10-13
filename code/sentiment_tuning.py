@@ -11,11 +11,12 @@ import statistics
 import quality_sentiment as qs
 import quality_sentiment_data as inputs
 import sentiment_pricing as pricing
+import sentiment_settings as settings
 from sentiment_timing import DEFAULT_SHADOW_RULE
 
 VERSION = 'sentiment_console_v1'
 PARAMETER = 'quality_sentiment_half_life_days'
-HALF_LIVES = (4.0, 8.0, 12.0, 16.0)
+HALF_LIVES = settings.DEFAULTS['sentiment_tuning_half_life_candidates']
 COOLING = {'cooling_watch', 'cooling_confirmed', 'weak_aftermarket'}
 LABELS = {'legacy': '当前正式价', 'original': '原个股情绪',
           'current': '当前组合影子', 'candidate': '训练选定候选'}
@@ -107,9 +108,10 @@ def _run(history, params):
     return results
 
 
-def acceptance_guard(rows, *, min_train_samples=8):
+def acceptance_guard(rows, *, min_train_samples=8, params=None):
+    cfg = settings.resolve(params)
     checks = {}
-    for group, minimum in [('train', min_train_samples), ('validation', 5)]:
+    for group, minimum in [('train', min_train_samples), ('validation', cfg['sentiment_tuning_min_validation_samples'])]:
         selected = [r for r in rows if r['split'] == group]
         b, c = score(selected, 'current'), score(selected, 'candidate')
         checks[group + '_coverage'] = b['count'] >= minimum and c['count'] == b['count']
@@ -119,7 +121,7 @@ def acceptance_guard(rows, *, min_train_samples=8):
         ('all', rows, 'price_mape_pct', 0),
         ('recent10', [r for r in rows if r['recent']], 'price_mape_pct', 0),
         ('cooling', [r for r in rows if r['cooling']], 'over_pct', 0),
-        ('earlier_under', [r for r in rows if not r['recent']], 'under_pct', 1),
+        ('earlier_under', [r for r in rows if not r['recent']], 'under_pct', cfg['sentiment_tuning_earlier_under_tolerance_pp']),
     ]:
         b, c = score(selected, 'current'), score(selected, 'candidate')
         checks[group] = (b[field] is not None and c[field] is not None
@@ -131,11 +133,12 @@ def acceptance_guard(rows, *, min_train_samples=8):
 
 def tune(history, params, *, train_ratio=.7, min_train_samples=8, progress=None):
     """Choose on training only, then validate that one candidate; no holdout rerank."""
+    cfg = settings.resolve(params)
     if DEFAULT_SHADOW_RULE != 'combined':
         raise ValueError('默认影子规则已改变，请先更新调参契约')
-    if params.get('quality_sentiment_mode', 'shadow') != 'shadow':
+    if cfg['quality_sentiment_mode'] != 'shadow':
         raise ValueError('情绪影子调参要求quality_sentiment_mode=shadow')
-    current = qs._positive(params.get(PARAMETER, 8))
+    current = cfg[PARAMETER]
     if current is None:
         raise ValueError('情绪半衰期须为正数')
     frozen_params, frozen_inputs = digest(params), digest(history)
@@ -156,7 +159,7 @@ def tune(history, params, *, train_ratio=.7, min_train_samples=8, progress=None)
                      'recent': code in recent, 'cooling': original['state']['code'] in COOLING,
                      'state': original['state'], 'response': response['pricing_response']})
     entries = []
-    variants = sorted(set((*HALF_LIVES, current)))
+    variants = sorted(set((*cfg['sentiment_tuning_half_life_candidates'], current)))
     for i, value in enumerate(variants, 1):
         if progress:
             progress(i, len(variants), value)
@@ -178,7 +181,7 @@ def tune(history, params, *, train_ratio=.7, min_train_samples=8, progress=None)
                                       if e['training']['price_mape_pct'] is not None else math.inf,
                                       e['half_life'] != current, e['half_life']))
     rows = best['rows']
-    guard = acceptance_guard(rows, min_train_samples=min_train_samples)
+    guard = acceptance_guard(rows, min_train_samples=min_train_samples, params=cfg)
     overrides = {PARAMETER: best['half_life']} if best['half_life'] != current and guard['passed'] else {}
     if frozen_inputs != digest(history) or frozen_params != digest(params):
         raise ValueError('搜索过程中输入发生变更')
@@ -187,7 +190,7 @@ def tune(history, params, *, train_ratio=.7, min_train_samples=8, progress=None)
             'current_half_life': current, 'selected_half_life': best['half_life'],
             'search_space': variants, 'selection': 'training_price_mape_only_then_one_candidate_guard',
             'train_ratio': train_ratio, 'min_train_samples': min_train_samples,
-            'parameter_snapshot': deepcopy(params), 'history_sha256': frozen_inputs,
+            'parameter_snapshot': deepcopy(params), 'effective_settings': cfg, 'history_sha256': frozen_inputs,
             'candidates': [{k: v for k, v in e.items() if k != 'rows'} for e in entries],
             'guard': guard, 'changed_overrides': overrides, 'rows': rows,
             'acceptance_status': 'pending' if overrides else 'no_change'}
@@ -214,6 +217,7 @@ def add_legacy_comparison(result, history, params):
 
 
 def render(result):
+    cfg = settings.resolve(result['parameter_snapshot'])
     fmt = lambda value: '—' if value is None else f'{value:.2f}'
     lines = ['# 情绪组合影子自动调参', '',
              f"默认规则：{result['rule']} / {result['version']}；当前半衰期{result['current_half_life']:g}天，训练选定{result['selected_half_life']:g}天。",
@@ -233,7 +237,7 @@ def render(result):
     for e in result['candidates']:
         lines.append(f"|{e['half_life']:g}|{e['training']['count']}|{fmt(e['training']['price_mape_pct'])}|")
     lines += ['', '未通过项：' + ('、'.join(result['guard']['failed']) or '无'), '',
-              '保护条件：训练至少指定数量、后段至少5只；同股覆盖不减少；训练/后段/全部/最近10只MAPE不恶化，固定降温组高估不恶化，更早样本低估增加不超过1个百分点。', '',
+              f"保护条件：训练至少{result['min_train_samples']}只、后段至少{cfg['sentiment_tuning_min_validation_samples']}只；同股覆盖不减少；训练/后段/全部/最近10只MAPE不恶化，固定降温组高估不恶化，更早样本低估增加不超过{cfg['sentiment_tuning_earlier_under_tolerance_pp']:g}个百分点。", '',
               '## 逐股对照', '',
               '| 股票 | 分段 | 基本面F | 实际均价 | 正式价 | 原情绪 | 当前组合 | 候选 | 当前误差% | 候选误差% |',
               '|---|---|---:|---:|---:|---:|---:|---:|---:|---:|']

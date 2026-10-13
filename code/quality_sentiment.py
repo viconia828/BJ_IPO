@@ -10,6 +10,8 @@ import math
 import statistics
 from typing import Any
 
+import sentiment_settings as settings
+
 VERSION = "quality_sentiment_v1_structural"
 
 
@@ -157,7 +159,7 @@ def _float_cap(item: dict) -> float | None:
 def _weight(row: dict, target: dict, as_of: date, params: dict, *, time_weight: bool = True) -> float:
     weight = max(row["anchor"]["confidence"], 0.01)
     if time_weight:
-        half_life = max(float(params.get("quality_sentiment_half_life_days", 8)), 1.0)
+        half_life = max(float(settings.get(params, "quality_sentiment_half_life_days")), 1.0)
         weight *= 2 ** (-min((as_of - day(row["LISTING_DATE"])).days / half_life, 100))
     source_cap, target_cap = _float_cap(row), _float_cap(target)
     if source_cap and target_cap:
@@ -165,11 +167,11 @@ def _weight(row: dict, target: dict, as_of: date, params: dict, *, time_weight: 
     # A modest similarity weight, not an industry-specific price premium.
     group = str(target.get("industry_secondary") or "")
     if group and group != "未分类" and row.get("industry_secondary") == group:
-        weight *= 1.5
+        weight *= float(settings.get(params, "quality_sentiment_same_industry_weight"))
     return weight / max(int(row.get("same_date_count", 1)), 1)
 
 
-def _structural_normalize(rows: list[dict], target: dict) -> tuple[list[dict], dict]:
+def _structural_normalize(rows: list[dict], target: dict, params: dict | None = None) -> tuple[list[dict], dict]:
     """Ridge fit of issuer differences; subsequent time weighting owns market mood.
 
 u = intercept + b1*log(F/issue) + b2*log(float cap) + market residual.
@@ -186,8 +188,9 @@ by fundamentals. Shrinkage is fixed, not selected against these replay outcomes.
     xs = [features(r) for r in rows]
     means = [sum(w * x[j] for w, x in zip(weights, xs)) / sum(weights) for j in range(2)]
     ymean = sum(w * r["u"] for w, r in zip(weights, rows)) / sum(weights)
-    aa = sum(w * (x[0] - means[0]) ** 2 for w, x in zip(weights, xs)) + 2.0
-    bb = sum(w * (x[1] - means[1]) ** 2 for w, x in zip(weights, xs)) + 2.0
+    ridge = float(settings.get(params, "quality_sentiment_ridge_penalty"))
+    aa = sum(w * (x[0] - means[0]) ** 2 for w, x in zip(weights, xs)) + ridge
+    bb = sum(w * (x[1] - means[1]) ** 2 for w, x in zip(weights, xs)) + ridge
     ab = sum(w * (x[0] - means[0]) * (x[1] - means[1]) for w, x in zip(weights, xs))
     ay = sum(w * (x[0] - means[0]) * (r["u"] - ymean) for w, x, r in zip(weights, xs, rows))
     by = sum(w * (x[1] - means[1]) * (r["u"] - ymean) for w, x, r in zip(weights, xs, rows))
@@ -201,17 +204,18 @@ by fundamentals. Shrinkage is fixed, not selected against these replay outcomes.
         adjustment = b1 * (target_features[0] - x[0]) + b2 * (target_features[1] - x[1])
         normalized.append({**row, "u": row["u"] + adjustment})
     return normalized, {"fundamental_extra_premium_slope": b1, "float_cap_slope": b2,
-                        "ridge_penalty": 2.0, "float_missing_imputation": fill}
+                        "ridge_penalty": ridge, "float_missing_imputation": fill}
 
 
-def _estimate(rows: list[dict], target: dict, as_of: date, params: dict, *, minimum: int = 8,
+def _estimate(rows: list[dict], target: dict, as_of: date, params: dict, *, minimum: int | None = None,
               time_weight: bool = True, structural: bool = True) -> dict:
-    rows = rows[-40:]
+    minimum = int(settings.get(params, "quality_sentiment_min_history")) if minimum is None else minimum
+    rows = rows[-int(settings.get(params, "quality_sentiment_history_window")):]
     if len(rows) < minimum:
         return {"available": False, "reason": f"有效历史不足{minimum}只", "sample_count": len(rows)}
     coefficients = {}
     if structural:
-        rows, coefficients = _structural_normalize(rows, target)
+        rows, coefficients = _structural_normalize(rows, target, params)
     weights = [_weight(r, target, as_of, params, time_weight=time_weight) for r in rows]
     total = sum(weights)
     mean = sum(w * r["u"] for w, r in zip(weights, rows)) / total
@@ -223,7 +227,10 @@ def _estimate(rows: list[dict], target: dict, as_of: date, params: dict, *, mini
 def _state(rows: list[dict], target: dict, cutoff: date, params: dict, all_prior: list[dict]) -> dict:
     dates = sorted({r["LISTING_DATE"] for r in rows})
     all_dates = sorted({str(day(r["LISTING_DATE"])) for r in all_prior})
-    latest_all_dates = all_dates[-3:]
+    window = int(settings.get(params, "quality_sentiment_state_window_groups"))
+    min_groups = int(settings.get(params, "quality_sentiment_state_min_groups"))
+    min_coverage = float(settings.get(params, "quality_sentiment_state_min_coverage"))
+    latest_all_dates = all_dates[-window:]
     latest_all = [r for r in all_prior if str(day(r["LISTING_DATE"])) in latest_all_dates]
     ready_codes = {r["SECURITY_CODE"] for r in rows}
     coverage = sum(r["SECURITY_CODE"] in ready_codes for r in latest_all) / len(latest_all) if latest_all else 0
@@ -240,34 +247,35 @@ def _state(rows: list[dict], target: dict, cutoff: date, params: dict, all_prior
             "days_since_feedback": (cutoff - day(dates[-1])).days if dates else None,
             "post_vwap_mean_pct": post_mean, "post_count": post_count, "post_ipo_count": len(post_by_ipo),
             "note": "个股基础或连续反馈不足；原始首日涨幅不用于替代判断"}
-    if len(dates) < 6 or coverage < 2 / 3:
-        if len(post_by_ipo) >= 2 and all(value < 0 for value in post_by_ipo):
+    if len(dates) < 2 * window or coverage < min_coverage:
+        if len(post_by_ipo) >= int(settings.get(params, "quality_sentiment_state_min_post_samples")) and all(value < 0 for value in post_by_ipo):
             base.update(code="weak_aftermarket", label="承接偏弱，净情绪待确认",
                         note="近期多只新股首日均价至后续收盘亏损；个股基础覆盖不足，不能确认净情绪转向")
         return base
-    adjusted, _ = _structural_normalize(rows[-40:], target)
+    adjusted, _ = _structural_normalize(rows[-int(settings.get(params, "quality_sentiment_history_window")):], target, params)
     current = [r for r in adjusted if r["LISTING_DATE"] in latest_all_dates]
-    previous = [r for r in adjusted if r["LISTING_DATE"] in all_dates[-6:-3]]
-    if len({r["LISTING_DATE"] for r in current}) < 2 or len({r["LISTING_DATE"] for r in previous}) < 2:
+    previous = [r for r in adjusted if r["LISTING_DATE"] in all_dates[-2 * window:-window]]
+    if len({r["LISTING_DATE"] for r in current}) < min_groups or len({r["LISTING_DATE"] for r in previous}) < min_groups:
         base["note"] = "相邻窗口个股基础覆盖不足，不用更早股票补成完整窗口"
         return base
     current_signal = _estimate(current, target, cutoff, params, minimum=1, time_weight=False, structural=False)
     previous_signal = _estimate(previous, target, cutoff, params, minimum=1, time_weight=False, structural=False)
     delta = current_signal["log_premium"] - previous_signal["log_premium"]
-    # One fixed material-change threshold for the first shadow experiment.
-    material, decline = math.log(1.10), math.log(0.90)
+    change = float(settings.get(params, "quality_sentiment_state_change_pct")) / 100
+    material, decline = math.log(1 + change), math.log(1 - change)
+    minimum_miss_share = float(settings.get(params, "quality_sentiment_state_miss_share"))
     errors = [r["expectation_error"] for r in current if r.get("expectation_error") is not None]
     miss_share = sum(e < decline for e in errors) / len(errors) if errors else None
     confirmed_inputs = all(r["anchor"]["basis"] == "reviewed_fundamental" and
                            r.get("expectation_origin") == "archived" for r in current)
-    if delta < decline or (miss_share is not None and miss_share >= 2 / 3):
-        confirmation = delta < decline and miss_share is not None and miss_share >= 2 / 3 and post_mean is not None and post_mean < 0
+    if delta < decline or (miss_share is not None and miss_share >= minimum_miss_share):
+        confirmation = delta < decline and miss_share is not None and miss_share >= minimum_miss_share and post_mean is not None and post_mean < 0
         code, label = ("cooling_confirmed", "降温确认") if confirmation and confirmed_inputs else ("cooling_watch", "降温观察")
     elif delta > material:
         code, label = ("divergent", "溢价与承接分化") if post_mean is not None and post_mean < 0 else ("recovery_watch", "修复待确认")
     else:
         code, label = "stable", "暂稳观察"
-    stale = (cutoff - day(dates[-1])).days > 14
+    stale = (cutoff - day(dates[-1])).days > int(settings.get(params, "quality_sentiment_state_stale_days"))
     if stale:
         code, label = "stale", "反馈过期，待更新"
     return {**base, "code": code, "label": label, "delta_log": delta,
@@ -282,6 +290,7 @@ def _state(rows: list[dict], target: dict, cutoff: date, params: dict, all_prior
 
 
 def evaluate(target: dict, history: list[dict], params: dict, *, as_of: Any) -> dict:
+    params = {**params, **settings.resolve(params)}
     cutoff = day(as_of)
     if cutoff is None:
         raise ValueError("quality sentiment requires an explicit as_of date")
@@ -330,8 +339,8 @@ def evaluate(target: dict, history: list[dict], params: dict, *, as_of: Any) -> 
                 "anchor": r["anchor"], "actual": r["AVERAGE_PRICE"], "expected_center": r["expected_center"],
                 "premium_pct": r["premium_pct"], "expectation_error": r["expectation_error"],
                 "expectation_origin": r["expectation_origin"], "post_returns": visible_post_returns(r, cutoff)}
-               for r in completed[-6:]]
-    return {"version": VERSION, "mode": str(params.get("quality_sentiment_mode", "shadow")),
+               for r in completed[-2 * int(settings.get(params, "quality_sentiment_state_window_groups")):]]
+    return {"version": VERSION, "mode": str(settings.get(params, "quality_sentiment_mode")),
             "available": available, "as_of_exclusive": cutoff.isoformat(), "anchor": anchor, "sentiment": sentiment,
             "state": (_state(completed, model_target, cutoff, params, prior) if anchor.get("available") else
                       {"code": "uncertain", "label": "无法判断", "note": "目标缺少可靠PE基础"}), "recent_details": details,

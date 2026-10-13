@@ -16,7 +16,7 @@ tushare_non_intraday_daily_request_quota = 50000  # Non-intraday APIs; daily/dai
 
 # === 快速说明 ===
 # - 自动调参可写回：系统会搜索这些策略参数，用户接受后写入本文件。
-# - 仅手动可调：自动调参不会改，正式估值会读取。
+# - 仅手动可调：自动调参不会改，由对应的正式或影子模型读取。
 # - 训练/回放运行设置：影响调参入口怎样构建数据集、怎样展示结果；通常不改变单只正式估值。
 
 # === 仅手动可调：单只标的输入 ===
@@ -27,12 +27,44 @@ old_shares_transfer = auto            # 首日流通老股数量：auto=自动�
 # === 仅手动可调：正式估值和自动调参都会使用，但自动调参不会修改 ===
 recent_days = 30                      # Method3 recent sentiment lookback days; method2 uses target-year YTD same-secondary samples
 price_range_width = 0.10              # 最终估值区间宽度（±）；自动调参只用于命中判断，不搜索、不放大
-quality_sentiment_mode = shadow      # 个股基础×额外溢价；首版影子对照，不替换正式价格
-quality_sentiment_half_life_days = 8  # 固定实验设定；不参与自动网格调参
 min_industry_samples = 2              # Legacy compatibility; method2 no longer falls back to primary industry or full market
 pe_method = ttm                       # PE 口径：当前固定使用 TTM
 comparable_pe_stat = mean           # 可比公司 PE 聚合方式：median / mean
 trend_score_stocks = 5                # 走势评分最多纳入多少只历史样本
+
+# === 自动调参可写回：情绪组合影子 ===
+quality_sentiment_half_life_days = 8           # 情绪历史的时间衰减半衰期（天，至少1）；越小越偏重近期；控制台选项1检验通过并接受后写回
+
+# === 仅手动可调：情绪影子运行与基础估计 ===
+quality_sentiment_mode = shadow               # shadow=并列展示；off=关闭；active=原个股情绪接管正式价，组合反馈仍只作影子
+quality_sentiment_min_history = 8             # 至少需要多少只有有效基本面和首日均价的历史新股；不足时不生成影子价格
+quality_sentiment_history_window = 40         # 基础情绪及结构修正最多使用最近多少只有效历史新股；不得小于上面的最少样本数
+quality_sentiment_same_industry_weight = 1.5   # 同二级行业样本的相对权重；1表示不额外加权，不缩窄宽可比池
+quality_sentiment_ridge_penalty = 2.0         # 个股基础/流通规模差异回归的收缩强度（须大于0）；越大越抑制小样本斜率
+
+# === 仅手动可调：情绪状态观察 ===
+quality_sentiment_state_window_groups = 3     # 每个观察窗口包含的实际上市日组数；比较最近窗口与紧邻的前一窗口，同日新股算一组
+quality_sentiment_state_min_groups = 2        # 上述每个窗口至少需要多少个有基本面资料的上市日组；不得超过窗口大小
+quality_sentiment_state_min_coverage = 0.6666666666666666  # 最近窗口有效基本面股票数/全部股票数的下限；当前为2/3
+quality_sentiment_state_change_pct = 10       # 溢价倍数上升/下降达到多少百分比时观察转向；10表示上升10%或下降10%，须大于0且小于100
+quality_sentiment_state_miss_share = 0.6666666666666666    # 近期实际价格显著低于事前基准的样本占比门槛；当前为2/3，显著程度沿用上项
+quality_sentiment_state_min_post_samples = 2  # 基本面覆盖不足时，至少多少只新股的已知后续收盘均低于首日均价才提示承接偏弱
+quality_sentiment_state_stale_days = 14       # 最新有效上市反馈距估值日超过多少自然日后标为过期
+
+# === 仅手动可调：情绪组合反馈定价 ===
+# 以下参数同时用于报告与控制台回放；当前默认规则为combined（兑现反馈与承接变化相加），不参与自动搜索。
+sentiment_response_window_groups = 3          # 兑现及承接反馈使用最近多少个实际上市日组；至少2组，缺失不向更早历史补齐
+sentiment_response_reference_groups = 20      # 承接常态参照使用近期反馈窗口之前的多少个上市日组；D2/D3按相同期限分别比较
+sentiment_response_min_groups = 2             # 每路近期反馈至少需要多少个可用上市日组；不得超过近期窗口
+sentiment_response_min_coverage = 0.6666666666666666  # 每路可用上市日组/近期实际上市日组的最低比例；当前为2/3
+sentiment_response_min_reference_groups = 5   # 每个D2/D3期限的承接常态至少需要多少个可用上市日组；不得超过参照窗口
+sentiment_response_prior_groups = 3           # 反馈收缩使用n/(n+本值)，n为可用上市日组数；越大越保守，0表示不收缩
+sentiment_response_clip_multiplier = 2.0      # 单项异常反馈按对数截断到±ln(本值)；2表示价格倍数限制为0.5至2，至少为1
+sentiment_response_max_multiplier = 1.25      # 合计调价按对数限制到±ln(本值)；1.25对应最多下调20%、上调25%；1表示关闭反馈调价
+
+# === 仅手动可调：情绪研究候选（不作为默认组合） ===
+sentiment_role_confirmation_cap_ratio = 1.0   # 信号分工候选中，同向承接确认最多占兑现反馈绝对值的比例（0至1）；冲突时不叠加
+sentiment_timing_material_pct = 10            # 转向候选要求最近两个上市日组的对数兑现误差绝对值各自超过ln(1+本值/100)且同向；两组收缩沿用上面的prior
 
 # === 自动调参可写回：综合估值权重与方法一折价 ===
 bse_discount_factor = 0.55            # 北交所相对可比公司估值折价系数
@@ -143,9 +175,14 @@ tuning_replay_months = 18             # 重建 replay 数据集时默认回看�
 tuning_page_size = 100                # 重建 replay 数据集时历史样本抓取分页大小
 tuning_top_n = 10                     # 自动调参/候选复核报告默认输出 Top N 候选
 
-# === 训练/回放运行设置：仅旧版批量搜索与手动候选复核使用 ===
-tuning_train_ratio = 0.90             # 训练集比例；不影响自动调参的近期加权评分
-tuning_min_train_samples = 8          # 最小训练样本数；不影响自动调参的近期加权评分
+# === 训练/回放运行设置：情绪影子、旧版批量搜索与手动候选复核 ===
+tuning_train_ratio = 0.90             # 训练集比例；情绪影子按上市日整组切分，后段用于检验；不影响旧综合自动调参的近期加权评分
+tuning_min_train_samples = 8          # 最少训练样本数；情绪影子不足时不建议写回；不影响旧综合自动调参的近期加权评分
+
+# === 训练/回放运行设置：情绪组合影子自动调参 ===
+sentiment_tuning_half_life_candidates = 4,8,12,16  # 半衰期搜索候选（天，逗号分隔，每项至少1）；自动加入当前值，最多50项
+sentiment_tuning_min_validation_samples = 5       # 后段检验至少需要多少只有效评分股票；不足时保留当前参数
+sentiment_tuning_earlier_under_tolerance_pp = 1.0  # 最近10只之前的低估部分均值最多允许增加多少个百分点；0表示完全不允许恶化
 
 [industry_mapping]
 # === 行业映射表（按需补充） ===

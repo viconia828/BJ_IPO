@@ -9,34 +9,39 @@ import math
 import statistics
 
 import quality_sentiment as qs
+import sentiment_settings as settings
 
 VERSION = 'sentiment_response_v1'
 RULES = ('expectation', 'aftermarket', 'combined')
-WINDOW = 3
-REFERENCE_WINDOW = 20
-MIN_GROUPS = 2
-MIN_REFERENCE_GROUPS = 5
-PRIOR_GROUPS = 3
-CLIP = math.log(2)
-MAX_CORRECTION = math.log(1.25)
+# Compatibility aliases for archived research scripts; runtime uses TXT settings.
+WINDOW = settings.DEFAULTS['sentiment_response_window_groups']
+REFERENCE_WINDOW = settings.DEFAULTS['sentiment_response_reference_groups']
+MIN_GROUPS = settings.DEFAULTS['sentiment_response_min_groups']
+MIN_REFERENCE_GROUPS = settings.DEFAULTS['sentiment_response_min_reference_groups']
+PRIOR_GROUPS = settings.DEFAULTS['sentiment_response_prior_groups']
+CLIP = math.log(settings.DEFAULTS['sentiment_response_clip_multiplier'])
+MAX_CORRECTION = math.log(settings.DEFAULTS['sentiment_response_max_multiplier'])
 
 
 def clipped(value, limit=CLIP):
     return max(-limit, min(limit, value))
 
 
-def grouped_signal(observations, recent_dates, *, minimum=MIN_GROUPS, minimum_coverage=2 / 3):
+def grouped_signal(observations, recent_dates, *, minimum=None, minimum_coverage=None, params=None):
+    cfg = settings.resolve(params)
+    minimum = cfg['sentiment_response_min_groups'] if minimum is None else minimum
+    minimum_coverage = cfg['sentiment_response_min_coverage'] if minimum_coverage is None else minimum_coverage
     by_date = {}
     for row in observations:
         by_date.setdefault(row['listing_date'], []).append(row['value'])
     groups = [{'listing_date': d, 'value': statistics.mean(by_date[d])} for d in sorted(by_date)]
     available = len(groups) >= minimum and len(groups) / max(len(recent_dates), 1) >= minimum_coverage
     raw = statistics.mean(r['value'] for r in groups) if groups else None
-    shrink = len(groups) / (len(groups) + PRIOR_GROUPS) if available else 0.0
+    shrink = len(groups) / (len(groups) + cfg['sentiment_response_prior_groups']) if available else 0.0
     return {'available': available, 'observations': observations, 'date_groups': groups,
             'group_count': len(groups), 'raw_log_signal': raw, 'shrinkage': shrink,
             'log_correction': raw * shrink if available else 0.0,
-            'reason': None if available else '最近3个实际上市日组中可用反馈不足；不向前补样本'}
+            'reason': None if available else f"最近{cfg['sentiment_response_window_groups']}个实际上市日组中可用反馈不足；不向前补样本"}
 
 
 def _prior(target, history, cutoff):
@@ -56,12 +61,15 @@ def _prior(target, history, cutoff):
 
 
 def feedback_signals(target, history, params, *, as_of):
+    cfg = settings.resolve(params)
+    window, reference_window = cfg['sentiment_response_window_groups'], cfg['sentiment_response_reference_groups']
+    clip = math.log(cfg['sentiment_response_clip_multiplier'])
     cutoff = qs.day(as_of)
     if cutoff is None:
         raise ValueError('explicit as_of required')
     prior = _prior(target, history, cutoff)
     dates = sorted({qs.day(r['LISTING_DATE']).isoformat() for r in prior})
-    recent_dates, reference_dates = dates[-WINDOW:], dates[-(WINDOW + REFERENCE_WINDOW):-WINDOW]
+    recent_dates, reference_dates = dates[-window:], dates[-(window + reference_window):-window]
     recent = [r for r in prior if qs.day(r['LISTING_DATE']).isoformat() in recent_dates]
     reference = [r for r in prior if qs.day(r['LISTING_DATE']).isoformat() in reference_dates]
     expectations = []
@@ -74,7 +82,7 @@ def feedback_signals(target, history, params, *, as_of):
             predicted = baseline['sentiment']['center']
             raw = math.log(actual / predicted)
             expectations.append({'code': row['SECURITY_CODE'],
-                'listing_date': qs.day(row['LISTING_DATE']).isoformat(), 'value': clipped(raw),
+                'listing_date': qs.day(row['LISTING_DATE']).isoformat(), 'value': clipped(raw, clip),
                 'actual_vwap': actual, 'baseline_prediction': predicted, 'raw_log_error': raw,
                 'prediction_origin': 'baseline_walk_forward_reconstruction'})
 
@@ -82,7 +90,7 @@ def feedback_signals(target, history, params, *, as_of):
         listing, day = qs.day(row['LISTING_DATE']), qs.day(row.get(prefix + '_TRADE_DATE'))
         close, actual = qs._positive(row.get(prefix + '_DAY_CLOSE')), qs._positive(row.get('AVERAGE_PRICE'))
         if day and listing < day < cutoff and close and actual:
-            return {'date': day.isoformat(), 'log_return': clipped(math.log(close / actual))}
+            return {'date': day.isoformat(), 'log_return': clipped(math.log(close / actual), clip)}
         return None
 
     reference_stats = {}
@@ -94,9 +102,9 @@ def feedback_signals(target, history, params, *, as_of):
                 observations.append({'code': row['SECURITY_CODE'],
                     'listing_date': qs.day(row['LISTING_DATE']).isoformat(),
                     'value': obs['log_return'], **obs})
-        stats = grouped_signal(observations, reference_dates, minimum=MIN_REFERENCE_GROUPS, minimum_coverage=0)
+        stats = grouped_signal(observations, reference_dates, minimum=cfg['sentiment_response_min_reference_groups'], minimum_coverage=0, params=cfg)
         if not stats['available']:
-            stats['reason'] = '同期限承接参照不足5个上市日组'
+            stats['reason'] = f"同期限承接参照不足{cfg['sentiment_response_min_reference_groups']}个上市日组"
         reference_stats[prefix] = stats
     post = []
     for row in recent:
@@ -106,19 +114,21 @@ def feedback_signals(target, history, params, *, as_of):
             if obs and ref['available']:
                 comparisons.append({'horizon': prefix, **obs,
                     'reference_log_return': ref['raw_log_signal'],
-                    'innovation': clipped(obs['log_return'] - ref['raw_log_signal'])})
+                    'innovation': clipped(obs['log_return'] - ref['raw_log_signal'], clip)})
         if comparisons:
             post.append({'code': row['SECURITY_CODE'],
                 'listing_date': qs.day(row['LISTING_DATE']).isoformat(),
                 'value': statistics.mean(c['innovation'] for c in comparisons), 'comparisons': comparisons})
     return {'as_of_exclusive': cutoff.isoformat(), 'recent_listing_dates': recent_dates,
-            'expectation': grouped_signal(expectations, recent_dates),
-            'aftermarket': grouped_signal(post, recent_dates), 'post_reference': reference_stats,
+            'expectation': grouped_signal(expectations, recent_dates, params=cfg),
+            'aftermarket': grouped_signal(post, recent_dates, params=cfg), 'post_reference': reference_stats,
             'uses_target_outcome': False,
             'note': '上涨和下跌对称响应；承接信号衡量相对历史常态的变化，不把所有D2/D3折价都扣一次'}
 
 
 def evaluate_all(target, history, params, *, as_of):
+    cfg = settings.resolve(params)
+    maximum = math.log(cfg['sentiment_response_max_multiplier'])
     cutoff = qs.day(as_of)
     if cutoff is None:
         raise ValueError('explicit as_of required')
@@ -130,13 +140,13 @@ def evaluate_all(target, history, params, *, as_of):
         result = deepcopy(baseline)
         e = signals['expectation']['log_correction'] if rule != 'aftermarket' else 0.0
         a = signals['aftermarket']['log_correction'] if rule != 'expectation' else 0.0
-        correction = clipped(e + a, MAX_CORRECTION)
+        correction = clipped(e + a, maximum)
         result.update(version=VERSION, mode='shadow', formal_eligible=False)
         result['pricing_response'] = {'rule': rule, 'baseline_version': baseline['version'],
             'baseline_center': baseline['sentiment'].get('center'),
             'expectation_log_correction': e, 'aftermarket_log_correction': a,
             'log_correction': correction, 'price_change_pct': math.expm1(correction) * 100,
-            'maximum_log_correction': MAX_CORRECTION, 'signals': signals}
+            'maximum_log_correction': maximum, 'signals': signals}
         if result['available']:
             sentiment = result['sentiment']
             multiplier = math.exp(correction)

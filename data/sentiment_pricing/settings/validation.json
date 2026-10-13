@@ -1,0 +1,574 @@
+{
+  "schema": "sentiment_settings_migration_validation_v1",
+  "status": "passed",
+  "baseline_commit": "fefbca253a416c14b21644b092bba20d6c8d8dda",
+  "settings": {
+    "quality_sentiment_mode": "shadow",
+    "quality_sentiment_half_life_days": 8.0,
+    "quality_sentiment_min_history": 8,
+    "quality_sentiment_history_window": 40,
+    "quality_sentiment_same_industry_weight": 1.5,
+    "quality_sentiment_ridge_penalty": 2.0,
+    "quality_sentiment_state_window_groups": 3,
+    "quality_sentiment_state_min_groups": 2,
+    "quality_sentiment_state_min_coverage": 0.6666666666666666,
+    "quality_sentiment_state_change_pct": 10.0,
+    "quality_sentiment_state_miss_share": 0.6666666666666666,
+    "quality_sentiment_state_min_post_samples": 2,
+    "quality_sentiment_state_stale_days": 14,
+    "sentiment_response_window_groups": 3,
+    "sentiment_response_reference_groups": 20,
+    "sentiment_response_min_groups": 2,
+    "sentiment_response_min_coverage": 0.6666666666666666,
+    "sentiment_response_min_reference_groups": 5,
+    "sentiment_response_prior_groups": 3.0,
+    "sentiment_response_clip_multiplier": 2.0,
+    "sentiment_response_max_multiplier": 1.25,
+    "sentiment_role_confirmation_cap_ratio": 1.0,
+    "sentiment_timing_material_pct": 10.0,
+    "sentiment_tuning_half_life_candidates": [
+      4.0,
+      8.0,
+      12.0,
+      16.0
+    ],
+    "sentiment_tuning_min_validation_samples": 5,
+    "sentiment_tuning_earlier_under_tolerance_pp": 1.0
+  },
+  "equivalence": {
+    "issuer_count": 65,
+    "variant_count": 6,
+    "full_outputs_identical": true,
+    "history_sha256": "c38ebcf71c96ffd8a5d20ebbf536336d515a110f5f8a99a2851c2e42ed333ed2",
+    "before_outputs_sha256": "033a298e867ef3bc16b16b3a9e60b6578ad506eb9f73580d7435172a679bd492",
+    "after_outputs_sha256": "033a298e867ef3bc16b16b3a9e60b6578ad506eb9f73580d7435172a679bd492"
+  },
+  "source_sha256_lf": {
+    "策略参数.txt": "292b68af6f5737d2844c329f07779a48667c12789c4c6c7befbe209110f490c8",
+    "code/sentiment_settings.py": "f5a49dae0c6a84b9b275c665d16d046352c701325ed81dcba6d3bf20a8c5db9b",
+    "code/config_loader.py": "1849779dddb9dc3f1e2768a8b568bab938691932e373b8d2383f3d52f2d3fd97",
+    "code/quality_sentiment.py": "d1f4834e262a8791f85f148029a4cd6431983040e474319a65fd68d07c9dabff",
+    "code/sentiment_pricing.py": "e1d44af5ff14eea0f8916223ba7430c2a7604a9799652c8d7c2dae1e327dca2a",
+    "code/sentiment_roles.py": "e96ecf697ae651085436d86fb8923de91531251881d9f6c3bde018b97cccb063",
+    "code/sentiment_timing.py": "061e087f963a9883c9399a1d77d6e408ec5cf60958df32dab36cb3cfc376eff3",
+    "code/sentiment_tuning.py": "0960e115c512854834acfc4e0294406ea5f0b2ac552eddc95dfc9340985877be",
+    "tools/sentiment_tune_console.py": "61ce77e7b1ed9f4199ad8ee433f9798c4abf0a18a0858ece6066ab8aeff50233",
+    "tests/validate_sentiment_settings.py": "619f02fb7ea3d72c4ea1af68888149145fdb4c109f11122702b57c0364f5c262"
+  },
+  "existing_forward_snapshot_unchanged": true,
+  "full_regression": {
+    "status": "passed",
+    "tests": [
+      {
+        "test": "validate_account_pool_history_builder.py",
+        "exit_code": 0,
+        "seconds": 0.16,
+        "source_sha256_lf": "42bb782abc3e2f49fd6fcee4349a85bc5a86728e942c520dae26bf30016cf981"
+      },
+      {
+        "test": "validate_bse_newshare_fallback.py",
+        "exit_code": 0,
+        "seconds": 1.59,
+        "source_sha256_lf": "cf55ffe27caf1a95592a1481f1d705db7d81d958e2d117b5ea5c0a50378951d7"
+      },
+      {
+        "test": "validate_bse_official_helper.py",
+        "exit_code": 0,
+        "seconds": 4.09,
+        "source_sha256_lf": "507a145bdb68e52975228533e61c82b1c3cccbca1e6833f6cf809a8d67f9182b"
+      },
+      {
+        "test": "validate_bse_redirect_fallback.py",
+        "exit_code": 0,
+        "seconds": 3.67,
+        "source_sha256_lf": "3eb2867d12cad3a30b4eb1b6d33d1458ebe8b8a80df6a69a6b9e1d9a6c3932b3"
+      },
+      {
+        "test": "validate_dynamic_width_acceptance.py",
+        "exit_code": 0,
+        "seconds": 0.3,
+        "source_sha256_lf": "77d85bc86e9672c0be60dfed3d1b95878a120d09a01c88a78f8069ec6777e211"
+      },
+      {
+        "test": "validate_fundamental_anchor.py",
+        "exit_code": 0,
+        "seconds": 0.28,
+        "source_sha256_lf": "d1add1bc0dfecbf9ad64194e7cada785ca998cfb397266408af8e2152bc3ee14"
+      },
+      {
+        "test": "validate_industry_classification.py",
+        "exit_code": 0,
+        "seconds": 0.31,
+        "source_sha256_lf": "945845d26d58cbe7f91c82dc242d5e3878775f61c20e777130315a7ae4f464b4"
+      },
+      {
+        "test": "validate_intraday_cache_tool.py",
+        "exit_code": 0,
+        "seconds": 1.72,
+        "source_sha256_lf": "fa16b01787ce8a50c85074a4a39243d7932f909ab8cc5aeb1a1475634f8d12c2"
+      },
+      {
+        "test": "validate_intraday_regret_guidance.py",
+        "exit_code": 0,
+        "seconds": 0.28,
+        "source_sha256_lf": "fe1c189045567387d3f1fd7680452e189287dc6b7fc8a8c108c327b51c5e8e0a"
+      },
+      {
+        "test": "validate_ipo_data_helper_bse_fallback.py",
+        "exit_code": 0,
+        "seconds": 0.17,
+        "source_sha256_lf": "41a7e5053185bf6eb9d5000f41b3fcd76bca87fe99b3b5b0cf938b866db6ec60"
+      },
+      {
+        "test": "validate_local_center_overlay.py",
+        "exit_code": 0,
+        "seconds": 0.27,
+        "source_sha256_lf": "64092f0a6e95186d9ddb4e1f25e8a543d9e11bf63dd4e43502cd67fe2c64d3d6"
+      },
+      {
+        "test": "validate_local_pdf_manifest.py",
+        "exit_code": 0,
+        "seconds": 0.38,
+        "source_sha256_lf": "32ba0e445e931f0cd84a8af54e5dc9affd42c1915926e6a977509a94a0882168"
+      },
+      {
+        "test": "validate_local_proxy_single_method.py",
+        "exit_code": 0,
+        "seconds": 0.28,
+        "source_sha256_lf": "7729857f6e36483b56bc35225842cd1fa9f708bc775318c375d8aab9e66cb8f2"
+      },
+      {
+        "test": "validate_main_flow_regression.py",
+        "exit_code": 0,
+        "seconds": 0.84,
+        "source_sha256_lf": "5eb2dc20cdb54cccee0f4135b9fd85e3702b3b2e58c819f6c3726c4054f11d85"
+      },
+      {
+        "test": "validate_method1_anchor_reliability.py",
+        "exit_code": 0,
+        "seconds": 0.3,
+        "source_sha256_lf": "0e787d524a384fa95e450647a0331b90b9654f89378b8b8ef2a20ce1374b091f"
+      },
+      {
+        "test": "validate_method1_data_pipeline.py",
+        "exit_code": 0,
+        "seconds": 0.17,
+        "source_sha256_lf": "de7c59eb845e4d19f1c8af4df142596572e71feb0779da1f3fb1b8bbcac08b4c"
+      },
+      {
+        "test": "validate_param_tuning.py",
+        "exit_code": 0,
+        "seconds": 6.25,
+        "source_sha256_lf": "cf7fbec1b46cccef6c84083999650a28a11b4d6ac2911e3f701b7ef4f2285764"
+      },
+      {
+        "test": "validate_pdf_content_goldens.py",
+        "exit_code": 0,
+        "seconds": 0.2,
+        "source_sha256_lf": "80d5dd578a36db79c95ed41ad9d871af488d24f6974ff79d9709ab8c88f16a93"
+      },
+      {
+        "test": "validate_pdf_old_shares_goldens.py",
+        "exit_code": 0,
+        "seconds": 0.17,
+        "source_sha256_lf": "0424429f5f3140f318ead4faed0152cb5166ff3b903751cb0cac286c0ce80035"
+      },
+      {
+        "test": "validate_pdf_parser_text_cases.py",
+        "exit_code": 0,
+        "seconds": 0.44,
+        "source_sha256_lf": "dc5b21378b51652eeb84fde2f0d18fd56d4c86c298e6a32c9e4929316f2e8661"
+      },
+      {
+        "test": "validate_peer_fundamentals.py",
+        "exit_code": 0,
+        "seconds": 0.26,
+        "source_sha256_lf": "54cf1f30894c58620a5eac75ec0d020338798ebe8b8fdb88e2a6354d6be9cfcb"
+      },
+      {
+        "test": "validate_peer_research.py",
+        "exit_code": 0,
+        "seconds": 0.19,
+        "source_sha256_lf": "b7aa944438d30eae2e39a3a72977907d4839efd6293f7f858402ce58cbc5beb2"
+      },
+      {
+        "test": "validate_prospectus_autodownload.py",
+        "exit_code": 0,
+        "seconds": 2.02,
+        "source_sha256_lf": "1b263514b716db7c574586534bfd002dfd921a28e8f2ee950fe89d5ee0066971"
+      },
+      {
+        "test": "validate_prospectus_issue_info.py",
+        "exit_code": 0,
+        "seconds": 0.27,
+        "source_sha256_lf": "2c21212ddba9cb46d8c23e22e09a08517e4e84df98910bb0351de518f4c26abb"
+      },
+      {
+        "test": "validate_quality_sentiment.py",
+        "exit_code": 0,
+        "seconds": 0.19,
+        "source_sha256_lf": "87b135c8da69cc5ab2bf5dc175b5229b5b5076dd38b6d0981dc5ddc3c2005633"
+      },
+      {
+        "test": "validate_recent_fundamentals.py",
+        "exit_code": 0,
+        "seconds": 0.24,
+        "source_sha256_lf": "c7f596013fd42022e51c2ec0721a3c627a54156499ae1f5d0b8db4916c817675"
+      },
+      {
+        "test": "validate_report_dual_valuation_ranges.py",
+        "exit_code": 0,
+        "seconds": 0.12,
+        "source_sha256_lf": "e307a3e2d9c21acc36de6ad66b60e01beb143dc080a00c283fb72c61acea3471"
+      },
+      {
+        "test": "validate_sentiment_pricing.py",
+        "exit_code": 0,
+        "seconds": 0.41,
+        "source_sha256_lf": "7038bfd31e73becc4deaa4786184ec10f8d762a35b8f5873d4e1999265151216"
+      },
+      {
+        "test": "validate_sentiment_roles.py",
+        "exit_code": 0,
+        "seconds": 0.53,
+        "source_sha256_lf": "616353d4282bf86a3823fb6d91123c83d217ee8512ecff38a56e7dac31384ed3"
+      },
+      {
+        "test": "validate_sentiment_settings.py",
+        "exit_code": 0,
+        "seconds": 0.59,
+        "source_sha256_lf": "619f02fb7ea3d72c4ea1af68888149145fdb4c109f11122702b57c0364f5c262"
+      },
+      {
+        "test": "validate_sentiment_tuning.py",
+        "exit_code": 0,
+        "seconds": 1.53,
+        "source_sha256_lf": "308602915e0bf96533f7e6e73060a9494134c5be13527430f8353ba294ae6385"
+      },
+      {
+        "test": "validate_subscription_history_builder.py",
+        "exit_code": 0,
+        "seconds": 0.64,
+        "source_sha256_lf": "dadb8b2e5a44f112581977934cbcb8adf8896181922af7001971bc7c11195d75"
+      },
+      {
+        "test": "validate_subscription_prediction_tuning.py",
+        "exit_code": 0,
+        "seconds": 10.11,
+        "source_sha256_lf": "e8d7c51d5730ab901e0f1d992a4cc68f56aec2ca42bd38e533b8ebab2131ebf7"
+      },
+      {
+        "test": "validate_subscription_predictor.py",
+        "exit_code": 0,
+        "seconds": 0.73,
+        "source_sha256_lf": "6ac304eccd03699acb9fe8a4c96279988bf9bfd1f8a174ba40d423bf993c6d83"
+      },
+      {
+        "test": "validate_sync_offline_tuning_dataset.py",
+        "exit_code": 0,
+        "seconds": 0.39,
+        "source_sha256_lf": "d6ae020ca5937716047b7e9a0ae8c79f05ab56ec4c428374761339c9e943cdc1"
+      },
+      {
+        "test": "validate_tushare_data_pipeline.py",
+        "exit_code": 0,
+        "seconds": 0.58,
+        "source_sha256_lf": "21a75cb706544f416eda5309b954620a984cd9bf619c59f1666c8b7387f66f98"
+      },
+      {
+        "test": "validate_tushare_ipo_bse_target_fallback.py",
+        "exit_code": 0,
+        "seconds": 0.22,
+        "source_sha256_lf": "9fa76051dd09159df6b734aad118077ce027156a4c55299d51a77088f5eb784c"
+      },
+      {
+        "test": "validate_tushare_ipo_data_pipeline.py",
+        "exit_code": 0,
+        "seconds": 0.24,
+        "source_sha256_lf": "243d17e7b09cb036cb2e84937b5c1b41d514e63ef54f6a35e8f39570f509a7f8"
+      },
+      {
+        "test": "validate_valuation_method_roles.py",
+        "exit_code": 0,
+        "seconds": 0.11,
+        "source_sha256_lf": "c86c6ab06cd9dce6754f13aafb9df16db3504251091d6e92a1cd7a957a9be0a6"
+      },
+      {
+        "test": "validate_valuation_time_slice_stability.py",
+        "exit_code": 0,
+        "seconds": 0.3,
+        "source_sha256_lf": "2671d2ff02ac5c1da0e28536233fe94c866448b01a1c4fdad7403e2faa4f78b7"
+      }
+    ],
+    "passed": 40,
+    "total": 40
+  },
+  "console_smoke": {
+    "mode": "sentiment-auto",
+    "evaluate_only": true,
+    "dataset_count": 66,
+    "search_space": [
+      4.0,
+      8.0,
+      12.0,
+      16.0
+    ],
+    "current_half_life": 8.0,
+    "selected_half_life": 16.0,
+    "changed_overrides": {},
+    "guard": {
+      "passed": false,
+      "checks": {
+        "train_coverage": true,
+        "train_mape": true,
+        "validation_coverage": true,
+        "validation_mape": false,
+        "all": false,
+        "recent10": false,
+        "cooling": false,
+        "earlier_under": true,
+        "same_stock_coverage": true
+      },
+      "failed": [
+        "validation_mape",
+        "all",
+        "recent10",
+        "cooling"
+      ]
+    },
+    "metrics": {
+      "all": {
+        "legacy": {
+          "count": 62,
+          "total": 66,
+          "price_mape_pct": 39.9449116773082,
+          "over_pct": 26.992243280430042,
+          "under_pct": 12.952668396878154,
+          "gain_mae_pp": 125.21464383506772,
+          "hits": 8
+        },
+        "original": {
+          "count": 48,
+          "total": 66,
+          "price_mape_pct": 41.63998524026876,
+          "over_pct": 28.756125371502545,
+          "under_pct": 12.883859868766208,
+          "gain_mae_pp": 130.1696619013981,
+          "hits": 2
+        },
+        "current": {
+          "count": 48,
+          "total": 66,
+          "price_mape_pct": 39.10691737217773,
+          "over_pct": 25.863710179467144,
+          "under_pct": 13.243207192710583,
+          "gain_mae_pp": 124.54550444450653,
+          "hits": 9
+        },
+        "candidate": {
+          "count": 48,
+          "total": 66,
+          "price_mape_pct": 39.21288358705494,
+          "over_pct": 26.035505738581712,
+          "under_pct": 13.177377848473224,
+          "gain_mae_pp": 124.71564945683657,
+          "hits": 8
+        }
+      },
+      "train": {
+        "legacy": {
+          "count": 55,
+          "total": 56,
+          "price_mape_pct": 38.32653231629392,
+          "over_pct": 26.889215281801473,
+          "under_pct": 11.43731703449245,
+          "gain_mae_pp": 117.15972088801797,
+          "hits": 8
+        },
+        "original": {
+          "count": 42,
+          "total": 56,
+          "price_mape_pct": 43.45115864439751,
+          "over_pct": 31.873305719762417,
+          "under_pct": 11.577852924635094,
+          "gain_mae_pp": 127.89393052126249,
+          "hits": 2
+        },
+        "current": {
+          "count": 42,
+          "total": 56,
+          "price_mape_pct": 41.739341800243736,
+          "over_pct": 29.01902901074746,
+          "under_pct": 12.720312789496274,
+          "gain_mae_pp": 125.70042310624692,
+          "hits": 7
+        },
+        "candidate": {
+          "count": 42,
+          "total": 56,
+          "price_mape_pct": 41.119842302301045,
+          "over_pct": 28.83209272437052,
+          "under_pct": 12.287749577930528,
+          "gain_mae_pp": 123.74559542716844,
+          "hits": 6
+        }
+      },
+      "validation": {
+        "legacy": {
+          "count": 7,
+          "total": 7,
+          "price_mape_pct": 52.66074951384894,
+          "over_pct": 27.80174898394025,
+          "under_pct": 24.859000529908695,
+          "gain_mae_pp": 188.50332413331574,
+          "hits": 0
+        },
+        "original": {
+          "count": 6,
+          "total": 7,
+          "price_mape_pct": 28.961771411367465,
+          "over_pct": 6.935862933683453,
+          "under_pct": 22.025908477684013,
+          "gain_mae_pp": 146.09978156234726,
+          "hits": 0
+        },
+        "current": {
+          "count": 6,
+          "total": 7,
+          "price_mape_pct": 20.679946375715712,
+          "over_pct": 3.7764783605049645,
+          "under_pct": 16.90346801521075,
+          "gain_mae_pp": 116.46107381232382,
+          "hits": 2
+        },
+        "candidate": {
+          "count": 6,
+          "total": 7,
+          "price_mape_pct": 25.864172580332166,
+          "over_pct": 6.45939683806006,
+          "under_pct": 19.404775742272104,
+          "gain_mae_pp": 131.50602766451357,
+          "hits": 2
+        }
+      },
+      "recent10": {
+        "legacy": {
+          "count": 10,
+          "total": 10,
+          "price_mape_pct": 45.81091187101977,
+          "over_pct": 28.225937027377547,
+          "under_pct": 17.584974843642225,
+          "gain_mae_pp": 147.8901060909873,
+          "hits": 1
+        },
+        "original": {
+          "count": 9,
+          "total": 10,
+          "price_mape_pct": 30.346946845892447,
+          "over_pct": 13.59798933167647,
+          "under_pct": 16.74895751421598,
+          "gain_mae_pp": 118.59457419595994,
+          "hits": 0
+        },
+        "current": {
+          "count": 9,
+          "total": 10,
+          "price_mape_pct": 25.13009729525587,
+          "over_pct": 11.952974363104778,
+          "under_pct": 13.177122932151093,
+          "gain_mae_pp": 99.13902983525581,
+          "hits": 2
+        },
+        "candidate": {
+          "count": 9,
+          "total": 10,
+          "price_mape_pct": 28.641725966403403,
+          "over_pct": 13.744664993674295,
+          "under_pct": 14.89706097272911,
+          "gain_mae_pp": 109.20608582495628,
+          "hits": 2
+        }
+      },
+      "cooling": {
+        "legacy": {
+          "count": 31,
+          "total": 31,
+          "price_mape_pct": 44.922964810995516,
+          "over_pct": 35.76089039961772,
+          "under_pct": 9.162074411377795,
+          "gain_mae_pp": 131.97878732467035,
+          "hits": 3
+        },
+        "original": {
+          "count": 27,
+          "total": 31,
+          "price_mape_pct": 44.260158163978254,
+          "over_pct": 34.90555069755086,
+          "under_pct": 9.354607466427401,
+          "gain_mae_pp": 135.06535287111197,
+          "hits": 2
+        },
+        "current": {
+          "count": 27,
+          "total": 31,
+          "price_mape_pct": 37.902766679538765,
+          "over_pct": 25.982768364292234,
+          "under_pct": 11.919998315246529,
+          "gain_mae_pp": 125.08667341368658,
+          "hits": 6
+        },
+        "candidate": {
+          "count": 27,
+          "total": 31,
+          "price_mape_pct": 39.89829302164584,
+          "over_pct": 29.254440290803636,
+          "under_pct": 10.643852730842202,
+          "gain_mae_pp": 126.74851841508067,
+          "hits": 6
+        }
+      },
+      "common_all": {
+        "legacy": {
+          "count": 48,
+          "total": 48,
+          "price_mape_pct": 39.496277680766894,
+          "over_pct": 26.881721834126424,
+          "under_pct": 12.61455584664047,
+          "gain_mae_pp": 128.24189381307337,
+          "hits": 7
+        },
+        "original": {
+          "count": 48,
+          "total": 48,
+          "price_mape_pct": 41.63998524026876,
+          "over_pct": 28.756125371502545,
+          "under_pct": 12.883859868766208,
+          "gain_mae_pp": 130.1696619013981,
+          "hits": 2
+        },
+        "current": {
+          "count": 48,
+          "total": 48,
+          "price_mape_pct": 39.10691737217773,
+          "over_pct": 25.863710179467144,
+          "under_pct": 13.243207192710583,
+          "gain_mae_pp": 124.54550444450653,
+          "hits": 9
+        },
+        "candidate": {
+          "count": 48,
+          "total": 48,
+          "price_mape_pct": 39.21288358705494,
+          "over_pct": 26.035505738581712,
+          "under_pct": 13.177377848473224,
+          "gain_mae_pp": 124.71564945683657,
+          "hits": 8
+        }
+      }
+    }
+  },
+  "notes": [
+    "Historical experiments and their hash protocols are unchanged; reproduce at the original commits.",
+    "Concurrent offline_tuning data refreshes are excluded from this change."
+  ]
+}
