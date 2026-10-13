@@ -1,0 +1,217 @@
+{
+  "old": {
+    "available": false,
+    "reason": "缺少发行盈利口径或至少两家有事前日期的有效可比公司",
+    "peer_count": 1,
+    "as_of": "2026-09-22"
+  },
+  "matched": {
+    "available": false,
+    "basis": "fundamental_anchor_v2",
+    "as_of": "2026-09-22",
+    "historical_pit_eligible": false,
+    "research_reconstruction": true,
+    "earnings": {
+      "net_profit_parent": {
+        "available": true,
+        "value": 67955333.33,
+        "metric": "net_profit_parent",
+        "end": "2026-06-30",
+        "basis": "TTM",
+        "components": {
+          "2025-12-31": 53528333.33,
+          "2026-06-30": 38103400.0,
+          "2025-06-30": 23676400.0
+        },
+        "evidence": [
+          "data/fundamental_cases/evidence/920229_p270.json",
+          "data/peer_research/api/35e9b02df822e7a1c97a_20261012234359773856_96b348d3.json",
+          "data/peer_research/workpapers/companies/920229.BJ.json"
+        ],
+        "historical_pit_eligible": false
+      },
+      "adjusted_net_profit_parent": {
+        "available": true,
+        "value": 66522642.129999995,
+        "metric": "adjusted_net_profit_parent",
+        "end": "2026-06-30",
+        "basis": "TTM",
+        "components": {
+          "2025-12-31": 51489738.13,
+          "2026-06-30": 37391600.0,
+          "2025-06-30": 22358696.0
+        },
+        "evidence": [
+          "data/fundamental_cases/evidence/920229_p181.json",
+          "data/fundamental_cases/evidence/920229_p271.json",
+          "data/peer_research/mcp/financials_20250630_ffa5b63068.json",
+          "data/peer_research/workpapers/companies/920229.BJ.json"
+        ],
+        "historical_pit_eligible": false
+      }
+    },
+    "scenarios": {
+      "net_profit_parent": {
+        "available": false,
+        "reason": "正盈利有效可比不足两家",
+        "peer_count": 1
+      },
+      "adjusted_net_profit_parent": {
+        "available": false,
+        "reason": "正盈利有效可比不足两家",
+        "peer_count": 1
+      }
+    },
+    "peer_details": [
+      {
+        "code": "688789.SH",
+        "name": "宏华数科",
+        "match": "direct",
+        "weight": 1.0,
+        "market": "SH",
+        "market_factor": 0.55,
+        "reason": "数码喷墨印花与耗材，纺织领域更集中",
+        "trade_date": "20260921",
+        "mkt_cap_yi": 80.03370840000001,
+        "metrics": {
+          "net_profit_parent": {
+            "available": true,
+            "pe": 20.58043829179242,
+            "market_adjusted_pe": 11.319241060485831,
+            "profit": {
+              "available": true,
+              "value": 388882429.35,
+              "metric": "net_profit_parent",
+              "end": "2026-06-30",
+              "basis": "TTM",
+              "components": {
+                "2025-12-31": 528285512.43,
+                "2026-06-30": 111116424.4,
+                "2025-06-30": 250519507.48
+              },
+              "evidence": [
+                "data/peer_research/api/302369ef3e835eec89fa_20261012234351566787_cc5bea33.json",
+                "data/peer_research/api/748cba05de3d29e72149_20261012234351815912_7408373c.json",
+                "data/peer_research/api/9588369579f4464b0af2_20261012234352068737_bd3b2e73.json",
+                "data/peer_research/workpapers/companies/688789.SH.json"
+              ],
+              "historical_pit_eligible": false
+            }
+          },
+          "adjusted_net_profit_parent": {
+            "available": true,
+            "pe": 22.586698763899083,
+            "market_adjusted_pe": 12.422684320144496,
+            "profit": {
+              "available": true,
+              "value": 354340000.0,
+              "metric": "adjusted_net_profit_parent",
+              "end": "2026-06-30",
+              "basis": "TTM",
+              "components": {
+                "2025-12-31": 481670000.0,
+                "2026-06-30": 100360000.0,
+                "2025-06-30": 227690000.0
+              },
+              "evidence": [
+                "data/peer_research/mcp/financials_20250630_3923fc5eba.json",
+                "data/peer_research/mcp/financials_20251231_3923fc5eba.json",
+                "data/peer_research/mcp/financials_20260630_3923fc5eba.json",
+                "data/peer_research/workpapers/companies/688789.SH.json"
+              ],
+              "historical_pit_eligible": false
+            }
+          }
+        }
+      },
+      {
+        "code": "832246.NQ",
+        "name": "润天智",
+        "match": "direct",
+        "weight": 1.0,
+        "market": "NQ",
+        "market_factor": null,
+        "reason": "数码喷印及配套耗材，NQ无可靠流动性报价",
+        "trade_date": null,
+        "mkt_cap_yi": null,
+        "metrics": {
+          "net_profit_parent": {
+            "available": false,
+            "reason": "跨市场缺少可验证流动性/折价口径，保留业务参照",
+            "profit": {
+              "available": true,
+              "value": 20161238.099999998,
+              "metric": "net_profit_parent",
+              "end": "2026-06-30",
+              "basis": "TTM",
+              "components": {
+                "2025-12-31": 22040036.24,
+                "2026-06-30": 10272883.54,
+                "2025-06-30": 12151681.68
+              },
+              "evidence": [
+                "data/peer_research/api/302369ef3e835eec89fa_20261012234351566787_cc5bea33.json",
+                "data/peer_research/api/748cba05de3d29e72149_20261012234351815912_7408373c.json",
+                "data/peer_research/api/9588369579f4464b0af2_20261012234352068737_bd3b2e73.json",
+                "data/peer_research/workpapers/companies/832246.NQ.json"
+              ],
+              "historical_pit_eligible": false
+            }
+          },
+          "adjusted_net_profit_parent": {
+            "available": false,
+            "reason": "跨市场缺少可验证流动性/折价口径，保留业务参照",
+            "profit": {
+              "available": true,
+              "value": 16670860.0,
+              "metric": "adjusted_net_profit_parent",
+              "end": "2026-06-30",
+              "basis": "TTM",
+              "components": {
+                "2025-12-31": 17326106.0,
+                "2026-06-30": 9823833.0,
+                "2025-06-30": 10479079.0
+              },
+              "evidence": [
+                "data/peer_research/mcp/financials_20250630_f19807915a.json",
+                "data/peer_research/mcp/financials_20251231_f19807915a.json",
+                "data/peer_research/mcp/financials_20260630_f19807915a.json",
+                "data/peer_research/workpapers/companies/832246.NQ.json"
+              ],
+              "historical_pit_eligible": false
+            }
+          }
+        }
+      }
+    ],
+    "coverage": {
+      "candidates": 2,
+      "usable": 1
+    },
+    "review_source": "data/fundamental_cases/cases/920229.json",
+    "cycle": {
+      "classification": "增长与盈利兑现需分开观察",
+      "normalization_approved": false,
+      "reason": "新品渗透、境外拓展与费用控制提升中报盈利，但有效上市PE参照不足两家时保留缺口。",
+      "pages": [
+        270,
+        126
+      ]
+    },
+    "stage": "matched",
+    "limitations": [
+      "市场统一折价仍为既有研究参数，需单列敏感性",
+      "前瞻与周期正常化尚无完整同口径同行估值，未加入主F",
+      "部分扣非利润仅有供应商来源，披露日/历史版本未达到真实PIT要求",
+      "当前资料历史重建不是原始事前PIT",
+      "匹配档位为固定研究规则，未按首日涨幅调参",
+      "区间是盈利口径、可比离散与绿鞋摊薄情景，不是统计置信区间"
+    ],
+    "market_policy": {
+      "SH_SZ": 0.55,
+      "BJ": 1.0,
+      "NQ": null
+    },
+    "reason": "正盈利有效可比不足两家"
+  }
+}

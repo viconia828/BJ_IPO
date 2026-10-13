@@ -2735,15 +2735,674 @@
         "data/fundamental_cases/evidence/920025_p138.json",
         "data/fundamental_cases/evidence/920025_p274.json"
       ]
+    },
+    {
+      "code": "300971.SZ",
+      "records": [
+        {
+          "period": "2023-12-31",
+          "currency": "CNY",
+          "scope": "consolidated",
+          "period_basis": "FY",
+          "published_at": "2024-04-19",
+          "available_not_before": "2026-10-13",
+          "values": {
+            "revenue": {
+              "value": 427698808.74,
+              "blocked": false,
+              "evidence": [
+                "data/fundamental_cases/raw/stage3/300971.SZ_income_full.json",
+                "data/fundamental_cases/raw/stage3/api/b768d34a2bb8c05cb7fe_20261013211928721857_5d06590d.json"
+              ],
+              "independent_amount_crosschecked": true,
+              "note": "Tushare与iFind金额交叉核验"
+            },
+            "net_profit_parent": {
+              "value": 66258364.67,
+              "blocked": false,
+              "evidence": [
+                "data/fundamental_cases/raw/stage3/300971.SZ_income_full.json",
+                "data/fundamental_cases/raw/stage3/api/b768d34a2bb8c05cb7fe_20261013211928721857_5d06590d.json"
+              ],
+              "independent_amount_crosschecked": true,
+              "note": "Tushare与iFind金额交叉核验"
+            },
+            "adjusted_net_profit_parent": {
+              "value": 56265445.48,
+              "blocked": false,
+              "evidence": [
+                "data/fundamental_cases/raw/stage3/300971.SZ_fina_indicator.json"
+              ],
+              "independent_amount_crosschecked": false,
+              "note": "Tushare单源；未将MCP失败标为复核通过"
+            }
+          }
+        },
+        {
+          "period": "2024-12-31",
+          "currency": "CNY",
+          "scope": "consolidated",
+          "period_basis": "FY",
+          "published_at": "2025-04-19",
+          "available_not_before": "2026-10-13",
+          "values": {
+            "revenue": {
+              "value": 385408004.13,
+              "blocked": false,
+              "evidence": [
+                "data/fundamental_cases/raw/stage3/300971.SZ_income_full.json",
+                "data/fundamental_cases/raw/stage3/api/1211cab4a3c12db8cbf3_20261013211929052809_0cc15d5a.json"
+              ],
+              "independent_amount_crosschecked": true,
+              "note": "Tushare与iFind金额交叉核验"
+            },
+            "net_profit_parent": {
+              "value": 43791315.74,
+              "blocked": false,
+              "evidence": [
+                "data/fundamental_cases/raw/stage3/300971.SZ_income_full.json",
+                "data/fundamental_cases/raw/stage3/api/1211cab4a3c12db8cbf3_20261013211929052809_0cc15d5a.json"
+              ],
+              "independent_amount_crosschecked": true,
+              "note": "Tushare与iFind金额交叉核验"
+            },
+            "adjusted_net_profit_parent": {
+              "value": 39560583.44,
+              "blocked": false,
+              "evidence": [
+                "data/fundamental_cases/raw/stage3/300971.SZ_fina_indicator.json"
+              ],
+              "independent_amount_crosschecked": false,
+              "note": "Tushare单源；未将MCP失败标为复核通过"
+            }
+          }
+        },
+        {
+          "period": "2025-06-30",
+          "currency": "CNY",
+          "scope": "consolidated",
+          "period_basis": "YTD",
+          "published_at": "2025-08-26",
+          "available_not_before": "2026-10-13",
+          "values": {
+            "revenue": {
+              "value": 228008181.16,
+              "blocked": false,
+              "evidence": [
+                "data/fundamental_cases/raw/stage3/300971.SZ_income_full.json",
+                "data/fundamental_cases/raw/stage3/api/cb12244526a6ac058e7c_20261013211929284067_84b06826.json",
+                "data/fundamental_cases/raw/stage3/mcp_kada_financials.json"
+              ],
+              "independent_amount_crosschecked": true,
+              "note": "Tushare与iFind金额交叉核验"
+            },
+            "net_profit_parent": {
+              "value": 44316905.56,
+              "blocked": false,
+              "evidence": [
+                "data/fundamental_cases/raw/stage3/300971.SZ_income_full.json",
+                "data/fundamental_cases/raw/stage3/api/cb12244526a6ac058e7c_20261013211929284067_84b06826.json",
+                "data/fundamental_cases/raw/stage3/mcp_kada_financials.json"
+              ],
+              "independent_amount_crosschecked": true,
+              "note": "Tushare与iFind金额交叉核验"
+            },
+            "adjusted_net_profit_parent": {
+              "value": 28660798.15,
+              "blocked": false,
+              "evidence": [
+                "data/fundamental_cases/raw/stage3/300971.SZ_fina_indicator.json",
+                "data/fundamental_cases/raw/stage3/mcp_kada_financials.json"
+              ],
+              "independent_amount_crosschecked": true,
+              "note": "Tushare与iFind金额交叉核验"
+            }
+          }
+        },
+        {
+          "period": "2025-12-31",
+          "currency": "CNY",
+          "scope": "consolidated",
+          "period_basis": "FY",
+          "published_at": "2026-04-23",
+          "available_not_before": "2026-10-13",
+          "values": {
+            "revenue": {
+              "value": 513827818.41,
+              "blocked": false,
+              "evidence": [
+                "data/fundamental_cases/raw/stage3/300971.SZ_income_full.json",
+                "data/fundamental_cases/raw/stage3/api/403c3f64086863189cb8_20261013211929687885_0490e197.json",
+                "data/fundamental_cases/raw/stage3/mcp_kada_financials.json"
+              ],
+              "independent_amount_crosschecked": true,
+              "note": "Tushare与iFind金额交叉核验"
+            },
+            "net_profit_parent": {
+              "value": 83409029.77,
+              "blocked": false,
+              "evidence": [
+                "data/fundamental_cases/raw/stage3/300971.SZ_income_full.json",
+                "data/fundamental_cases/raw/stage3/api/403c3f64086863189cb8_20261013211929687885_0490e197.json",
+                "data/fundamental_cases/raw/stage3/mcp_kada_financials.json"
+              ],
+              "independent_amount_crosschecked": true,
+              "note": "Tushare与iFind金额交叉核验"
+            },
+            "adjusted_net_profit_parent": {
+              "value": 65273387.93,
+              "blocked": false,
+              "evidence": [
+                "data/fundamental_cases/raw/stage3/300971.SZ_fina_indicator.json",
+                "data/fundamental_cases/raw/stage3/mcp_kada_financials.json"
+              ],
+              "independent_amount_crosschecked": true,
+              "note": "Tushare与iFind金额交叉核验"
+            }
+          }
+        },
+        {
+          "period": "2026-06-30",
+          "currency": "CNY",
+          "scope": "consolidated",
+          "period_basis": "YTD",
+          "published_at": "2026-08-22",
+          "available_not_before": "2026-10-13",
+          "values": {
+            "revenue": {
+              "value": 250858672.31,
+              "blocked": false,
+              "evidence": [
+                "data/fundamental_cases/raw/stage3/300971.SZ_income_full.json",
+                "data/fundamental_cases/raw/stage3/api/ff49b0bfacc359c38ca7_20261013211930159382_5f7da78a.json",
+                "data/fundamental_cases/raw/stage3/mcp_kada_financials.json"
+              ],
+              "independent_amount_crosschecked": true,
+              "note": "Tushare与iFind金额交叉核验"
+            },
+            "net_profit_parent": {
+              "value": 33445620.3,
+              "blocked": false,
+              "evidence": [
+                "data/fundamental_cases/raw/stage3/300971.SZ_income_full.json",
+                "data/fundamental_cases/raw/stage3/api/ff49b0bfacc359c38ca7_20261013211930159382_5f7da78a.json",
+                "data/fundamental_cases/raw/stage3/mcp_kada_financials.json"
+              ],
+              "independent_amount_crosschecked": true,
+              "note": "Tushare与iFind金额交叉核验"
+            },
+            "adjusted_net_profit_parent": {
+              "value": 29240337.98,
+              "blocked": false,
+              "evidence": [
+                "data/fundamental_cases/raw/stage3/300971.SZ_fina_indicator.json",
+                "data/fundamental_cases/raw/stage3/mcp_kada_financials.json"
+              ],
+              "independent_amount_crosschecked": true,
+              "note": "Tushare与iFind金额交叉核验"
+            }
+          }
+        }
+      ],
+      "diagnostics": {
+        "supplement": true
+      },
+      "name": "博亚精工",
+      "match": "related",
+      "reason": "板带成形精密装备、辊系零件及特种装备零件，轧制产业链相近，含不同终端需求",
+      "match_evidence": [
+        "data/fundamental_cases/evidence/300971_2025_p11.json"
+      ]
+    },
+    {
+      "code": "002347.SZ",
+      "records": [
+        {
+          "period": "2023-12-31",
+          "currency": "CNY",
+          "scope": "consolidated",
+          "period_basis": "FY",
+          "published_at": "2024-04-26",
+          "available_not_before": "2026-10-13",
+          "values": {
+            "revenue": {
+              "value": 1107141217.64,
+              "blocked": false,
+              "evidence": [
+                "data/fundamental_cases/raw/stage3/002347.SZ_income_full.json",
+                "data/fundamental_cases/raw/stage3/api/b768d34a2bb8c05cb7fe_20261013211928721857_5d06590d.json"
+              ],
+              "independent_amount_crosschecked": true,
+              "note": "Tushare与iFind金额交叉核验"
+            },
+            "net_profit_parent": {
+              "value": -42515451.61,
+              "blocked": false,
+              "evidence": [
+                "data/fundamental_cases/raw/stage3/002347.SZ_income_full.json",
+                "data/fundamental_cases/raw/stage3/api/b768d34a2bb8c05cb7fe_20261013211928721857_5d06590d.json"
+              ],
+              "independent_amount_crosschecked": true,
+              "note": "Tushare与iFind金额交叉核验"
+            },
+            "adjusted_net_profit_parent": {
+              "value": -72591268.87,
+              "blocked": false,
+              "evidence": [
+                "data/fundamental_cases/raw/stage3/002347.SZ_fina_indicator.json"
+              ],
+              "independent_amount_crosschecked": false,
+              "note": "Tushare单源；未将MCP失败标为复核通过"
+            }
+          }
+        },
+        {
+          "period": "2024-12-31",
+          "currency": "CNY",
+          "scope": "consolidated",
+          "period_basis": "FY",
+          "published_at": "2025-04-25",
+          "available_not_before": "2026-10-13",
+          "values": {
+            "revenue": {
+              "value": 1074313289.54,
+              "blocked": false,
+              "evidence": [
+                "data/fundamental_cases/raw/stage3/002347.SZ_income_full.json",
+                "data/fundamental_cases/raw/stage3/api/1211cab4a3c12db8cbf3_20261013211929052809_0cc15d5a.json"
+              ],
+              "independent_amount_crosschecked": true,
+              "note": "Tushare与iFind金额交叉核验"
+            },
+            "net_profit_parent": {
+              "value": 14590450.22,
+              "blocked": false,
+              "evidence": [
+                "data/fundamental_cases/raw/stage3/002347.SZ_income_full.json",
+                "data/fundamental_cases/raw/stage3/api/1211cab4a3c12db8cbf3_20261013211929052809_0cc15d5a.json"
+              ],
+              "independent_amount_crosschecked": true,
+              "note": "Tushare与iFind金额交叉核验"
+            },
+            "adjusted_net_profit_parent": {
+              "value": -33866637.87,
+              "blocked": false,
+              "evidence": [
+                "data/fundamental_cases/raw/stage3/002347.SZ_fina_indicator.json"
+              ],
+              "independent_amount_crosschecked": false,
+              "note": "Tushare单源；未将MCP失败标为复核通过"
+            }
+          }
+        },
+        {
+          "period": "2025-06-30",
+          "currency": "CNY",
+          "scope": "consolidated",
+          "period_basis": "YTD",
+          "published_at": "2025-08-23",
+          "available_not_before": "2026-10-13",
+          "values": {
+            "revenue": {
+              "value": 560784797.25,
+              "blocked": false,
+              "evidence": [
+                "data/fundamental_cases/raw/stage3/002347.SZ_income_full.json",
+                "data/fundamental_cases/raw/stage3/api/cb12244526a6ac058e7c_20261013211929284067_84b06826.json",
+                "data/fundamental_cases/raw/stage3/mcp_kada_financials.json"
+              ],
+              "independent_amount_crosschecked": true,
+              "note": "Tushare与iFind金额交叉核验"
+            },
+            "net_profit_parent": {
+              "value": -19385787.9,
+              "blocked": false,
+              "evidence": [
+                "data/fundamental_cases/raw/stage3/002347.SZ_income_full.json",
+                "data/fundamental_cases/raw/stage3/api/cb12244526a6ac058e7c_20261013211929284067_84b06826.json",
+                "data/fundamental_cases/raw/stage3/mcp_kada_financials.json"
+              ],
+              "independent_amount_crosschecked": true,
+              "note": "Tushare与iFind金额交叉核验"
+            },
+            "adjusted_net_profit_parent": {
+              "value": -27439788.45,
+              "blocked": false,
+              "evidence": [
+                "data/fundamental_cases/raw/stage3/002347.SZ_fina_indicator.json",
+                "data/fundamental_cases/raw/stage3/mcp_kada_financials.json"
+              ],
+              "independent_amount_crosschecked": true,
+              "note": "Tushare与iFind金额交叉核验"
+            }
+          }
+        },
+        {
+          "period": "2025-12-31",
+          "currency": "CNY",
+          "scope": "consolidated",
+          "period_basis": "FY",
+          "published_at": "2026-04-23",
+          "available_not_before": "2026-10-13",
+          "values": {
+            "revenue": {
+              "value": 1090324855.95,
+              "blocked": false,
+              "evidence": [
+                "data/fundamental_cases/raw/stage3/002347.SZ_income_full.json",
+                "data/fundamental_cases/raw/stage3/api/403c3f64086863189cb8_20261013211929687885_0490e197.json",
+                "data/fundamental_cases/raw/stage3/mcp_kada_financials.json"
+              ],
+              "independent_amount_crosschecked": true,
+              "note": "Tushare与iFind金额交叉核验"
+            },
+            "net_profit_parent": {
+              "value": -94940921.2,
+              "blocked": false,
+              "evidence": [
+                "data/fundamental_cases/raw/stage3/002347.SZ_income_full.json",
+                "data/fundamental_cases/raw/stage3/api/403c3f64086863189cb8_20261013211929687885_0490e197.json",
+                "data/fundamental_cases/raw/stage3/mcp_kada_financials.json"
+              ],
+              "independent_amount_crosschecked": true,
+              "note": "Tushare与iFind金额交叉核验"
+            },
+            "adjusted_net_profit_parent": {
+              "value": -105433753.95,
+              "blocked": false,
+              "evidence": [
+                "data/fundamental_cases/raw/stage3/002347.SZ_fina_indicator.json",
+                "data/fundamental_cases/raw/stage3/mcp_kada_financials.json"
+              ],
+              "independent_amount_crosschecked": true,
+              "note": "Tushare与iFind金额交叉核验"
+            }
+          }
+        },
+        {
+          "period": "2026-06-30",
+          "currency": "CNY",
+          "scope": "consolidated",
+          "period_basis": "YTD",
+          "published_at": "2026-08-22",
+          "available_not_before": "2026-10-13",
+          "values": {
+            "revenue": {
+              "value": 568727049.8,
+              "blocked": false,
+              "evidence": [
+                "data/fundamental_cases/raw/stage3/002347.SZ_income_full.json",
+                "data/fundamental_cases/raw/stage3/api/ff49b0bfacc359c38ca7_20261013211930159382_5f7da78a.json",
+                "data/fundamental_cases/raw/stage3/mcp_kada_financials.json"
+              ],
+              "independent_amount_crosschecked": true,
+              "note": "Tushare与iFind金额交叉核验"
+            },
+            "net_profit_parent": {
+              "value": -19756757.2,
+              "blocked": false,
+              "evidence": [
+                "data/fundamental_cases/raw/stage3/002347.SZ_income_full.json",
+                "data/fundamental_cases/raw/stage3/api/ff49b0bfacc359c38ca7_20261013211930159382_5f7da78a.json",
+                "data/fundamental_cases/raw/stage3/mcp_kada_financials.json"
+              ],
+              "independent_amount_crosschecked": true,
+              "note": "Tushare与iFind金额交叉核验"
+            },
+            "adjusted_net_profit_parent": {
+              "value": -25348572.97,
+              "blocked": false,
+              "evidence": [
+                "data/fundamental_cases/raw/stage3/002347.SZ_fina_indicator.json",
+                "data/fundamental_cases/raw/stage3/mcp_kada_financials.json"
+              ],
+              "independent_amount_crosschecked": true,
+              "note": "Tushare与iFind金额交叉核验"
+            }
+          }
+        }
+      ],
+      "diagnostics": {
+        "supplement": true
+      },
+      "name": "泰尔股份",
+      "match": "related",
+      "reason": "冶金轧机核心备件、卷筒、剪刃及运维，保留亏损与新能源等业务差异",
+      "match_evidence": [
+        "data/fundamental_cases/evidence/002347_2025_p10.json"
+      ]
+    },
+    {
+      "code": "603135.SH",
+      "records": [
+        {
+          "period": "2023-12-31",
+          "currency": "CNY",
+          "scope": "consolidated",
+          "period_basis": "FY",
+          "published_at": "2024-04-23",
+          "available_not_before": "2026-10-13",
+          "values": {
+            "revenue": {
+              "value": 1116822435.35,
+              "blocked": false,
+              "evidence": [
+                "data/fundamental_cases/raw/stage3/603135.SH_income_full.json",
+                "data/fundamental_cases/raw/stage3/api/b768d34a2bb8c05cb7fe_20261013211928721857_5d06590d.json"
+              ],
+              "independent_amount_crosschecked": true,
+              "note": "Tushare与iFind金额交叉核验"
+            },
+            "net_profit_parent": {
+              "value": 181993876.08,
+              "blocked": false,
+              "evidence": [
+                "data/fundamental_cases/raw/stage3/603135.SH_income_full.json",
+                "data/fundamental_cases/raw/stage3/api/b768d34a2bb8c05cb7fe_20261013211928721857_5d06590d.json"
+              ],
+              "independent_amount_crosschecked": true,
+              "note": "Tushare与iFind金额交叉核验"
+            },
+            "adjusted_net_profit_parent": {
+              "value": 169400307.35,
+              "blocked": false,
+              "evidence": [
+                "data/fundamental_cases/raw/stage3/603135.SH_fina_indicator.json"
+              ],
+              "independent_amount_crosschecked": false,
+              "note": "Tushare单源；未将MCP失败标为复核通过"
+            }
+          }
+        },
+        {
+          "period": "2024-12-31",
+          "currency": "CNY",
+          "scope": "consolidated",
+          "period_basis": "FY",
+          "published_at": "2025-04-29",
+          "available_not_before": "2026-10-13",
+          "values": {
+            "revenue": {
+              "value": 956260334.55,
+              "blocked": false,
+              "evidence": [
+                "data/fundamental_cases/raw/stage3/603135.SH_income_full.json",
+                "data/fundamental_cases/raw/stage3/api/1211cab4a3c12db8cbf3_20261013211929052809_0cc15d5a.json"
+              ],
+              "independent_amount_crosschecked": true,
+              "note": "Tushare与iFind金额交叉核验"
+            },
+            "net_profit_parent": {
+              "value": 56355719.97,
+              "blocked": false,
+              "evidence": [
+                "data/fundamental_cases/raw/stage3/603135.SH_income_full.json",
+                "data/fundamental_cases/raw/stage3/api/1211cab4a3c12db8cbf3_20261013211929052809_0cc15d5a.json"
+              ],
+              "independent_amount_crosschecked": true,
+              "note": "Tushare与iFind金额交叉核验"
+            },
+            "adjusted_net_profit_parent": {
+              "value": 29453364.41,
+              "blocked": false,
+              "evidence": [
+                "data/fundamental_cases/raw/stage3/603135.SH_fina_indicator.json"
+              ],
+              "independent_amount_crosschecked": false,
+              "note": "Tushare单源；未将MCP失败标为复核通过"
+            }
+          }
+        },
+        {
+          "period": "2025-06-30",
+          "currency": "CNY",
+          "scope": "consolidated",
+          "period_basis": "YTD",
+          "published_at": "2025-08-29",
+          "available_not_before": "2026-10-13",
+          "values": {
+            "revenue": {
+              "value": 223462396.99,
+              "blocked": false,
+              "evidence": [
+                "data/fundamental_cases/raw/stage3/603135.SH_income_full.json",
+                "data/fundamental_cases/raw/stage3/api/cb12244526a6ac058e7c_20261013211929284067_84b06826.json",
+                "data/fundamental_cases/raw/stage3/mcp_kada_financials.json"
+              ],
+              "independent_amount_crosschecked": true,
+              "note": "Tushare与iFind金额交叉核验"
+            },
+            "net_profit_parent": {
+              "value": 19625324.99,
+              "blocked": false,
+              "evidence": [
+                "data/fundamental_cases/raw/stage3/603135.SH_income_full.json",
+                "data/fundamental_cases/raw/stage3/api/cb12244526a6ac058e7c_20261013211929284067_84b06826.json",
+                "data/fundamental_cases/raw/stage3/mcp_kada_financials.json"
+              ],
+              "independent_amount_crosschecked": true,
+              "note": "Tushare与iFind金额交叉核验"
+            },
+            "adjusted_net_profit_parent": {
+              "value": 9495095.18,
+              "blocked": false,
+              "evidence": [
+                "data/fundamental_cases/raw/stage3/603135.SH_fina_indicator.json",
+                "data/fundamental_cases/raw/stage3/mcp_kada_financials.json"
+              ],
+              "independent_amount_crosschecked": true,
+              "note": "Tushare与iFind金额交叉核验"
+            }
+          }
+        },
+        {
+          "period": "2025-12-31",
+          "currency": "CNY",
+          "scope": "consolidated",
+          "period_basis": "FY",
+          "published_at": "2026-04-28",
+          "available_not_before": "2026-10-13",
+          "values": {
+            "revenue": {
+              "value": 380334595.62,
+              "blocked": false,
+              "evidence": [
+                "data/fundamental_cases/raw/stage3/603135.SH_income_full.json",
+                "data/fundamental_cases/raw/stage3/api/403c3f64086863189cb8_20261013211929687885_0490e197.json",
+                "data/fundamental_cases/raw/stage3/mcp_kada_financials.json"
+              ],
+              "independent_amount_crosschecked": true,
+              "note": "Tushare与iFind金额交叉核验"
+            },
+            "net_profit_parent": {
+              "value": -22027357.91,
+              "blocked": false,
+              "evidence": [
+                "data/fundamental_cases/raw/stage3/603135.SH_income_full.json",
+                "data/fundamental_cases/raw/stage3/api/403c3f64086863189cb8_20261013211929687885_0490e197.json",
+                "data/fundamental_cases/raw/stage3/mcp_kada_financials.json"
+              ],
+              "independent_amount_crosschecked": true,
+              "note": "Tushare与iFind金额交叉核验"
+            },
+            "adjusted_net_profit_parent": {
+              "value": -35885742.67,
+              "blocked": false,
+              "evidence": [
+                "data/fundamental_cases/raw/stage3/603135.SH_fina_indicator.json",
+                "data/fundamental_cases/raw/stage3/mcp_kada_financials.json"
+              ],
+              "independent_amount_crosschecked": true,
+              "note": "Tushare与iFind金额交叉核验"
+            }
+          }
+        },
+        {
+          "period": "2026-06-30",
+          "currency": "CNY",
+          "scope": "consolidated",
+          "period_basis": "YTD",
+          "published_at": "2026-08-28",
+          "available_not_before": "2026-10-13",
+          "values": {
+            "revenue": {
+              "value": 339299037.86,
+              "blocked": false,
+              "evidence": [
+                "data/fundamental_cases/raw/stage3/603135.SH_income_full.json",
+                "data/fundamental_cases/raw/stage3/api/ff49b0bfacc359c38ca7_20261013211930159382_5f7da78a.json",
+                "data/fundamental_cases/raw/stage3/mcp_kada_financials.json"
+              ],
+              "independent_amount_crosschecked": true,
+              "note": "Tushare与iFind金额交叉核验"
+            },
+            "net_profit_parent": {
+              "value": 37449831.34,
+              "blocked": false,
+              "evidence": [
+                "data/fundamental_cases/raw/stage3/603135.SH_income_full.json",
+                "data/fundamental_cases/raw/stage3/api/ff49b0bfacc359c38ca7_20261013211930159382_5f7da78a.json",
+                "data/fundamental_cases/raw/stage3/mcp_kada_financials.json"
+              ],
+              "independent_amount_crosschecked": true,
+              "note": "Tushare与iFind金额交叉核验"
+            },
+            "adjusted_net_profit_parent": {
+              "value": 28381768.2,
+              "blocked": false,
+              "evidence": [
+                "data/fundamental_cases/raw/stage3/603135.SH_fina_indicator.json",
+                "data/fundamental_cases/raw/stage3/mcp_kada_financials.json"
+              ],
+              "independent_amount_crosschecked": true,
+              "note": "Tushare与iFind金额交叉核验"
+            }
+          }
+        }
+      ],
+      "diagnostics": {
+        "supplement": true
+      },
+      "name": "中重科技",
+      "match": "related",
+      "reason": "智能轧制生产线及机械设备，同钢铁资本开支链，但整线与轧辊耗材订单周期不同",
+      "match_evidence": [
+        "data/fundamental_cases/evidence/603135_2025_p12.json"
+      ]
     }
   ],
   "cycle": {
-    "classification": "钢铁需求和原料周期暴露，同行当前盈利分母代表性偏弱",
+    "classification": "钢铁链耗材与设备周期；当前TTM与历史利润率参照并列",
     "normalization_approved": false,
-    "reason": "发行人2026H1归母下降9.42%，研发和汇兑解释明确，不能仅凭钢铁标签判断处于周期底。合力扣非亏损、凤形分母较小，高TTM PE只作敏感性。正常化要求同行同步核验利润率与恢复期，本轮不自动批准。",
+    "reason": "H1利润下降包含研发与汇兑因素，不直接判作周期底。扩充轧制设备宽池，亏损参照继续保留；三年扣非利润率压力参照双方同时计算，历史中位数不等于已验证常态，仍不批准正常化主F。",
     "pages": [
       7,
       135,
+      202,
+      204,
+      205,
+      206,
+      208,
       274,
       312
     ]
@@ -2753,10 +3412,25 @@
     "parent_profit": 73372264.47,
     "adjusted_profit": 73596300,
     "year": 2026,
-    "reason": "存在会计师审核的盈利预测，区别于非审计业绩预计；无相同年度同行预测倍数，仍不混乘TTM PE。",
+    "reason": "2026年扣非审核预测7359.63万元，减H1实际3378.17万元，H2需3981.46万元、同比约18.77%；辊环销量/结构、汇兑及扩产折旧逐项核验。没有同期同行预测PE，不与TTM倍数混乘。",
     "pages": [
       8,
-      18
+      18,
+      204,
+      205,
+      206,
+      208
+    ]
+  },
+  "peer_evidence": {
+    "300971.SZ": [
+      "data/fundamental_cases/evidence/300971_2025_p11.json"
+    ],
+    "002347.SZ": [
+      "data/fundamental_cases/evidence/002347_2025_p10.json"
+    ],
+    "603135.SH": [
+      "data/fundamental_cases/evidence/603135_2025_p12.json"
     ]
   },
   "schema": "fundamental_anchor_v2",
@@ -3411,6 +4085,10 @@
     "data/fundamental_cases/evidence/920025_p18.json",
     "data/fundamental_cases/evidence/920025_p19.json",
     "data/fundamental_cases/evidence/920025_p202.json",
+    "data/fundamental_cases/evidence/920025_p204.json",
+    "data/fundamental_cases/evidence/920025_p205.json",
+    "data/fundamental_cases/evidence/920025_p206.json",
+    "data/fundamental_cases/evidence/920025_p208.json",
     "data/fundamental_cases/evidence/920025_p274.json",
     "data/fundamental_cases/evidence/920025_p312.json",
     "data/fundamental_cases/evidence/920025_p7.json",

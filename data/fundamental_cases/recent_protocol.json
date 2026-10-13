@@ -1,0 +1,41 @@
+{
+  "schema": "recent_ipo_replay_protocol_v1",
+  "frozen_at": "2026-10-13T21:21:55.561384+08:00",
+  "cohort_selection": "截至2026-10-13，按已核对上市日排序最近10只，缺F或行情仍列全表，不以结果筛选",
+  "codes": [
+    "920071",
+    "920289",
+    "920269",
+    "920268",
+    "920298",
+    "920229",
+    "920025",
+    "920201",
+    "920202",
+    "920157"
+  ],
+  "sentiment_policy": "quality_sentiment_v1_structural核心及策略参数保持不变",
+  "cooling_subset": "旧代理模型在各股上市前判为cooling_watch/cooling_confirmed/weak_aftermarket；缺F时另按最近3个上市日组已知D2/D3均价亏损代理定义，仅供承接检验。新版预警单列，不用新版结果改变主比较子集",
+  "aftermarket_proxy": "最近3个上市日组中至少2只已有严格早于目标上市日的D2/D3收盘，每只平均相对其首日均价收益均为负；不使用目标本身的上市后数据",
+  "variants": [
+    "proxy",
+    "stage2",
+    "ttm_expanded",
+    "cycle_sensitivity"
+  ],
+  "cycle_policy": "仅凯达同步发行人及同行2023-2025扣非利润率中位数乘各自TTM收入；包含亏损年份，正盈利参照不足2家不出价。只是历史利润率压力参照，非经验证的正常化F，不进正式定价",
+  "metrics": [
+    "positive_price_error_pct",
+    "overestimate_gt_10pct_count",
+    "gain_mae_pp",
+    "price_mape_pct",
+    "fixed_10pct_interval_hit",
+    "underestimate_gt_10pct_count",
+    "coverage",
+    "warning_followed_by_underestimate_count"
+  ],
+  "comparison_policy": "共同样本成对比较；新增/退出覆盖单列。旧F同历史覆盖控制单列，以区分F改变和新增历史反馈的作用",
+  "outcome": "首日成交均价；高估为预测中枢/实际均价-1，>10%为重大高估。预警后严重低估计为过度保守案例，不将其称为市场情绪真值",
+  "historical_pit_eligible": false,
+  "promotion": "保持shadow；10例不足以验证参数或升级正式定价"
+}

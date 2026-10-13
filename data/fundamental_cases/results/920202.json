@@ -4,16 +4,14 @@
     "center": 10.789010120370369,
     "low": 9.710109108333333,
     "high": 11.867911132407407,
-    "confidence": 0.31679078843174957,
+    "confidence": 0.40594544597638826,
     "basis": "comparable_proxy",
-    "peer_count": 6,
+    "peer_count": 4,
     "peer_codes": [
       "600933.SH",
       "603211.SH",
       "603305.SH",
-      "605133.SH",
-      "002101.SZ",
-      "300176.SZ"
+      "605133.SH"
     ],
     "reference_dates": [
       "20260928"
@@ -23,7 +21,7 @@
     "peer_pe": 35.075649999999996,
     "bse_discount": 0.55,
     "quality_factor": 1.0,
-    "dispersion_ratio": 2.2096602097090656,
+    "dispersion_ratio": 1.724369633748066,
     "limitations": [
       "发行静态盈利与同行TTM尚未完全同口径",
       "成长性、竞争力等个股差异尚未完成逐股复核"
@@ -477,7 +475,8 @@
                 "data/fundamental_cases/raw/002101.SZ_income_full.json",
                 "data/fundamental_cases/raw/api/195471cd3483eaf82e4d_20261013202900826448_e643429b.json",
                 "data/fundamental_cases/raw/api/2a27723209419d38c08b_20261013202900616536_0e80f27c.json",
-                "data/fundamental_cases/raw/api/b7d8a5f4a18d28c21f71_20261013202901043395_a57993b3.json"
+                "data/fundamental_cases/raw/api/b7d8a5f4a18d28c21f71_20261013202901043395_a57993b3.json",
+                "data/fundamental_cases/raw/mcp_extra_20251231.json"
               ],
               "historical_pit_eligible": false
             }
@@ -498,7 +497,8 @@
                 "2025-06-30": 103983328.79
               },
               "evidence": [
-                "data/fundamental_cases/raw/002101.SZ_fina_indicator.json"
+                "data/fundamental_cases/raw/002101.SZ_fina_indicator.json",
+                "data/fundamental_cases/raw/mcp_extra_20251231.json"
               ],
               "historical_pit_eligible": false
             }
@@ -534,7 +534,8 @@
                 "data/fundamental_cases/raw/603982.SH_income_full.json",
                 "data/fundamental_cases/raw/api/195471cd3483eaf82e4d_20261013202900826448_e643429b.json",
                 "data/fundamental_cases/raw/api/2a27723209419d38c08b_20261013202900616536_0e80f27c.json",
-                "data/fundamental_cases/raw/api/b7d8a5f4a18d28c21f71_20261013202901043395_a57993b3.json"
+                "data/fundamental_cases/raw/api/b7d8a5f4a18d28c21f71_20261013202901043395_a57993b3.json",
+                "data/fundamental_cases/raw/mcp_extra_20251231.json"
               ],
               "historical_pit_eligible": false
             }
@@ -554,7 +555,8 @@
                 "2025-06-30": -172968074.34
               },
               "evidence": [
-                "data/fundamental_cases/raw/603982.SH_fina_indicator.json"
+                "data/fundamental_cases/raw/603982.SH_fina_indicator.json",
+                "data/fundamental_cases/raw/mcp_extra_20251231.json"
               ],
               "historical_pit_eligible": false
             }
@@ -591,7 +593,8 @@
                 "data/fundamental_cases/raw/300176.SZ_income_full.json",
                 "data/fundamental_cases/raw/api/195471cd3483eaf82e4d_20261013202900826448_e643429b.json",
                 "data/fundamental_cases/raw/api/2a27723209419d38c08b_20261013202900616536_0e80f27c.json",
-                "data/fundamental_cases/raw/api/b7d8a5f4a18d28c21f71_20261013202901043395_a57993b3.json"
+                "data/fundamental_cases/raw/api/b7d8a5f4a18d28c21f71_20261013202901043395_a57993b3.json",
+                "data/fundamental_cases/raw/mcp_extra_20251231.json"
               ],
               "historical_pit_eligible": false
             }
@@ -611,7 +614,8 @@
                 "2025-06-30": 15872526.02
               },
               "evidence": [
-                "data/fundamental_cases/raw/300176.SZ_fina_indicator.json"
+                "data/fundamental_cases/raw/300176.SZ_fina_indicator.json",
+                "data/fundamental_cases/raw/mcp_extra_20251231.json"
               ],
               "historical_pit_eligible": false
             }

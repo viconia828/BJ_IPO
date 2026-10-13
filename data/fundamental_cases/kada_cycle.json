@@ -1,0 +1,2207 @@
+{
+  "code": "920025",
+  "as_of_exclusive": "2026-09-23",
+  "historical_pit_eligible": false,
+  "pricing_mode": "shadow",
+  "earnings_bridge": [
+    {
+      "metric": "net_profit_parent",
+      "fy2025": 70853230.02,
+      "h1_2025": 36578700,
+      "h1_2026": 33134200,
+      "h1_growth_pct": -9.416682386197428,
+      "ttm": 67408730.02,
+      "fy2026_reviewed_forecast": 73372264.47,
+      "h2_2026_required": 40238064.47,
+      "h2_2025": 34274530.019999996,
+      "h2_required_growth_pct": 17.399317938189498,
+      "forward_price_available": false,
+      "forward_reason": "没有相同2026预测口径、同一事前日期的同行倍数"
+    },
+    {
+      "metric": "adjusted_net_profit_parent",
+      "fy2025": 69650275.6,
+      "h1_2025": 36128800,
+      "h1_2026": 33781700,
+      "h1_growth_pct": -6.496479263080978,
+      "ttm": 67303175.6,
+      "fy2026_reviewed_forecast": 73596300,
+      "h2_2026_required": 39814600,
+      "h2_2025": 33521475.599999994,
+      "h2_required_growth_pct": 18.773411036833963,
+      "forward_price_available": false,
+      "forward_reason": "没有相同2026预测口径、同一事前日期的同行倍数"
+    }
+  ],
+  "current_ttm": {
+    "available": true,
+    "basis": "fundamental_anchor_v2",
+    "as_of": "2026-09-23",
+    "historical_pit_eligible": false,
+    "research_reconstruction": true,
+    "earnings": {
+      "net_profit_parent": {
+        "available": true,
+        "value": 67408730.02,
+        "metric": "net_profit_parent",
+        "end": "2026-06-30",
+        "basis": "TTM",
+        "components": {
+          "2025-12-31": 70853230.02,
+          "2026-06-30": 33134200.0,
+          "2025-06-30": 36578700.0
+        },
+        "evidence": [
+          "data/fundamental_cases/evidence/920025_p312.json",
+          "data/peer_research/api/ea4136c6d077466db782_20261012234354720966_7607da32.json",
+          "data/peer_research/workpapers/companies/920025.BJ.json"
+        ],
+        "historical_pit_eligible": false
+      },
+      "adjusted_net_profit_parent": {
+        "available": true,
+        "value": 67303175.6,
+        "metric": "adjusted_net_profit_parent",
+        "end": "2026-06-30",
+        "basis": "TTM",
+        "components": {
+          "2025-12-31": 69650275.6,
+          "2026-06-30": 33781700.0,
+          "2025-06-30": 36128800.0
+        },
+        "evidence": [
+          "data/fundamental_cases/evidence/920025_p202.json",
+          "data/fundamental_cases/evidence/920025_p312.json"
+        ],
+        "historical_pit_eligible": false
+      }
+    },
+    "scenarios": {
+      "net_profit_parent": {
+        "available": true,
+        "center": 15.165879257541976,
+        "low": 4.561936259194212,
+        "high": 30.495534312117563,
+        "eps": 0.2995943556444444,
+        "peer_multiple": 50.6213784465976,
+        "peer_count": 3,
+        "peer_codes": [
+          "002760.SZ",
+          "603917.SH",
+          "300971.SZ"
+        ],
+        "profit": {
+          "available": true,
+          "value": 67408730.02,
+          "metric": "net_profit_parent",
+          "end": "2026-06-30",
+          "basis": "TTM",
+          "components": {
+            "2025-12-31": 70853230.02,
+            "2026-06-30": 33134200.0,
+            "2025-06-30": 36578700.0
+          },
+          "evidence": [
+            "data/fundamental_cases/evidence/920025_p312.json",
+            "data/peer_research/api/ea4136c6d077466db782_20261012234354720966_7607da32.json",
+            "data/peer_research/workpapers/companies/920025.BJ.json"
+          ],
+          "historical_pit_eligible": false
+        }
+      },
+      "adjusted_net_profit_parent": {
+        "available": true,
+        "center": 12.757057000468494,
+        "low": 5.017155752359709,
+        "high": 20.296272018482888,
+        "eps": 0.2991252248888889,
+        "peer_multiple": 42.64788101774816,
+        "peer_count": 2,
+        "peer_codes": [
+          "002760.SZ",
+          "300971.SZ"
+        ],
+        "profit": {
+          "available": true,
+          "value": 67303175.6,
+          "metric": "adjusted_net_profit_parent",
+          "end": "2026-06-30",
+          "basis": "TTM",
+          "components": {
+            "2025-12-31": 69650275.6,
+            "2026-06-30": 33781700.0,
+            "2025-06-30": 36128800.0
+          },
+          "evidence": [
+            "data/fundamental_cases/evidence/920025_p202.json",
+            "data/fundamental_cases/evidence/920025_p312.json"
+          ],
+          "historical_pit_eligible": false
+        }
+      }
+    },
+    "peer_details": [
+      {
+        "code": "873650.NQ",
+        "name": "腾升科技",
+        "match": "direct",
+        "weight": 1.0,
+        "market": "NQ",
+        "market_factor": null,
+        "reason": "铸造轧辊及铸件，业务直接相近；缺乏可验证流动性报价时不直接参与A股价格映射",
+        "trade_date": null,
+        "mkt_cap_yi": null,
+        "metrics": {
+          "net_profit_parent": {
+            "available": false,
+            "reason": "跨市场缺少可验证流动性/折价口径，保留业务参照",
+            "profit": {
+              "available": true,
+              "value": 17808423.29,
+              "metric": "net_profit_parent",
+              "end": "2026-06-30",
+              "basis": "TTM",
+              "components": {
+                "2025-12-31": 18712011.3,
+                "2026-06-30": 5476604.67,
+                "2025-06-30": 6380192.68
+              },
+              "evidence": [
+                "data/peer_fundamentals/api/4bd8de69748670383f26_20261012230646476510_6d4856dc.json",
+                "data/peer_fundamentals/api/708d8ae43a8f227dae62_20261012230646004324_b3c48c69.json",
+                "data/peer_fundamentals/api/af48f215f4329261e710_20261012230646252616_4bdca6ce.json",
+                "data/peer_research/workpapers/companies/873650.NQ.json"
+              ],
+              "historical_pit_eligible": false
+            }
+          },
+          "adjusted_net_profit_parent": {
+            "available": false,
+            "reason": "跨市场缺少可验证流动性/折价口径，保留业务参照",
+            "profit": {
+              "available": true,
+              "value": 15549328.0,
+              "metric": "adjusted_net_profit_parent",
+              "end": "2026-06-30",
+              "basis": "TTM",
+              "components": {
+                "2025-12-31": 15866215.0,
+                "2026-06-30": 5471203.0,
+                "2025-06-30": 5788090.0
+              },
+              "evidence": [
+                "data/peer_fundamentals/mcp/nq_20250630.json",
+                "data/peer_fundamentals/mcp/nq_20251231.json",
+                "data/peer_fundamentals/mcp/nq_20260630.json",
+                "data/peer_research/workpapers/companies/873650.NQ.json"
+              ],
+              "historical_pit_eligible": false
+            }
+          }
+        }
+      },
+      {
+        "code": "872643.NQ",
+        "name": "华冶股份",
+        "match": "related",
+        "weight": 0.5,
+        "market": "NQ",
+        "market_factor": null,
+        "reason": "锻钢冷轧辊，制造工艺与应用侧重不同；亏损身份保留",
+        "trade_date": null,
+        "mkt_cap_yi": null,
+        "metrics": {
+          "net_profit_parent": {
+            "available": false,
+            "reason": "跨市场缺少可验证流动性/折价口径，保留业务参照",
+            "profit": {
+              "available": true,
+              "value": -9916465.360000001,
+              "metric": "net_profit_parent",
+              "end": "2026-06-30",
+              "basis": "TTM",
+              "components": {
+                "2025-12-31": -8185838.48,
+                "2026-06-30": -3936162.46,
+                "2025-06-30": -2205535.58
+              },
+              "evidence": [
+                "data/peer_fundamentals/api/4bd8de69748670383f26_20261012230646476510_6d4856dc.json",
+                "data/peer_fundamentals/api/708d8ae43a8f227dae62_20261012230646004324_b3c48c69.json",
+                "data/peer_fundamentals/api/af48f215f4329261e710_20261012230646252616_4bdca6ce.json",
+                "data/peer_research/workpapers/companies/872643.NQ.json"
+              ],
+              "historical_pit_eligible": false
+            }
+          },
+          "adjusted_net_profit_parent": {
+            "available": false,
+            "reason": "跨市场缺少可验证流动性/折价口径，保留业务参照",
+            "profit": {
+              "available": true,
+              "value": -10070729.66,
+              "metric": "adjusted_net_profit_parent",
+              "end": "2026-06-30",
+              "basis": "TTM",
+              "components": {
+                "2025-12-31": -8538686.04,
+                "2026-06-30": -3936162.46,
+                "2025-06-30": -2404118.84
+              },
+              "evidence": [
+                "data/peer_fundamentals/mcp/nq_20250630.json",
+                "data/peer_fundamentals/mcp/nq_20251231.json",
+                "data/peer_fundamentals/mcp/nq_20260630.json",
+                "data/peer_research/workpapers/companies/872643.NQ.json"
+              ],
+              "historical_pit_eligible": false
+            }
+          }
+        }
+      },
+      {
+        "code": "874437.NQ",
+        "name": "中原辊轴",
+        "match": "related",
+        "weight": 0.5,
+        "market": "NQ",
+        "market_factor": null,
+        "reason": "锻钢轧辊及管模，同冶金设备链但产品组合不同",
+        "trade_date": null,
+        "mkt_cap_yi": null,
+        "metrics": {
+          "net_profit_parent": {
+            "available": false,
+            "reason": "跨市场缺少可验证流动性/折价口径，保留业务参照",
+            "profit": {
+              "available": true,
+              "value": 22154095.709999993,
+              "metric": "net_profit_parent",
+              "end": "2026-06-30",
+              "basis": "TTM",
+              "components": {
+                "2025-12-31": 46794693.26,
+                "2026-06-30": 11409758.15,
+                "2025-06-30": 36050355.7
+              },
+              "evidence": [
+                "data/peer_fundamentals/api/4bd8de69748670383f26_20261012230646476510_6d4856dc.json",
+                "data/peer_fundamentals/api/708d8ae43a8f227dae62_20261012230646004324_b3c48c69.json",
+                "data/peer_fundamentals/api/af48f215f4329261e710_20261012230646252616_4bdca6ce.json",
+                "data/peer_research/workpapers/companies/874437.NQ.json"
+              ],
+              "historical_pit_eligible": false
+            }
+          },
+          "adjusted_net_profit_parent": {
+            "available": false,
+            "reason": "跨市场缺少可验证流动性/折价口径，保留业务参照",
+            "profit": {
+              "available": true,
+              "value": 21823347.0,
+              "metric": "adjusted_net_profit_parent",
+              "end": "2026-06-30",
+              "basis": "TTM",
+              "components": {
+                "2025-12-31": 45395096.0,
+                "2026-06-30": 11483751.0,
+                "2025-06-30": 35055500.0
+              },
+              "evidence": [
+                "data/peer_fundamentals/mcp/nq_20250630.json",
+                "data/peer_fundamentals/mcp/nq_20251231.json",
+                "data/peer_fundamentals/mcp/nq_20260630.json",
+                "data/peer_research/workpapers/companies/874437.NQ.json"
+              ],
+              "historical_pit_eligible": false
+            }
+          }
+        }
+      },
+      {
+        "code": "002760.SZ",
+        "name": "凤形股份",
+        "match": "related",
+        "weight": 0.5,
+        "market": "SZ",
+        "market_factor": 0.55,
+        "reason": "铸造耐磨材料工艺参照，船电/电机业务有差异，保留但不视为同类轧辊",
+        "trade_date": "20260922",
+        "mkt_cap_yi": 19.02760894,
+        "metrics": {
+          "net_profit_parent": {
+            "available": true,
+            "pe": 92.03886990290472,
+            "market_adjusted_pe": 50.6213784465976,
+            "profit": {
+              "available": true,
+              "value": 20673449.119999997,
+              "metric": "net_profit_parent",
+              "end": "2026-06-30",
+              "basis": "TTM",
+              "components": {
+                "2025-12-31": 20171087.59,
+                "2026-06-30": 7783088.13,
+                "2025-06-30": 7280726.6
+              },
+              "evidence": [
+                "data/peer_fundamentals/api/4bd8de69748670383f26_20261012230646476510_6d4856dc.json",
+                "data/peer_fundamentals/api/708d8ae43a8f227dae62_20261012230646004324_b3c48c69.json",
+                "data/peer_fundamentals/api/af48f215f4329261e710_20261012230646252616_4bdca6ce.json",
+                "data/peer_research/workpapers/companies/002760.SZ.json"
+              ],
+              "historical_pit_eligible": false
+            }
+          },
+          "adjusted_net_profit_parent": {
+            "available": true,
+            "pe": 123.3674384184265,
+            "market_adjusted_pe": 67.85209113013458,
+            "profit": {
+              "available": true,
+              "value": 15423526.0,
+              "metric": "adjusted_net_profit_parent",
+              "end": "2026-06-30",
+              "basis": "TTM",
+              "components": {
+                "2025-12-31": 10984453.0,
+                "2026-06-30": 7292082.0,
+                "2025-06-30": 2853009.0
+              },
+              "evidence": [
+                "data/peer_fundamentals/mcp/financials_20250630.json",
+                "data/peer_fundamentals/mcp/financials_20251231.json",
+                "data/peer_fundamentals/mcp/financials_20260630.json",
+                "data/peer_research/workpapers/companies/002760.SZ.json"
+              ],
+              "historical_pit_eligible": false
+            }
+          }
+        }
+      },
+      {
+        "code": "603917.SH",
+        "name": "合力科技",
+        "match": "related",
+        "weight": 0.5,
+        "market": "SH",
+        "market_factor": 0.55,
+        "reason": "铸造模具及汽车部件制造参照；扣非TTM为负时不能使用其正归母高PE代表常态盈利",
+        "trade_date": "20260922",
+        "mkt_cap_yi": 29.271424,
+        "metrics": {
+          "net_profit_parent": {
+            "available": true,
+            "pe": 185.0716643267979,
+            "market_adjusted_pe": 101.78941537973886,
+            "profit": {
+              "available": true,
+              "value": 15816264.530000001,
+              "metric": "net_profit_parent",
+              "end": "2026-06-30",
+              "basis": "TTM",
+              "components": {
+                "2025-12-31": 28720108.87,
+                "2026-06-30": -3054611.23,
+                "2025-06-30": 9849233.11
+              },
+              "evidence": [
+                "data/peer_fundamentals/api/4bd8de69748670383f26_20261012230646476510_6d4856dc.json",
+                "data/peer_fundamentals/api/708d8ae43a8f227dae62_20261012230646004324_b3c48c69.json",
+                "data/peer_fundamentals/api/af48f215f4329261e710_20261012230646252616_4bdca6ce.json",
+                "data/peer_research/workpapers/companies/603917.SH.json"
+              ],
+              "historical_pit_eligible": false
+            }
+          },
+          "adjusted_net_profit_parent": {
+            "available": false,
+            "reason": "盈利非正，保留业务身份但PE不可用",
+            "profit": {
+              "available": true,
+              "value": -6875044.85,
+              "metric": "adjusted_net_profit_parent",
+              "end": "2026-06-30",
+              "basis": "TTM",
+              "components": {
+                "2025-12-31": 9695858.0,
+                "2026-06-30": -14962898.85,
+                "2025-06-30": 1608004.0
+              },
+              "evidence": [
+                "data/peer_fundamentals/mcp/financials_20250630.json",
+                "data/peer_fundamentals/mcp/financials_20251231.json",
+                "data/peer_fundamentals/mcp/financials_20260630.json",
+                "data/peer_research/workpapers/companies/603917.SH.json"
+              ],
+              "historical_pit_eligible": false
+            }
+          }
+        }
+      },
+      {
+        "code": "300971.SZ",
+        "name": "博亚精工",
+        "match": "related",
+        "weight": 0.5,
+        "market": "SZ",
+        "market_factor": 0.55,
+        "reason": "板带成形精密装备、辊系零件及特种装备零件，轧制产业链相近，含不同终端需求",
+        "trade_date": "20260922",
+        "mkt_cap_yi": 20.88576,
+        "metrics": {
+          "net_profit_parent": {
+            "available": true,
+            "pe": 28.7929548141943,
+            "market_adjusted_pe": 15.836125147806866,
+            "profit": {
+              "available": true,
+              "value": 72537744.50999999,
+              "metric": "net_profit_parent",
+              "end": "2026-06-30",
+              "basis": "TTM",
+              "components": {
+                "2025-12-31": 83409029.77,
+                "2026-06-30": 33445620.3,
+                "2025-06-30": 44316905.56
+              },
+              "evidence": [
+                "data/fundamental_cases/raw/stage3/300971.SZ_income_full.json",
+                "data/fundamental_cases/raw/stage3/api/403c3f64086863189cb8_20261013211929687885_0490e197.json",
+                "data/fundamental_cases/raw/stage3/api/cb12244526a6ac058e7c_20261013211929284067_84b06826.json",
+                "data/fundamental_cases/raw/stage3/api/ff49b0bfacc359c38ca7_20261013211930159382_5f7da78a.json",
+                "data/fundamental_cases/raw/stage3/mcp_kada_financials.json"
+              ],
+              "historical_pit_eligible": false
+            }
+          },
+          "adjusted_net_profit_parent": {
+            "available": true,
+            "pe": 31.715765282475882,
+            "market_adjusted_pe": 17.443670905361735,
+            "profit": {
+              "available": true,
+              "value": 65852927.76,
+              "metric": "adjusted_net_profit_parent",
+              "end": "2026-06-30",
+              "basis": "TTM",
+              "components": {
+                "2025-12-31": 65273387.93,
+                "2026-06-30": 29240337.98,
+                "2025-06-30": 28660798.15
+              },
+              "evidence": [
+                "data/fundamental_cases/raw/stage3/300971.SZ_fina_indicator.json",
+                "data/fundamental_cases/raw/stage3/mcp_kada_financials.json"
+              ],
+              "historical_pit_eligible": false
+            }
+          }
+        }
+      },
+      {
+        "code": "002347.SZ",
+        "name": "泰尔股份",
+        "match": "related",
+        "weight": 0.5,
+        "market": "SZ",
+        "market_factor": 0.55,
+        "reason": "冶金轧机核心备件、卷筒、剪刃及运维，保留亏损与新能源等业务差异",
+        "trade_date": "20260922",
+        "mkt_cap_yi": 29.7774357,
+        "metrics": {
+          "net_profit_parent": {
+            "available": false,
+            "reason": "盈利非正，保留业务身份但PE不可用",
+            "profit": {
+              "available": true,
+              "value": -95311890.5,
+              "metric": "net_profit_parent",
+              "end": "2026-06-30",
+              "basis": "TTM",
+              "components": {
+                "2025-12-31": -94940921.2,
+                "2026-06-30": -19756757.2,
+                "2025-06-30": -19385787.9
+              },
+              "evidence": [
+                "data/fundamental_cases/raw/stage3/002347.SZ_income_full.json",
+                "data/fundamental_cases/raw/stage3/api/403c3f64086863189cb8_20261013211929687885_0490e197.json",
+                "data/fundamental_cases/raw/stage3/api/cb12244526a6ac058e7c_20261013211929284067_84b06826.json",
+                "data/fundamental_cases/raw/stage3/api/ff49b0bfacc359c38ca7_20261013211930159382_5f7da78a.json",
+                "data/fundamental_cases/raw/stage3/mcp_kada_financials.json"
+              ],
+              "historical_pit_eligible": false
+            }
+          },
+          "adjusted_net_profit_parent": {
+            "available": false,
+            "reason": "盈利非正，保留业务身份但PE不可用",
+            "profit": {
+              "available": true,
+              "value": -103342538.47,
+              "metric": "adjusted_net_profit_parent",
+              "end": "2026-06-30",
+              "basis": "TTM",
+              "components": {
+                "2025-12-31": -105433753.95,
+                "2026-06-30": -25348572.97,
+                "2025-06-30": -27439788.45
+              },
+              "evidence": [
+                "data/fundamental_cases/raw/stage3/002347.SZ_fina_indicator.json",
+                "data/fundamental_cases/raw/stage3/mcp_kada_financials.json"
+              ],
+              "historical_pit_eligible": false
+            }
+          }
+        }
+      },
+      {
+        "code": "603135.SH",
+        "name": "中重科技",
+        "match": "related",
+        "weight": 0.5,
+        "market": "SH",
+        "market_factor": 0.55,
+        "reason": "智能轧制生产线及机械设备，同钢铁资本开支链，但整线与轧辊耗材订单周期不同",
+        "trade_date": "20260922",
+        "mkt_cap_yi": 56.00490193,
+        "metrics": {
+          "net_profit_parent": {
+            "available": false,
+            "reason": "盈利非正，保留业务身份但PE不可用",
+            "profit": {
+              "available": true,
+              "value": -4202851.559999995,
+              "metric": "net_profit_parent",
+              "end": "2026-06-30",
+              "basis": "TTM",
+              "components": {
+                "2025-12-31": -22027357.91,
+                "2026-06-30": 37449831.34,
+                "2025-06-30": 19625324.99
+              },
+              "evidence": [
+                "data/fundamental_cases/raw/stage3/603135.SH_income_full.json",
+                "data/fundamental_cases/raw/stage3/api/403c3f64086863189cb8_20261013211929687885_0490e197.json",
+                "data/fundamental_cases/raw/stage3/api/cb12244526a6ac058e7c_20261013211929284067_84b06826.json",
+                "data/fundamental_cases/raw/stage3/api/ff49b0bfacc359c38ca7_20261013211930159382_5f7da78a.json",
+                "data/fundamental_cases/raw/stage3/mcp_kada_financials.json"
+              ],
+              "historical_pit_eligible": false
+            }
+          },
+          "adjusted_net_profit_parent": {
+            "available": false,
+            "reason": "盈利非正，保留业务身份但PE不可用",
+            "profit": {
+              "available": true,
+              "value": -16999069.650000002,
+              "metric": "adjusted_net_profit_parent",
+              "end": "2026-06-30",
+              "basis": "TTM",
+              "components": {
+                "2025-12-31": -35885742.67,
+                "2026-06-30": 28381768.2,
+                "2025-06-30": 9495095.18
+              },
+              "evidence": [
+                "data/fundamental_cases/raw/stage3/603135.SH_fina_indicator.json",
+                "data/fundamental_cases/raw/stage3/mcp_kada_financials.json"
+              ],
+              "historical_pit_eligible": false
+            }
+          }
+        }
+      }
+    ],
+    "coverage": {
+      "candidates": 8,
+      "usable": 2
+    },
+    "review_source": "data/fundamental_cases/cases/920025.json",
+    "cycle": {
+      "classification": "钢铁链耗材与设备周期；当前TTM与历史利润率参照并列",
+      "normalization_approved": false,
+      "reason": "H1利润下降包含研发与汇兑因素，不直接判作周期底。扩充轧制设备宽池，亏损参照继续保留；三年扣非利润率压力参照双方同时计算，历史中位数不等于已验证常态，仍不批准正常化主F。",
+      "pages": [
+        7,
+        135,
+        202,
+        204,
+        205,
+        206,
+        208,
+        274,
+        312
+      ]
+    },
+    "stage": "matched",
+    "limitations": [
+      "市场统一折价仍为既有研究参数，需单列敏感性",
+      "前瞻与周期正常化尚无完整同口径同行估值，未加入主F",
+      "部分扣非利润仅有供应商来源，披露日/历史版本未达到真实PIT要求",
+      "当前资料历史重建不是原始事前PIT",
+      "匹配档位为固定研究规则，未按首日涨幅调参",
+      "区间是盈利口径、可比离散与绿鞋摊薄情景，不是统计置信区间"
+    ],
+    "market_policy": {
+      "SH_SZ": 0.55,
+      "BJ": 1.0,
+      "NQ": null
+    },
+    "center": 12.757057000468494,
+    "low": 4.561936259194212,
+    "high": 30.495534312117563,
+    "confidence": 0.12516034777138155,
+    "peer_count": 2,
+    "peer_codes": [
+      "002760.SZ",
+      "300971.SZ"
+    ],
+    "eps": 0.2991252248888889,
+    "peer_pe": 42.64788101774816,
+    "bse_discount": 0.55,
+    "earnings_basis": "扣非TTM/发行后股本 × 同行市值/扣非TTM（分市场调整）",
+    "reference_dates": [
+      "20260922"
+    ]
+  },
+  "historical_margin_scenario": {
+    "available": true,
+    "basis": "fundamental_anchor_v2",
+    "as_of": "2026-09-23",
+    "historical_pit_eligible": false,
+    "research_reconstruction": true,
+    "earnings": {
+      "net_profit_parent": {
+        "available": true,
+        "value": 69088442.67811544,
+        "basis": "historical_margin_reference",
+        "metric": "net_profit_parent",
+        "annual": [
+          {
+            "period": "2023-12-31",
+            "profit": 65316060.59,
+            "revenue": 451608658.76,
+            "margin": 0.14462977917505154
+          },
+          {
+            "period": "2024-12-31",
+            "profit": 62744877.26,
+            "revenue": 459974279.2,
+            "margin": 0.13640953439641804
+          },
+          {
+            "period": "2025-12-31",
+            "profit": 70853230.02,
+            "revenue": 477149783.36,
+            "margin": 0.14849263793240086
+          }
+        ],
+        "revenue_ttm": 477691683.36,
+        "median_margin": 0.14462977917505154,
+        "margin_min": 0.13640953439641804,
+        "margin_max": 0.14849263793240086,
+        "evidence": [
+          "data/fundamental_cases/evidence/920025_p312.json",
+          "data/peer_research/api/ad5427fcb8e40a71efee_20261012234354253794_c44cb1f1.json",
+          "data/peer_research/api/c8aa11538348c8705ebd_20261012234353998764_d87eefde.json",
+          "data/peer_research/api/ea4136c6d077466db782_20261012234354720966_7607da32.json",
+          "data/peer_research/workpapers/companies/920025.BJ.json"
+        ],
+        "normalization_approved": false,
+        "historical_pit_eligible": false,
+        "limitation": "三年历史利润率不是完整周期或可持续盈利承诺，亏损恢复和业务结构变化未获定价批准"
+      },
+      "adjusted_net_profit_parent": {
+        "available": true,
+        "value": 65838644.92859792,
+        "basis": "historical_margin_reference",
+        "metric": "adjusted_net_profit_parent",
+        "annual": [
+          {
+            "period": "2023-12-31",
+            "profit": 62243709.0,
+            "revenue": 451608658.76,
+            "margin": 0.1378266510011235
+          },
+          {
+            "period": "2024-12-31",
+            "profit": 59298282.0,
+            "revenue": 459974279.2,
+            "margin": 0.12891651703467685
+          },
+          {
+            "period": "2025-12-31",
+            "profit": 69650275.6,
+            "revenue": 477149783.36,
+            "margin": 0.14597151257103316
+          }
+        ],
+        "revenue_ttm": 477691683.36,
+        "median_margin": 0.1378266510011235,
+        "margin_min": 0.12891651703467685,
+        "margin_max": 0.14597151257103316,
+        "evidence": [
+          "data/fundamental_cases/evidence/920025_p202.json",
+          "data/fundamental_cases/evidence/920025_p312.json",
+          "data/peer_research/api/ad5427fcb8e40a71efee_20261012234354253794_c44cb1f1.json",
+          "data/peer_research/api/c8aa11538348c8705ebd_20261012234353998764_d87eefde.json",
+          "data/peer_research/api/ea4136c6d077466db782_20261012234354720966_7607da32.json",
+          "data/peer_research/mcp/financials_20231231_3923fc5eba.json",
+          "data/peer_research/mcp/financials_20241231_3923fc5eba.json",
+          "data/peer_research/workpapers/companies/920025.BJ.json"
+        ],
+        "normalization_approved": false,
+        "historical_pit_eligible": false,
+        "limitation": "三年历史利润率不是完整周期或可持续盈利承诺，亏损恢复和业务结构变化未获定价批准"
+      }
+    },
+    "scenarios": {
+      "net_profit_parent": {
+        "available": true,
+        "center": 17.907404192607288,
+        "low": 4.0793014832196315,
+        "high": 32.3458204052706,
+        "eps": 0.30705974523606866,
+        "peer_multiple": 58.31895737046226,
+        "peer_count": 3,
+        "peer_codes": [
+          "603917.SH",
+          "300971.SZ",
+          "603135.SH"
+        ],
+        "profit": {
+          "available": true,
+          "value": 69088442.67811544,
+          "basis": "historical_margin_reference",
+          "metric": "net_profit_parent",
+          "annual": [
+            {
+              "period": "2023-12-31",
+              "profit": 65316060.59,
+              "revenue": 451608658.76,
+              "margin": 0.14462977917505154
+            },
+            {
+              "period": "2024-12-31",
+              "profit": 62744877.26,
+              "revenue": 459974279.2,
+              "margin": 0.13640953439641804
+            },
+            {
+              "period": "2025-12-31",
+              "profit": 70853230.02,
+              "revenue": 477149783.36,
+              "margin": 0.14849263793240086
+            }
+          ],
+          "revenue_ttm": 477691683.36,
+          "median_margin": 0.14462977917505154,
+          "margin_min": 0.13640953439641804,
+          "margin_max": 0.14849263793240086,
+          "evidence": [
+            "data/fundamental_cases/evidence/920025_p312.json",
+            "data/peer_research/api/ad5427fcb8e40a71efee_20261012234354253794_c44cb1f1.json",
+            "data/peer_research/api/c8aa11538348c8705ebd_20261012234353998764_d87eefde.json",
+            "data/peer_research/api/ea4136c6d077466db782_20261012234354720966_7607da32.json",
+            "data/peer_research/workpapers/companies/920025.BJ.json"
+          ],
+          "normalization_approved": false,
+          "historical_pit_eligible": false,
+          "limitation": "三年历史利润率不是完整周期或可持续盈利承诺，亏损恢复和业务结构变化未获定价批准"
+        }
+      },
+      "adjusted_net_profit_parent": {
+        "available": true,
+        "center": 50.548462692634814,
+        "low": 4.740732103020842,
+        "high": 58.978910138692015,
+        "eps": 0.2926161996826574,
+        "peer_multiple": 172.74663107324434,
+        "peer_count": 3,
+        "peer_codes": [
+          "603917.SH",
+          "300971.SZ",
+          "603135.SH"
+        ],
+        "profit": {
+          "available": true,
+          "value": 65838644.92859792,
+          "basis": "historical_margin_reference",
+          "metric": "adjusted_net_profit_parent",
+          "annual": [
+            {
+              "period": "2023-12-31",
+              "profit": 62243709.0,
+              "revenue": 451608658.76,
+              "margin": 0.1378266510011235
+            },
+            {
+              "period": "2024-12-31",
+              "profit": 59298282.0,
+              "revenue": 459974279.2,
+              "margin": 0.12891651703467685
+            },
+            {
+              "period": "2025-12-31",
+              "profit": 69650275.6,
+              "revenue": 477149783.36,
+              "margin": 0.14597151257103316
+            }
+          ],
+          "revenue_ttm": 477691683.36,
+          "median_margin": 0.1378266510011235,
+          "margin_min": 0.12891651703467685,
+          "margin_max": 0.14597151257103316,
+          "evidence": [
+            "data/fundamental_cases/evidence/920025_p202.json",
+            "data/fundamental_cases/evidence/920025_p312.json",
+            "data/peer_research/api/ad5427fcb8e40a71efee_20261012234354253794_c44cb1f1.json",
+            "data/peer_research/api/c8aa11538348c8705ebd_20261012234353998764_d87eefde.json",
+            "data/peer_research/api/ea4136c6d077466db782_20261012234354720966_7607da32.json",
+            "data/peer_research/mcp/financials_20231231_3923fc5eba.json",
+            "data/peer_research/mcp/financials_20241231_3923fc5eba.json",
+            "data/peer_research/workpapers/companies/920025.BJ.json"
+          ],
+          "normalization_approved": false,
+          "historical_pit_eligible": false,
+          "limitation": "三年历史利润率不是完整周期或可持续盈利承诺，亏损恢复和业务结构变化未获定价批准"
+        }
+      }
+    },
+    "peer_details": [
+      {
+        "code": "873650.NQ",
+        "name": "腾升科技",
+        "match": "direct",
+        "weight": 1.0,
+        "market": "NQ",
+        "market_factor": null,
+        "reason": "铸造轧辊及铸件，业务直接相近；缺乏可验证流动性报价时不直接参与A股价格映射",
+        "trade_date": null,
+        "mkt_cap_yi": null,
+        "metrics": {
+          "net_profit_parent": {
+            "available": false,
+            "reason": "跨市场缺少可验证流动性/折价口径，保留业务参照",
+            "profit": {
+              "available": true,
+              "value": 23180323.57494149,
+              "basis": "historical_margin_reference",
+              "metric": "net_profit_parent",
+              "annual": [
+                {
+                  "period": "2023-12-31",
+                  "profit": 21870173.42,
+                  "revenue": 155803163.25,
+                  "margin": 0.1403705352561255
+                },
+                {
+                  "period": "2024-12-31",
+                  "profit": 22383738.92,
+                  "revenue": 101192087.06,
+                  "margin": 0.22120048681996224
+                },
+                {
+                  "period": "2025-12-31",
+                  "profit": 18712011.3,
+                  "revenue": 132649793.73,
+                  "margin": 0.14106325214562399
+                }
+              ],
+              "revenue_ttm": 164325741.98000002,
+              "median_margin": 0.14106325214562399,
+              "margin_min": 0.1403705352561255,
+              "margin_max": 0.22120048681996224,
+              "evidence": [
+                "data/peer_fundamentals/api/4b72a222fc92f630a58b_20261012230645769350_8ddbf2e2.json",
+                "data/peer_fundamentals/api/4bd8de69748670383f26_20261012230646476510_6d4856dc.json",
+                "data/peer_fundamentals/api/708d8ae43a8f227dae62_20261012230646004324_b3c48c69.json",
+                "data/peer_fundamentals/api/85f95e57f25caded40c7_20261012230645531031_2747780c.json",
+                "data/peer_fundamentals/api/af48f215f4329261e710_20261012230646252616_4bdca6ce.json",
+                "data/peer_research/workpapers/companies/873650.NQ.json"
+              ],
+              "normalization_approved": false,
+              "historical_pit_eligible": false,
+              "limitation": "三年历史利润率不是完整周期或可持续盈利承诺，亏损恢复和业务结构变化未获定价批准"
+            }
+          },
+          "adjusted_net_profit_parent": {
+            "available": false,
+            "reason": "跨市场缺少可验证流动性/折价口径，保留业务参照",
+            "profit": {
+              "available": true,
+              "value": 22527633.605636816,
+              "basis": "historical_margin_reference",
+              "metric": "adjusted_net_profit_parent",
+              "annual": [
+                {
+                  "period": "2023-12-31",
+                  "profit": 21359262.0,
+                  "revenue": 155803163.25,
+                  "margin": 0.13709132442790758
+                },
+                {
+                  "period": "2024-12-31",
+                  "profit": 21768936.0,
+                  "revenue": 101192087.06,
+                  "margin": 0.2151248840938769
+                },
+                {
+                  "period": "2025-12-31",
+                  "profit": 15866215.0,
+                  "revenue": 132649793.73,
+                  "margin": 0.11960979775283062
+                }
+              ],
+              "revenue_ttm": 164325741.98000002,
+              "median_margin": 0.13709132442790758,
+              "margin_min": 0.11960979775283062,
+              "margin_max": 0.2151248840938769,
+              "evidence": [
+                "data/peer_fundamentals/api/4b72a222fc92f630a58b_20261012230645769350_8ddbf2e2.json",
+                "data/peer_fundamentals/api/4bd8de69748670383f26_20261012230646476510_6d4856dc.json",
+                "data/peer_fundamentals/api/708d8ae43a8f227dae62_20261012230646004324_b3c48c69.json",
+                "data/peer_fundamentals/api/85f95e57f25caded40c7_20261012230645531031_2747780c.json",
+                "data/peer_fundamentals/api/af48f215f4329261e710_20261012230646252616_4bdca6ce.json",
+                "data/peer_fundamentals/mcp/nq_20231231.json",
+                "data/peer_fundamentals/mcp/nq_20241231.json",
+                "data/peer_fundamentals/mcp/nq_20251231.json",
+                "data/peer_research/workpapers/companies/873650.NQ.json"
+              ],
+              "normalization_approved": false,
+              "historical_pit_eligible": false,
+              "limitation": "三年历史利润率不是完整周期或可持续盈利承诺，亏损恢复和业务结构变化未获定价批准"
+            }
+          }
+        }
+      },
+      {
+        "code": "872643.NQ",
+        "name": "华冶股份",
+        "match": "related",
+        "weight": 0.5,
+        "market": "NQ",
+        "market_factor": null,
+        "reason": "锻钢冷轧辊，制造工艺与应用侧重不同；亏损身份保留",
+        "trade_date": null,
+        "mkt_cap_yi": null,
+        "metrics": {
+          "net_profit_parent": {
+            "available": false,
+            "reason": "跨市场缺少可验证流动性/折价口径，保留业务参照",
+            "profit": {
+              "available": true,
+              "value": -8669982.559211157,
+              "basis": "historical_margin_reference",
+              "metric": "net_profit_parent",
+              "annual": [
+                {
+                  "period": "2023-12-31",
+                  "profit": 364368.88,
+                  "revenue": 145424223.66,
+                  "margin": 0.0025055583645534176
+                },
+                {
+                  "period": "2024-12-31",
+                  "profit": -8205337.97,
+                  "revenue": 145450186.66,
+                  "margin": -0.05641338906756134
+                },
+                {
+                  "period": "2025-12-31",
+                  "profit": -8185838.48,
+                  "revenue": 171044157.95,
+                  "margin": -0.0478580419121529
+                }
+              ],
+              "revenue_ttm": 181160411.34999996,
+              "median_margin": -0.0478580419121529,
+              "margin_min": -0.05641338906756134,
+              "margin_max": 0.0025055583645534176,
+              "evidence": [
+                "data/peer_fundamentals/api/4b72a222fc92f630a58b_20261012230645769350_8ddbf2e2.json",
+                "data/peer_fundamentals/api/4bd8de69748670383f26_20261012230646476510_6d4856dc.json",
+                "data/peer_fundamentals/api/708d8ae43a8f227dae62_20261012230646004324_b3c48c69.json",
+                "data/peer_fundamentals/api/85f95e57f25caded40c7_20261012230645531031_2747780c.json",
+                "data/peer_fundamentals/api/af48f215f4329261e710_20261012230646252616_4bdca6ce.json",
+                "data/peer_research/workpapers/companies/872643.NQ.json"
+              ],
+              "normalization_approved": false,
+              "historical_pit_eligible": false,
+              "limitation": "三年历史利润率不是完整周期或可持续盈利承诺，亏损恢复和业务结构变化未获定价批准"
+            }
+          },
+          "adjusted_net_profit_parent": {
+            "available": false,
+            "reason": "跨市场缺少可验证流动性/折价口径，保留业务参照",
+            "profit": {
+              "available": true,
+              "value": -9043698.971858993,
+              "basis": "historical_margin_reference",
+              "metric": "adjusted_net_profit_parent",
+              "annual": [
+                {
+                  "period": "2023-12-31",
+                  "profit": -2660339.17,
+                  "revenue": 145424223.66,
+                  "margin": -0.018293645329816848
+                },
+                {
+                  "period": "2024-12-31",
+                  "profit": -8424006.13,
+                  "revenue": 145450186.66,
+                  "margin": -0.057916777719176846
+                },
+                {
+                  "period": "2025-12-31",
+                  "profit": -8538686.04,
+                  "revenue": 171044157.95,
+                  "margin": -0.049920945224542816
+                }
+              ],
+              "revenue_ttm": 181160411.34999996,
+              "median_margin": -0.049920945224542816,
+              "margin_min": -0.057916777719176846,
+              "margin_max": -0.018293645329816848,
+              "evidence": [
+                "data/peer_fundamentals/api/4b72a222fc92f630a58b_20261012230645769350_8ddbf2e2.json",
+                "data/peer_fundamentals/api/4bd8de69748670383f26_20261012230646476510_6d4856dc.json",
+                "data/peer_fundamentals/api/708d8ae43a8f227dae62_20261012230646004324_b3c48c69.json",
+                "data/peer_fundamentals/api/85f95e57f25caded40c7_20261012230645531031_2747780c.json",
+                "data/peer_fundamentals/api/af48f215f4329261e710_20261012230646252616_4bdca6ce.json",
+                "data/peer_fundamentals/mcp/nq_20231231.json",
+                "data/peer_fundamentals/mcp/nq_20241231.json",
+                "data/peer_fundamentals/mcp/nq_20251231.json",
+                "data/peer_research/workpapers/companies/872643.NQ.json"
+              ],
+              "normalization_approved": false,
+              "historical_pit_eligible": false,
+              "limitation": "三年历史利润率不是完整周期或可持续盈利承诺，亏损恢复和业务结构变化未获定价批准"
+            }
+          }
+        }
+      },
+      {
+        "code": "874437.NQ",
+        "name": "中原辊轴",
+        "match": "related",
+        "weight": 0.5,
+        "market": "NQ",
+        "market_factor": null,
+        "reason": "锻钢轧辊及管模，同冶金设备链但产品组合不同",
+        "trade_date": null,
+        "mkt_cap_yi": null,
+        "metrics": {
+          "net_profit_parent": {
+            "available": false,
+            "reason": "跨市场缺少可验证流动性/折价口径，保留业务参照",
+            "profit": {
+              "available": true,
+              "value": 37092518.513550006,
+              "basis": "historical_margin_reference",
+              "metric": "net_profit_parent",
+              "annual": [
+                {
+                  "period": "2023-12-31",
+                  "profit": 41006931.94,
+                  "revenue": 257852738.17,
+                  "margin": 0.15903236952622352
+                },
+                {
+                  "period": "2024-12-31",
+                  "profit": 52019216.16,
+                  "revenue": 352712898.01,
+                  "margin": 0.14748316960760863
+                },
+                {
+                  "period": "2025-12-31",
+                  "profit": 46794693.26,
+                  "revenue": 336121381.81,
+                  "margin": 0.139219626576603
+                }
+              ],
+              "revenue_ttm": 251503399.42000005,
+              "median_margin": 0.14748316960760863,
+              "margin_min": 0.139219626576603,
+              "margin_max": 0.15903236952622352,
+              "evidence": [
+                "data/peer_fundamentals/api/4b72a222fc92f630a58b_20261012230645769350_8ddbf2e2.json",
+                "data/peer_fundamentals/api/4bd8de69748670383f26_20261012230646476510_6d4856dc.json",
+                "data/peer_fundamentals/api/708d8ae43a8f227dae62_20261012230646004324_b3c48c69.json",
+                "data/peer_fundamentals/api/85f95e57f25caded40c7_20261012230645531031_2747780c.json",
+                "data/peer_fundamentals/api/af48f215f4329261e710_20261012230646252616_4bdca6ce.json",
+                "data/peer_research/workpapers/companies/874437.NQ.json"
+              ],
+              "normalization_approved": false,
+              "historical_pit_eligible": false,
+              "limitation": "三年历史利润率不是完整周期或可持续盈利承诺，亏损恢复和业务结构变化未获定价批准"
+            }
+          },
+          "adjusted_net_profit_parent": {
+            "available": false,
+            "reason": "跨市场缺少可验证流动性/折价口径，保留业务参照",
+            "profit": {
+              "available": true,
+              "value": 36245057.09487021,
+              "basis": "historical_margin_reference",
+              "metric": "adjusted_net_profit_parent",
+              "annual": [
+                {
+                  "period": "2023-12-31",
+                  "profit": 39300463.0,
+                  "revenue": 257852738.17,
+                  "margin": 0.15241437139244013
+                },
+                {
+                  "period": "2024-12-31",
+                  "profit": 50830721.0,
+                  "revenue": 352712898.01,
+                  "margin": 0.14411358724556442
+                },
+                {
+                  "period": "2025-12-31",
+                  "profit": 45395096.0,
+                  "revenue": 336121381.81,
+                  "margin": 0.13505566279523562
+                }
+              ],
+              "revenue_ttm": 251503399.42000005,
+              "median_margin": 0.14411358724556442,
+              "margin_min": 0.13505566279523562,
+              "margin_max": 0.15241437139244013,
+              "evidence": [
+                "data/peer_fundamentals/api/4b72a222fc92f630a58b_20261012230645769350_8ddbf2e2.json",
+                "data/peer_fundamentals/api/4bd8de69748670383f26_20261012230646476510_6d4856dc.json",
+                "data/peer_fundamentals/api/708d8ae43a8f227dae62_20261012230646004324_b3c48c69.json",
+                "data/peer_fundamentals/api/85f95e57f25caded40c7_20261012230645531031_2747780c.json",
+                "data/peer_fundamentals/api/af48f215f4329261e710_20261012230646252616_4bdca6ce.json",
+                "data/peer_fundamentals/mcp/nq_20231231.json",
+                "data/peer_fundamentals/mcp/nq_20241231.json",
+                "data/peer_fundamentals/mcp/nq_20251231.json",
+                "data/peer_research/workpapers/companies/874437.NQ.json"
+              ],
+              "normalization_approved": false,
+              "historical_pit_eligible": false,
+              "limitation": "三年历史利润率不是完整周期或可持续盈利承诺，亏损恢复和业务结构变化未获定价批准"
+            }
+          }
+        }
+      },
+      {
+        "code": "002760.SZ",
+        "name": "凤形股份",
+        "match": "related",
+        "weight": 0.5,
+        "market": "SZ",
+        "market_factor": 0.55,
+        "reason": "铸造耐磨材料工艺参照，船电/电机业务有差异，保留但不视为同类轧辊",
+        "trade_date": "20260922",
+        "mkt_cap_yi": 19.02760894,
+        "metrics": {
+          "net_profit_parent": {
+            "available": false,
+            "reason": "盈利非正，保留业务身份但PE不可用",
+            "profit": {
+              "available": true,
+              "value": -57909583.23118778,
+              "basis": "historical_margin_reference",
+              "metric": "net_profit_parent",
+              "annual": [
+                {
+                  "period": "2023-12-31",
+                  "profit": -59635948.08,
+                  "revenue": 690801274.95,
+                  "margin": -0.08632865954730096
+                },
+                {
+                  "period": "2024-12-31",
+                  "profit": -60829451.09,
+                  "revenue": 588079315.23,
+                  "margin": -0.10343749476413633
+                },
+                {
+                  "period": "2025-12-31",
+                  "profit": 20171087.59,
+                  "revenue": 633144633.11,
+                  "margin": 0.031858577859090145
+                }
+              ],
+              "revenue_ttm": 670803688.3100001,
+              "median_margin": -0.08632865954730096,
+              "margin_min": -0.10343749476413633,
+              "margin_max": 0.031858577859090145,
+              "evidence": [
+                "data/peer_fundamentals/api/4b72a222fc92f630a58b_20261012230645769350_8ddbf2e2.json",
+                "data/peer_fundamentals/api/4bd8de69748670383f26_20261012230646476510_6d4856dc.json",
+                "data/peer_fundamentals/api/708d8ae43a8f227dae62_20261012230646004324_b3c48c69.json",
+                "data/peer_fundamentals/api/85f95e57f25caded40c7_20261012230645531031_2747780c.json",
+                "data/peer_fundamentals/api/af48f215f4329261e710_20261012230646252616_4bdca6ce.json",
+                "data/peer_research/workpapers/companies/002760.SZ.json"
+              ],
+              "normalization_approved": false,
+              "historical_pit_eligible": false,
+              "limitation": "三年历史利润率不是完整周期或可持续盈利承诺，亏损恢复和业务结构变化未获定价批准"
+            }
+          },
+          "adjusted_net_profit_parent": {
+            "available": false,
+            "reason": "盈利非正，保留业务身份但PE不可用",
+            "profit": {
+              "available": true,
+              "value": -81112630.01385711,
+              "basis": "historical_margin_reference",
+              "metric": "adjusted_net_profit_parent",
+              "annual": [
+                {
+                  "period": "2023-12-31",
+                  "profit": -83712304.02,
+                  "revenue": 690801274.95,
+                  "margin": -0.12118145558729472
+                },
+                {
+                  "period": "2024-12-31",
+                  "profit": -71109716.22,
+                  "revenue": 588079315.23,
+                  "margin": -0.12091858084175044
+                },
+                {
+                  "period": "2025-12-31",
+                  "profit": 10984453.0,
+                  "revenue": 633144633.11,
+                  "margin": 0.017349042265500186
+                }
+              ],
+              "revenue_ttm": 670803688.3100001,
+              "median_margin": -0.12091858084175044,
+              "margin_min": -0.12118145558729472,
+              "margin_max": 0.017349042265500186,
+              "evidence": [
+                "data/peer_fundamentals/api/4b72a222fc92f630a58b_20261012230645769350_8ddbf2e2.json",
+                "data/peer_fundamentals/api/4bd8de69748670383f26_20261012230646476510_6d4856dc.json",
+                "data/peer_fundamentals/api/708d8ae43a8f227dae62_20261012230646004324_b3c48c69.json",
+                "data/peer_fundamentals/api/85f95e57f25caded40c7_20261012230645531031_2747780c.json",
+                "data/peer_fundamentals/api/af48f215f4329261e710_20261012230646252616_4bdca6ce.json",
+                "data/peer_fundamentals/mcp/financials_20231231.json",
+                "data/peer_fundamentals/mcp/financials_20241231.json",
+                "data/peer_fundamentals/mcp/financials_20251231.json",
+                "data/peer_research/workpapers/companies/002760.SZ.json"
+              ],
+              "normalization_approved": false,
+              "historical_pit_eligible": false,
+              "limitation": "三年历史利润率不是完整周期或可持续盈利承诺，亏损恢复和业务结构变化未获定价批准"
+            }
+          }
+        }
+      },
+      {
+        "code": "603917.SH",
+        "name": "合力科技",
+        "match": "related",
+        "weight": 0.5,
+        "market": "SH",
+        "market_factor": 0.55,
+        "reason": "铸造模具及汽车部件制造参照；扣非TTM为负时不能使用其正归母高PE代表常态盈利",
+        "trade_date": "20260922",
+        "mkt_cap_yi": 29.271424,
+        "metrics": {
+          "net_profit_parent": {
+            "available": true,
+            "pe": 106.03446794629501,
+            "market_adjusted_pe": 58.31895737046226,
+            "profit": {
+              "available": true,
+              "value": 27605574.457944725,
+              "basis": "historical_margin_reference",
+              "metric": "net_profit_parent",
+              "annual": [
+                {
+                  "period": "2023-12-31",
+                  "profit": 43670797.72,
+                  "revenue": 672149966.16,
+                  "margin": 0.06497180676730781
+                },
+                {
+                  "period": "2024-12-31",
+                  "profit": -11239482.97,
+                  "revenue": 585763272.15,
+                  "margin": -0.019187756393032846
+                },
+                {
+                  "period": "2025-12-31",
+                  "profit": 28720108.87,
+                  "revenue": 754173305.13,
+                  "margin": 0.03808157710521111
+                }
+              ],
+              "revenue_ttm": 724906281.63,
+              "median_margin": 0.03808157710521111,
+              "margin_min": -0.019187756393032846,
+              "margin_max": 0.06497180676730781,
+              "evidence": [
+                "data/peer_fundamentals/api/4b72a222fc92f630a58b_20261012230645769350_8ddbf2e2.json",
+                "data/peer_fundamentals/api/4bd8de69748670383f26_20261012230646476510_6d4856dc.json",
+                "data/peer_fundamentals/api/708d8ae43a8f227dae62_20261012230646004324_b3c48c69.json",
+                "data/peer_fundamentals/api/85f95e57f25caded40c7_20261012230645531031_2747780c.json",
+                "data/peer_fundamentals/api/af48f215f4329261e710_20261012230646252616_4bdca6ce.json",
+                "data/peer_research/workpapers/companies/603917.SH.json"
+              ],
+              "normalization_approved": false,
+              "historical_pit_eligible": false,
+              "limitation": "三年历史利润率不是完整周期或可持续盈利承诺，亏损恢复和业务结构变化未获定价批准"
+            }
+          },
+          "adjusted_net_profit_parent": {
+            "available": true,
+            "pe": 314.08478376953514,
+            "market_adjusted_pe": 172.74663107324434,
+            "profit": {
+              "available": true,
+              "value": 9319593.152108377,
+              "basis": "historical_margin_reference",
+              "metric": "adjusted_net_profit_parent",
+              "annual": [
+                {
+                  "period": "2023-12-31",
+                  "profit": 29336696.0,
+                  "revenue": 672149966.16,
+                  "margin": 0.043646057393413054
+                },
+                {
+                  "period": "2024-12-31",
+                  "profit": -27679467.02,
+                  "revenue": 585763272.15,
+                  "margin": -0.0472536745405778
+                },
+                {
+                  "period": "2025-12-31",
+                  "profit": 9695858.0,
+                  "revenue": 754173305.13,
+                  "margin": 0.012856273132511213
+                }
+              ],
+              "revenue_ttm": 724906281.63,
+              "median_margin": 0.012856273132511213,
+              "margin_min": -0.0472536745405778,
+              "margin_max": 0.043646057393413054,
+              "evidence": [
+                "data/peer_fundamentals/api/4b72a222fc92f630a58b_20261012230645769350_8ddbf2e2.json",
+                "data/peer_fundamentals/api/4bd8de69748670383f26_20261012230646476510_6d4856dc.json",
+                "data/peer_fundamentals/api/708d8ae43a8f227dae62_20261012230646004324_b3c48c69.json",
+                "data/peer_fundamentals/api/85f95e57f25caded40c7_20261012230645531031_2747780c.json",
+                "data/peer_fundamentals/api/af48f215f4329261e710_20261012230646252616_4bdca6ce.json",
+                "data/peer_fundamentals/mcp/financials_20231231.json",
+                "data/peer_fundamentals/mcp/financials_20241231.json",
+                "data/peer_fundamentals/mcp/financials_20251231.json",
+                "data/peer_research/workpapers/companies/603917.SH.json"
+              ],
+              "normalization_approved": false,
+              "historical_pit_eligible": false,
+              "limitation": "三年历史利润率不是完整周期或可持续盈利承诺，亏损恢复和业务结构变化未获定价批准"
+            }
+          }
+        }
+      },
+      {
+        "code": "300971.SZ",
+        "name": "博亚精工",
+        "match": "related",
+        "weight": 0.5,
+        "market": "SZ",
+        "market_factor": 0.55,
+        "reason": "板带成形精密装备、辊系零件及特种装备零件，轧制产业链相近，含不同终端需求",
+        "trade_date": "20260922",
+        "mkt_cap_yi": 20.88576,
+        "metrics": {
+          "net_profit_parent": {
+            "available": true,
+            "pe": 25.120805898046665,
+            "market_adjusted_pe": 13.816443243925667,
+            "profit": {
+              "available": true,
+              "value": 83141281.71192163,
+              "basis": "historical_margin_reference",
+              "metric": "net_profit_parent",
+              "annual": [
+                {
+                  "period": "2023-12-31",
+                  "profit": 66258364.67,
+                  "revenue": 427698808.74,
+                  "margin": 0.15491828201532062
+                },
+                {
+                  "period": "2024-12-31",
+                  "profit": 43791315.74,
+                  "revenue": 385408004.13,
+                  "margin": 0.11362326487964941
+                },
+                {
+                  "period": "2025-12-31",
+                  "profit": 83409029.77,
+                  "revenue": 513827818.41,
+                  "margin": 0.16232875446117867
+                }
+              ],
+              "revenue_ttm": 536678309.56000006,
+              "median_margin": 0.15491828201532062,
+              "margin_min": 0.11362326487964941,
+              "margin_max": 0.16232875446117867,
+              "evidence": [
+                "data/fundamental_cases/raw/stage3/300971.SZ_income_full.json",
+                "data/fundamental_cases/raw/stage3/api/1211cab4a3c12db8cbf3_20261013211929052809_0cc15d5a.json",
+                "data/fundamental_cases/raw/stage3/api/403c3f64086863189cb8_20261013211929687885_0490e197.json",
+                "data/fundamental_cases/raw/stage3/api/b768d34a2bb8c05cb7fe_20261013211928721857_5d06590d.json",
+                "data/fundamental_cases/raw/stage3/api/cb12244526a6ac058e7c_20261013211929284067_84b06826.json",
+                "data/fundamental_cases/raw/stage3/api/ff49b0bfacc359c38ca7_20261013211930159382_5f7da78a.json",
+                "data/fundamental_cases/raw/stage3/mcp_kada_financials.json"
+              ],
+              "normalization_approved": false,
+              "historical_pit_eligible": false,
+              "limitation": "三年历史利润率不是完整周期或可持续盈利承诺，亏损恢复和业务结构变化未获定价批准"
+            }
+          },
+          "adjusted_net_profit_parent": {
+            "available": true,
+            "pe": 30.634986856122346,
+            "market_adjusted_pe": 16.849242770867292,
+            "profit": {
+              "available": true,
+              "value": 68176167.65461749,
+              "basis": "historical_margin_reference",
+              "metric": "adjusted_net_profit_parent",
+              "annual": [
+                {
+                  "period": "2023-12-31",
+                  "profit": 56265445.48,
+                  "revenue": 427698808.74,
+                  "margin": 0.13155389804745518
+                },
+                {
+                  "period": "2024-12-31",
+                  "profit": 39560583.44,
+                  "revenue": 385408004.13,
+                  "margin": 0.102645983000021
+                },
+                {
+                  "period": "2025-12-31",
+                  "profit": 65273387.93,
+                  "revenue": 513827818.41,
+                  "margin": 0.1270335812723869
+                }
+              ],
+              "revenue_ttm": 536678309.56000006,
+              "median_margin": 0.1270335812723869,
+              "margin_min": 0.102645983000021,
+              "margin_max": 0.13155389804745518,
+              "evidence": [
+                "data/fundamental_cases/raw/stage3/300971.SZ_fina_indicator.json",
+                "data/fundamental_cases/raw/stage3/300971.SZ_income_full.json",
+                "data/fundamental_cases/raw/stage3/api/1211cab4a3c12db8cbf3_20261013211929052809_0cc15d5a.json",
+                "data/fundamental_cases/raw/stage3/api/403c3f64086863189cb8_20261013211929687885_0490e197.json",
+                "data/fundamental_cases/raw/stage3/api/b768d34a2bb8c05cb7fe_20261013211928721857_5d06590d.json",
+                "data/fundamental_cases/raw/stage3/api/cb12244526a6ac058e7c_20261013211929284067_84b06826.json",
+                "data/fundamental_cases/raw/stage3/api/ff49b0bfacc359c38ca7_20261013211930159382_5f7da78a.json",
+                "data/fundamental_cases/raw/stage3/mcp_kada_financials.json"
+              ],
+              "normalization_approved": false,
+              "historical_pit_eligible": false,
+              "limitation": "三年历史利润率不是完整周期或可持续盈利承诺，亏损恢复和业务结构变化未获定价批准"
+            }
+          }
+        }
+      },
+      {
+        "code": "002347.SZ",
+        "name": "泰尔股份",
+        "match": "related",
+        "weight": 0.5,
+        "market": "SZ",
+        "market_factor": 0.55,
+        "reason": "冶金轧机核心备件、卷筒、剪刃及运维，保留亏损与新能源等业务差异",
+        "trade_date": "20260922",
+        "mkt_cap_yi": 29.7774357,
+        "metrics": {
+          "net_profit_parent": {
+            "available": false,
+            "reason": "盈利非正，保留业务身份但PE不可用",
+            "profit": {
+              "available": true,
+              "value": -42174675.96935701,
+              "basis": "historical_margin_reference",
+              "metric": "net_profit_parent",
+              "annual": [
+                {
+                  "period": "2023-12-31",
+                  "profit": -42515451.61,
+                  "revenue": 1107141217.64,
+                  "margin": -0.038401109933045956
+                },
+                {
+                  "period": "2024-12-31",
+                  "profit": 14590450.22,
+                  "revenue": 1074313289.54,
+                  "margin": 0.01358118750094523
+                },
+                {
+                  "period": "2025-12-31",
+                  "profit": -94940921.2,
+                  "revenue": 1090324855.95,
+                  "margin": -0.08707581110519394
+                }
+              ],
+              "revenue_ttm": 1098267108.5,
+              "median_margin": -0.038401109933045956,
+              "margin_min": -0.08707581110519394,
+              "margin_max": 0.01358118750094523,
+              "evidence": [
+                "data/fundamental_cases/raw/stage3/002347.SZ_income_full.json",
+                "data/fundamental_cases/raw/stage3/api/1211cab4a3c12db8cbf3_20261013211929052809_0cc15d5a.json",
+                "data/fundamental_cases/raw/stage3/api/403c3f64086863189cb8_20261013211929687885_0490e197.json",
+                "data/fundamental_cases/raw/stage3/api/b768d34a2bb8c05cb7fe_20261013211928721857_5d06590d.json",
+                "data/fundamental_cases/raw/stage3/api/cb12244526a6ac058e7c_20261013211929284067_84b06826.json",
+                "data/fundamental_cases/raw/stage3/api/ff49b0bfacc359c38ca7_20261013211930159382_5f7da78a.json",
+                "data/fundamental_cases/raw/stage3/mcp_kada_financials.json"
+              ],
+              "normalization_approved": false,
+              "historical_pit_eligible": false,
+              "limitation": "三年历史利润率不是完整周期或可持续盈利承诺，亏损恢复和业务结构变化未获定价批准"
+            }
+          },
+          "adjusted_net_profit_parent": {
+            "available": false,
+            "reason": "盈利非正，保留业务身份但PE不可用",
+            "profit": {
+              "available": true,
+              "value": -72009425.44090554,
+              "basis": "historical_margin_reference",
+              "metric": "adjusted_net_profit_parent",
+              "annual": [
+                {
+                  "period": "2023-12-31",
+                  "profit": -72591268.87,
+                  "revenue": 1107141217.64,
+                  "margin": -0.06556640445989059
+                },
+                {
+                  "period": "2024-12-31",
+                  "profit": -33866637.87,
+                  "revenue": 1074313289.54,
+                  "margin": -0.031523986717599886
+                },
+                {
+                  "period": "2025-12-31",
+                  "profit": -105433753.95,
+                  "revenue": 1090324855.95,
+                  "margin": -0.09669939502400464
+                }
+              ],
+              "revenue_ttm": 1098267108.5,
+              "median_margin": -0.06556640445989059,
+              "margin_min": -0.09669939502400464,
+              "margin_max": -0.031523986717599886,
+              "evidence": [
+                "data/fundamental_cases/raw/stage3/002347.SZ_fina_indicator.json",
+                "data/fundamental_cases/raw/stage3/002347.SZ_income_full.json",
+                "data/fundamental_cases/raw/stage3/api/1211cab4a3c12db8cbf3_20261013211929052809_0cc15d5a.json",
+                "data/fundamental_cases/raw/stage3/api/403c3f64086863189cb8_20261013211929687885_0490e197.json",
+                "data/fundamental_cases/raw/stage3/api/b768d34a2bb8c05cb7fe_20261013211928721857_5d06590d.json",
+                "data/fundamental_cases/raw/stage3/api/cb12244526a6ac058e7c_20261013211929284067_84b06826.json",
+                "data/fundamental_cases/raw/stage3/api/ff49b0bfacc359c38ca7_20261013211930159382_5f7da78a.json",
+                "data/fundamental_cases/raw/stage3/mcp_kada_financials.json"
+              ],
+              "normalization_approved": false,
+              "historical_pit_eligible": false,
+              "limitation": "三年历史利润率不是完整周期或可持续盈利承诺，亏损恢复和业务结构变化未获定价批准"
+            }
+          }
+        }
+      },
+      {
+        "code": "603135.SH",
+        "name": "中重科技",
+        "match": "related",
+        "weight": 0.5,
+        "market": "SH",
+        "market_factor": 0.55,
+        "reason": "智能轧制生产线及机械设备，同钢铁资本开支链，但整线与轧辊耗材订单周期不同",
+        "trade_date": "20260922",
+        "mkt_cap_yi": 56.00490193,
+        "metrics": {
+          "net_profit_parent": {
+            "available": true,
+            "pe": 191.52814221813304,
+            "market_adjusted_pe": 105.34047821997318,
+            "profit": {
+              "available": true,
+              "value": 29241082.423394226,
+              "basis": "historical_margin_reference",
+              "metric": "net_profit_parent",
+              "annual": [
+                {
+                  "period": "2023-12-31",
+                  "profit": 181993876.08,
+                  "revenue": 1116822435.35,
+                  "margin": 0.16295685895937892
+                },
+                {
+                  "period": "2024-12-31",
+                  "profit": 56355719.97,
+                  "revenue": 956260334.55,
+                  "margin": 0.05893344932739478
+                },
+                {
+                  "period": "2025-12-31",
+                  "profit": -22027357.91,
+                  "revenue": 380334595.62,
+                  "margin": -0.05791573568029552
+                }
+              ],
+              "revenue_ttm": 496171236.49,
+              "median_margin": 0.05893344932739478,
+              "margin_min": -0.05791573568029552,
+              "margin_max": 0.16295685895937892,
+              "evidence": [
+                "data/fundamental_cases/raw/stage3/603135.SH_income_full.json",
+                "data/fundamental_cases/raw/stage3/api/1211cab4a3c12db8cbf3_20261013211929052809_0cc15d5a.json",
+                "data/fundamental_cases/raw/stage3/api/403c3f64086863189cb8_20261013211929687885_0490e197.json",
+                "data/fundamental_cases/raw/stage3/api/b768d34a2bb8c05cb7fe_20261013211928721857_5d06590d.json",
+                "data/fundamental_cases/raw/stage3/api/cb12244526a6ac058e7c_20261013211929284067_84b06826.json",
+                "data/fundamental_cases/raw/stage3/api/ff49b0bfacc359c38ca7_20261013211930159382_5f7da78a.json",
+                "data/fundamental_cases/raw/stage3/mcp_kada_financials.json"
+              ],
+              "normalization_approved": false,
+              "historical_pit_eligible": false,
+              "limitation": "三年历史利润率不是完整周期或可持续盈利承诺，亏损恢复和业务结构变化未获定价批准"
+            }
+          },
+          "adjusted_net_profit_parent": {
+            "available": true,
+            "pe": 366.4676876626958,
+            "market_adjusted_pe": 201.5572282144827,
+            "profit": {
+              "available": true,
+              "value": 15282357.439804632,
+              "basis": "historical_margin_reference",
+              "metric": "adjusted_net_profit_parent",
+              "annual": [
+                {
+                  "period": "2023-12-31",
+                  "profit": 169400307.35,
+                  "revenue": 1116822435.35,
+                  "margin": 0.15168060918915172
+                },
+                {
+                  "period": "2024-12-31",
+                  "profit": 29453364.41,
+                  "revenue": 956260334.55,
+                  "margin": 0.030800571084923498
+                },
+                {
+                  "period": "2025-12-31",
+                  "profit": -35885742.67,
+                  "revenue": 380334595.62,
+                  "margin": -0.09435308563371966
+                }
+              ],
+              "revenue_ttm": 496171236.49,
+              "median_margin": 0.030800571084923498,
+              "margin_min": -0.09435308563371966,
+              "margin_max": 0.15168060918915172,
+              "evidence": [
+                "data/fundamental_cases/raw/stage3/603135.SH_fina_indicator.json",
+                "data/fundamental_cases/raw/stage3/603135.SH_income_full.json",
+                "data/fundamental_cases/raw/stage3/api/1211cab4a3c12db8cbf3_20261013211929052809_0cc15d5a.json",
+                "data/fundamental_cases/raw/stage3/api/403c3f64086863189cb8_20261013211929687885_0490e197.json",
+                "data/fundamental_cases/raw/stage3/api/b768d34a2bb8c05cb7fe_20261013211928721857_5d06590d.json",
+                "data/fundamental_cases/raw/stage3/api/cb12244526a6ac058e7c_20261013211929284067_84b06826.json",
+                "data/fundamental_cases/raw/stage3/api/ff49b0bfacc359c38ca7_20261013211930159382_5f7da78a.json",
+                "data/fundamental_cases/raw/stage3/mcp_kada_financials.json"
+              ],
+              "normalization_approved": false,
+              "historical_pit_eligible": false,
+              "limitation": "三年历史利润率不是完整周期或可持续盈利承诺，亏损恢复和业务结构变化未获定价批准"
+            }
+          }
+        }
+      }
+    ],
+    "coverage": {
+      "candidates": 8,
+      "usable": 3
+    },
+    "review_source": "data/fundamental_cases/cases/920025.json",
+    "cycle": {
+      "classification": "钢铁链耗材与设备周期；当前TTM与历史利润率参照并列",
+      "normalization_approved": false,
+      "reason": "H1利润下降包含研发与汇兑因素，不直接判作周期底。扩充轧制设备宽池，亏损参照继续保留；三年扣非利润率压力参照双方同时计算，历史中位数不等于已验证常态，仍不批准正常化主F。",
+      "pages": [
+        7,
+        135,
+        202,
+        204,
+        205,
+        206,
+        208,
+        274,
+        312
+      ]
+    },
+    "stage": "cycle_reference",
+    "limitations": [
+      "市场统一折价仍为既有研究参数，需单列敏感性",
+      "前瞻与周期正常化尚无完整同口径同行估值，未加入主F",
+      "部分扣非利润仅有供应商来源，披露日/历史版本未达到真实PIT要求",
+      "当前资料历史重建不是原始事前PIT",
+      "匹配档位为固定研究规则，未按首日涨幅调参",
+      "区间是盈利口径、可比离散与绿鞋摊薄情景，不是统计置信区间"
+    ],
+    "market_policy": {
+      "SH_SZ": 0.55,
+      "BJ": 1.0,
+      "NQ": null
+    },
+    "center": 50.548462692634814,
+    "low": 4.0793014832196315,
+    "high": 58.978910138692015,
+    "confidence": 0.04236792109213548,
+    "peer_count": 3,
+    "peer_codes": [
+      "603917.SH",
+      "300971.SZ",
+      "603135.SH"
+    ],
+    "eps": 0.2926161996826574,
+    "peer_pe": 172.74663107324434,
+    "bse_discount": 0.55,
+    "earnings_basis": "双方近三年扣非利润率中位数 × 各自TTM收入；历史周期压力参照",
+    "reference_dates": [
+      "20260922"
+    ]
+  },
+  "cycle_common_positive_peer_codes": [
+    "300971.SZ"
+  ],
+  "cycle_common_pool_comparison": {
+    "matched": {
+      "available": false,
+      "basis": "fundamental_anchor_v2",
+      "as_of": "2026-09-23",
+      "historical_pit_eligible": false,
+      "research_reconstruction": true,
+      "earnings": {
+        "net_profit_parent": {
+          "available": true,
+          "value": 67408730.02,
+          "metric": "net_profit_parent",
+          "end": "2026-06-30",
+          "basis": "TTM",
+          "components": {
+            "2025-12-31": 70853230.02,
+            "2026-06-30": 33134200.0,
+            "2025-06-30": 36578700.0
+          },
+          "evidence": [
+            "data/fundamental_cases/evidence/920025_p312.json",
+            "data/peer_research/api/ea4136c6d077466db782_20261012234354720966_7607da32.json",
+            "data/peer_research/workpapers/companies/920025.BJ.json"
+          ],
+          "historical_pit_eligible": false
+        },
+        "adjusted_net_profit_parent": {
+          "available": true,
+          "value": 67303175.6,
+          "metric": "adjusted_net_profit_parent",
+          "end": "2026-06-30",
+          "basis": "TTM",
+          "components": {
+            "2025-12-31": 69650275.6,
+            "2026-06-30": 33781700.0,
+            "2025-06-30": 36128800.0
+          },
+          "evidence": [
+            "data/fundamental_cases/evidence/920025_p202.json",
+            "data/fundamental_cases/evidence/920025_p312.json"
+          ],
+          "historical_pit_eligible": false
+        }
+      },
+      "scenarios": {
+        "net_profit_parent": {
+          "available": false,
+          "reason": "正盈利有效可比不足两家",
+          "peer_count": 1
+        },
+        "adjusted_net_profit_parent": {
+          "available": false,
+          "reason": "正盈利有效可比不足两家",
+          "peer_count": 1
+        }
+      },
+      "peer_details": [
+        {
+          "code": "300971.SZ",
+          "name": "博亚精工",
+          "match": "related",
+          "weight": 0.5,
+          "market": "SZ",
+          "market_factor": 0.55,
+          "reason": "板带成形精密装备、辊系零件及特种装备零件，轧制产业链相近，含不同终端需求",
+          "trade_date": "20260922",
+          "mkt_cap_yi": 20.88576,
+          "metrics": {
+            "net_profit_parent": {
+              "available": true,
+              "pe": 28.7929548141943,
+              "market_adjusted_pe": 15.836125147806866,
+              "profit": {
+                "available": true,
+                "value": 72537744.50999999,
+                "metric": "net_profit_parent",
+                "end": "2026-06-30",
+                "basis": "TTM",
+                "components": {
+                  "2025-12-31": 83409029.77,
+                  "2026-06-30": 33445620.3,
+                  "2025-06-30": 44316905.56
+                },
+                "evidence": [
+                  "data/fundamental_cases/raw/stage3/300971.SZ_income_full.json",
+                  "data/fundamental_cases/raw/stage3/api/403c3f64086863189cb8_20261013211929687885_0490e197.json",
+                  "data/fundamental_cases/raw/stage3/api/cb12244526a6ac058e7c_20261013211929284067_84b06826.json",
+                  "data/fundamental_cases/raw/stage3/api/ff49b0bfacc359c38ca7_20261013211930159382_5f7da78a.json",
+                  "data/fundamental_cases/raw/stage3/mcp_kada_financials.json"
+                ],
+                "historical_pit_eligible": false
+              }
+            },
+            "adjusted_net_profit_parent": {
+              "available": true,
+              "pe": 31.715765282475882,
+              "market_adjusted_pe": 17.443670905361735,
+              "profit": {
+                "available": true,
+                "value": 65852927.76,
+                "metric": "adjusted_net_profit_parent",
+                "end": "2026-06-30",
+                "basis": "TTM",
+                "components": {
+                  "2025-12-31": 65273387.93,
+                  "2026-06-30": 29240337.98,
+                  "2025-06-30": 28660798.15
+                },
+                "evidence": [
+                  "data/fundamental_cases/raw/stage3/300971.SZ_fina_indicator.json",
+                  "data/fundamental_cases/raw/stage3/mcp_kada_financials.json"
+                ],
+                "historical_pit_eligible": false
+              }
+            }
+          }
+        }
+      ],
+      "coverage": {
+        "candidates": 1,
+        "usable": 1
+      },
+      "review_source": "data/fundamental_cases/cases/920025.json",
+      "cycle": {
+        "classification": "钢铁链耗材与设备周期；当前TTM与历史利润率参照并列",
+        "normalization_approved": false,
+        "reason": "H1利润下降包含研发与汇兑因素，不直接判作周期底。扩充轧制设备宽池，亏损参照继续保留；三年扣非利润率压力参照双方同时计算，历史中位数不等于已验证常态，仍不批准正常化主F。",
+        "pages": [
+          7,
+          135,
+          202,
+          204,
+          205,
+          206,
+          208,
+          274,
+          312
+        ]
+      },
+      "stage": "matched",
+      "limitations": [
+        "市场统一折价仍为既有研究参数，需单列敏感性",
+        "前瞻与周期正常化尚无完整同口径同行估值，未加入主F",
+        "部分扣非利润仅有供应商来源，披露日/历史版本未达到真实PIT要求",
+        "当前资料历史重建不是原始事前PIT",
+        "匹配档位为固定研究规则，未按首日涨幅调参",
+        "区间是盈利口径、可比离散与绿鞋摊薄情景，不是统计置信区间"
+      ],
+      "market_policy": {
+        "SH_SZ": 0.55,
+        "BJ": 1.0,
+        "NQ": null
+      },
+      "reason": "正盈利有效可比不足两家"
+    },
+    "cycle_reference": {
+      "available": false,
+      "basis": "fundamental_anchor_v2",
+      "as_of": "2026-09-23",
+      "historical_pit_eligible": false,
+      "research_reconstruction": true,
+      "earnings": {
+        "net_profit_parent": {
+          "available": true,
+          "value": 69088442.67811544,
+          "basis": "historical_margin_reference",
+          "metric": "net_profit_parent",
+          "annual": [
+            {
+              "period": "2023-12-31",
+              "profit": 65316060.59,
+              "revenue": 451608658.76,
+              "margin": 0.14462977917505154
+            },
+            {
+              "period": "2024-12-31",
+              "profit": 62744877.26,
+              "revenue": 459974279.2,
+              "margin": 0.13640953439641804
+            },
+            {
+              "period": "2025-12-31",
+              "profit": 70853230.02,
+              "revenue": 477149783.36,
+              "margin": 0.14849263793240086
+            }
+          ],
+          "revenue_ttm": 477691683.36,
+          "median_margin": 0.14462977917505154,
+          "margin_min": 0.13640953439641804,
+          "margin_max": 0.14849263793240086,
+          "evidence": [
+            "data/fundamental_cases/evidence/920025_p312.json",
+            "data/peer_research/api/ad5427fcb8e40a71efee_20261012234354253794_c44cb1f1.json",
+            "data/peer_research/api/c8aa11538348c8705ebd_20261012234353998764_d87eefde.json",
+            "data/peer_research/api/ea4136c6d077466db782_20261012234354720966_7607da32.json",
+            "data/peer_research/workpapers/companies/920025.BJ.json"
+          ],
+          "normalization_approved": false,
+          "historical_pit_eligible": false,
+          "limitation": "三年历史利润率不是完整周期或可持续盈利承诺，亏损恢复和业务结构变化未获定价批准"
+        },
+        "adjusted_net_profit_parent": {
+          "available": true,
+          "value": 65838644.92859792,
+          "basis": "historical_margin_reference",
+          "metric": "adjusted_net_profit_parent",
+          "annual": [
+            {
+              "period": "2023-12-31",
+              "profit": 62243709.0,
+              "revenue": 451608658.76,
+              "margin": 0.1378266510011235
+            },
+            {
+              "period": "2024-12-31",
+              "profit": 59298282.0,
+              "revenue": 459974279.2,
+              "margin": 0.12891651703467685
+            },
+            {
+              "period": "2025-12-31",
+              "profit": 69650275.6,
+              "revenue": 477149783.36,
+              "margin": 0.14597151257103316
+            }
+          ],
+          "revenue_ttm": 477691683.36,
+          "median_margin": 0.1378266510011235,
+          "margin_min": 0.12891651703467685,
+          "margin_max": 0.14597151257103316,
+          "evidence": [
+            "data/fundamental_cases/evidence/920025_p202.json",
+            "data/fundamental_cases/evidence/920025_p312.json",
+            "data/peer_research/api/ad5427fcb8e40a71efee_20261012234354253794_c44cb1f1.json",
+            "data/peer_research/api/c8aa11538348c8705ebd_20261012234353998764_d87eefde.json",
+            "data/peer_research/api/ea4136c6d077466db782_20261012234354720966_7607da32.json",
+            "data/peer_research/mcp/financials_20231231_3923fc5eba.json",
+            "data/peer_research/mcp/financials_20241231_3923fc5eba.json",
+            "data/peer_research/workpapers/companies/920025.BJ.json"
+          ],
+          "normalization_approved": false,
+          "historical_pit_eligible": false,
+          "limitation": "三年历史利润率不是完整周期或可持续盈利承诺，亏损恢复和业务结构变化未获定价批准"
+        }
+      },
+      "scenarios": {
+        "net_profit_parent": {
+          "available": false,
+          "reason": "正盈利有效可比不足两家",
+          "peer_count": 1
+        },
+        "adjusted_net_profit_parent": {
+          "available": false,
+          "reason": "正盈利有效可比不足两家",
+          "peer_count": 1
+        }
+      },
+      "peer_details": [
+        {
+          "code": "300971.SZ",
+          "name": "博亚精工",
+          "match": "related",
+          "weight": 0.5,
+          "market": "SZ",
+          "market_factor": 0.55,
+          "reason": "板带成形精密装备、辊系零件及特种装备零件，轧制产业链相近，含不同终端需求",
+          "trade_date": "20260922",
+          "mkt_cap_yi": 20.88576,
+          "metrics": {
+            "net_profit_parent": {
+              "available": true,
+              "pe": 25.120805898046665,
+              "market_adjusted_pe": 13.816443243925667,
+              "profit": {
+                "available": true,
+                "value": 83141281.71192163,
+                "basis": "historical_margin_reference",
+                "metric": "net_profit_parent",
+                "annual": [
+                  {
+                    "period": "2023-12-31",
+                    "profit": 66258364.67,
+                    "revenue": 427698808.74,
+                    "margin": 0.15491828201532062
+                  },
+                  {
+                    "period": "2024-12-31",
+                    "profit": 43791315.74,
+                    "revenue": 385408004.13,
+                    "margin": 0.11362326487964941
+                  },
+                  {
+                    "period": "2025-12-31",
+                    "profit": 83409029.77,
+                    "revenue": 513827818.41,
+                    "margin": 0.16232875446117867
+                  }
+                ],
+                "revenue_ttm": 536678309.56000006,
+                "median_margin": 0.15491828201532062,
+                "margin_min": 0.11362326487964941,
+                "margin_max": 0.16232875446117867,
+                "evidence": [
+                  "data/fundamental_cases/raw/stage3/300971.SZ_income_full.json",
+                  "data/fundamental_cases/raw/stage3/api/1211cab4a3c12db8cbf3_20261013211929052809_0cc15d5a.json",
+                  "data/fundamental_cases/raw/stage3/api/403c3f64086863189cb8_20261013211929687885_0490e197.json",
+                  "data/fundamental_cases/raw/stage3/api/b768d34a2bb8c05cb7fe_20261013211928721857_5d06590d.json",
+                  "data/fundamental_cases/raw/stage3/api/cb12244526a6ac058e7c_20261013211929284067_84b06826.json",
+                  "data/fundamental_cases/raw/stage3/api/ff49b0bfacc359c38ca7_20261013211930159382_5f7da78a.json",
+                  "data/fundamental_cases/raw/stage3/mcp_kada_financials.json"
+                ],
+                "normalization_approved": false,
+                "historical_pit_eligible": false,
+                "limitation": "三年历史利润率不是完整周期或可持续盈利承诺，亏损恢复和业务结构变化未获定价批准"
+              }
+            },
+            "adjusted_net_profit_parent": {
+              "available": true,
+              "pe": 30.634986856122346,
+              "market_adjusted_pe": 16.849242770867292,
+              "profit": {
+                "available": true,
+                "value": 68176167.65461749,
+                "basis": "historical_margin_reference",
+                "metric": "adjusted_net_profit_parent",
+                "annual": [
+                  {
+                    "period": "2023-12-31",
+                    "profit": 56265445.48,
+                    "revenue": 427698808.74,
+                    "margin": 0.13155389804745518
+                  },
+                  {
+                    "period": "2024-12-31",
+                    "profit": 39560583.44,
+                    "revenue": 385408004.13,
+                    "margin": 0.102645983000021
+                  },
+                  {
+                    "period": "2025-12-31",
+                    "profit": 65273387.93,
+                    "revenue": 513827818.41,
+                    "margin": 0.1270335812723869
+                  }
+                ],
+                "revenue_ttm": 536678309.56000006,
+                "median_margin": 0.1270335812723869,
+                "margin_min": 0.102645983000021,
+                "margin_max": 0.13155389804745518,
+                "evidence": [
+                  "data/fundamental_cases/raw/stage3/300971.SZ_fina_indicator.json",
+                  "data/fundamental_cases/raw/stage3/300971.SZ_income_full.json",
+                  "data/fundamental_cases/raw/stage3/api/1211cab4a3c12db8cbf3_20261013211929052809_0cc15d5a.json",
+                  "data/fundamental_cases/raw/stage3/api/403c3f64086863189cb8_20261013211929687885_0490e197.json",
+                  "data/fundamental_cases/raw/stage3/api/b768d34a2bb8c05cb7fe_20261013211928721857_5d06590d.json",
+                  "data/fundamental_cases/raw/stage3/api/cb12244526a6ac058e7c_20261013211929284067_84b06826.json",
+                  "data/fundamental_cases/raw/stage3/api/ff49b0bfacc359c38ca7_20261013211930159382_5f7da78a.json",
+                  "data/fundamental_cases/raw/stage3/mcp_kada_financials.json"
+                ],
+                "normalization_approved": false,
+                "historical_pit_eligible": false,
+                "limitation": "三年历史利润率不是完整周期或可持续盈利承诺，亏损恢复和业务结构变化未获定价批准"
+              }
+            }
+          }
+        }
+      ],
+      "coverage": {
+        "candidates": 1,
+        "usable": 1
+      },
+      "review_source": "data/fundamental_cases/cases/920025.json",
+      "cycle": {
+        "classification": "钢铁链耗材与设备周期；当前TTM与历史利润率参照并列",
+        "normalization_approved": false,
+        "reason": "H1利润下降包含研发与汇兑因素，不直接判作周期底。扩充轧制设备宽池，亏损参照继续保留；三年扣非利润率压力参照双方同时计算，历史中位数不等于已验证常态，仍不批准正常化主F。",
+        "pages": [
+          7,
+          135,
+          202,
+          204,
+          205,
+          206,
+          208,
+          274,
+          312
+        ]
+      },
+      "stage": "cycle_reference",
+      "limitations": [
+        "市场统一折价仍为既有研究参数，需单列敏感性",
+        "前瞻与周期正常化尚无完整同口径同行估值，未加入主F",
+        "部分扣非利润仅有供应商来源，披露日/历史版本未达到真实PIT要求",
+        "当前资料历史重建不是原始事前PIT",
+        "匹配档位为固定研究规则，未按首日涨幅调参",
+        "区间是盈利口径、可比离散与绿鞋摊薄情景，不是统计置信区间"
+      ],
+      "market_policy": {
+        "SH_SZ": 0.55,
+        "BJ": 1.0,
+        "NQ": null
+      },
+      "reason": "正盈利有效可比不足两家"
+    }
+  },
+  "leave_one_out": {
+    "002760.SZ": {
+      "available": false,
+      "center": null,
+      "reason": "正盈利有效可比不足两家"
+    },
+    "300971.SZ": {
+      "available": false,
+      "center": null,
+      "reason": "正盈利有效可比不足两家"
+    }
+  },
+  "normalization_approved": false,
+  "reason": "周期历史利润率造成有效同行集合变化，共同正盈利池仅1家；不能将压力场景当可持续估值中枢"
+}

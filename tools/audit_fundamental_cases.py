@@ -76,14 +76,14 @@ def main():
     if not unchanged:
         errors.append('sentiment algorithm changed during fundamental ablation')
     failed_mcp, success_mcp = [], []
-    for path in (FOLDER/'raw').glob('mcp_*.json'):
+    for path in (FOLDER/'raw').rglob('mcp_*.json'):
         result = read(path).get('result', {})
         good = False
         for block in result.get('content', []):
             if block.get('type') == 'text':
                 try: good = good or json.loads(block['text']).get('code') == 1
                 except (ValueError, AttributeError): pass
-        (success_mcp if good else failed_mcp).append(path.name)
+        (success_mcp if good else failed_mcp).append(path.relative_to(FOLDER/'raw').as_posix())
     output = {'status': 'passed' if not errors else 'failed', 'audited_at': now_iso(), 'errors': errors,
               'warnings': warnings, 'cases': code_checks, 'evidence_hashes': hashes,
               'sentiment_core_unchanged': unchanged, 'sentiment_core_ast_sha256': core_hashes(before),

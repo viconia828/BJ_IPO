@@ -1,11 +1,11 @@
 {
   "schema": "fundamental_anchor_v2",
-  "generated_at": "2026-10-13T20:39:14.759476+08:00",
+  "generated_at": "2026-10-13T21:26:04.869587+08:00",
   "mode": "shadow",
   "items": {
     "920202": {
       "path": "data/fundamental_cases/cases/920202.json",
-      "sha256": "2658337f490bc2ef8d9431aad12ee16282765103c9b5b53e533d02a36c3a04df",
+      "sha256": "87e1ac53b0c046e339f48ec2f7f1332fd2d094bbedc798cadb8073f65dc976d5",
       "available_not_before": "2026-10-13",
       "new_anchor_available": true,
       "old_center": 10.789010120370369,
@@ -25,13 +25,13 @@
     },
     "920025": {
       "path": "data/fundamental_cases/cases/920025.json",
-      "sha256": "a0c4c785783644f0eff0ba6eb6c37bd8d4d3f89a8e35952d7479105eddc3bb5e",
+      "sha256": "14329288ff7f9cda7e52bc6b08568b94514605ac064b6f08c372fa780b1d4076",
       "available_not_before": "2026-10-13",
-      "new_anchor_available": false,
+      "new_anchor_available": true,
       "old_center": 23.592664818313953,
-      "new_center": null,
-      "candidate_count": 5,
-      "usable": 1
+      "new_center": 12.757057000468494,
+      "candidate_count": 8,
+      "usable": 2
     },
     "920285": {
       "path": "data/fundamental_cases/cases/920285.json",
@@ -42,6 +42,76 @@
       "new_center": 23.28832091154236,
       "candidate_count": 5,
       "usable": 4
+    },
+    "920071": {
+      "path": "data/fundamental_cases/cases/920071.json",
+      "sha256": "2de3391bd6d6ebb97ff138046bb9dd715a245fa0d292fe581e17448785d940c0",
+      "available_not_before": "2026-10-13",
+      "new_anchor_available": true,
+      "old_center": null,
+      "new_center": 23.67473495436083,
+      "candidate_count": 2,
+      "usable": 2
+    },
+    "920289": {
+      "path": "data/fundamental_cases/cases/920289.json",
+      "sha256": "ad1e259af6abf67cbb9638596cbcecb6cd14c291c6f26effe571524d2b0d3961",
+      "available_not_before": "2026-10-13",
+      "new_anchor_available": true,
+      "old_center": 49.5699178418946,
+      "new_center": 58.739896455373625,
+      "candidate_count": 5,
+      "usable": 3
+    },
+    "920269": {
+      "path": "data/fundamental_cases/cases/920269.json",
+      "sha256": "035a1769cfe2e6c97677a546fdce7c6b23031bf5e28b9eeecebb7a79f9273bb0",
+      "available_not_before": "2026-10-13",
+      "new_anchor_available": true,
+      "old_center": 38.26800529661016,
+      "new_center": 45.543799325254646,
+      "candidate_count": 3,
+      "usable": 2
+    },
+    "920268": {
+      "path": "data/fundamental_cases/cases/920268.json",
+      "sha256": "582d67217447f20c6dac4663061e7852f865f0e551096e606cd1a6fe488005ba",
+      "available_not_before": "2026-10-13",
+      "new_anchor_available": true,
+      "old_center": null,
+      "new_center": 31.099335375446188,
+      "candidate_count": 13,
+      "usable": 11
+    },
+    "920298": {
+      "path": "data/fundamental_cases/cases/920298.json",
+      "sha256": "8006d7bcc9d7e9d445c801516167e7c484652c36ebd311120ce71a9f063d8dda",
+      "available_not_before": "2026-10-13",
+      "new_anchor_available": true,
+      "old_center": 131.24632703802536,
+      "new_center": 139.88996525092335,
+      "candidate_count": 4,
+      "usable": 4
+    },
+    "920229": {
+      "path": "data/fundamental_cases/cases/920229.json",
+      "sha256": "42382226a8f4df56e1a55c56f8f0b41420c5d89c88ead2d78620e2bf7e5cc3d4",
+      "available_not_before": "2026-10-13",
+      "new_anchor_available": false,
+      "old_center": null,
+      "new_center": null,
+      "candidate_count": 2,
+      "usable": 1
+    },
+    "920201": {
+      "path": "data/fundamental_cases/cases/920201.json",
+      "sha256": "9fb4b637561e5fcf2e3758ee24d835a0eb413f1ed0cb367f5b31b2b86301e988",
+      "available_not_before": "2026-10-13",
+      "new_anchor_available": true,
+      "old_center": null,
+      "new_center": 81.72517096109867,
+      "candidate_count": 2,
+      "usable": 2
     }
   }
 }

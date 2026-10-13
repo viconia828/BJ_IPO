@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from datetime import date
 import math
+import statistics
 
 VERSION = 'fundamental_anchor_v2'
 MATCH_WEIGHTS = {'direct': 1.0, 'related': 0.5, 'channel': 0.25, 'observation': 0.0}
@@ -94,6 +95,43 @@ def normalized_profit(company, as_of, *, reconstruction=False):
             'metric': 'net_profit_parent', 'evidence': plan['evidence']}
 
 
+def historical_margin_profit(company, end, metric, as_of, *, reconstruction=False):
+    """Three completed FY margins at current revenue, a research stress scenario.
+
+    Loss years stay in the median. This does not assert a full economic cycle,
+    unchanged segments, sustainable earnings or immediate recovery from losses.
+    """
+    if not reconstruction:
+        return {'available': False, 'reason': '历史利润率情景仅供重建压力对照，非正常化定价'}
+    end_date = day(end)
+    if not end_date:
+        return {'available': False, 'reason': '无效期间'}
+    last_year = end_date.year if end.endswith('12-31') else end_date.year - 1
+    annual = []
+    sources = []
+    for year in range(last_year - 2, last_year + 1):
+        period = f'{year}-12-31'
+        profit = ttm(company, period, metric, as_of, reconstruction=True)
+        revenue = ttm(company, period, 'revenue', as_of, reconstruction=True)
+        if not profit.get('available') or not revenue.get('available') or revenue['value'] <= 0:
+            return {'available': False, 'reason': f'{period}三年连续盈利/收入口径不完整', 'annual': annual}
+        annual.append({'period': period, 'profit': profit['value'], 'revenue': revenue['value'],
+                       'margin': profit['value'] / revenue['value']})
+        sources.extend(profit['evidence'] + revenue['evidence'])
+    revenue = ttm(company, end, 'revenue', as_of, reconstruction=True)
+    if not revenue.get('available') or revenue['value'] <= 0:
+        return {'available': False, 'reason': '缺少当前TTM收入', 'annual': annual}
+    median = statistics.median(row['margin'] for row in annual)
+    return {'available': True, 'value': revenue['value'] * median,
+            'basis': 'historical_margin_reference', 'metric': metric, 'annual': annual,
+            'revenue_ttm': revenue['value'], 'median_margin': median,
+            'margin_min': min(row['margin'] for row in annual),
+            'margin_max': max(row['margin'] for row in annual),
+            'evidence': sorted(set(sources + revenue['evidence'])),
+            'normalization_approved': False, 'historical_pit_eligible': False,
+            'limitation': '三年历史利润率不是完整周期或可持续盈利承诺，亏损恢复和业务结构变化未获定价批准'}
+
+
 def build_reviewed_anchor(review, quotes, as_of, params, *, reconstruction=False, stage='matched', market_policy='per_market'):
     cutoff = day(as_of)
     unavailable = {'available': False, 'basis': VERSION, 'as_of': str(cutoff),
@@ -105,8 +143,10 @@ def build_reviewed_anchor(review, quotes, as_of, params, *, reconstruction=False
     available = day(review.get('available_not_before'))
     if not available or (not reconstruction and available >= cutoff):
         return {**unavailable, 'reason': '复核及资料采集晚于估值时点'}
-    if stage not in {'earnings', 'matched', 'normalized'}:
+    if stage not in {'earnings', 'matched', 'normalized', 'cycle_reference'}:
         raise ValueError('unknown fundamental stage')
+    if stage == 'cycle_reference' and not reconstruction:
+        return {**unavailable, 'reason': '历史周期情景禁止进入实时定价'}
     if market_policy not in {'per_market', 'legacy_uniform'} or (market_policy == 'legacy_uniform' and not reconstruction):
         raise ValueError('legacy market policy is only an explicit research ablation')
     shares = review.get('shares', {})
@@ -117,7 +157,8 @@ def build_reviewed_anchor(review, quotes, as_of, params, *, reconstruction=False
         return {**unavailable, 'reason': '缺少发行后稀释股本及来源'}
     end = review.get('earnings_end', '')
     issuer = review.get('issuer', {})
-    earnings = {metric: ttm(issuer, end, metric, as_of, reconstruction=reconstruction) for metric in PROFITS}
+    profit_function = historical_margin_profit if stage == 'cycle_reference' else ttm
+    earnings = {metric: profit_function(issuer, end, metric, as_of, reconstruction=reconstruction) for metric in PROFITS}
     metrics = PROFITS
     if stage == 'normalized':
         earnings = {'net_profit_parent': normalized_profit(issuer, as_of, reconstruction=reconstruction)}
@@ -150,7 +191,7 @@ def build_reviewed_anchor(review, quotes, as_of, params, *, reconstruction=False
         values = {}
         for metric in metrics:
             profit = (normalized_profit(peer, as_of, reconstruction=reconstruction) if stage == 'normalized'
-                      else ttm(peer, end, metric, as_of, reconstruction=reconstruction))
+                      else profit_function(peer, end, metric, as_of, reconstruction=reconstruction))
             error = None
             if not evidence_ok:
                 error = '缺少业务匹配证据'
@@ -210,7 +251,8 @@ def build_reviewed_anchor(review, quotes, as_of, params, *, reconstruction=False
     return {**result, 'available': True, 'center': center, 'low': min(low, center), 'high': max(high, center),
             'confidence': confidence, 'peer_count': selected['peer_count'], 'peer_codes': selected['peer_codes'],
             'eps': selected['eps'], 'peer_pe': selected['peer_multiple'], 'bse_discount': discount,
-            'earnings_basis': '正常化归母利润/发行后股本 × 同口径同行倍数' if stage == 'normalized'
-                else '扣非TTM/发行后股本 × 同行市值/扣非TTM（分市场调整）',
+            'earnings_basis': ('正常化归母利润/发行后股本 × 同口径同行倍数' if stage == 'normalized' else
+                '双方近三年扣非利润率中位数 × 各自TTM收入；历史周期压力参照' if stage == 'cycle_reference' else
+                '扣非TTM/发行后股本 × 同行市值/扣非TTM（分市场调整）'),
             'reference_dates': sorted({p['trade_date'] for p in candidates if p.get('trade_date')}),
             'as_of': cutoff.isoformat()}

@@ -1,0 +1,277 @@
+{
+  "old": {
+    "available": false,
+    "reason": "缺少发行盈利口径或至少两家有事前日期的有效可比公司",
+    "peer_count": 0,
+    "as_of": "2026-09-24"
+  },
+  "matched": {
+    "available": true,
+    "basis": "fundamental_anchor_v2",
+    "as_of": "2026-09-24",
+    "historical_pit_eligible": false,
+    "research_reconstruction": true,
+    "earnings": {
+      "net_profit_parent": {
+        "available": true,
+        "value": 87886395.1,
+        "metric": "net_profit_parent",
+        "end": "2026-06-30",
+        "basis": "TTM",
+        "components": {
+          "2025-12-31": 76340095.1,
+          "2026-06-30": 52295100.0,
+          "2025-06-30": 40748800.0
+        },
+        "evidence": [
+          "data/fundamental_cases/evidence/920201_p301.json",
+          "data/peer_research/api/35e9b02df822e7a1c97a_20261012234359773856_96b348d3.json",
+          "data/peer_research/workpapers/companies/920201.BJ.json"
+        ],
+        "historical_pit_eligible": false
+      },
+      "adjusted_net_profit_parent": {
+        "available": true,
+        "value": 87735213.1,
+        "metric": "adjusted_net_profit_parent",
+        "end": "2026-06-30",
+        "basis": "TTM",
+        "components": {
+          "2025-12-31": 76759613.1,
+          "2026-06-30": 52268000.0,
+          "2025-06-30": 41292400.0
+        },
+        "evidence": [
+          "data/fundamental_cases/evidence/920201_p224.json",
+          "data/fundamental_cases/evidence/920201_p301.json"
+        ],
+        "historical_pit_eligible": false
+      }
+    },
+    "scenarios": {
+      "net_profit_parent": {
+        "available": true,
+        "center": 30.510972115127394,
+        "low": 28.718168578547704,
+        "high": 32.303775651707085,
+        "eps": 1.2881689020663023,
+        "peer_multiple": 23.68553694021484,
+        "peer_count": 2,
+        "peer_codes": [
+          "688366.SH",
+          "300653.SZ"
+        ],
+        "profit": {
+          "available": true,
+          "value": 87886395.1,
+          "metric": "net_profit_parent",
+          "end": "2026-06-30",
+          "basis": "TTM",
+          "components": {
+            "2025-12-31": 76340095.1,
+            "2026-06-30": 52295100.0,
+            "2025-06-30": 40748800.0
+          },
+          "evidence": [
+            "data/fundamental_cases/evidence/920201_p301.json",
+            "data/peer_research/api/35e9b02df822e7a1c97a_20261012234359773856_96b348d3.json",
+            "data/peer_research/workpapers/companies/920201.BJ.json"
+          ],
+          "historical_pit_eligible": false
+        }
+      },
+      "adjusted_net_profit_parent": {
+        "available": true,
+        "center": 81.72517096109867,
+        "low": 35.10365014556611,
+        "high": 128.34669177663122,
+        "eps": 1.2859529965131096,
+        "peer_multiple": 63.552222501676425,
+        "peer_count": 2,
+        "peer_codes": [
+          "688366.SH",
+          "300653.SZ"
+        ],
+        "profit": {
+          "available": true,
+          "value": 87735213.1,
+          "metric": "adjusted_net_profit_parent",
+          "end": "2026-06-30",
+          "basis": "TTM",
+          "components": {
+            "2025-12-31": 76759613.1,
+            "2026-06-30": 52268000.0,
+            "2025-06-30": 41292400.0
+          },
+          "evidence": [
+            "data/fundamental_cases/evidence/920201_p224.json",
+            "data/fundamental_cases/evidence/920201_p301.json"
+          ],
+          "historical_pit_eligible": false
+        }
+      }
+    },
+    "peer_details": [
+      {
+        "code": "688366.SH",
+        "name": "昊海生科",
+        "match": "related",
+        "weight": 0.5,
+        "market": "SH",
+        "market_factor": 0.55,
+        "reason": "同有透明质酸、防粘连及止血业务，眼科医美等使产品结构不同",
+        "trade_date": "20260923",
+        "mkt_cap_yi": 69.56498880000001,
+        "metrics": {
+          "net_profit_parent": {
+            "available": true,
+            "pe": 45.59505935467403,
+            "market_adjusted_pe": 25.077282645070717,
+            "profit": {
+              "available": true,
+              "value": 152571330.72,
+              "metric": "net_profit_parent",
+              "end": "2026-06-30",
+              "basis": "TTM",
+              "components": {
+                "2025-12-31": 251008613.55,
+                "2026-06-30": 112627971.07,
+                "2025-06-30": 211065253.9
+              },
+              "evidence": [
+                "data/fundamental_cases/raw/stage3/688366.SH_income_full.json",
+                "data/fundamental_cases/raw/stage3/api/403c3f64086863189cb8_20261013211929687885_0490e197.json",
+                "data/fundamental_cases/raw/stage3/api/cb12244526a6ac058e7c_20261013211929284067_84b06826.json",
+                "data/fundamental_cases/raw/stage3/api/ff49b0bfacc359c38ca7_20261013211930159382_5f7da78a.json"
+              ],
+              "historical_pit_eligible": false
+            }
+          },
+          "adjusted_net_profit_parent": {
+            "available": true,
+            "pe": 181.46668038786115,
+            "market_adjusted_pe": 99.80667421332363,
+            "profit": {
+              "available": true,
+              "value": 38334855.0,
+              "metric": "adjusted_net_profit_parent",
+              "end": "2026-06-30",
+              "basis": "TTM",
+              "components": {
+                "2025-12-31": 160484249.03,
+                "2026-06-30": 82055895.98,
+                "2025-06-30": 204205290.01
+              },
+              "evidence": [
+                "data/fundamental_cases/raw/stage3/688366.SH_fina_indicator.json"
+              ],
+              "historical_pit_eligible": false
+            }
+          }
+        }
+      },
+      {
+        "code": "300653.SZ",
+        "name": "正海生物",
+        "match": "related",
+        "weight": 0.5,
+        "market": "SZ",
+        "market_factor": 0.55,
+        "reason": "再生及软组织修复材料，医院耗材经营方式相近、适应症不同",
+        "trade_date": "20260923",
+        "mkt_cap_yi": 28.062,
+        "metrics": {
+          "net_profit_parent": {
+            "available": true,
+            "pe": 40.53416588247083,
+            "market_adjusted_pe": 22.29379123535896,
+            "profit": {
+              "available": true,
+              "value": 69230485.91000001,
+              "metric": "net_profit_parent",
+              "end": "2026-06-30",
+              "basis": "TTM",
+              "components": {
+                "2025-12-31": 82410131.7,
+                "2026-06-30": 33306086.87,
+                "2025-06-30": 46485732.66
+              },
+              "evidence": [
+                "data/fundamental_cases/raw/stage3/300653.SZ_income_full.json",
+                "data/fundamental_cases/raw/stage3/api/403c3f64086863189cb8_20261013211929687885_0490e197.json",
+                "data/fundamental_cases/raw/stage3/api/cb12244526a6ac058e7c_20261013211929284067_84b06826.json",
+                "data/fundamental_cases/raw/stage3/api/ff49b0bfacc359c38ca7_20261013211930159382_5f7da78a.json"
+              ],
+              "historical_pit_eligible": false
+            }
+          },
+          "adjusted_net_profit_parent": {
+            "available": true,
+            "pe": 49.63231052732585,
+            "market_adjusted_pe": 27.29777079002922,
+            "profit": {
+              "available": true,
+              "value": 56539781.650000006,
+              "metric": "adjusted_net_profit_parent",
+              "end": "2026-06-30",
+              "basis": "TTM",
+              "components": {
+                "2025-12-31": 69663441.33,
+                "2026-06-30": 27157036.26,
+                "2025-06-30": 40280695.94
+              },
+              "evidence": [
+                "data/fundamental_cases/raw/stage3/300653.SZ_fina_indicator.json"
+              ],
+              "historical_pit_eligible": false
+            }
+          }
+        }
+      }
+    ],
+    "coverage": {
+      "candidates": 2,
+      "usable": 2
+    },
+    "review_source": "data/fundamental_cases/cases/920201.json",
+    "cycle": {
+      "classification": "增长与盈利兑现需分开观察",
+      "normalization_approved": false,
+      "reason": "H1收入增24.71%、扣非增26.58%，现金流降9.58%；看手术渗透率和费用兑现，不自动加高增长系数。",
+      "pages": [
+        301,
+        125
+      ]
+    },
+    "stage": "matched",
+    "limitations": [
+      "市场统一折价仍为既有研究参数，需单列敏感性",
+      "前瞻与周期正常化尚无完整同口径同行估值，未加入主F",
+      "部分扣非利润仅有供应商来源，披露日/历史版本未达到真实PIT要求",
+      "当前资料历史重建不是原始事前PIT",
+      "匹配档位为固定研究规则，未按首日涨幅调参",
+      "区间是盈利口径、可比离散与绿鞋摊薄情景，不是统计置信区间"
+    ],
+    "market_policy": {
+      "SH_SZ": 0.55,
+      "BJ": 1.0,
+      "NQ": null
+    },
+    "center": 81.72517096109867,
+    "low": 28.718168578547704,
+    "high": 128.34669177663122,
+    "confidence": 0.12298975804255168,
+    "peer_count": 2,
+    "peer_codes": [
+      "688366.SH",
+      "300653.SZ"
+    ],
+    "eps": 1.2859529965131096,
+    "peer_pe": 63.552222501676425,
+    "bse_discount": 0.55,
+    "earnings_basis": "扣非TTM/发行后股本 × 同行市值/扣非TTM（分市场调整）",
+    "reference_dates": [
+      "20260923"
+    ]
+  }
+}

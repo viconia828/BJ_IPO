@@ -26,10 +26,15 @@ def main():
     output.mkdir(parents=True, exist_ok=True)
     preview = ROOT / '.tmp/fundamental_stage2/visual'
     preview.mkdir(parents=True, exist_ok=True)
-    for code, pages in PAGES.items():
+    decisions = json.loads((ROOT / 'data/fundamental_cases/review_decisions.json').read_text('utf-8'))['cases']
+    pages_by_code = {code: sorted(set(PAGES.get(code, []) + item['business_pages'] + item['share_pages']
+                    + item['cycle']['pages'] + item['forecast']['pages'] + [row[3] for row in item['overrides']]))
+                    for code, item in decisions.items()}
+    for code, pages in pages_by_code.items():
         path = next(p for p in (ROOT / '公告文件').glob(f'{code}*.pdf') if '招股说明书' in p.name)
         digest = hashlib.sha256(path.read_bytes()).hexdigest()
-        doc = PdfReader(path)
+        missing = [page for page in pages if not (output / f'{code}_p{page}.json').exists()]
+        doc = PdfReader(path) if missing else None
         for page in pages:
             destination = output / f'{code}_p{page}.json'
             if not destination.exists():
@@ -40,14 +45,15 @@ def main():
                 destination.write_text(json.dumps(evidence, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
         # Review original page geometry for shares, earnings and product mix.
         selected = {'920202': [18, 184, 231, 272], '920157': [16, 17, 138, 300],
-                    '920025': [18, 202, 274, 312], '920285': [15, 16, 106, 257]}[code]
+                    '920025': [18, 202, 274, 312], '920285': [15, 16, 106, 257]}.get(code,
+                    sorted({4} | {row[3] for row in decisions[code]['overrides']}))
         if fitz is not None:
             with fitz.open(path) as rendered:
                 for page in selected:
                     rendered[page - 1].get_pixmap(matrix=fitz.Matrix(1.5, 1.5)).save(str(preview / f'{code}_p{page}.png'))
         else:
             print('Optional PyMuPDF unavailable; inspect original PDF visually:', path.name)
-    print('Evidence:', sum(map(len, PAGES.values())), 'pages; preview:', preview)
+    print('Evidence:', sum(map(len, pages_by_code.values())), 'pages; preview:', preview)
 
 
 if __name__ == '__main__':

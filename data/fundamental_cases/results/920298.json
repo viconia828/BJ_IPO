@@ -1,0 +1,434 @@
+{
+  "old": {
+    "available": true,
+    "center": 131.24632703802536,
+    "low": 118.12169433422282,
+    "high": 144.3709597418279,
+    "confidence": 0.3280838410595005,
+    "basis": "comparable_proxy",
+    "peer_count": 4,
+    "peer_codes": [
+      "301029.SZ",
+      "688409.SH",
+      "688605.SH",
+      "603308.SH"
+    ],
+    "reference_dates": [
+      "20260915"
+    ],
+    "eps": 2.3869246164109406,
+    "earnings_basis": "发行静态EPS × 同行TTM PE",
+    "peer_pe": 99.9737,
+    "bse_discount": 0.55,
+    "quality_factor": 1.0,
+    "dispersion_ratio": 2.1336009653491272,
+    "limitations": [
+      "发行静态盈利与同行TTM尚未完全同口径",
+      "成长性、竞争力等个股差异尚未完成逐股复核"
+    ],
+    "as_of": "2026-09-16"
+  },
+  "matched": {
+    "available": true,
+    "basis": "fundamental_anchor_v2",
+    "as_of": "2026-09-16",
+    "historical_pit_eligible": false,
+    "research_reconstruction": true,
+    "earnings": {
+      "net_profit_parent": {
+        "available": true,
+        "value": 191572015.52999997,
+        "metric": "net_profit_parent",
+        "end": "2026-06-30",
+        "basis": "TTM",
+        "components": {
+          "2025-12-31": 186910615.53,
+          "2026-06-30": 110892700.0,
+          "2025-06-30": 106231300.0
+        },
+        "evidence": [
+          "data/fundamental_cases/evidence/920298_p321.json",
+          "data/peer_research/api/687bda9df96dde6ed9bf_20261012234402298159_1cb0878c.json",
+          "data/peer_research/workpapers/companies/920298.BJ.json"
+        ],
+        "historical_pit_eligible": false
+      },
+      "adjusted_net_profit_parent": {
+        "available": true,
+        "value": 190218373.06,
+        "metric": "adjusted_net_profit_parent",
+        "end": "2026-06-30",
+        "basis": "TTM",
+        "components": {
+          "2025-12-31": 186129773.06,
+          "2026-06-30": 109951500.0,
+          "2025-06-30": 105862900.0
+        },
+        "evidence": [
+          "data/fundamental_cases/evidence/920298_p220.json",
+          "data/fundamental_cases/evidence/920298_p321.json"
+        ],
+        "historical_pit_eligible": false
+      }
+    },
+    "scenarios": {
+      "net_profit_parent": {
+        "available": true,
+        "center": 135.04733303115376,
+        "low": 69.78201582977316,
+        "high": 416.2200550407424,
+        "eps": 2.4560514811538456,
+        "peer_multiple": 54.985546543881455,
+        "peer_count": 4,
+        "peer_codes": [
+          "301029.SZ",
+          "688409.SH",
+          "688605.SH",
+          "603308.SH"
+        ],
+        "profit": {
+          "available": true,
+          "value": 191572015.52999997,
+          "metric": "net_profit_parent",
+          "end": "2026-06-30",
+          "basis": "TTM",
+          "components": {
+            "2025-12-31": 186910615.53,
+            "2026-06-30": 110892700.0,
+            "2025-06-30": 106231300.0
+          },
+          "evidence": [
+            "data/fundamental_cases/evidence/920298_p321.json",
+            "data/peer_research/api/687bda9df96dde6ed9bf_20261012234402298159_1cb0878c.json",
+            "data/peer_research/workpapers/companies/920298.BJ.json"
+          ],
+          "historical_pit_eligible": false
+        }
+      },
+      "adjusted_net_profit_parent": {
+        "available": true,
+        "center": 139.88996525092335,
+        "low": 74.73219026946953,
+        "high": 1027.0506174169311,
+        "eps": 2.4386970905128207,
+        "peer_multiple": 57.36258340370867,
+        "peer_count": 4,
+        "peer_codes": [
+          "301029.SZ",
+          "688409.SH",
+          "688605.SH",
+          "603308.SH"
+        ],
+        "profit": {
+          "available": true,
+          "value": 190218373.06,
+          "metric": "adjusted_net_profit_parent",
+          "end": "2026-06-30",
+          "basis": "TTM",
+          "components": {
+            "2025-12-31": 186129773.06,
+            "2026-06-30": 109951500.0,
+            "2025-06-30": 105862900.0
+          },
+          "evidence": [
+            "data/fundamental_cases/evidence/920298_p220.json",
+            "data/fundamental_cases/evidence/920298_p321.json"
+          ],
+          "historical_pit_eligible": false
+        }
+      }
+    },
+    "peer_details": [
+      {
+        "code": "301029.SZ",
+        "name": "怡合达",
+        "match": "related",
+        "weight": 0.5,
+        "market": "SZ",
+        "market_factor": 0.55,
+        "reason": "工业自动化零部件，标准化平台与定制加工不同",
+        "trade_date": "20260915",
+        "mkt_cap_yi": 152.14375730999998,
+        "metrics": {
+          "net_profit_parent": {
+            "available": true,
+            "pe": 27.736793249587915,
+            "market_adjusted_pe": 15.255236287273355,
+            "profit": {
+              "available": true,
+              "value": 548526846.4199998,
+              "metric": "net_profit_parent",
+              "end": "2026-06-30",
+              "basis": "TTM",
+              "components": {
+                "2025-12-31": 511983164.4,
+                "2026-06-30": 318222957.93,
+                "2025-06-30": 281679275.91
+              },
+              "evidence": [
+                "data/peer_research/api/700d4c353af2884d59a4_20261012234340947855_29058af1.json",
+                "data/peer_research/api/84e18d163dcb0d180823_20261012234341169561_d97f49b5.json",
+                "data/peer_research/api/9e6eb02213255a868d28_20261012234341388725_9acf9a39.json",
+                "data/peer_research/workpapers/companies/301029.SZ.json"
+              ],
+              "historical_pit_eligible": false
+            }
+          },
+          "adjusted_net_profit_parent": {
+            "available": true,
+            "pe": 28.568378644659752,
+            "market_adjusted_pe": 15.712608254562864,
+            "profit": {
+              "available": true,
+              "value": 532560000.0,
+              "metric": "adjusted_net_profit_parent",
+              "end": "2026-06-30",
+              "basis": "TTM",
+              "components": {
+                "2025-12-31": 494800000.00000006,
+                "2026-06-30": 313550000.0,
+                "2025-06-30": 275790000.0
+              },
+              "evidence": [
+                "data/peer_research/mcp/financials_20250630_07e8e6482f.json",
+                "data/peer_research/mcp/financials_20251231_07e8e6482f.json",
+                "data/peer_research/mcp/financials_20260630_07e8e6482f.json",
+                "data/peer_research/workpapers/companies/301029.SZ.json"
+              ],
+              "historical_pit_eligible": false
+            }
+          }
+        }
+      },
+      {
+        "code": "688409.SH",
+        "name": "富创精密",
+        "match": "related",
+        "weight": 0.5,
+        "market": "SH",
+        "market_factor": 0.55,
+        "reason": "精密加工与半导体设备零件，应用结构不同",
+        "trade_date": "20260915",
+        "mkt_cap_yi": 561.25377532,
+        "metrics": {
+          "net_profit_parent": {
+            "available": true,
+            "pe": 495.4537045038282,
+            "market_adjusted_pe": 272.49953747710555,
+            "profit": {
+              "available": true,
+              "value": 113280770.77999999,
+              "metric": "net_profit_parent",
+              "end": "2026-06-30",
+              "basis": "TTM",
+              "components": {
+                "2025-12-31": -8611495.09,
+                "2026-06-30": 134168704.99,
+                "2025-06-30": 12276439.12
+              },
+              "evidence": [
+                "data/peer_research/api/2e9bb91afc23f2562288_20261012234349703854_ebae37d2.json",
+                "data/peer_research/api/68c0e23fddc9b25945eb_20261012234349941183_822ac47c.json",
+                "data/peer_research/api/d3785a95fab334172cbb_20261012234349497099_f9127db5.json",
+                "data/peer_research/workpapers/companies/688409.SH.json"
+              ],
+              "historical_pit_eligible": false
+            }
+          },
+          "adjusted_net_profit_parent": {
+            "available": true,
+            "pe": 1409.5762015410428,
+            "market_adjusted_pe": 775.2669108475736,
+            "profit": {
+              "available": true,
+              "value": 39817200.0,
+              "metric": "adjusted_net_profit_parent",
+              "end": "2026-06-30",
+              "basis": "TTM",
+              "components": {
+                "2025-12-31": -51706400.0,
+                "2026-06-30": 89899300.0,
+                "2025-06-30": -1624300.0
+              },
+              "evidence": [
+                "data/peer_research/mcp/financials_20250630_7c5ee99bbf.json",
+                "data/peer_research/mcp/financials_20251231_7c5ee99bbf.json",
+                "data/peer_research/mcp/financials_20260630_7c5ee99bbf.json",
+                "data/peer_research/workpapers/companies/688409.SH.json"
+              ],
+              "historical_pit_eligible": false
+            }
+          }
+        }
+      },
+      {
+        "code": "688605.SH",
+        "name": "先锋精科",
+        "match": "related",
+        "weight": 0.5,
+        "market": "SH",
+        "market_factor": 0.55,
+        "reason": "半导体设备精密零部件，机加工相近",
+        "trade_date": "20260915",
+        "mkt_cap_yi": 166.37643358,
+        "metrics": {
+          "net_profit_parent": {
+            "available": true,
+            "pe": 120.79049252919822,
+            "market_adjusted_pe": 66.43477089105903,
+            "profit": {
+              "available": true,
+              "value": 137739676.44,
+              "metric": "net_profit_parent",
+              "end": "2026-06-30",
+              "basis": "TTM",
+              "components": {
+                "2025-12-31": 188895768.9,
+                "2026-06-30": 55037908.35,
+                "2025-06-30": 106194000.81
+              },
+              "evidence": [
+                "data/peer_research/api/302369ef3e835eec89fa_20261012234351566787_cc5bea33.json",
+                "data/peer_research/api/748cba05de3d29e72149_20261012234351815912_7408373c.json",
+                "data/peer_research/api/9588369579f4464b0af2_20261012234352068737_bd3b2e73.json",
+                "data/peer_research/workpapers/companies/688605.SH.json"
+              ],
+              "historical_pit_eligible": false
+            }
+          },
+          "adjusted_net_profit_parent": {
+            "available": true,
+            "pe": 121.86840976752806,
+            "market_adjusted_pe": 67.02762537214043,
+            "profit": {
+              "available": true,
+              "value": 136521379.0,
+              "metric": "adjusted_net_profit_parent",
+              "end": "2026-06-30",
+              "basis": "TTM",
+              "components": {
+                "2025-12-31": 186090000.0,
+                "2026-06-30": 55001379.0,
+                "2025-06-30": 104570000.0
+              },
+              "evidence": [
+                "data/peer_research/mcp/financials_20250630_3923fc5eba.json",
+                "data/peer_research/mcp/financials_20251231_3923fc5eba.json",
+                "data/peer_research/mcp/financials_20260630_3923fc5eba.json",
+                "data/peer_research/workpapers/companies/688605.SH.json"
+              ],
+              "historical_pit_eligible": false
+            }
+          }
+        }
+      },
+      {
+        "code": "603308.SH",
+        "name": "应流股份",
+        "match": "related",
+        "weight": 0.5,
+        "market": "SH",
+        "market_factor": 0.55,
+        "reason": "高端装备零件，熔模铸造与切削工艺不同，保留相关参照",
+        "trade_date": "20260915",
+        "mkt_cap_yi": 302.08153833,
+        "metrics": {
+          "net_profit_parent": {
+            "available": true,
+            "pe": 79.1569494485525,
+            "market_adjusted_pe": 43.53632219670388,
+            "profit": {
+              "available": true,
+              "value": 381623521.91999996,
+              "metric": "net_profit_parent",
+              "end": "2026-06-30",
+              "basis": "TTM",
+              "components": {
+                "2025-12-31": 348641494.58,
+                "2026-06-30": 221241378.58,
+                "2025-06-30": 188259351.24
+              },
+              "evidence": [
+                "data/peer_research/api/20910120b5347a6f2307_20261012234347888295_09e3222c.json",
+                "data/peer_research/api/9ea91e312e72fd87b64c_20261012234347668183_5c6812fd.json",
+                "data/peer_research/api/b998967c6be74d8cac5a_20261012234347338138_ce558176.json",
+                "data/peer_research/workpapers/companies/603308.SH.json"
+              ],
+              "historical_pit_eligible": false
+            }
+          },
+          "adjusted_net_profit_parent": {
+            "available": true,
+            "pe": 86.72280260959435,
+            "market_adjusted_pe": 47.6975414352769,
+            "profit": {
+              "available": true,
+              "value": 348330000.0,
+              "metric": "adjusted_net_profit_parent",
+              "end": "2026-06-30",
+              "basis": "TTM",
+              "components": {
+                "2025-12-31": 320570000.0,
+                "2026-06-30": 214699999.99999997,
+                "2025-06-30": 186940000.0
+              },
+              "evidence": [
+                "data/peer_research/mcp/financials_20250630_718b65f933.json",
+                "data/peer_research/mcp/financials_20251231_718b65f933.json",
+                "data/peer_research/mcp/financials_20260630_718b65f933.json",
+                "data/peer_research/workpapers/companies/603308.SH.json"
+              ],
+              "historical_pit_eligible": false
+            }
+          }
+        }
+      }
+    ],
+    "coverage": {
+      "candidates": 4,
+      "usable": 4
+    },
+    "review_source": "data/fundamental_cases/cases/920298.json",
+    "cycle": {
+      "classification": "增长与盈利兑现需分开观察",
+      "normalization_approved": false,
+      "reason": "收入增14.03%而扣非增3.86%、经营现金流降60.07%；油气与半导体需求不同，不能按单一热行业给全公司溢价。",
+      "pages": [
+        321,
+        111
+      ]
+    },
+    "stage": "matched",
+    "limitations": [
+      "市场统一折价仍为既有研究参数，需单列敏感性",
+      "前瞻与周期正常化尚无完整同口径同行估值，未加入主F",
+      "部分扣非利润仅有供应商来源，披露日/历史版本未达到真实PIT要求",
+      "当前资料历史重建不是原始事前PIT",
+      "匹配档位为固定研究规则，未按首日涨幅调参",
+      "区间是盈利口径、可比离散与绿鞋摊薄情景，不是统计置信区间"
+    ],
+    "market_policy": {
+      "SH_SZ": 0.55,
+      "BJ": 1.0,
+      "NQ": null
+    },
+    "center": 139.88996525092335,
+    "low": 69.78201582977316,
+    "high": 1027.0506174169311,
+    "confidence": 0.09534386525361925,
+    "peer_count": 4,
+    "peer_codes": [
+      "301029.SZ",
+      "688409.SH",
+      "688605.SH",
+      "603308.SH"
+    ],
+    "eps": 2.4386970905128207,
+    "peer_pe": 57.36258340370867,
+    "bse_discount": 0.55,
+    "earnings_basis": "扣非TTM/发行后股本 × 同行市值/扣非TTM（分市场调整）",
+    "reference_dates": [
+      "20260915"
+    ]
+  }
+}

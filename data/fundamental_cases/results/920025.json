@@ -27,7 +27,7 @@
     "as_of": "2026-09-23"
   },
   "matched": {
-    "available": false,
+    "available": true,
     "basis": "fundamental_anchor_v2",
     "as_of": "2026-09-23",
     "historical_pit_eligible": false,
@@ -72,15 +72,16 @@
     "scenarios": {
       "net_profit_parent": {
         "available": true,
-        "center": 22.83070678482977,
-        "low": 14.582576209174977,
+        "center": 15.165879257541976,
+        "low": 4.561936259194212,
         "high": 30.495534312117563,
         "eps": 0.2995943556444444,
-        "peer_multiple": 76.20539691316823,
-        "peer_count": 2,
+        "peer_multiple": 50.6213784465976,
+        "peer_count": 3,
         "peer_codes": [
           "002760.SZ",
-          "603917.SH"
+          "603917.SH",
+          "300971.SZ"
         ],
         "profit": {
           "available": true,
@@ -102,9 +103,34 @@
         }
       },
       "adjusted_net_profit_parent": {
-        "available": false,
-        "reason": "正盈利有效可比不足两家",
-        "peer_count": 1
+        "available": true,
+        "center": 12.757057000468494,
+        "low": 5.017155752359709,
+        "high": 20.296272018482888,
+        "eps": 0.2991252248888889,
+        "peer_multiple": 42.64788101774816,
+        "peer_count": 2,
+        "peer_codes": [
+          "002760.SZ",
+          "300971.SZ"
+        ],
+        "profit": {
+          "available": true,
+          "value": 67303175.6,
+          "metric": "adjusted_net_profit_parent",
+          "end": "2026-06-30",
+          "basis": "TTM",
+          "components": {
+            "2025-12-31": 69650275.6,
+            "2026-06-30": 33781700.0,
+            "2025-06-30": 36128800.0
+          },
+          "evidence": [
+            "data/fundamental_cases/evidence/920025_p202.json",
+            "data/fundamental_cases/evidence/920025_p312.json"
+          ],
+          "historical_pit_eligible": false
+        }
       }
     },
     "peer_details": [
@@ -405,20 +431,201 @@
             }
           }
         }
+      },
+      {
+        "code": "300971.SZ",
+        "name": "博亚精工",
+        "match": "related",
+        "weight": 0.5,
+        "market": "SZ",
+        "market_factor": 0.55,
+        "reason": "板带成形精密装备、辊系零件及特种装备零件，轧制产业链相近，含不同终端需求",
+        "trade_date": "20260922",
+        "mkt_cap_yi": 20.88576,
+        "metrics": {
+          "net_profit_parent": {
+            "available": true,
+            "pe": 28.7929548141943,
+            "market_adjusted_pe": 15.836125147806866,
+            "profit": {
+              "available": true,
+              "value": 72537744.50999999,
+              "metric": "net_profit_parent",
+              "end": "2026-06-30",
+              "basis": "TTM",
+              "components": {
+                "2025-12-31": 83409029.77,
+                "2026-06-30": 33445620.3,
+                "2025-06-30": 44316905.56
+              },
+              "evidence": [
+                "data/fundamental_cases/raw/stage3/300971.SZ_income_full.json",
+                "data/fundamental_cases/raw/stage3/api/403c3f64086863189cb8_20261013211929687885_0490e197.json",
+                "data/fundamental_cases/raw/stage3/api/cb12244526a6ac058e7c_20261013211929284067_84b06826.json",
+                "data/fundamental_cases/raw/stage3/api/ff49b0bfacc359c38ca7_20261013211930159382_5f7da78a.json",
+                "data/fundamental_cases/raw/stage3/mcp_kada_financials.json"
+              ],
+              "historical_pit_eligible": false
+            }
+          },
+          "adjusted_net_profit_parent": {
+            "available": true,
+            "pe": 31.715765282475882,
+            "market_adjusted_pe": 17.443670905361735,
+            "profit": {
+              "available": true,
+              "value": 65852927.76,
+              "metric": "adjusted_net_profit_parent",
+              "end": "2026-06-30",
+              "basis": "TTM",
+              "components": {
+                "2025-12-31": 65273387.93,
+                "2026-06-30": 29240337.98,
+                "2025-06-30": 28660798.15
+              },
+              "evidence": [
+                "data/fundamental_cases/raw/stage3/300971.SZ_fina_indicator.json",
+                "data/fundamental_cases/raw/stage3/mcp_kada_financials.json"
+              ],
+              "historical_pit_eligible": false
+            }
+          }
+        }
+      },
+      {
+        "code": "002347.SZ",
+        "name": "泰尔股份",
+        "match": "related",
+        "weight": 0.5,
+        "market": "SZ",
+        "market_factor": 0.55,
+        "reason": "冶金轧机核心备件、卷筒、剪刃及运维，保留亏损与新能源等业务差异",
+        "trade_date": "20260922",
+        "mkt_cap_yi": 29.7774357,
+        "metrics": {
+          "net_profit_parent": {
+            "available": false,
+            "reason": "盈利非正，保留业务身份但PE不可用",
+            "profit": {
+              "available": true,
+              "value": -95311890.5,
+              "metric": "net_profit_parent",
+              "end": "2026-06-30",
+              "basis": "TTM",
+              "components": {
+                "2025-12-31": -94940921.2,
+                "2026-06-30": -19756757.2,
+                "2025-06-30": -19385787.9
+              },
+              "evidence": [
+                "data/fundamental_cases/raw/stage3/002347.SZ_income_full.json",
+                "data/fundamental_cases/raw/stage3/api/403c3f64086863189cb8_20261013211929687885_0490e197.json",
+                "data/fundamental_cases/raw/stage3/api/cb12244526a6ac058e7c_20261013211929284067_84b06826.json",
+                "data/fundamental_cases/raw/stage3/api/ff49b0bfacc359c38ca7_20261013211930159382_5f7da78a.json",
+                "data/fundamental_cases/raw/stage3/mcp_kada_financials.json"
+              ],
+              "historical_pit_eligible": false
+            }
+          },
+          "adjusted_net_profit_parent": {
+            "available": false,
+            "reason": "盈利非正，保留业务身份但PE不可用",
+            "profit": {
+              "available": true,
+              "value": -103342538.47,
+              "metric": "adjusted_net_profit_parent",
+              "end": "2026-06-30",
+              "basis": "TTM",
+              "components": {
+                "2025-12-31": -105433753.95,
+                "2026-06-30": -25348572.97,
+                "2025-06-30": -27439788.45
+              },
+              "evidence": [
+                "data/fundamental_cases/raw/stage3/002347.SZ_fina_indicator.json",
+                "data/fundamental_cases/raw/stage3/mcp_kada_financials.json"
+              ],
+              "historical_pit_eligible": false
+            }
+          }
+        }
+      },
+      {
+        "code": "603135.SH",
+        "name": "中重科技",
+        "match": "related",
+        "weight": 0.5,
+        "market": "SH",
+        "market_factor": 0.55,
+        "reason": "智能轧制生产线及机械设备，同钢铁资本开支链，但整线与轧辊耗材订单周期不同",
+        "trade_date": "20260922",
+        "mkt_cap_yi": 56.00490193,
+        "metrics": {
+          "net_profit_parent": {
+            "available": false,
+            "reason": "盈利非正，保留业务身份但PE不可用",
+            "profit": {
+              "available": true,
+              "value": -4202851.559999995,
+              "metric": "net_profit_parent",
+              "end": "2026-06-30",
+              "basis": "TTM",
+              "components": {
+                "2025-12-31": -22027357.91,
+                "2026-06-30": 37449831.34,
+                "2025-06-30": 19625324.99
+              },
+              "evidence": [
+                "data/fundamental_cases/raw/stage3/603135.SH_income_full.json",
+                "data/fundamental_cases/raw/stage3/api/403c3f64086863189cb8_20261013211929687885_0490e197.json",
+                "data/fundamental_cases/raw/stage3/api/cb12244526a6ac058e7c_20261013211929284067_84b06826.json",
+                "data/fundamental_cases/raw/stage3/api/ff49b0bfacc359c38ca7_20261013211930159382_5f7da78a.json",
+                "data/fundamental_cases/raw/stage3/mcp_kada_financials.json"
+              ],
+              "historical_pit_eligible": false
+            }
+          },
+          "adjusted_net_profit_parent": {
+            "available": false,
+            "reason": "盈利非正，保留业务身份但PE不可用",
+            "profit": {
+              "available": true,
+              "value": -16999069.650000002,
+              "metric": "adjusted_net_profit_parent",
+              "end": "2026-06-30",
+              "basis": "TTM",
+              "components": {
+                "2025-12-31": -35885742.67,
+                "2026-06-30": 28381768.2,
+                "2025-06-30": 9495095.18
+              },
+              "evidence": [
+                "data/fundamental_cases/raw/stage3/603135.SH_fina_indicator.json",
+                "data/fundamental_cases/raw/stage3/mcp_kada_financials.json"
+              ],
+              "historical_pit_eligible": false
+            }
+          }
+        }
       }
     ],
     "coverage": {
-      "candidates": 5,
-      "usable": 1
+      "candidates": 8,
+      "usable": 2
     },
     "review_source": "data/fundamental_cases/cases/920025.json",
     "cycle": {
-      "classification": "钢铁需求和原料周期暴露，同行当前盈利分母代表性偏弱",
+      "classification": "钢铁链耗材与设备周期；当前TTM与历史利润率参照并列",
       "normalization_approved": false,
-      "reason": "发行人2026H1归母下降9.42%，研发和汇兑解释明确，不能仅凭钢铁标签判断处于周期底。合力扣非亏损、凤形分母较小，高TTM PE只作敏感性。正常化要求同行同步核验利润率与恢复期，本轮不自动批准。",
+      "reason": "H1利润下降包含研发与汇兑因素，不直接判作周期底。扩充轧制设备宽池，亏损参照继续保留；三年扣非利润率压力参照双方同时计算，历史中位数不等于已验证常态，仍不批准正常化主F。",
       "pages": [
         7,
         135,
+        202,
+        204,
+        205,
+        206,
+        208,
         274,
         312
       ]
@@ -437,6 +644,21 @@
       "BJ": 1.0,
       "NQ": null
     },
-    "reason": "正盈利有效可比不足两家"
+    "center": 12.757057000468494,
+    "low": 4.561936259194212,
+    "high": 30.495534312117563,
+    "confidence": 0.12516034777138155,
+    "peer_count": 2,
+    "peer_codes": [
+      "002760.SZ",
+      "300971.SZ"
+    ],
+    "eps": 0.2991252248888889,
+    "peer_pe": 42.64788101774816,
+    "bse_discount": 0.55,
+    "earnings_basis": "扣非TTM/发行后股本 × 同行市值/扣非TTM（分市场调整）",
+    "reference_dates": [
+      "20260922"
+    ]
   }
 }

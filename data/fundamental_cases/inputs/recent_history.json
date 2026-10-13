@@ -1,0 +1,4703 @@
+{
+  "schema": "frozen_recent_fundamental_history_v1",
+  "frozen_at": "2026-10-13T21:38:08.877369+08:00",
+  "historical_pit_eligible": false,
+  "source_sha256": {
+    "data/offline_tuning/replay_dataset.json": "0dfa712df778bc05ce2ab665d36601cd87ca1c4d94886f654db13179e19738e0",
+    "data/quality_sentiment/historical_reference.json": "435e2033ce055ba5eda7b7dacc50fb724ae8425de62196493ceffbb7c10b3df8",
+    "data/tushare_db/variable_fields/920011.BJ.json": "781edae7a956bb202c95aaaa6892245315ee96fe776802261dfcc8c639520a32",
+    "data/tushare_db/variable_fields/920012.BJ.json": "750ba93af98d1e5240353a5b5199fa64a797a36086edd3643b0c01fe405bd90b",
+    "data/tushare_db/variable_fields/920025.BJ.json": "34369333ceacf3eb376f9b53dc431714e3c95bdbb653496e475fb33f272462bb",
+    "data/tushare_db/variable_fields/920028.BJ.json": "050e1966bd59b694ce1bd0d05f9a2d7270c85a09921a63f7dbab2629077505e6",
+    "data/tushare_db/variable_fields/920036.BJ.json": "c2b5f48b4c5ad7560ee67d67b390b9408db59d5785204956d84d68f0a242c46d",
+    "data/tushare_db/variable_fields/920038.BJ.json": "ddf435b46b8c4ebfe3eebdca44386d82df45b33c623b4406bfacbfb0db51c808",
+    "data/tushare_db/variable_fields/920050.BJ.json": "2ebd8def247f36b9565a7af32ab1d3b36318b9fb68ba37f1149800172c66e64a",
+    "data/tushare_db/variable_fields/920055.BJ.json": "71c6eebc980453437583af8b530145c2251692e5d2b5aabeaf7afb39933a8091",
+    "data/tushare_db/variable_fields/920059.BJ.json": "d0fad1c2e8c3051d3adb9545787c06ce154f81c85bc076bc54afec1b6733bcbd",
+    "data/tushare_db/variable_fields/920065.BJ.json": "a7d4f5f7d985604be82cb51dd2fef2f068242b76849d68dc9600ad24db3711b0",
+    "data/tushare_db/variable_fields/920069.BJ.json": "3c0708d0ed01b9d7ae62888c824dda547a5ad03db0264d3c700dd436a3eefdd7",
+    "data/tushare_db/variable_fields/920071.BJ.json": "4b41c0b49b611234515c7af64cbbc6f255bae9b631dc7117cb6a8e958097b00b",
+    "data/tushare_db/variable_fields/920072.BJ.json": "3108bb862d60f8b3a828b1de7b871a06ebc21a6fe7e9391867823ff1c68309f7",
+    "data/tushare_db/variable_fields/920076.BJ.json": "f838f9ab594d01935c0ce6e86a61f8a2bec54c27108533dbf46085169e00e7bc",
+    "data/tushare_db/variable_fields/920078.BJ.json": "d726fdaa1bf0e8e99b4d2220e09b663690e47ed97e4a2976bed7afd9bdc3c978",
+    "data/tushare_db/variable_fields/920079.BJ.json": "1bdb3fc80ce9c03bc05a3779db86a16aef0ae8e8c859d597b3a01ab5f35fcd12",
+    "data/tushare_db/variable_fields/920081.BJ.json": "4d09ad375d1c7f8462e2a7df9df0b7240313c6cd0a5d87d81fc25c48f69af4c1",
+    "data/tushare_db/variable_fields/920083.BJ.json": "761516b060370c0198a4a17e8e9a114ae832c6130aea3039062bf13f9d64eca7",
+    "data/tushare_db/variable_fields/920086.BJ.json": "c28a6effce2c47a5c49cac838497428cf666f5e604a97b4ed679550be610fb92",
+    "data/tushare_db/variable_fields/920093.BJ.json": "507e4a49cf5727ec580e926e3f4755d8b61de0413509262d93eda2eab4ad0791",
+    "data/tushare_db/variable_fields/920096.BJ.json": "d708e65177a3a2e2a5eeb4791fabb09ad74855a4453c6ed2196ca8fd636c8515",
+    "data/tushare_db/variable_fields/920107.BJ.json": "5aa02b0e5c42c04d7fcf9dd21cbf5c30b5c5a14626cdf3b25e62aba110546dbb",
+    "data/tushare_db/variable_fields/920117.BJ.json": "89fb8bfd9a076cfdf792c4bff20559de3b58a5f48e73548f3f2ed0ca79c74b10",
+    "data/tushare_db/variable_fields/920119.BJ.json": "b760935ee7133dabba3d9e09c32fc6bbd93e63694c523d0d7d15a1d9cdd32ffd",
+    "data/tushare_db/variable_fields/920125.BJ.json": "349a11bd9828ddcb16f9c0221c04de12d5d0c5513c5f68a0526f779234b759b6",
+    "data/tushare_db/variable_fields/920126.BJ.json": "ef1c3481e198fa7331b0832ebcc72ab23ec2d9e9c484b29f9f0bd12319dd404a",
+    "data/tushare_db/variable_fields/920136.BJ.json": "af699f613c4898d931174823bfcf3667b4df9508bb33a9aad4c0d8bacc50fec9",
+    "data/tushare_db/variable_fields/920138.BJ.json": "6f7c8a0dbdd28a12acf5ffa7b9ae423c538e8bfe358c1f2c42dd145df815ffd9",
+    "data/tushare_db/variable_fields/920156.BJ.json": "7ec78bd59b4d739ee6f1ee9aac7a31aeeac1d0a3368b638340ed992730f3d19e",
+    "data/tushare_db/variable_fields/920157.BJ.json": "916a3cb6ad56f6b7a79e9f485a4e369d98a93db3b1a629ec79b62e937b414f94",
+    "data/tushare_db/variable_fields/920159.BJ.json": "18062ac9a7357d9985cf5665db10f181ee31b2fa035632b836a86ef93e3ba63d",
+    "data/tushare_db/variable_fields/920161.BJ.json": "e51121df9f8f860be9c20851e54a4a6c78b26d63f429ea1ee9fe207fa30dbad5",
+    "data/tushare_db/variable_fields/920165.BJ.json": "3da9805d22a4a66c59f7f01b57df870101eca0c31fbfb8abae72db14feb1ec5b",
+    "data/tushare_db/variable_fields/920166.BJ.json": "5dd62c1a5f270bb885c30867992f8f491deec1ac557661125b7576a4e766d8d8",
+    "data/tushare_db/variable_fields/920168.BJ.json": "dc6c163c7a7ce48448d52b0aa9372bddc136b4768a8ce44bc52beb1b8567adb4",
+    "data/tushare_db/variable_fields/920176.BJ.json": "ca9b22c06d94a7feb615e4e75b774a94ad06696db4c1fb08616bd682dea071a1",
+    "data/tushare_db/variable_fields/920177.BJ.json": "ccc6a6ca8e7b1cc82f2bf00eb1867c250300bf8133804ec836f6d010dce1340d",
+    "data/tushare_db/variable_fields/920178.BJ.json": "ddfa03a84e1a7c22b3fd90e644dd1347a970d118f539a426e07d0dca818f2f19",
+    "data/tushare_db/variable_fields/920180.BJ.json": "905abe1c0b2be675eb43856bd436f180baa55dac06f1c58aa088260c71bb10bf",
+    "data/tushare_db/variable_fields/920181.BJ.json": "4d645677610a27a73ad77e5a3cb39934e30cfae0a68716610e765419a21725b7",
+    "data/tushare_db/variable_fields/920183.BJ.json": "6c6cffc6f11cbe8777adc3ab60c36a7a7134d4909eb4517cf0276666da51517b",
+    "data/tushare_db/variable_fields/920186.BJ.json": "fbe8a9fb91f507357ce3810d1fda7a3b4e80fd841212c66b90246f15b0f6f6a7",
+    "data/tushare_db/variable_fields/920187.BJ.json": "3a9c146fb6ea29bf82d1ea9fa328a151daa692b1aa1d65b0b5b642db9f7d5d25",
+    "data/tushare_db/variable_fields/920188.BJ.json": "e656ee0b15aed09db5baa49fa034e54431196952a2bf6e91e76a3cd34b541a60",
+    "data/tushare_db/variable_fields/920189.BJ.json": "831c19f5a0b8c372607e25eaa7aa1c0e207768fe4bc8ca1873a886426325a789",
+    "data/tushare_db/variable_fields/920191.BJ.json": "ca00454e8dbf1505808f60ec77837573b13f9b3ab1a70d8957db2d2d1ba32f1e",
+    "data/tushare_db/variable_fields/920193.BJ.json": "92f3f8792eba486a4ff7b3f3b60fb0f505e4a205900b3e14458689b6e7a0a569",
+    "data/tushare_db/variable_fields/920200.BJ.json": "3a5f6eda4036c0eea7e6a6fac3b36bfc17fbbd893826e43461f048dec55b03f5",
+    "data/tushare_db/variable_fields/920201.BJ.json": "6ea51946eb825edeccc31ba0020c9915e68b7626bac4c5cdf45485ddd80128a5",
+    "data/tushare_db/variable_fields/920202.BJ.json": "3a25eb6994c51e432d36631299bc2d335c944db90bfad7f8f4ba1224ade06a80",
+    "data/tushare_db/variable_fields/920206.BJ.json": "6ed0555a50782f0a218bc5ab5eef7fa0a1e73dc5760ddd7ce19295cd3b243291",
+    "data/tushare_db/variable_fields/920211.BJ.json": "11661ba5a295787d78b4d5304f8e7d9585cdfc002e3c3bcef8439cf7a7b39f51",
+    "data/tushare_db/variable_fields/920218.BJ.json": "5cb9b7b672ca3e5eda582900929b53a514a54b9e58137d011134a46ae6aa44b0",
+    "data/tushare_db/variable_fields/920220.BJ.json": "9a6cc0cb8224fb3f8eec518f1c324e279ba74c2722ee5642f8d02d918475f576",
+    "data/tushare_db/variable_fields/920222.BJ.json": "02bcaa6cbedff562fd2192445d8900f1f869b084ea8e972136cf3aeae4ef5a14",
+    "data/tushare_db/variable_fields/920229.BJ.json": "cd4e639577af8701e66a29c93833a1114a8bf3e41fb1f3c23e58b46fd7a5ade0",
+    "data/tushare_db/variable_fields/920238.BJ.json": "904a50c07b0d806f08b3e76be7ce5de15fd086f12f53b03cbfebfee2cca6c6ce",
+    "data/tushare_db/variable_fields/920258.BJ.json": "e5e5109a315660da35e7e4cdfff0d5bc766d156b5eaef6102fbdef71a5e6364d",
+    "data/tushare_db/variable_fields/920268.BJ.json": "9634d1d58a45b94e27d0957e2277a3bd497af3cb5ee266773faef85c51fda524",
+    "data/tushare_db/variable_fields/920269.BJ.json": "46c1981a89b75acdb2b95d79cea71de0a2606428028c07cb694818b239e0fbb1",
+    "data/tushare_db/variable_fields/920288.BJ.json": "ae27bc0c1b8b79abe8f88180164e34c4d06d67e01c6ab2fbc1f357a201deb99b",
+    "data/tushare_db/variable_fields/920289.BJ.json": "6e089414a5bfe8fb72fce09ac7022715a8cfd67150ae565f726d54a0a6c370f8",
+    "data/tushare_db/variable_fields/920298.BJ.json": "e67e83ad4b34a03fc19754e326fc1df1b3568d92c2e7b4cf8505b1e6d4d2edd8"
+  },
+  "note": "当日重建的标准化历史及缓存行情。冻结为了复现，不表示历史时点已存在；剔除所有人工F、v2和前向快照，分别由对照实验安装。",
+  "normalization_corrections": [
+    {
+      "code": "920086",
+      "changes": {
+        "LISTING_DATE": {
+          "before": "2026-01-16 00:00:00",
+          "after": "2026-01-16"
+        },
+        "AVERAGE_PRICE": {
+          "before": 54.55912543948198,
+          "after": 54.55912543948199
+        },
+        "verified_float_shares": {
+          "before": null,
+          "after": 1882.799906388954
+        },
+        "verified_float_source": {
+          "before": null,
+          "after": "ifind_listing_day_volume_div_turnover_structural_reconstruction"
+        },
+        "structure_vintage": {
+          "before": null,
+          "after": "retrospective_reconstruction"
+        }
+      }
+    },
+    {
+      "code": "920050",
+      "changes": {
+        "LISTING_DATE": {
+          "before": "2026-01-21 00:00:00",
+          "after": "2026-01-21"
+        },
+        "AVERAGE_PRICE": {
+          "before": 48.64295846657595,
+          "after": 48.64295846657594
+        },
+        "verified_float_shares": {
+          "before": null,
+          "after": 1810.2641290439688
+        },
+        "verified_float_source": {
+          "before": null,
+          "after": "ifind_listing_day_volume_div_turnover_structural_reconstruction"
+        },
+        "structure_vintage": {
+          "before": null,
+          "after": "retrospective_reconstruction"
+        }
+      }
+    },
+    {
+      "code": "920076",
+      "changes": {
+        "LISTING_DATE": {
+          "before": "2026-01-22 00:00:00",
+          "after": "2026-01-22"
+        },
+        "AVERAGE_PRICE": {
+          "before": 29.91233555870802,
+          "after": 29.912335558708023
+        },
+        "verified_float_shares": {
+          "before": null,
+          "after": 1976.1416649435912
+        },
+        "verified_float_source": {
+          "before": null,
+          "after": "ifind_listing_day_volume_div_turnover_structural_reconstruction"
+        },
+        "structure_vintage": {
+          "before": null,
+          "after": "retrospective_reconstruction"
+        }
+      }
+    },
+    {
+      "code": "920159",
+      "changes": {
+        "LISTING_DATE": {
+          "before": "2026-01-28 00:00:00",
+          "after": "2026-01-28"
+        },
+        "AVERAGE_PRICE": {
+          "before": 51.40855681867674,
+          "after": 51.40855681867675
+        },
+        "verified_float_shares": {
+          "before": null,
+          "after": 1440.0005892900738
+        },
+        "verified_float_source": {
+          "before": null,
+          "after": "ifind_listing_day_volume_div_turnover_structural_reconstruction"
+        },
+        "structure_vintage": {
+          "before": null,
+          "after": "retrospective_reconstruction"
+        }
+      }
+    },
+    {
+      "code": "920119",
+      "changes": {
+        "LISTING_DATE": {
+          "before": "2026-01-30 00:00:00",
+          "after": "2026-01-30"
+        },
+        "AVERAGE_PRICE": {
+          "before": 120.16805492729866,
+          "after": 120.16805492729864
+        },
+        "verified_float_shares": {
+          "before": null,
+          "after": 1440.0008653392547
+        },
+        "verified_float_source": {
+          "before": null,
+          "after": "ifind_listing_day_volume_div_turnover_structural_reconstruction"
+        },
+        "structure_vintage": {
+          "before": null,
+          "after": "retrospective_reconstruction"
+        }
+      }
+    },
+    {
+      "code": "920180",
+      "changes": {
+        "LISTING_DATE": {
+          "before": "2026-02-10 00:00:00",
+          "after": "2026-02-10"
+        },
+        "verified_float_shares": {
+          "before": null,
+          "after": 2657.7680520280487
+        },
+        "verified_float_source": {
+          "before": null,
+          "after": "ifind_listing_day_volume_div_turnover_structural_reconstruction"
+        },
+        "structure_vintage": {
+          "before": null,
+          "after": "retrospective_reconstruction"
+        }
+      }
+    },
+    {
+      "code": "920166",
+      "changes": {
+        "LISTING_DATE": {
+          "before": "2026-02-12 00:00:00",
+          "after": "2026-02-12"
+        },
+        "verified_float_shares": {
+          "before": null,
+          "after": 2376.4678580827294
+        },
+        "verified_float_source": {
+          "before": null,
+          "after": "ifind_listing_day_volume_div_turnover_structural_reconstruction"
+        },
+        "structure_vintage": {
+          "before": null,
+          "after": "retrospective_reconstruction"
+        }
+      }
+    },
+    {
+      "code": "920168",
+      "changes": {
+        "LISTING_DATE": {
+          "before": "2026-02-26 00:00:00",
+          "after": "2026-02-26"
+        },
+        "verified_float_shares": {
+          "before": null,
+          "after": 2817.4516501131034
+        },
+        "verified_float_source": {
+          "before": null,
+          "after": "ifind_listing_day_volume_div_turnover_structural_reconstruction"
+        },
+        "structure_vintage": {
+          "before": null,
+          "after": "retrospective_reconstruction"
+        }
+      }
+    },
+    {
+      "code": "920183",
+      "changes": {
+        "LISTING_DATE": {
+          "before": "2026-03-04 00:00:00",
+          "after": "2026-03-04"
+        },
+        "verified_float_shares": {
+          "before": null,
+          "after": 1124.9823580501575
+        },
+        "verified_float_source": {
+          "before": null,
+          "after": "ifind_listing_day_volume_div_turnover_structural_reconstruction"
+        },
+        "structure_vintage": {
+          "before": null,
+          "after": "retrospective_reconstruction"
+        }
+      }
+    },
+    {
+      "code": "920187",
+      "changes": {
+        "LISTING_DATE": {
+          "before": "2026-03-05 00:00:00",
+          "after": "2026-03-05"
+        },
+        "verified_float_shares": {
+          "before": null,
+          "after": 2095.387597302508
+        },
+        "verified_float_source": {
+          "before": null,
+          "after": "ifind_listing_day_volume_div_turnover_structural_reconstruction"
+        },
+        "structure_vintage": {
+          "before": null,
+          "after": "retrospective_reconstruction"
+        }
+      }
+    },
+    {
+      "code": "920036",
+      "changes": {
+        "LISTING_DATE": {
+          "before": "2026-03-09 00:00:00",
+          "after": "2026-03-09"
+        },
+        "verified_float_shares": {
+          "before": null,
+          "after": 1306.1280434283553
+        },
+        "verified_float_source": {
+          "before": null,
+          "after": "ifind_listing_day_volume_div_turnover_structural_reconstruction"
+        },
+        "structure_vintage": {
+          "before": null,
+          "after": "retrospective_reconstruction"
+        }
+      }
+    },
+    {
+      "code": "920078",
+      "changes": {
+        "LISTING_DATE": {
+          "before": "2026-03-18 00:00:00",
+          "after": "2026-03-18"
+        },
+        "AVERAGE_PRICE": {
+          "before": 35.70731418099931,
+          "after": 35.707314180999305
+        },
+        "verified_float_shares": {
+          "before": null,
+          "after": 2070.000103744125
+        },
+        "verified_float_source": {
+          "before": null,
+          "after": "ifind_listing_day_volume_div_turnover_structural_reconstruction"
+        },
+        "structure_vintage": {
+          "before": null,
+          "after": "retrospective_reconstruction"
+        }
+      }
+    },
+    {
+      "code": "920028",
+      "changes": {
+        "LISTING_DATE": {
+          "before": "2026-03-20 00:00:00",
+          "after": "2026-03-20"
+        },
+        "verified_float_shares": {
+          "before": null,
+          "after": 4255.9117960268395
+        },
+        "verified_float_source": {
+          "before": null,
+          "after": "ifind_listing_day_volume_div_turnover_structural_reconstruction"
+        },
+        "structure_vintage": {
+          "before": null,
+          "after": "retrospective_reconstruction"
+        }
+      }
+    },
+    {
+      "code": "920069",
+      "changes": {
+        "LISTING_DATE": {
+          "before": "2026-03-27 00:00:00",
+          "after": "2026-03-27"
+        },
+        "verified_float_shares": {
+          "before": null,
+          "after": 1477.7725890927738
+        },
+        "verified_float_source": {
+          "before": null,
+          "after": "ifind_listing_day_volume_div_turnover_structural_reconstruction"
+        },
+        "structure_vintage": {
+          "before": null,
+          "after": "retrospective_reconstruction"
+        }
+      }
+    },
+    {
+      "code": "920188",
+      "changes": {
+        "LISTING_DATE": {
+          "before": "2026-03-30 00:00:00",
+          "after": "2026-03-30"
+        },
+        "AVERAGE_PRICE": {
+          "before": 33.940438585337475,
+          "after": 33.94043858533747
+        },
+        "verified_float_shares": {
+          "before": null,
+          "after": 1979.3873576769543
+        },
+        "verified_float_source": {
+          "before": null,
+          "after": "ifind_listing_day_volume_div_turnover_structural_reconstruction"
+        },
+        "structure_vintage": {
+          "before": null,
+          "after": "retrospective_reconstruction"
+        }
+      }
+    },
+    {
+      "code": "920055",
+      "changes": {
+        "LISTING_DATE": {
+          "before": "2026-03-31 00:00:00",
+          "after": "2026-03-31"
+        },
+        "AVERAGE_PRICE": {
+          "before": 38.07569298569772,
+          "after": 38.075692985697714
+        },
+        "verified_float_shares": {
+          "before": null,
+          "after": 1530.0007284382286
+        },
+        "verified_float_source": {
+          "before": null,
+          "after": "ifind_listing_day_volume_div_turnover_structural_reconstruction"
+        },
+        "structure_vintage": {
+          "before": null,
+          "after": "retrospective_reconstruction"
+        }
+      }
+    },
+    {
+      "code": "920011",
+      "changes": {
+        "LISTING_DATE": {
+          "before": "2026-04-08 00:00:00",
+          "after": "2026-04-08"
+        },
+        "AVERAGE_PRICE": {
+          "before": 29.661284131630037,
+          "after": 29.66128413163004
+        },
+        "verified_float_shares": {
+          "before": null,
+          "after": 1860.0008839369257
+        },
+        "verified_float_source": {
+          "before": null,
+          "after": "ifind_listing_day_volume_div_turnover_structural_reconstruction"
+        },
+        "structure_vintage": {
+          "before": null,
+          "after": "retrospective_reconstruction"
+        }
+      }
+    },
+    {
+      "code": "920181",
+      "changes": {
+        "LISTING_DATE": {
+          "before": "2026-04-10 00:00:00",
+          "after": "2026-04-10"
+        },
+        "verified_float_shares": {
+          "before": null,
+          "after": 1001.999962819872
+        },
+        "verified_float_source": {
+          "before": null,
+          "after": "ifind_listing_day_volume_div_turnover_structural_reconstruction"
+        },
+        "structure_vintage": {
+          "before": null,
+          "after": "retrospective_reconstruction"
+        }
+      }
+    },
+    {
+      "code": "920012",
+      "changes": {
+        "LISTING_DATE": {
+          "before": "2026-04-13 00:00:00",
+          "after": "2026-04-13"
+        },
+        "verified_float_shares": {
+          "before": null,
+          "after": 1326.8661591645268
+        },
+        "verified_float_source": {
+          "before": null,
+          "after": "ifind_listing_day_volume_div_turnover_structural_reconstruction"
+        },
+        "structure_vintage": {
+          "before": null,
+          "after": "retrospective_reconstruction"
+        }
+      }
+    },
+    {
+      "code": "920177",
+      "changes": {
+        "LISTING_DATE": {
+          "before": "2026-04-16 00:00:00",
+          "after": "2026-04-16"
+        },
+        "verified_float_shares": {
+          "before": null,
+          "after": 1177.2003984456628
+        },
+        "verified_float_source": {
+          "before": null,
+          "after": "ifind_listing_day_volume_div_turnover_structural_reconstruction"
+        },
+        "structure_vintage": {
+          "before": null,
+          "after": "retrospective_reconstruction"
+        }
+      }
+    },
+    {
+      "code": "920191",
+      "changes": {
+        "LISTING_DATE": {
+          "before": "2026-04-20 00:00:00",
+          "after": "2026-04-20"
+        },
+        "AVERAGE_PRICE": {
+          "before": 15.187777375895397,
+          "after": 15.188138415395326
+        },
+        "verified_float_shares": {
+          "before": null,
+          "after": 3991.499759558238
+        },
+        "verified_float_source": {
+          "before": null,
+          "after": "ifind_listing_day_volume_div_turnover_structural_reconstruction"
+        },
+        "structure_vintage": {
+          "before": null,
+          "after": "retrospective_reconstruction"
+        }
+      }
+    },
+    {
+      "code": "920125",
+      "changes": {
+        "LISTING_DATE": {
+          "before": "2026-04-24 00:00:00",
+          "after": "2026-04-24"
+        },
+        "AVERAGE_PRICE": {
+          "before": 49.35879170148433,
+          "after": 49.36095846883949
+        },
+        "verified_float_shares": {
+          "before": null,
+          "after": 1648.1535287363834
+        },
+        "verified_float_source": {
+          "before": null,
+          "after": "ifind_listing_day_volume_div_turnover_structural_reconstruction"
+        },
+        "structure_vintage": {
+          "before": null,
+          "after": "retrospective_reconstruction"
+        }
+      }
+    },
+    {
+      "code": "920156",
+      "changes": {
+        "LISTING_DATE": {
+          "before": "2026-04-27 00:00:00",
+          "after": "2026-04-27"
+        },
+        "AVERAGE_PRICE": {
+          "before": 40.36260741001939,
+          "after": 40.36485801089309
+        },
+        "verified_float_shares": {
+          "before": null,
+          "after": 2170.7992318695406
+        },
+        "verified_float_source": {
+          "before": null,
+          "after": "ifind_listing_day_volume_div_turnover_structural_reconstruction"
+        },
+        "structure_vintage": {
+          "before": null,
+          "after": "retrospective_reconstruction"
+        }
+      }
+    },
+    {
+      "code": "920186",
+      "changes": {
+        "LISTING_DATE": {
+          "before": "2026-04-29 00:00:00",
+          "after": "2026-04-29"
+        },
+        "AVERAGE_PRICE": {
+          "before": 64.70373673609356,
+          "after": 64.76480820996827
+        },
+        "verified_float_shares": {
+          "before": null,
+          "after": 9553.041778777771
+        },
+        "verified_float_source": {
+          "before": null,
+          "after": "ifind_listing_day_volume_div_turnover_structural_reconstruction"
+        },
+        "structure_vintage": {
+          "before": null,
+          "after": "retrospective_reconstruction"
+        }
+      }
+    },
+    {
+      "code": "920200",
+      "changes": {
+        "LISTING_DATE": {
+          "before": "2026-05-07 00:00:00",
+          "after": "2026-05-07"
+        },
+        "AVERAGE_PRICE": {
+          "before": 53.693813233118554,
+          "after": 53.69558599528841
+        },
+        "verified_float_shares": {
+          "before": null,
+          "after": 2421.899094612995
+        },
+        "verified_float_source": {
+          "before": null,
+          "after": "ifind_listing_day_volume_div_turnover_structural_reconstruction"
+        },
+        "structure_vintage": {
+          "before": null,
+          "after": "retrospective_reconstruction"
+        }
+      }
+    },
+    {
+      "code": "920178",
+      "changes": {
+        "LISTING_DATE": {
+          "before": "2026-05-15 00:00:00",
+          "after": "2026-05-15"
+        },
+        "AVERAGE_PRICE": {
+          "before": 176.49749135971862,
+          "after": 176.48200815443897
+        },
+        "verified_float_shares": {
+          "before": null,
+          "after": 1460.9555539892156
+        },
+        "verified_float_source": {
+          "before": null,
+          "after": "ifind_listing_day_volume_div_turnover_structural_reconstruction"
+        },
+        "structure_vintage": {
+          "before": null,
+          "after": "retrospective_reconstruction"
+        }
+      }
+    },
+    {
+      "code": "920096",
+      "changes": {
+        "LISTING_DATE": {
+          "before": "2026-05-18 00:00:00",
+          "after": "2026-05-18"
+        },
+        "AVERAGE_PRICE": {
+          "before": 79.45647679271428,
+          "after": 79.4564761935583
+        },
+        "verified_float_shares": {
+          "before": null,
+          "after": 1619.9998736703808
+        },
+        "verified_float_source": {
+          "before": null,
+          "after": "ifind_listing_day_volume_div_turnover_structural_reconstruction"
+        },
+        "structure_vintage": {
+          "before": null,
+          "after": "retrospective_reconstruction"
+        }
+      }
+    },
+    {
+      "code": "920220",
+      "changes": {
+        "LISTING_DATE": {
+          "before": "2026-05-22 00:00:00",
+          "after": "2026-05-22"
+        },
+        "AVERAGE_PRICE": {
+          "before": 175.46014538542545,
+          "after": 175.0023074826834
+        },
+        "verified_float_shares": {
+          "before": null,
+          "after": 1191.7125068676887
+        },
+        "verified_float_source": {
+          "before": null,
+          "after": "ifind_listing_day_volume_div_turnover_structural_reconstruction"
+        },
+        "structure_vintage": {
+          "before": null,
+          "after": "retrospective_reconstruction"
+        }
+      }
+    },
+    {
+      "code": "920161",
+      "changes": {
+        "LISTING_DATE": {
+          "before": "2026-05-27 00:00:00",
+          "after": "2026-05-27"
+        },
+        "AVERAGE_PRICE": {
+          "before": 50.61606076085736,
+          "after": 50.61606087806141
+        },
+        "verified_float_shares": {
+          "before": null,
+          "after": 3689.884430881417
+        },
+        "verified_float_source": {
+          "before": null,
+          "after": "ifind_listing_day_volume_div_turnover_structural_reconstruction"
+        },
+        "structure_vintage": {
+          "before": null,
+          "after": "retrospective_reconstruction"
+        }
+      }
+    },
+    {
+      "code": "920218",
+      "changes": {
+        "LISTING_DATE": {
+          "before": "2026-05-29 00:00:00",
+          "after": "2026-05-29"
+        },
+        "AVERAGE_PRICE": {
+          "before": 44.19208726033701,
+          "after": 44.19208726033698
+        },
+        "verified_float_shares": {
+          "before": null,
+          "after": 2107.6226243503893
+        },
+        "verified_float_source": {
+          "before": null,
+          "after": "ifind_listing_day_volume_div_turnover_structural_reconstruction"
+        },
+        "structure_vintage": {
+          "before": null,
+          "after": "retrospective_reconstruction"
+        }
+      }
+    },
+    {
+      "code": "920211",
+      "changes": {
+        "LISTING_DATE": {
+          "before": "2026-06-05 00:00:00",
+          "after": "2026-06-05"
+        },
+        "AVERAGE_PRICE": {
+          "before": 253.43207992886204,
+          "after": 253.432080553813
+        },
+        "verified_float_shares": {
+          "before": null,
+          "after": 576.0002153497956
+        },
+        "verified_float_source": {
+          "before": null,
+          "after": "ifind_listing_day_volume_div_turnover_structural_reconstruction"
+        },
+        "structure_vintage": {
+          "before": null,
+          "after": "retrospective_reconstruction"
+        }
+      }
+    },
+    {
+      "code": "920206",
+      "changes": {
+        "LISTING_DATE": {
+          "before": "2026-06-08 00:00:00",
+          "after": "2026-06-08"
+        },
+        "AVERAGE_PRICE": {
+          "before": 90.03939054387182,
+          "after": 90.0393905379624
+        },
+        "verified_float_shares": {
+          "before": null,
+          "after": 1425.5839030205007
+        },
+        "verified_float_source": {
+          "before": null,
+          "after": "ifind_listing_day_volume_div_turnover_structural_reconstruction"
+        },
+        "structure_vintage": {
+          "before": null,
+          "after": "retrospective_reconstruction"
+        }
+      }
+    },
+    {
+      "code": "920083",
+      "changes": {
+        "LISTING_DATE": {
+          "before": "2026-06-11 00:00:00",
+          "after": "2026-06-11"
+        },
+        "AVERAGE_PRICE": {
+          "before": 52.85242069561253,
+          "after": 52.844380059787134
+        },
+        "verified_float_shares": {
+          "before": null,
+          "after": 2008.9399934487258
+        },
+        "verified_float_source": {
+          "before": null,
+          "after": "ifind_listing_day_volume_div_turnover_structural_reconstruction"
+        },
+        "structure_vintage": {
+          "before": null,
+          "after": "retrospective_reconstruction"
+        }
+      }
+    },
+    {
+      "code": "920126",
+      "changes": {
+        "LISTING_DATE": {
+          "before": "2026-06-15 00:00:00",
+          "after": "2026-06-15"
+        },
+        "AVERAGE_PRICE": {
+          "before": 19.75558779458297,
+          "after": 19.735668015360517
+        },
+        "verified_float_shares": {
+          "before": null,
+          "after": 4466.799050880477
+        },
+        "verified_float_source": {
+          "before": null,
+          "after": "ifind_listing_day_volume_div_turnover_structural_reconstruction"
+        },
+        "structure_vintage": {
+          "before": null,
+          "after": "retrospective_reconstruction"
+        }
+      }
+    },
+    {
+      "code": "920072",
+      "changes": {
+        "LISTING_DATE": {
+          "before": "2026-06-29 00:00:00",
+          "after": "2026-06-29"
+        },
+        "AVERAGE_PRICE": {
+          "before": 49.78155689085329,
+          "after": 49.77383878444457
+        },
+        "verified_float_shares": {
+          "before": null,
+          "after": 1446.5003411083485
+        },
+        "verified_float_source": {
+          "before": null,
+          "after": "ifind_listing_day_volume_div_turnover_structural_reconstruction"
+        },
+        "structure_vintage": {
+          "before": null,
+          "after": "retrospective_reconstruction"
+        }
+      }
+    },
+    {
+      "code": "920222",
+      "changes": {
+        "LISTING_DATE": {
+          "before": "2026-06-30 00:00:00",
+          "after": "2026-06-30"
+        },
+        "AVERAGE_PRICE": {
+          "before": 42.14971208503282,
+          "after": 42.073096070634854
+        },
+        "verified_float_shares": {
+          "before": null,
+          "after": 1156.2589293609021
+        },
+        "verified_float_source": {
+          "before": null,
+          "after": "ifind_listing_day_volume_div_turnover_structural_reconstruction"
+        },
+        "structure_vintage": {
+          "before": null,
+          "after": "retrospective_reconstruction"
+        }
+      }
+    },
+    {
+      "code": "920193",
+      "changes": {
+        "LISTING_DATE": {
+          "before": "2026-07-02 00:00:00",
+          "after": "2026-07-02"
+        },
+        "AVERAGE_PRICE": {
+          "before": 60.55768950658245,
+          "after": 60.56118718824747
+        },
+        "verified_float_shares": {
+          "before": null,
+          "after": 2519.9995870882494
+        },
+        "verified_float_source": {
+          "before": null,
+          "after": "ifind_listing_day_volume_div_turnover_structural_reconstruction"
+        },
+        "structure_vintage": {
+          "before": null,
+          "after": "retrospective_reconstruction"
+        }
+      }
+    },
+    {
+      "code": "920189",
+      "changes": {
+        "LISTING_DATE": {
+          "before": "2026-07-08 00:00:00",
+          "after": "2026-07-08"
+        },
+        "AVERAGE_PRICE": {
+          "before": 45.9545551785325,
+          "after": 45.95455525346833
+        },
+        "verified_float_shares": {
+          "before": null,
+          "after": 8486.749959313462
+        },
+        "verified_float_source": {
+          "before": null,
+          "after": "ifind_listing_day_volume_div_turnover_structural_reconstruction"
+        },
+        "structure_vintage": {
+          "before": null,
+          "after": "retrospective_reconstruction"
+        }
+      }
+    },
+    {
+      "code": "920136",
+      "changes": {
+        "LISTING_DATE": {
+          "before": "2026-07-09 00:00:00",
+          "after": "2026-07-09"
+        },
+        "AVERAGE_PRICE": {
+          "before": 35.78526789114711,
+          "after": 35.78526768453804
+        },
+        "verified_float_shares": {
+          "before": null,
+          "after": 2099.9998817768465
+        },
+        "verified_float_source": {
+          "before": null,
+          "after": "ifind_listing_day_volume_div_turnover_structural_reconstruction"
+        },
+        "structure_vintage": {
+          "before": null,
+          "after": "retrospective_reconstruction"
+        }
+      }
+    },
+    {
+      "code": "920081",
+      "changes": {
+        "LISTING_DATE": {
+          "before": "2026-07-10 00:00:00",
+          "after": "2026-07-10"
+        },
+        "AVERAGE_PRICE": {
+          "before": 51.6091617896279,
+          "after": 51.60916145937602
+        },
+        "verified_float_shares": {
+          "before": null,
+          "after": 1710.0006988687344
+        },
+        "verified_float_source": {
+          "before": null,
+          "after": "ifind_listing_day_volume_div_turnover_structural_reconstruction"
+        },
+        "structure_vintage": {
+          "before": null,
+          "after": "retrospective_reconstruction"
+        }
+      }
+    },
+    {
+      "code": "920117",
+      "changes": {
+        "LISTING_DATE": {
+          "before": "2026-07-16 00:00:00",
+          "after": "2026-07-16"
+        },
+        "AVERAGE_PRICE": {
+          "before": 37.660056896790756,
+          "after": 37.6600568495391
+        },
+        "verified_float_shares": {
+          "before": null,
+          "after": 2021.400928958699
+        },
+        "verified_float_source": {
+          "before": null,
+          "after": "ifind_listing_day_volume_div_turnover_structural_reconstruction"
+        },
+        "structure_vintage": {
+          "before": null,
+          "after": "retrospective_reconstruction"
+        }
+      }
+    },
+    {
+      "code": "920079",
+      "changes": {
+        "LISTING_DATE": {
+          "before": "2026-07-22 00:00:00",
+          "after": "2026-07-22"
+        },
+        "AVERAGE_PRICE": {
+          "before": 18.181012043829934,
+          "after": 18.181011938586085
+        },
+        "verified_float_shares": {
+          "before": null,
+          "after": 4499.998410747584
+        },
+        "verified_float_source": {
+          "before": null,
+          "after": "ifind_listing_day_volume_div_turnover_structural_reconstruction"
+        },
+        "structure_vintage": {
+          "before": null,
+          "after": "retrospective_reconstruction"
+        }
+      }
+    },
+    {
+      "code": "920238",
+      "changes": {
+        "LISTING_DATE": {
+          "before": "2026-07-24 00:00:00",
+          "after": "2026-07-24"
+        },
+        "AVERAGE_PRICE": {
+          "before": 61.843319804425434,
+          "after": 61.806563523341445
+        },
+        "verified_float_shares": {
+          "before": null,
+          "after": 1940.6948979094586
+        },
+        "verified_float_source": {
+          "before": null,
+          "after": "ifind_listing_day_volume_div_turnover_structural_reconstruction"
+        },
+        "structure_vintage": {
+          "before": null,
+          "after": "retrospective_reconstruction"
+        }
+      }
+    },
+    {
+      "code": "920176",
+      "changes": {
+        "LISTING_DATE": {
+          "before": "2026-07-27 00:00:00",
+          "after": "2026-07-27"
+        },
+        "AVERAGE_PRICE": {
+          "before": 54.24912255829854,
+          "after": 54.42041621958547
+        },
+        "verified_float_shares": {
+          "before": null,
+          "after": 794.7000029358378
+        },
+        "verified_float_source": {
+          "before": null,
+          "after": "ifind_listing_day_volume_div_turnover_structural_reconstruction"
+        },
+        "structure_vintage": {
+          "before": null,
+          "after": "retrospective_reconstruction"
+        }
+      }
+    },
+    {
+      "code": "920065",
+      "changes": {
+        "LISTING_DATE": {
+          "before": "2026-07-29 00:00:00",
+          "after": "2026-07-29"
+        },
+        "AVERAGE_PRICE": {
+          "before": 62.4395356044012,
+          "after": 62.439535892796364
+        },
+        "verified_float_shares": {
+          "before": null,
+          "after": 1575.0003646281523
+        },
+        "verified_float_source": {
+          "before": null,
+          "after": "ifind_listing_day_volume_div_turnover_structural_reconstruction"
+        },
+        "structure_vintage": {
+          "before": null,
+          "after": "retrospective_reconstruction"
+        }
+      }
+    },
+    {
+      "code": "920258",
+      "changes": {
+        "LISTING_DATE": {
+          "before": "2026-08-03 00:00:00",
+          "after": "2026-08-03"
+        },
+        "AVERAGE_PRICE": {
+          "before": 17.303706158112778,
+          "after": 17.287847340441452
+        },
+        "verified_float_shares": {
+          "before": null,
+          "after": 3599.999151532121
+        },
+        "verified_float_source": {
+          "before": null,
+          "after": "ifind_listing_day_volume_div_turnover_structural_reconstruction"
+        },
+        "structure_vintage": {
+          "before": null,
+          "after": "retrospective_reconstruction"
+        }
+      }
+    },
+    {
+      "code": "920038",
+      "changes": {
+        "LISTING_DATE": {
+          "before": "2026-08-05 00:00:00",
+          "after": "2026-08-05"
+        },
+        "AVERAGE_PRICE": {
+          "before": 49.92922738766719,
+          "after": 49.92140977555286
+        },
+        "verified_float_shares": {
+          "before": null,
+          "after": 3416.608077797722
+        },
+        "verified_float_source": {
+          "before": null,
+          "after": "ifind_listing_day_volume_div_turnover_structural_reconstruction"
+        },
+        "structure_vintage": {
+          "before": null,
+          "after": "retrospective_reconstruction"
+        }
+      }
+    },
+    {
+      "code": "920165",
+      "changes": {
+        "LISTING_DATE": {
+          "before": "2026-08-11 00:00:00",
+          "after": "2026-08-11"
+        },
+        "AVERAGE_PRICE": {
+          "before": 52.68844828421781,
+          "after": 52.62868033210781
+        },
+        "verified_float_shares": {
+          "before": null,
+          "after": 960.5041874343066
+        },
+        "verified_float_source": {
+          "before": null,
+          "after": "ifind_listing_day_volume_div_turnover_structural_reconstruction"
+        },
+        "structure_vintage": {
+          "before": null,
+          "after": "retrospective_reconstruction"
+        }
+      }
+    },
+    {
+      "code": "920138",
+      "changes": {
+        "LISTING_DATE": {
+          "before": "2026-08-12 00:00:00",
+          "after": "2026-08-12"
+        },
+        "AVERAGE_PRICE": {
+          "before": 55.043012381048115,
+          "after": 55.03189064658913
+        },
+        "verified_float_shares": {
+          "before": null,
+          "after": 3461.3736435688234
+        },
+        "verified_float_source": {
+          "before": null,
+          "after": "ifind_listing_day_volume_div_turnover_structural_reconstruction"
+        },
+        "structure_vintage": {
+          "before": null,
+          "after": "retrospective_reconstruction"
+        }
+      }
+    },
+    {
+      "code": "920107",
+      "changes": {
+        "LISTING_DATE": {
+          "before": "2026-08-17 00:00:00",
+          "after": "2026-08-17"
+        },
+        "AVERAGE_PRICE": {
+          "before": 31.11035076751088,
+          "after": 31.110350792161253
+        },
+        "verified_float_shares": {
+          "before": null,
+          "after": 1887.3005600291956
+        },
+        "verified_float_source": {
+          "before": null,
+          "after": "ifind_listing_day_volume_div_turnover_structural_reconstruction"
+        },
+        "structure_vintage": {
+          "before": null,
+          "after": "retrospective_reconstruction"
+        }
+      }
+    },
+    {
+      "code": "920059",
+      "changes": {
+        "LISTING_DATE": {
+          "before": "2026-08-19 00:00:00",
+          "after": "2026-08-19"
+        },
+        "AVERAGE_PRICE": {
+          "before": 26.021981768786535,
+          "after": 26.01599083764992
+        },
+        "verified_float_shares": {
+          "before": null,
+          "after": 3231.8327850780447
+        },
+        "verified_float_source": {
+          "before": null,
+          "after": "ifind_listing_day_volume_div_turnover_structural_reconstruction"
+        },
+        "structure_vintage": {
+          "before": null,
+          "after": "retrospective_reconstruction"
+        }
+      }
+    },
+    {
+      "code": "920093",
+      "changes": {
+        "LISTING_DATE": {
+          "before": "2026-08-21 00:00:00",
+          "after": "2026-08-21"
+        },
+        "AVERAGE_PRICE": {
+          "before": 27.21430865333936,
+          "after": 27.179366479086625
+        },
+        "verified_float_shares": {
+          "before": null,
+          "after": 2520.0004515745436
+        },
+        "verified_float_source": {
+          "before": null,
+          "after": "ifind_listing_day_volume_div_turnover_structural_reconstruction"
+        },
+        "structure_vintage": {
+          "before": null,
+          "after": "retrospective_reconstruction"
+        }
+      }
+    },
+    {
+      "code": "920288",
+      "changes": {
+        "LISTING_DATE": {
+          "before": "2026-08-28 00:00:00",
+          "after": "2026-08-28"
+        },
+        "AVERAGE_PRICE": {
+          "before": 27.2941277416098,
+          "after": 27.299160130075105
+        },
+        "verified_float_shares": {
+          "before": null,
+          "after": 1787.9996454660884
+        },
+        "verified_float_source": {
+          "before": null,
+          "after": "ifind_listing_day_volume_div_turnover_structural_reconstruction"
+        },
+        "structure_vintage": {
+          "before": null,
+          "after": "retrospective_reconstruction"
+        }
+      }
+    },
+    {
+      "code": "920071",
+      "changes": {
+        "LISTING_DATE": {
+          "before": "2026-09-03 00:00:00",
+          "after": "2026-09-03"
+        },
+        "AVERAGE_PRICE": {
+          "before": 26.982531684657108,
+          "after": 26.982596224489388
+        },
+        "verified_float_shares": {
+          "before": null,
+          "after": 3150.0014801876882
+        },
+        "verified_float_source": {
+          "before": null,
+          "after": "ifind_listing_day_volume_div_turnover_structural_reconstruction"
+        },
+        "structure_vintage": {
+          "before": null,
+          "after": "retrospective_reconstruction"
+        }
+      }
+    },
+    {
+      "code": "920289",
+      "changes": {
+        "LISTING_DATE": {
+          "before": "2026-09-04 00:00:00",
+          "after": "2026-09-04"
+        },
+        "AVERAGE_PRICE": {
+          "before": 37.39813119388795,
+          "after": 37.398690810490365
+        },
+        "verified_float_shares": {
+          "before": null,
+          "after": 1445.0013316793566
+        },
+        "verified_float_source": {
+          "before": null,
+          "after": "ifind_listing_day_volume_div_turnover_structural_reconstruction"
+        },
+        "structure_vintage": {
+          "before": null,
+          "after": "retrospective_reconstruction"
+        }
+      }
+    },
+    {
+      "code": "920269",
+      "changes": {
+        "LISTING_DATE": {
+          "before": "2026-09-07 00:00:00",
+          "after": "2026-09-07"
+        },
+        "AVERAGE_PRICE": {
+          "before": 44.79234499668122,
+          "after": 44.792345000255565
+        },
+        "verified_float_shares": {
+          "before": null,
+          "after": 889.9495814357891
+        },
+        "verified_float_source": {
+          "before": null,
+          "after": "ifind_listing_day_volume_div_turnover_structural_reconstruction"
+        },
+        "structure_vintage": {
+          "before": null,
+          "after": "retrospective_reconstruction"
+        }
+      }
+    },
+    {
+      "code": "920268",
+      "changes": {
+        "LISTING_DATE": {
+          "before": "2026-09-09 00:00:00",
+          "after": "2026-09-09"
+        },
+        "AVERAGE_PRICE": {
+          "before": 28.50921286993221,
+          "after": 28.493969108318783
+        },
+        "verified_float_shares": {
+          "before": null,
+          "after": 1444.8126500603666
+        },
+        "verified_float_source": {
+          "before": null,
+          "after": "ifind_listing_day_volume_div_turnover_structural_reconstruction"
+        },
+        "structure_vintage": {
+          "before": null,
+          "after": "retrospective_reconstruction"
+        }
+      }
+    },
+    {
+      "code": "920298",
+      "changes": {
+        "LISTING_DATE": {
+          "before": "2026-09-16 00:00:00",
+          "after": "2026-09-16"
+        },
+        "AVERAGE_PRICE": {
+          "before": 58.06387393169942,
+          "after": 58.10795029080462
+        },
+        "verified_float_shares": {
+          "before": null,
+          "after": 1529.9995691860872
+        },
+        "verified_float_source": {
+          "before": null,
+          "after": "ifind_listing_day_volume_div_turnover_structural_reconstruction"
+        },
+        "structure_vintage": {
+          "before": null,
+          "after": "retrospective_reconstruction"
+        }
+      }
+    },
+    {
+      "code": "920157",
+      "changes": {
+        "LISTING_DATE": {
+          "before": "2026-09-21",
+          "after": "2026-10-09"
+        },
+        "AVERAGE_PRICE": {
+          "before": null,
+          "after": 78.57959808353718
+        },
+        "CLOSE_PRICE": {
+          "before": null,
+          "after": 75.55
+        },
+        "verified_float_shares": {
+          "before": null,
+          "after": 1281.5467
+        },
+        "verified_float_source": {
+          "before": null,
+          "after": "ifind_case_flow_shares_crosschecked_by_volume_div_turnover"
+        },
+        "structure_vintage": {
+          "before": null,
+          "after": "retrospective_reconstruction"
+        },
+        "comparable_data": {
+          "before": [],
+          "after": [
+            {
+              "code": "300394.SZ",
+              "name": "300394.SZ",
+              "close": 235.07,
+              "pe_ttm": 110.416,
+              "pb_lf": 41.0366,
+              "mkt_cap": 2564.2023274999997,
+              "trade_date": "20261008",
+              "source": "tushare_historical",
+              "close_source": "tushare_historical",
+              "pe_source": "tushare_historical",
+              "pb_source": "tushare_historical",
+              "mkt_cap_source": "tushare_historical"
+            },
+            {
+              "code": "300570.SZ",
+              "name": "300570.SZ",
+              "close": 199.0,
+              "pe_ttm": 149.7021,
+              "pb_lf": 27.0944,
+              "mkt_cap": 451.98253099999994,
+              "trade_date": "20261008",
+              "source": "tushare_historical",
+              "close_source": "tushare_historical",
+              "pe_source": "tushare_historical",
+              "pb_source": "tushare_historical",
+              "mkt_cap_source": "tushare_historical"
+            },
+            {
+              "code": "002179.SZ",
+              "name": "002179.SZ",
+              "close": 33.18,
+              "pe_ttm": 37.7999,
+              "pb_lf": 2.8716,
+              "mkt_cap": 696.8617223399999,
+              "trade_date": "20261008",
+              "source": "tushare_historical",
+              "close_source": "tushare_historical",
+              "pe_source": "tushare_historical",
+              "pb_source": "tushare_historical",
+              "mkt_cap_source": "tushare_historical"
+            },
+            {
+              "code": "920045.BJ",
+              "name": "920045.BJ",
+              "close": 481.66,
+              "pe_ttm": 98.3865,
+              "pb_lf": 34.4116,
+              "mkt_cap": 459.02278437,
+              "trade_date": "20261008",
+              "source": "tushare_historical",
+              "close_source": "tushare_historical",
+              "pe_source": "tushare_historical",
+              "pb_source": "tushare_historical",
+              "mkt_cap_source": "tushare_historical"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "code": "920229",
+      "changes": {
+        "LISTING_DATE": {
+          "before": "2026-09-22 00:00:00",
+          "after": "2026-09-22"
+        },
+        "AVERAGE_PRICE": {
+          "before": 68.74499519838041,
+          "after": 68.74499595763183
+        },
+        "verified_float_shares": {
+          "before": null,
+          "after": 1134.9998888716023
+        },
+        "verified_float_source": {
+          "before": null,
+          "after": "ifind_listing_day_volume_div_turnover_structural_reconstruction"
+        },
+        "structure_vintage": {
+          "before": null,
+          "after": "retrospective_reconstruction"
+        }
+      }
+    },
+    {
+      "code": "920025",
+      "changes": {
+        "LISTING_DATE": {
+          "before": "2026-09-23 00:00:00",
+          "after": "2026-09-23"
+        },
+        "AVERAGE_PRICE": {
+          "before": 31.421728115398228,
+          "after": 31.40242614026083
+        },
+        "verified_float_shares": {
+          "before": null,
+          "after": 5100.000826734955
+        },
+        "verified_float_source": {
+          "before": null,
+          "after": "ifind_listing_day_volume_div_turnover_structural_reconstruction"
+        },
+        "structure_vintage": {
+          "before": null,
+          "after": "retrospective_reconstruction"
+        }
+      }
+    },
+    {
+      "code": "920201",
+      "changes": {
+        "LISTING_DATE": {
+          "before": "2026-09-24 00:00:00",
+          "after": "2026-09-24"
+        },
+        "AVERAGE_PRICE": {
+          "before": 82.34572451254861,
+          "after": 82.24977934833652
+        },
+        "verified_float_shares": {
+          "before": null,
+          "after": 760.846922407406
+        },
+        "verified_float_source": {
+          "before": null,
+          "after": "ifind_listing_day_volume_div_turnover_structural_reconstruction"
+        },
+        "structure_vintage": {
+          "before": null,
+          "after": "retrospective_reconstruction"
+        }
+      }
+    },
+    {
+      "code": "920202",
+      "changes": {
+        "LISTING_DATE": {
+          "before": "2026-09-29 00:00:00",
+          "after": "2026-09-29"
+        },
+        "AVERAGE_PRICE": {
+          "before": 27.993502245167278,
+          "after": 27.984159658343
+        },
+        "verified_float_shares": {
+          "before": null,
+          "after": 2380.0
+        },
+        "verified_float_source": {
+          "before": null,
+          "after": "ifind_case_flow_shares_crosschecked_by_volume_div_turnover"
+        },
+        "structure_vintage": {
+          "before": null,
+          "after": "retrospective_reconstruction"
+        }
+      }
+    }
+  ],
+  "items": [
+    {
+      "SECURITY_CODE": "920086",
+      "SECURITY_NAME_ABBR": "科马材料",
+      "ISSUE_PRICE": 11.66,
+      "AFTER_ISSUE_PE": 14.2,
+      "LISTING_DATE": "2026-01-16",
+      "AVERAGE_PRICE": 54.55912543948199,
+      "CLOSE_PRICE": 54.95,
+      "verified_float_shares": 1882.799906388954,
+      "verified_float_source": "ifind_listing_day_volume_div_turnover_structural_reconstruction",
+      "industry_primary": "汽车",
+      "industry_secondary": "汽车零部件",
+      "NEXT_TRADE_DATE": "20260119",
+      "NEXT_DAY_CLOSE": 40.25,
+      "NEXT_DAY_FROM_LISTING_CLOSE_PCT": -26.751592356687905,
+      "THIRD_TRADE_DATE": "20260120",
+      "THIRD_DAY_CLOSE": 41.49,
+      "THIRD_DAY_FROM_LISTING_CLOSE_PCT": -24.494995450409462,
+      "comparable_data": [
+        {
+          "code": "603586.SH",
+          "trade_date": "20260115",
+          "mkt_cap": 37.15200181,
+          "pe_ttm": 23.609,
+          "close": 18.95,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "002297.SZ",
+          "trade_date": "20260115",
+          "mkt_cap": 66.13629610999999,
+          "pe_ttm": null,
+          "close": 11.54,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "688033.SH",
+          "trade_date": "20260115",
+          "mkt_cap": 45.76296571,
+          "pe_ttm": null,
+          "close": 8.14,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "002985.SZ",
+          "trade_date": "20260115",
+          "mkt_cap": 111.0050292,
+          "pe_ttm": 183.6505,
+          "close": 33.45,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "920106.BJ",
+          "trade_date": "20260115",
+          "mkt_cap": 46.8367806,
+          "pe_ttm": 33.0853,
+          "close": 82.76,
+          "source": "tushare_historical"
+        }
+      ]
+    },
+    {
+      "SECURITY_CODE": "920050",
+      "SECURITY_NAME_ABBR": "爱伦医疗",
+      "ISSUE_PRICE": 15.98,
+      "AFTER_ISSUE_PE": 14.99,
+      "LISTING_DATE": "2026-01-21",
+      "AVERAGE_PRICE": 48.64295846657594,
+      "CLOSE_PRICE": 44.04,
+      "verified_float_shares": 1810.2641290439688,
+      "verified_float_source": "ifind_listing_day_volume_div_turnover_structural_reconstruction",
+      "industry_primary": "医药生物",
+      "industry_secondary": "医疗器械",
+      "NEXT_TRADE_DATE": "20260122",
+      "NEXT_DAY_CLOSE": 38.68,
+      "NEXT_DAY_FROM_LISTING_CLOSE_PCT": -12.17075386012716,
+      "THIRD_TRADE_DATE": "20260123",
+      "THIRD_DAY_CLOSE": 39.06,
+      "THIRD_DAY_FROM_LISTING_CLOSE_PCT": -11.307901907356943,
+      "comparable_data": [
+        {
+          "code": "603301.SH",
+          "trade_date": "20260120",
+          "mkt_cap": 183.98477377,
+          "pe_ttm": 65.4991,
+          "close": 69.21,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "002950.SZ",
+          "trade_date": "20260120",
+          "mkt_cap": 75.6118896,
+          "pe_ttm": 16.7165,
+          "close": 11.94,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "603205.SH",
+          "trade_date": "20260120",
+          "mkt_cap": 44.616,
+          "pe_ttm": 43.2441,
+          "close": 28.6,
+          "source": "tushare_historical"
+        }
+      ]
+    },
+    {
+      "SECURITY_CODE": "920076",
+      "SECURITY_NAME_ABBR": "国亮新材",
+      "ISSUE_PRICE": 10.76,
+      "AFTER_ISSUE_PE": 14.97,
+      "LISTING_DATE": "2026-01-22",
+      "AVERAGE_PRICE": 29.912335558708023,
+      "CLOSE_PRICE": 28.06,
+      "verified_float_shares": 1976.1416649435912,
+      "verified_float_source": "ifind_listing_day_volume_div_turnover_structural_reconstruction",
+      "industry_primary": "建筑材料",
+      "industry_secondary": "装修建材",
+      "NEXT_TRADE_DATE": "20260123",
+      "NEXT_DAY_CLOSE": 29.6,
+      "NEXT_DAY_FROM_LISTING_CLOSE_PCT": 5.488239486813984,
+      "THIRD_TRADE_DATE": "20260126",
+      "THIRD_DAY_CLOSE": 28.59,
+      "THIRD_DAY_FROM_LISTING_CLOSE_PCT": 1.8888096935139043,
+      "comparable_data": [
+        {
+          "code": "002392.SZ",
+          "trade_date": "20260121",
+          "mkt_cap": 104.04889933,
+          "pe_ttm": 29.175,
+          "close": 8.74,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "002225.SZ",
+          "trade_date": "20260121",
+          "mkt_cap": 73.61168583,
+          "pe_ttm": 68.7835,
+          "close": 6.35,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "688119.SH",
+          "trade_date": "20260121",
+          "mkt_cap": 77.4,
+          "pe_ttm": null,
+          "close": 6.88,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "002066.SZ",
+          "trade_date": "20260121",
+          "mkt_cap": 49.1425444,
+          "pe_ttm": 271.1249,
+          "close": 20.92,
+          "source": "tushare_historical"
+        }
+      ]
+    },
+    {
+      "SECURITY_CODE": "920159",
+      "SECURITY_NAME_ABBR": "农大科技",
+      "ISSUE_PRICE": 25.0,
+      "AFTER_ISSUE_PE": 13.4,
+      "LISTING_DATE": "2026-01-28",
+      "AVERAGE_PRICE": 51.40855681867675,
+      "CLOSE_PRICE": 52.89,
+      "verified_float_shares": 1440.0005892900738,
+      "verified_float_source": "ifind_listing_day_volume_div_turnover_structural_reconstruction",
+      "industry_primary": "基础化工",
+      "industry_secondary": "农化制品",
+      "NEXT_TRADE_DATE": "20260129",
+      "NEXT_DAY_CLOSE": 46.05,
+      "NEXT_DAY_FROM_LISTING_CLOSE_PCT": -12.932501418037445,
+      "THIRD_TRADE_DATE": "20260130",
+      "THIRD_DAY_CLOSE": 46.6,
+      "THIRD_DAY_FROM_LISTING_CLOSE_PCT": -11.892607298166002,
+      "comparable_data": [
+        {
+          "code": "002588.SZ",
+          "trade_date": "20260127",
+          "mkt_cap": 125.90179341,
+          "pe_ttm": 12.8873,
+          "close": 10.93,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "000902.SZ",
+          "trade_date": "20260127",
+          "mkt_cap": 213.55567149,
+          "pe_ttm": 13.5527,
+          "close": 17.02,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "603395.SH",
+          "trade_date": "20260127",
+          "mkt_cap": 79.56,
+          "pe_ttm": 292.9631,
+          "close": 30.6,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "002170.SZ",
+          "trade_date": "20260127",
+          "mkt_cap": 131.02251218,
+          "pe_ttm": 14.6937,
+          "close": 13.54,
+          "source": "tushare_historical"
+        }
+      ]
+    },
+    {
+      "SECURITY_CODE": "920119",
+      "SECURITY_NAME_ABBR": "美德乐",
+      "ISSUE_PRICE": 41.88,
+      "AFTER_ISSUE_PE": 14.99,
+      "LISTING_DATE": "2026-01-30",
+      "AVERAGE_PRICE": 120.16805492729864,
+      "CLOSE_PRICE": 109.5,
+      "verified_float_shares": 1440.0008653392547,
+      "verified_float_source": "ifind_listing_day_volume_div_turnover_structural_reconstruction",
+      "industry_primary": "电力设备",
+      "industry_secondary": "电池",
+      "NEXT_TRADE_DATE": "20260202",
+      "NEXT_DAY_CLOSE": 110.36,
+      "NEXT_DAY_FROM_LISTING_CLOSE_PCT": 0.7853881278538699,
+      "THIRD_TRADE_DATE": "20260203",
+      "THIRD_DAY_CLOSE": 107.7,
+      "THIRD_DAY_FROM_LISTING_CLOSE_PCT": -1.6438356164383494,
+      "comparable_data": [
+        {
+          "code": "301029.SZ",
+          "trade_date": "20260129",
+          "mkt_cap": 173.517862,
+          "pe_ttm": 35.1563,
+          "close": 27.36,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "688097.SH",
+          "trade_date": "20260129",
+          "mkt_cap": 176.15787852,
+          "pe_ttm": 36.9359,
+          "close": 39.44,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "300450.SZ",
+          "trade_date": "20260129",
+          "mkt_cap": 882.3762533600001,
+          "pe_ttm": 102.1332,
+          "close": 56.34,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "301662.SZ",
+          "trade_date": "20260129",
+          "mkt_cap": 134.752,
+          "pe_ttm": 107.1237,
+          "close": 168.44,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "300173.SZ",
+          "trade_date": "20260129",
+          "mkt_cap": 33.50349183,
+          "pe_ttm": 59.2713,
+          "close": 4.56,
+          "source": "tushare_historical"
+        }
+      ]
+    },
+    {
+      "SECURITY_CODE": "920180",
+      "SECURITY_NAME_ABBR": "爱得科技",
+      "ISSUE_PRICE": 7.67,
+      "AFTER_ISSUE_PE": 14.98,
+      "LISTING_DATE": "2026-02-10",
+      "AVERAGE_PRICE": 23.23710907830547,
+      "CLOSE_PRICE": 21.23,
+      "verified_float_shares": 2657.7680520280487,
+      "verified_float_source": "ifind_listing_day_volume_div_turnover_structural_reconstruction",
+      "industry_primary": "医药生物",
+      "industry_secondary": "医疗器械",
+      "NEXT_TRADE_DATE": "20260211",
+      "NEXT_DAY_CLOSE": 20.01,
+      "NEXT_DAY_FROM_LISTING_CLOSE_PCT": -5.746585021196415,
+      "THIRD_TRADE_DATE": "20260212",
+      "THIRD_DAY_CLOSE": 19.26,
+      "THIRD_DAY_FROM_LISTING_CLOSE_PCT": -9.279321714554866,
+      "comparable_data": [
+        {
+          "code": "688236.SH",
+          "trade_date": "20260209",
+          "mkt_cap": 88.22075500000001,
+          "pe_ttm": 34.5465,
+          "close": 23.0,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "688161.SH",
+          "trade_date": "20260209",
+          "mkt_cap": 119.4,
+          "pe_ttm": 44.7418,
+          "close": 29.85,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "002901.SZ",
+          "trade_date": "20260209",
+          "mkt_cap": 203.3249794,
+          "pe_ttm": 37.5434,
+          "close": 49.11,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "300326.SZ",
+          "trade_date": "20260209",
+          "mkt_cap": 44.74159136,
+          "pe_ttm": null,
+          "close": 6.24,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "688085.SH",
+          "trade_date": "20260209",
+          "mkt_cap": 72.26132332,
+          "pe_ttm": 111.3781,
+          "close": 21.67,
+          "source": "tushare_historical"
+        }
+      ]
+    },
+    {
+      "SECURITY_CODE": "920166",
+      "SECURITY_NAME_ABBR": "海圣医疗",
+      "ISSUE_PRICE": 12.64,
+      "AFTER_ISSUE_PE": 13.99,
+      "LISTING_DATE": "2026-02-12",
+      "AVERAGE_PRICE": 30.627913731031416,
+      "CLOSE_PRICE": 34.49,
+      "verified_float_shares": 2376.4678580827294,
+      "verified_float_source": "ifind_listing_day_volume_div_turnover_structural_reconstruction",
+      "industry_primary": "医药生物",
+      "industry_secondary": "医疗器械",
+      "NEXT_TRADE_DATE": "20260213",
+      "NEXT_DAY_CLOSE": 29.56,
+      "NEXT_DAY_FROM_LISTING_CLOSE_PCT": -14.293998260365337,
+      "THIRD_TRADE_DATE": "20260224",
+      "THIRD_DAY_CLOSE": 28.36,
+      "THIRD_DAY_FROM_LISTING_CLOSE_PCT": -17.773267613801114,
+      "comparable_data": [
+        {
+          "code": "603309.SH",
+          "trade_date": "20260211",
+          "mkt_cap": 43.284531290000004,
+          "pe_ttm": 17.7171,
+          "close": 14.83,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "300453.SZ",
+          "trade_date": "20260211",
+          "mkt_cap": 49.44138084,
+          "pe_ttm": 20.224,
+          "close": 9.47,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "301097.SZ",
+          "trade_date": "20260211",
+          "mkt_cap": 33.31705239,
+          "pe_ttm": 256.1354,
+          "close": 56.52,
+          "source": "tushare_historical"
+        }
+      ]
+    },
+    {
+      "SECURITY_CODE": "920168",
+      "SECURITY_NAME_ABBR": "通宝光电",
+      "ISSUE_PRICE": 16.17,
+      "AFTER_ISSUE_PE": 14.99,
+      "LISTING_DATE": "2026-02-26",
+      "AVERAGE_PRICE": 29.448189549449722,
+      "CLOSE_PRICE": 27.49,
+      "verified_float_shares": 2817.4516501131034,
+      "verified_float_source": "ifind_listing_day_volume_div_turnover_structural_reconstruction",
+      "industry_primary": "汽车",
+      "industry_secondary": "汽车零部件",
+      "NEXT_TRADE_DATE": "20260227",
+      "NEXT_DAY_CLOSE": 26.1,
+      "NEXT_DAY_FROM_LISTING_CLOSE_PCT": -5.056384139687154,
+      "THIRD_TRADE_DATE": "20260302",
+      "THIRD_DAY_CLOSE": 26.02,
+      "THIRD_DAY_FROM_LISTING_CLOSE_PCT": -5.34739905420153,
+      "comparable_data": [
+        {
+          "code": "600741.SH",
+          "trade_date": "20260225",
+          "mkt_cap": 610.9979081,
+          "pe_ttm": 8.8487,
+          "close": 19.38,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "601799.SH",
+          "trade_date": "20260225",
+          "mkt_cap": 433.08999919999997,
+          "pe_ttm": 27.5484,
+          "close": 151.6,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "603786.SH",
+          "trade_date": "20260225",
+          "mkt_cap": 276.31875414,
+          "pe_ttm": 34.0299,
+          "close": 68.42,
+          "source": "tushare_historical"
+        }
+      ]
+    },
+    {
+      "SECURITY_CODE": "920183",
+      "SECURITY_NAME_ABBR": "海菲曼",
+      "ISSUE_PRICE": 19.71,
+      "AFTER_ISSUE_PE": 14.99,
+      "LISTING_DATE": "2026-03-04",
+      "AVERAGE_PRICE": 54.68884135068119,
+      "CLOSE_PRICE": 53.3,
+      "verified_float_shares": 1124.9823580501575,
+      "verified_float_source": "ifind_listing_day_volume_div_turnover_structural_reconstruction",
+      "industry_primary": "电子",
+      "industry_secondary": "消费电子",
+      "NEXT_TRADE_DATE": "20260305",
+      "NEXT_DAY_CLOSE": 45.18,
+      "NEXT_DAY_FROM_LISTING_CLOSE_PCT": -15.234521575984983,
+      "THIRD_TRADE_DATE": "20260306",
+      "THIRD_DAY_CLOSE": 45.3,
+      "THIRD_DAY_FROM_LISTING_CLOSE_PCT": -15.0093808630394,
+      "comparable_data": [
+        {
+          "code": "002351.SZ",
+          "trade_date": "20260303",
+          "mkt_cap": 104.3811618,
+          "pe_ttm": 25.4056,
+          "close": 11.74,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "002888.SZ",
+          "trade_date": "20260303",
+          "mkt_cap": 29.764911859999998,
+          "pe_ttm": 176.4443,
+          "close": 20.16,
+          "source": "tushare_historical"
+        }
+      ]
+    },
+    {
+      "SECURITY_CODE": "920187",
+      "SECURITY_NAME_ABBR": "通领科技",
+      "ISSUE_PRICE": 29.62,
+      "AFTER_ISSUE_PE": 14.47,
+      "LISTING_DATE": "2026-03-05",
+      "AVERAGE_PRICE": 45.088701218865985,
+      "CLOSE_PRICE": 41.89,
+      "verified_float_shares": 2095.387597302508,
+      "verified_float_source": "ifind_listing_day_volume_div_turnover_structural_reconstruction",
+      "industry_primary": "汽车",
+      "industry_secondary": "汽车零部件",
+      "NEXT_TRADE_DATE": "20260306",
+      "NEXT_DAY_CLOSE": 39.08,
+      "NEXT_DAY_FROM_LISTING_CLOSE_PCT": -6.708044879446174,
+      "THIRD_TRADE_DATE": "20260309",
+      "THIRD_DAY_CLOSE": 38.15,
+      "THIRD_DAY_FROM_LISTING_CLOSE_PCT": -8.92814514203868,
+      "comparable_data": [
+        {
+          "code": "603730.SH",
+          "trade_date": "20260304",
+          "mkt_cap": 203.04130915000002,
+          "pe_ttm": 32.5463,
+          "close": 9.45,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "603035.SH",
+          "trade_date": "20260304",
+          "mkt_cap": 53.083691890000004,
+          "pe_ttm": 13.6792,
+          "close": 14.49,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "603179.SH",
+          "trade_date": "20260304",
+          "mkt_cap": 388.26899476,
+          "pe_ttm": 42.4963,
+          "close": 76.11,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "301529.SZ",
+          "trade_date": "20260304",
+          "mkt_cap": 96.42597289,
+          "pe_ttm": 63.3227,
+          "close": 113.66,
+          "source": "tushare_historical"
+        }
+      ]
+    },
+    {
+      "SECURITY_CODE": "920036",
+      "SECURITY_NAME_ABBR": "觅睿科技",
+      "ISSUE_PRICE": 21.52,
+      "AFTER_ISSUE_PE": 14.99,
+      "LISTING_DATE": "2026-03-09",
+      "AVERAGE_PRICE": 43.62645824954569,
+      "CLOSE_PRICE": 41.3,
+      "verified_float_shares": 1306.1280434283553,
+      "verified_float_source": "ifind_listing_day_volume_div_turnover_structural_reconstruction",
+      "industry_primary": "计算机",
+      "industry_secondary": "计算机设备",
+      "NEXT_TRADE_DATE": "20260310",
+      "NEXT_DAY_CLOSE": 53.69,
+      "NEXT_DAY_FROM_LISTING_CLOSE_PCT": 30.000000000000004,
+      "THIRD_TRADE_DATE": "20260311",
+      "THIRD_DAY_CLOSE": 57.0,
+      "THIRD_DAY_FROM_LISTING_CLOSE_PCT": 38.01452784503634,
+      "comparable_data": [
+        {
+          "code": "688475.SH",
+          "trade_date": "20260306",
+          "mkt_cap": 214.6725,
+          "pe_ttm": 37.8902,
+          "close": 27.26,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "301189.SZ",
+          "trade_date": "20260306",
+          "mkt_cap": 50.01556101,
+          "pe_ttm": null,
+          "close": 42.97,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "301042.SZ",
+          "trade_date": "20260306",
+          "mkt_cap": 61.56591849,
+          "pe_ttm": 547.9773,
+          "close": 88.3,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "603030.SH",
+          "trade_date": "20260306",
+          "mkt_cap": 35.55720504,
+          "pe_ttm": null,
+          "close": 2.7,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "002044.SZ",
+          "trade_date": "20260306",
+          "mkt_cap": 251.29510186000002,
+          "pe_ttm": 81.2031,
+          "close": 6.42,
+          "source": "tushare_historical"
+        }
+      ]
+    },
+    {
+      "SECURITY_CODE": "920078",
+      "SECURITY_NAME_ABBR": "族兴新材",
+      "ISSUE_PRICE": 6.98,
+      "AFTER_ISSUE_PE": 14.99,
+      "LISTING_DATE": "2026-03-18",
+      "AVERAGE_PRICE": 35.707314180999305,
+      "CLOSE_PRICE": 35.3,
+      "verified_float_shares": 2070.000103744125,
+      "verified_float_source": "ifind_listing_day_volume_div_turnover_structural_reconstruction",
+      "industry_primary": "有色金属",
+      "industry_secondary": "金属新材料",
+      "NEXT_TRADE_DATE": "20260319",
+      "NEXT_DAY_CLOSE": 36.23,
+      "NEXT_DAY_FROM_LISTING_CLOSE_PCT": 2.6345609065155706,
+      "THIRD_TRADE_DATE": "20260320",
+      "THIRD_DAY_CLOSE": 29.08,
+      "THIRD_DAY_FROM_LISTING_CLOSE_PCT": -17.62039660056657,
+      "comparable_data": [
+        {
+          "code": "688456.SH",
+          "trade_date": "20260317",
+          "mkt_cap": 59.480107999999994,
+          "pe_ttm": 83.8794,
+          "close": 57.38,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "920634.BJ",
+          "trade_date": "20260317",
+          "mkt_cap": 14.84600634,
+          "pe_ttm": 86.1885,
+          "close": 23.23,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "603826.SH",
+          "trade_date": "20260317",
+          "mkt_cap": 152.72711999999999,
+          "pe_ttm": 426.2771,
+          "close": 23.31,
+          "source": "tushare_historical"
+        }
+      ]
+    },
+    {
+      "SECURITY_CODE": "920028",
+      "SECURITY_NAME_ABBR": "新恒泰",
+      "ISSUE_PRICE": 9.4,
+      "AFTER_ISSUE_PE": 14.99,
+      "LISTING_DATE": "2026-03-20",
+      "AVERAGE_PRICE": 21.21701028266926,
+      "CLOSE_PRICE": 22.7,
+      "verified_float_shares": 4255.9117960268395,
+      "verified_float_source": "ifind_listing_day_volume_div_turnover_structural_reconstruction",
+      "industry_primary": "基础化工",
+      "industry_secondary": "塑料",
+      "NEXT_TRADE_DATE": "20260323",
+      "NEXT_DAY_CLOSE": 18.51,
+      "NEXT_DAY_FROM_LISTING_CLOSE_PCT": -18.458149779735677,
+      "THIRD_TRADE_DATE": "20260324",
+      "THIRD_DAY_CLOSE": 18.9,
+      "THIRD_DAY_FROM_LISTING_CLOSE_PCT": -16.74008810572688,
+      "comparable_data": [
+        {
+          "code": "300980.SZ",
+          "trade_date": "20260319",
+          "mkt_cap": 46.61081084,
+          "pe_ttm": 102.8359,
+          "close": 33.76,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "300920.SZ",
+          "trade_date": "20260319",
+          "mkt_cap": 39.4,
+          "pe_ttm": 112.7295,
+          "close": 39.4,
+          "source": "tushare_historical"
+        }
+      ]
+    },
+    {
+      "SECURITY_CODE": "920069",
+      "SECURITY_NAME_ABBR": "普昂医疗",
+      "ISSUE_PRICE": 18.38,
+      "AFTER_ISSUE_PE": 14.53,
+      "LISTING_DATE": "2026-03-27",
+      "AVERAGE_PRICE": 42.34166168392811,
+      "CLOSE_PRICE": 43.48,
+      "verified_float_shares": 1477.7725890927738,
+      "verified_float_source": "ifind_listing_day_volume_div_turnover_structural_reconstruction",
+      "industry_primary": "医药生物",
+      "industry_secondary": "医疗器械",
+      "NEXT_TRADE_DATE": "20260330",
+      "NEXT_DAY_CLOSE": 36.68,
+      "NEXT_DAY_FROM_LISTING_CLOSE_PCT": -15.63937442502299,
+      "THIRD_TRADE_DATE": "20260331",
+      "THIRD_DAY_CLOSE": 35.72,
+      "THIRD_DAY_FROM_LISTING_CLOSE_PCT": -17.84728610855566,
+      "comparable_data": [
+        {
+          "code": "603987.SH",
+          "trade_date": "20260326",
+          "mkt_cap": 36.51571757,
+          "pe_ttm": 14.9761,
+          "close": 8.36,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "301122.SZ",
+          "trade_date": "20260326",
+          "mkt_cap": 35.76907953,
+          "pe_ttm": 919.1228,
+          "close": 29.26,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "301234.SZ",
+          "trade_date": "20260326",
+          "mkt_cap": 25.9352,
+          "pe_ttm": 107.4194,
+          "close": 38.14,
+          "source": "tushare_historical"
+        }
+      ]
+    },
+    {
+      "SECURITY_CODE": "920188",
+      "SECURITY_NAME_ABBR": "悦龙科技",
+      "ISSUE_PRICE": 14.04,
+      "AFTER_ISSUE_PE": 14.99,
+      "LISTING_DATE": "2026-03-30",
+      "AVERAGE_PRICE": 33.94043858533747,
+      "CLOSE_PRICE": 30.2,
+      "verified_float_shares": 1979.3873576769543,
+      "verified_float_source": "ifind_listing_day_volume_div_turnover_structural_reconstruction",
+      "industry_primary": "基础化工",
+      "industry_secondary": "橡胶",
+      "NEXT_TRADE_DATE": "20260331",
+      "NEXT_DAY_CLOSE": 25.29,
+      "NEXT_DAY_FROM_LISTING_CLOSE_PCT": -16.25827814569536,
+      "THIRD_TRADE_DATE": "20260401",
+      "THIRD_DAY_CLOSE": 24.58,
+      "THIRD_DAY_FROM_LISTING_CLOSE_PCT": -18.609271523178815,
+      "comparable_data": [
+        {
+          "code": "920225.BJ",
+          "trade_date": "20260327",
+          "mkt_cap": 27.83331345,
+          "pe_ttm": 33.7677,
+          "close": 21.93,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "920694.BJ",
+          "trade_date": "20260327",
+          "mkt_cap": 22.70600902,
+          "pe_ttm": 25.5754,
+          "close": 17.19,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "920871.BJ",
+          "trade_date": "20260327",
+          "mkt_cap": 12.267757000000001,
+          "pe_ttm": 112.1888,
+          "close": 14.43,
+          "source": "tushare_historical"
+        }
+      ]
+    },
+    {
+      "SECURITY_CODE": "920055",
+      "SECURITY_NAME_ABBR": "隆源股份",
+      "ISSUE_PRICE": 24.7,
+      "AFTER_ISSUE_PE": 14.99,
+      "LISTING_DATE": "2026-03-31",
+      "AVERAGE_PRICE": 38.075692985697714,
+      "CLOSE_PRICE": 37.8,
+      "verified_float_shares": 1530.0007284382286,
+      "verified_float_source": "ifind_listing_day_volume_div_turnover_structural_reconstruction",
+      "industry_primary": "汽车",
+      "industry_secondary": "汽车零部件",
+      "NEXT_TRADE_DATE": "20260401",
+      "NEXT_DAY_CLOSE": 34.7,
+      "NEXT_DAY_FROM_LISTING_CLOSE_PCT": -8.201058201058187,
+      "THIRD_TRADE_DATE": "20260402",
+      "THIRD_DAY_CLOSE": 34.29,
+      "THIRD_DAY_FROM_LISTING_CLOSE_PCT": -9.285714285714286,
+      "comparable_data": [
+        {
+          "code": "603305.SH",
+          "trade_date": "20260330",
+          "mkt_cap": 168.96459088999998,
+          "pe_ttm": 42.9795,
+          "close": 14.62,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "600933.SH",
+          "trade_date": "20260330",
+          "mkt_cap": 174.09240433,
+          "pe_ttm": 15.9271,
+          "close": 16.9,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "603211.SH",
+          "trade_date": "20260330",
+          "mkt_cap": 68.54997759999999,
+          "pe_ttm": 109.0118,
+          "close": 25.22,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "605133.SH",
+          "trade_date": "20260330",
+          "mkt_cap": 75.49936358000001,
+          "pe_ttm": 40.76,
+          "close": 26.7,
+          "source": "tushare_historical"
+        }
+      ]
+    },
+    {
+      "SECURITY_CODE": "920011",
+      "SECURITY_NAME_ABBR": "晨光电机",
+      "ISSUE_PRICE": 15.5,
+      "AFTER_ISSUE_PE": 14.96,
+      "LISTING_DATE": "2026-04-08",
+      "AVERAGE_PRICE": 29.66128413163004,
+      "CLOSE_PRICE": 29.04,
+      "verified_float_shares": 1860.0008839369257,
+      "verified_float_source": "ifind_listing_day_volume_div_turnover_structural_reconstruction",
+      "industry_primary": "电力设备",
+      "industry_secondary": "电机",
+      "NEXT_TRADE_DATE": "20260409",
+      "NEXT_DAY_CLOSE": 25.21,
+      "NEXT_DAY_FROM_LISTING_CLOSE_PCT": -13.18870523415977,
+      "THIRD_TRADE_DATE": "20260410",
+      "THIRD_DAY_CLOSE": 25.04,
+      "THIRD_DAY_FROM_LISTING_CLOSE_PCT": -13.774104683195599,
+      "comparable_data": [
+        {
+          "code": "603344.SH",
+          "trade_date": "20260407",
+          "mkt_cap": 51.80359997,
+          "pe_ttm": 26.7073,
+          "close": 26.63,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "301226.SZ",
+          "trade_date": "20260407",
+          "mkt_cap": 46.1312,
+          "pe_ttm": 161.6131,
+          "close": 42.4,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "300660.SZ",
+          "trade_date": "20260407",
+          "mkt_cap": 181.80572042,
+          "pe_ttm": 57.1037,
+          "close": 40.66,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "002892.SZ",
+          "trade_date": "20260407",
+          "mkt_cap": 78.32530082000001,
+          "pe_ttm": 225.8618,
+          "close": 10.52,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "920100.BJ",
+          "trade_date": "20260407",
+          "mkt_cap": 33.41347011,
+          "pe_ttm": 55.519,
+          "close": 45.27,
+          "source": "tushare_historical"
+        }
+      ]
+    },
+    {
+      "SECURITY_CODE": "920181",
+      "SECURITY_NAME_ABBR": "赛英电子",
+      "ISSUE_PRICE": 28.0,
+      "AFTER_ISSUE_PE": 13.79,
+      "LISTING_DATE": "2026-04-10",
+      "AVERAGE_PRICE": 62.999635707198955,
+      "CLOSE_PRICE": 61.8,
+      "verified_float_shares": 1001.999962819872,
+      "verified_float_source": "ifind_listing_day_volume_div_turnover_structural_reconstruction",
+      "industry_primary": "电子",
+      "industry_secondary": "其他电子",
+      "NEXT_TRADE_DATE": "20260413",
+      "NEXT_DAY_CLOSE": 60.95,
+      "NEXT_DAY_FROM_LISTING_CLOSE_PCT": -1.3754045307443286,
+      "THIRD_TRADE_DATE": "20260414",
+      "THIRD_DAY_CLOSE": 66.2,
+      "THIRD_DAY_FROM_LISTING_CLOSE_PCT": 7.119741100323629,
+      "comparable_data": [
+        {
+          "code": "301581.SZ",
+          "trade_date": "20260409",
+          "mkt_cap": 36.112,
+          "pe_ttm": 50.4117,
+          "close": 45.14,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "688103.SH",
+          "trade_date": "20260409",
+          "mkt_cap": 52.4235613,
+          "pe_ttm": 74.245,
+          "close": 55.0,
+          "source": "tushare_historical"
+        }
+      ]
+    },
+    {
+      "SECURITY_CODE": "920012",
+      "SECURITY_NAME_ABBR": "创达新材",
+      "ISSUE_PRICE": 19.58,
+      "AFTER_ISSUE_PE": 14.99,
+      "LISTING_DATE": "2026-04-13",
+      "AVERAGE_PRICE": 46.36499865971817,
+      "CLOSE_PRICE": 51.67,
+      "verified_float_shares": 1326.8661591645268,
+      "verified_float_source": "ifind_listing_day_volume_div_turnover_structural_reconstruction",
+      "industry_primary": "电子",
+      "industry_secondary": "半导体",
+      "NEXT_TRADE_DATE": "20260414",
+      "NEXT_DAY_CLOSE": 50.71,
+      "NEXT_DAY_FROM_LISTING_CLOSE_PCT": -1.8579446487323459,
+      "THIRD_TRADE_DATE": "20260415",
+      "THIRD_DAY_CLOSE": 51.88,
+      "THIRD_DAY_FROM_LISTING_CLOSE_PCT": 0.40642539191020344,
+      "comparable_data": [
+        {
+          "code": "688535.SH",
+          "trade_date": "20260410",
+          "mkt_cap": 115.21718759999999,
+          "pe_ttm": 475.0806,
+          "close": 120.0,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "920526.BJ",
+          "trade_date": "20260410",
+          "mkt_cap": 15.803970000000001,
+          "pe_ttm": 109.6476,
+          "close": 19.11,
+          "source": "tushare_historical"
+        }
+      ]
+    },
+    {
+      "SECURITY_CODE": "920177",
+      "SECURITY_NAME_ABBR": "恒道科技",
+      "ISSUE_PRICE": 21.8,
+      "AFTER_ISSUE_PE": 14.99,
+      "LISTING_DATE": "2026-04-16",
+      "AVERAGE_PRICE": 38.377196329627246,
+      "CLOSE_PRICE": 36.58,
+      "verified_float_shares": 1177.2003984456628,
+      "verified_float_source": "ifind_listing_day_volume_div_turnover_structural_reconstruction",
+      "industry_primary": "机械设备",
+      "industry_secondary": "专用设备",
+      "NEXT_TRADE_DATE": "20260417",
+      "NEXT_DAY_CLOSE": 40.0,
+      "NEXT_DAY_FROM_LISTING_CLOSE_PCT": 9.349371241115367,
+      "THIRD_TRADE_DATE": "20260420",
+      "THIRD_DAY_CLOSE": 38.35,
+      "THIRD_DAY_FROM_LISTING_CLOSE_PCT": 4.838709677419373,
+      "comparable_data": []
+    },
+    {
+      "SECURITY_CODE": "920191",
+      "SECURITY_NAME_ABBR": "瑞尔竞达",
+      "ISSUE_PRICE": 7.71,
+      "AFTER_ISSUE_PE": 14.99,
+      "LISTING_DATE": "2026-04-20",
+      "AVERAGE_PRICE": 15.188138415395326,
+      "CLOSE_PRICE": 14.88,
+      "verified_float_shares": 3991.499759558238,
+      "verified_float_source": "ifind_listing_day_volume_div_turnover_structural_reconstruction",
+      "industry_primary": "建筑材料",
+      "industry_secondary": "装修建材",
+      "NEXT_TRADE_DATE": "20260421",
+      "NEXT_DAY_CLOSE": 13.18,
+      "NEXT_DAY_FROM_LISTING_CLOSE_PCT": -11.42473118279571,
+      "THIRD_TRADE_DATE": "20260422",
+      "THIRD_DAY_CLOSE": 13.19,
+      "THIRD_DAY_FROM_LISTING_CLOSE_PCT": -11.357526881720437,
+      "comparable_data": [
+        {
+          "code": "688119.SH",
+          "trade_date": "20260417",
+          "mkt_cap": 58.725,
+          "pe_ttm": null,
+          "close": 5.22,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "002225.SZ",
+          "trade_date": "20260417",
+          "mkt_cap": 65.61293572,
+          "pe_ttm": 61.3094,
+          "close": 5.66,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "002392.SZ",
+          "trade_date": "20260417",
+          "mkt_cap": 85.12009499,
+          "pe_ttm": 21.2283,
+          "close": 7.15,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "002066.SZ",
+          "trade_date": "20260417",
+          "mkt_cap": 54.9917287,
+          "pe_ttm": null,
+          "close": 23.41,
+          "source": "tushare_historical"
+        }
+      ]
+    },
+    {
+      "SECURITY_CODE": "920125",
+      "SECURITY_NAME_ABBR": "鸿仕达",
+      "ISSUE_PRICE": 16.57,
+      "AFTER_ISSUE_PE": 14.99,
+      "LISTING_DATE": "2026-04-24",
+      "AVERAGE_PRICE": 49.36095846883949,
+      "CLOSE_PRICE": 50.02,
+      "verified_float_shares": 1648.1535287363834,
+      "verified_float_source": "ifind_listing_day_volume_div_turnover_structural_reconstruction",
+      "industry_primary": "机械设备",
+      "industry_secondary": "自动化设备",
+      "NEXT_TRADE_DATE": "20260427",
+      "NEXT_DAY_CLOSE": 53.82,
+      "NEXT_DAY_FROM_LISTING_CLOSE_PCT": 7.596961215513787,
+      "THIRD_TRADE_DATE": "20260428",
+      "THIRD_DAY_CLOSE": 51.6,
+      "THIRD_DAY_FROM_LISTING_CLOSE_PCT": 3.158736505397841,
+      "comparable_data": [
+        {
+          "code": "688097.SH",
+          "trade_date": "20260423",
+          "mkt_cap": 282.9960239,
+          "pe_ttm": 43.3564,
+          "close": 63.36,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "603283.SH",
+          "trade_date": "20260423",
+          "mkt_cap": 136.91576926,
+          "pe_ttm": 28.5177,
+          "close": 50.49,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "300836.SZ",
+          "trade_date": "20260423",
+          "mkt_cap": 57.085067200000005,
+          "pe_ttm": 95.2349,
+          "close": 61.59,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "301128.SZ",
+          "trade_date": "20260423",
+          "mkt_cap": 187.74590504999998,
+          "pe_ttm": 132.5414,
+          "close": 181.5,
+          "source": "tushare_historical"
+        }
+      ]
+    },
+    {
+      "SECURITY_CODE": "920156",
+      "SECURITY_NAME_ABBR": "海昌智能",
+      "ISSUE_PRICE": 20.93,
+      "AFTER_ISSUE_PE": 14.98,
+      "LISTING_DATE": "2026-04-27",
+      "AVERAGE_PRICE": 40.36485801089309,
+      "CLOSE_PRICE": 40.6,
+      "verified_float_shares": 2170.7992318695406,
+      "verified_float_source": "ifind_listing_day_volume_div_turnover_structural_reconstruction",
+      "industry_primary": "机械设备",
+      "industry_secondary": "专用设备",
+      "NEXT_TRADE_DATE": "20260428",
+      "NEXT_DAY_CLOSE": 39.8,
+      "NEXT_DAY_FROM_LISTING_CLOSE_PCT": -1.9704433497537033,
+      "THIRD_TRADE_DATE": "20260429",
+      "THIRD_DAY_CLOSE": 44.11,
+      "THIRD_DAY_FROM_LISTING_CLOSE_PCT": 8.645320197044338,
+      "comparable_data": [
+        {
+          "code": "301128.SZ",
+          "trade_date": "20260424",
+          "mkt_cap": 195.55572094000001,
+          "pe_ttm": 138.0549,
+          "close": 189.05,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "603960.SH",
+          "trade_date": "20260424",
+          "mkt_cap": 57.91951611,
+          "pe_ttm": 273.2956,
+          "close": 22.09,
+          "source": "tushare_historical"
+        }
+      ]
+    },
+    {
+      "SECURITY_CODE": "920186",
+      "SECURITY_NAME_ABBR": "中科仪",
+      "ISSUE_PRICE": 16.21,
+      "AFTER_ISSUE_PE": 35.23,
+      "LISTING_DATE": "2026-04-29",
+      "AVERAGE_PRICE": 64.76480820996827,
+      "CLOSE_PRICE": 71.98,
+      "verified_float_shares": 9553.041778777771,
+      "verified_float_source": "ifind_listing_day_volume_div_turnover_structural_reconstruction",
+      "industry_primary": "电子",
+      "industry_secondary": "半导体",
+      "NEXT_TRADE_DATE": "20260430",
+      "NEXT_DAY_CLOSE": 76.4,
+      "NEXT_DAY_FROM_LISTING_CLOSE_PCT": 6.140594609613781,
+      "THIRD_TRADE_DATE": "20260506",
+      "THIRD_DAY_CLOSE": 77.0,
+      "THIRD_DAY_FROM_LISTING_CLOSE_PCT": 6.974159488746867,
+      "comparable_data": []
+    },
+    {
+      "SECURITY_CODE": "920200",
+      "SECURITY_NAME_ABBR": "振宏股份",
+      "ISSUE_PRICE": 20.58,
+      "AFTER_ISSUE_PE": 14.99,
+      "LISTING_DATE": "2026-05-07",
+      "AVERAGE_PRICE": 53.69558599528841,
+      "CLOSE_PRICE": 94.02,
+      "verified_float_shares": 2421.899094612995,
+      "verified_float_source": "ifind_listing_day_volume_div_turnover_structural_reconstruction",
+      "industry_primary": "电力设备",
+      "industry_secondary": "风电设备",
+      "NEXT_TRADE_DATE": "20260508",
+      "NEXT_DAY_CLOSE": 65.82,
+      "NEXT_DAY_FROM_LISTING_CLOSE_PCT": -29.993618379068288,
+      "THIRD_TRADE_DATE": "20260511",
+      "THIRD_DAY_CLOSE": 70.27,
+      "THIRD_DAY_FROM_LISTING_CLOSE_PCT": -25.260582854711767,
+      "comparable_data": [
+        {
+          "code": "300443.SZ",
+          "trade_date": "20260506",
+          "mkt_cap": 98.18528121,
+          "pe_ttm": 30.0496,
+          "close": 30.67,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "300185.SZ",
+          "trade_date": "20260506",
+          "mkt_cap": 130.36880296,
+          "pe_ttm": 191.9649,
+          "close": 3.23,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "605123.SH",
+          "trade_date": "20260506",
+          "mkt_cap": 133.89383566,
+          "pe_ttm": 51.2155,
+          "close": 110.5,
+          "source": "tushare_historical"
+        }
+      ]
+    },
+    {
+      "SECURITY_CODE": "920178",
+      "SECURITY_NAME_ABBR": "锐翔智能",
+      "ISSUE_PRICE": 29.47,
+      "AFTER_ISSUE_PE": 14.99,
+      "LISTING_DATE": "2026-05-15",
+      "AVERAGE_PRICE": 176.48200815443897,
+      "CLOSE_PRICE": 173.99,
+      "verified_float_shares": 1460.9555539892156,
+      "verified_float_source": "ifind_listing_day_volume_div_turnover_structural_reconstruction",
+      "industry_primary": "机械设备",
+      "industry_secondary": "自动化设备",
+      "NEXT_TRADE_DATE": "20260518",
+      "NEXT_DAY_CLOSE": 226.18,
+      "NEXT_DAY_FROM_LISTING_CLOSE_PCT": 29.995976780274724,
+      "THIRD_TRADE_DATE": "20260519",
+      "THIRD_DAY_CLOSE": 248.0,
+      "THIRD_DAY_FROM_LISTING_CLOSE_PCT": 42.53692740962123,
+      "comparable_data": [
+        {
+          "code": "002384.SZ",
+          "trade_date": "20260514",
+          "mkt_cap": 3935.9414255099996,
+          "pe_ttm": 192.9291,
+          "close": 214.89,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "603228.SH",
+          "trade_date": "20260514",
+          "mkt_cap": 728.7942192200001,
+          "pe_ttm": 63.9949,
+          "close": 74.0,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "002475.SZ",
+          "trade_date": "20260514",
+          "mkt_cap": 5493.63360008,
+          "pe_ttm": 31.9103,
+          "close": 75.4,
+          "source": "tushare_historical"
+        }
+      ]
+    },
+    {
+      "SECURITY_CODE": "920096",
+      "SECURITY_NAME_ABBR": "嘉晨智能",
+      "ISSUE_PRICE": 14.43,
+      "AFTER_ISSUE_PE": 14.99,
+      "LISTING_DATE": "2026-05-18",
+      "AVERAGE_PRICE": 79.4564761935583,
+      "CLOSE_PRICE": 112.01,
+      "verified_float_shares": 1619.9998736703808,
+      "verified_float_source": "ifind_listing_day_volume_div_turnover_structural_reconstruction",
+      "industry_primary": "机械设备",
+      "industry_secondary": "自动化设备",
+      "NEXT_TRADE_DATE": "20260519",
+      "NEXT_DAY_CLOSE": 88.88,
+      "NEXT_DAY_FROM_LISTING_CLOSE_PCT": -20.649941969467022,
+      "THIRD_TRADE_DATE": "20260520",
+      "THIRD_DAY_CLOSE": 102.35,
+      "THIRD_DAY_FROM_LISTING_CLOSE_PCT": -8.624229979466126,
+      "comparable_data": [
+        {
+          "code": "002851.SZ",
+          "trade_date": "20260515",
+          "mkt_cap": 745.23943363,
+          "pe_ttm": 486.499,
+          "close": 128.13,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "300124.SZ",
+          "trade_date": "20260515",
+          "mkt_cap": 2093.3968443599997,
+          "pe_ttm": 44.1586,
+          "close": 77.32,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "300484.SZ",
+          "trade_date": "20260515",
+          "mkt_cap": 36.875174200000004,
+          "pe_ttm": 104.281,
+          "close": 17.8,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "300681.SZ",
+          "trade_date": "20260515",
+          "mkt_cap": 105.22182589,
+          "pe_ttm": 45.391,
+          "close": 34.38,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "001266.SZ",
+          "trade_date": "20260515",
+          "mkt_cap": 50.68902397,
+          "pe_ttm": 103.3957,
+          "close": 48.91,
+          "source": "tushare_historical"
+        }
+      ]
+    },
+    {
+      "SECURITY_CODE": "920220",
+      "SECURITY_NAME_ABBR": "朗信电气",
+      "ISSUE_PRICE": 28.29,
+      "AFTER_ISSUE_PE": 14.99,
+      "LISTING_DATE": "2026-05-22",
+      "AVERAGE_PRICE": 175.0023074826834,
+      "CLOSE_PRICE": 138.8,
+      "verified_float_shares": 1191.7125068676887,
+      "verified_float_source": "ifind_listing_day_volume_div_turnover_structural_reconstruction",
+      "industry_primary": "汽车",
+      "industry_secondary": "汽车零部件",
+      "NEXT_TRADE_DATE": "20260525",
+      "NEXT_DAY_CLOSE": 101.73,
+      "NEXT_DAY_FROM_LISTING_CLOSE_PCT": -26.707492795389054,
+      "THIRD_TRADE_DATE": "20260526",
+      "THIRD_DAY_CLOSE": 85.7,
+      "THIRD_DAY_FROM_LISTING_CLOSE_PCT": -38.25648414985591,
+      "comparable_data": [
+        {
+          "code": "603305.SH",
+          "trade_date": "20260521",
+          "mkt_cap": 197.74173393,
+          "pe_ttm": 50.1056,
+          "close": 17.11,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "300969.SZ",
+          "trade_date": "20260521",
+          "mkt_cap": 186.7918425,
+          "pe_ttm": 113.1995,
+          "close": 159.34,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "002536.SZ",
+          "trade_date": "20260521",
+          "mkt_cap": 256.23954887,
+          "pe_ttm": 101.6345,
+          "close": 44.58,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "603348.SH",
+          "trade_date": "20260521",
+          "mkt_cap": 55.66246298,
+          "pe_ttm": null,
+          "close": 17.7,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "603266.SH",
+          "trade_date": "20260521",
+          "mkt_cap": 40.970670500000004,
+          "pe_ttm": 37.1383,
+          "close": 20.6,
+          "source": "tushare_historical"
+        }
+      ]
+    },
+    {
+      "SECURITY_CODE": "920161",
+      "SECURITY_NAME_ABBR": "龙辰科技",
+      "ISSUE_PRICE": 9.21,
+      "AFTER_ISSUE_PE": 14.98,
+      "LISTING_DATE": "2026-05-27",
+      "AVERAGE_PRICE": 50.61606087806141,
+      "CLOSE_PRICE": 40.95,
+      "verified_float_shares": 3689.884430881417,
+      "verified_float_source": "ifind_listing_day_volume_div_turnover_structural_reconstruction",
+      "industry_primary": "电子",
+      "industry_secondary": "元件",
+      "NEXT_TRADE_DATE": "20260528",
+      "NEXT_DAY_CLOSE": 39.6,
+      "NEXT_DAY_FROM_LISTING_CLOSE_PCT": -3.296703296703296,
+      "THIRD_TRADE_DATE": "20260529",
+      "THIRD_DAY_CLOSE": 45.8,
+      "THIRD_DAY_FROM_LISTING_CLOSE_PCT": 11.843711843711823,
+      "comparable_data": [
+        {
+          "code": "600237.SH",
+          "trade_date": "20260526",
+          "mkt_cap": 63.36422038,
+          "pe_ttm": 54.0422,
+          "close": 10.05,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "002263.SZ",
+          "trade_date": "20260526",
+          "mkt_cap": 69.87499572,
+          "pe_ttm": 385.5319,
+          "close": 3.72,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "603435.SH",
+          "trade_date": "20260526",
+          "mkt_cap": 395.25141843,
+          "pe_ttm": 162.3073,
+          "close": 86.08,
+          "source": "tushare_historical"
+        }
+      ]
+    },
+    {
+      "SECURITY_CODE": "920218",
+      "SECURITY_NAME_ABBR": "新天力",
+      "ISSUE_PRICE": 12.19,
+      "AFTER_ISSUE_PE": 14.78,
+      "LISTING_DATE": "2026-05-29",
+      "AVERAGE_PRICE": 44.19208726033698,
+      "CLOSE_PRICE": 45.2,
+      "verified_float_shares": 2107.6226243503893,
+      "verified_float_source": "ifind_listing_day_volume_div_turnover_structural_reconstruction",
+      "industry_primary": "轻工制造",
+      "industry_secondary": "家居用品",
+      "NEXT_TRADE_DATE": "20260601",
+      "NEXT_DAY_CLOSE": 31.79,
+      "NEXT_DAY_FROM_LISTING_CLOSE_PCT": -29.66814159292036,
+      "THIRD_TRADE_DATE": "20260602",
+      "THIRD_DAY_CLOSE": 29.75,
+      "THIRD_DAY_FROM_LISTING_CLOSE_PCT": -34.18141592920354,
+      "comparable_data": [
+        {
+          "code": "301193.SZ",
+          "trade_date": "20260528",
+          "mkt_cap": 52.67807107000001,
+          "pe_ttm": null,
+          "close": 22.14,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "001356.SZ",
+          "trade_date": "20260528",
+          "mkt_cap": 58.932,
+          "pe_ttm": 82.651,
+          "close": 10.0,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "301501.SZ",
+          "trade_date": "20260528",
+          "mkt_cap": 42.52125,
+          "pe_ttm": 24.3991,
+          "close": 28.75,
+          "source": "tushare_historical"
+        }
+      ]
+    },
+    {
+      "SECURITY_CODE": "920211",
+      "SECURITY_NAME_ABBR": "新睿电子",
+      "ISSUE_PRICE": 25.19,
+      "AFTER_ISSUE_PE": 14.99,
+      "LISTING_DATE": "2026-06-05",
+      "AVERAGE_PRICE": 253.432080553813,
+      "CLOSE_PRICE": 226.88,
+      "verified_float_shares": 576.0002153497956,
+      "verified_float_source": "ifind_listing_day_volume_div_turnover_structural_reconstruction",
+      "industry_primary": "机械设备",
+      "industry_secondary": "自动化设备",
+      "NEXT_TRADE_DATE": "20260608",
+      "NEXT_DAY_CLOSE": 208.9,
+      "NEXT_DAY_FROM_LISTING_CLOSE_PCT": -7.924894217207335,
+      "THIRD_TRADE_DATE": "20260609",
+      "THIRD_DAY_CLOSE": 181.06,
+      "THIRD_DAY_FROM_LISTING_CLOSE_PCT": -20.195698166431587,
+      "comparable_data": [
+        {
+          "code": "301510.SZ",
+          "trade_date": "20260604",
+          "mkt_cap": 135.20338,
+          "pe_ttm": 175.0808,
+          "close": 33.8,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "603416.SH",
+          "trade_date": "20260604",
+          "mkt_cap": 91.07755169,
+          "pe_ttm": 34.693,
+          "close": 57.96,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "002979.SZ",
+          "trade_date": "20260604",
+          "mkt_cap": 167.43605691,
+          "pe_ttm": 69.282,
+          "close": 53.16,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "688320.SH",
+          "trade_date": "20260604",
+          "mkt_cap": 55.95056398999999,
+          "pe_ttm": null,
+          "close": 37.05,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "688160.SH",
+          "trade_date": "20260604",
+          "mkt_cap": 99.51576489,
+          "pe_ttm": 133.2708,
+          "close": 109.56,
+          "source": "tushare_historical"
+        }
+      ]
+    },
+    {
+      "SECURITY_CODE": "920206",
+      "SECURITY_NAME_ABBR": "彩客科技",
+      "ISSUE_PRICE": 30.28,
+      "AFTER_ISSUE_PE": 14.98,
+      "LISTING_DATE": "2026-06-08",
+      "AVERAGE_PRICE": 90.0393905379624,
+      "CLOSE_PRICE": 81.87,
+      "verified_float_shares": 1425.5839030205007,
+      "verified_float_source": "ifind_listing_day_volume_div_turnover_structural_reconstruction",
+      "industry_primary": "基础化工",
+      "industry_secondary": "化学制品",
+      "NEXT_TRADE_DATE": "20260609",
+      "NEXT_DAY_CLOSE": 92.0,
+      "NEXT_DAY_FROM_LISTING_CLOSE_PCT": 12.373274703798698,
+      "THIRD_TRADE_DATE": "20260610",
+      "THIRD_DAY_CLOSE": 75.56,
+      "THIRD_DAY_FROM_LISTING_CLOSE_PCT": -7.707340906314897,
+      "comparable_data": [
+        {
+          "code": "603823.SH",
+          "trade_date": "20260605",
+          "mkt_cap": 123.32811392,
+          "pe_ttm": 75.1624,
+          "close": 29.62,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "300758.SZ",
+          "trade_date": "20260605",
+          "mkt_cap": 47.13555614,
+          "pe_ttm": 102.065,
+          "close": 11.81,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "301036.SZ",
+          "trade_date": "20260605",
+          "mkt_cap": 23.9,
+          "pe_ttm": 107.0777,
+          "close": 23.9,
+          "source": "tushare_historical"
+        }
+      ]
+    },
+    {
+      "SECURITY_CODE": "920083",
+      "SECURITY_NAME_ABBR": "金戈新材",
+      "ISSUE_PRICE": 9.65,
+      "AFTER_ISSUE_PE": 14.93,
+      "LISTING_DATE": "2026-06-11",
+      "AVERAGE_PRICE": 52.844380059787134,
+      "CLOSE_PRICE": 51.51,
+      "verified_float_shares": 2008.9399934487258,
+      "verified_float_source": "ifind_listing_day_volume_div_turnover_structural_reconstruction",
+      "industry_primary": "基础化工",
+      "industry_secondary": "非金属材料",
+      "NEXT_TRADE_DATE": "20260612",
+      "NEXT_DAY_CLOSE": 39.8,
+      "NEXT_DAY_FROM_LISTING_CLOSE_PCT": -22.733449815569795,
+      "THIRD_TRADE_DATE": "20260615",
+      "THIRD_DAY_CLOSE": 39.38,
+      "THIRD_DAY_FROM_LISTING_CLOSE_PCT": -23.548825470782365,
+      "comparable_data": [
+        {
+          "code": "688733.SH",
+          "trade_date": "20260610",
+          "mkt_cap": 77.63263883,
+          "pe_ttm": null,
+          "close": 38.86,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "603010.SH",
+          "trade_date": "20260610",
+          "mkt_cap": 78.62807138000001,
+          "pe_ttm": null,
+          "close": 13.44,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "920971.BJ",
+          "trade_date": "20260610",
+          "mkt_cap": 45.06173526,
+          "pe_ttm": 106.0948,
+          "close": 42.88,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "688300.SH",
+          "trade_date": "20260610",
+          "mkt_cap": 435.10333346,
+          "pe_ttm": 144.4357,
+          "close": 180.19,
+          "source": "tushare_historical"
+        }
+      ]
+    },
+    {
+      "SECURITY_CODE": "920126",
+      "SECURITY_NAME_ABBR": "永大股份",
+      "ISSUE_PRICE": 7.79,
+      "AFTER_ISSUE_PE": 14.98,
+      "LISTING_DATE": "2026-06-15",
+      "AVERAGE_PRICE": 19.735668015360517,
+      "CLOSE_PRICE": 17.68,
+      "verified_float_shares": 4466.799050880477,
+      "verified_float_source": "ifind_listing_day_volume_div_turnover_structural_reconstruction",
+      "industry_primary": "机械设备",
+      "industry_secondary": "专用设备",
+      "NEXT_TRADE_DATE": "20260616",
+      "NEXT_DAY_CLOSE": 17.95,
+      "NEXT_DAY_FROM_LISTING_CLOSE_PCT": 1.527149321266963,
+      "THIRD_TRADE_DATE": "20260617",
+      "THIRD_DAY_CLOSE": 16.71,
+      "THIRD_DAY_FROM_LISTING_CLOSE_PCT": -5.486425339366507,
+      "comparable_data": [
+        {
+          "code": "300092.SZ",
+          "trade_date": "20260612",
+          "mkt_cap": 35.30871337,
+          "pe_ttm": 85.5068,
+          "close": 12.89,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "601798.SH",
+          "trade_date": "20260612",
+          "mkt_cap": 25.95146424,
+          "pe_ttm": 47.6579,
+          "close": 7.32,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "603169.SH",
+          "trade_date": "20260612",
+          "mkt_cap": 96.27370566,
+          "pe_ttm": null,
+          "close": 7.37,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "001332.SZ",
+          "trade_date": "20260612",
+          "mkt_cap": 70.0418208,
+          "pe_ttm": 25.7306,
+          "close": 45.28,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "920703.BJ",
+          "trade_date": "20260612",
+          "mkt_cap": 15.373848,
+          "pe_ttm": 19.7878,
+          "close": 10.2,
+          "source": "tushare_historical"
+        }
+      ]
+    },
+    {
+      "SECURITY_CODE": "920072",
+      "SECURITY_NAME_ABBR": "科莱瑞迪",
+      "ISSUE_PRICE": 15.62,
+      "AFTER_ISSUE_PE": 19.62,
+      "LISTING_DATE": "2026-06-29",
+      "AVERAGE_PRICE": 49.77383878444457,
+      "CLOSE_PRICE": 48.68,
+      "verified_float_shares": 1446.5003411083485,
+      "verified_float_source": "ifind_listing_day_volume_div_turnover_structural_reconstruction",
+      "industry_primary": "医药生物",
+      "industry_secondary": "医疗器械",
+      "NEXT_TRADE_DATE": "20260630",
+      "NEXT_DAY_CLOSE": 37.85,
+      "NEXT_DAY_FROM_LISTING_CLOSE_PCT": -22.247329498767453,
+      "THIRD_TRADE_DATE": "20260701",
+      "THIRD_DAY_CLOSE": 38.75,
+      "THIRD_DAY_FROM_LISTING_CLOSE_PCT": -20.398520953163512,
+      "comparable_data": [
+        {
+          "code": "688029.SH",
+          "trade_date": "20260626",
+          "mkt_cap": 131.19262416,
+          "pe_ttm": 23.602,
+          "close": 69.84,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "688236.SH",
+          "trade_date": "20260626",
+          "mkt_cap": 53.3160215,
+          "pe_ttm": 19.3047,
+          "close": 13.9,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "688314.SH",
+          "trade_date": "20260626",
+          "mkt_cap": 28.969898719999996,
+          "pe_ttm": 32.99,
+          "close": 35.66,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "688617.SH",
+          "trade_date": "20260626",
+          "mkt_cap": 256.54998084,
+          "pe_ttm": 29.5931,
+          "close": 181.27,
+          "source": "tushare_historical"
+        }
+      ]
+    },
+    {
+      "SECURITY_CODE": "920222",
+      "SECURITY_NAME_ABBR": "益坤电气",
+      "ISSUE_PRICE": 10.09,
+      "AFTER_ISSUE_PE": 14.98,
+      "LISTING_DATE": "2026-06-30",
+      "AVERAGE_PRICE": 42.073096070634854,
+      "CLOSE_PRICE": 36.17,
+      "verified_float_shares": 1156.2589293609021,
+      "verified_float_source": "ifind_listing_day_volume_div_turnover_structural_reconstruction",
+      "industry_primary": "电力设备",
+      "industry_secondary": "电网设备",
+      "NEXT_TRADE_DATE": "20260701",
+      "NEXT_DAY_CLOSE": 39.25,
+      "NEXT_DAY_FROM_LISTING_CLOSE_PCT": 8.515344207907095,
+      "THIRD_TRADE_DATE": "20260702",
+      "THIRD_DAY_CLOSE": 34.5,
+      "THIRD_DAY_FROM_LISTING_CLOSE_PCT": -4.617085982858726,
+      "comparable_data": [
+        {
+          "code": "688517.SH",
+          "trade_date": "20260629",
+          "mkt_cap": 23.04664684,
+          "pe_ttm": 30.3092,
+          "close": 16.87,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "601179.SH",
+          "trade_date": "20260629",
+          "mkt_cap": 768.88236,
+          "pe_ttm": 58.1873,
+          "close": 15.0,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "603530.SH",
+          "trade_date": "20260629",
+          "mkt_cap": 223.3967805,
+          "pe_ttm": 48.3814,
+          "close": 51.75,
+          "source": "tushare_historical"
+        }
+      ]
+    },
+    {
+      "SECURITY_CODE": "920193",
+      "SECURITY_NAME_ABBR": "吉和昌",
+      "ISSUE_PRICE": 8.52,
+      "AFTER_ISSUE_PE": 14.98,
+      "LISTING_DATE": "2026-07-02",
+      "AVERAGE_PRICE": 60.56118718824747,
+      "CLOSE_PRICE": 61.05,
+      "verified_float_shares": 2519.9995870882494,
+      "verified_float_source": "ifind_listing_day_volume_div_turnover_structural_reconstruction",
+      "industry_primary": "基础化工",
+      "industry_secondary": "化学制品",
+      "NEXT_TRADE_DATE": "20260703",
+      "NEXT_DAY_CLOSE": 79.36,
+      "NEXT_DAY_FROM_LISTING_CLOSE_PCT": 29.991809991809994,
+      "THIRD_TRADE_DATE": "20260706",
+      "THIRD_DAY_CLOSE": 55.56,
+      "THIRD_DAY_FROM_LISTING_CLOSE_PCT": -8.992628992628982,
+      "comparable_data": [
+        {
+          "code": "688359.SH",
+          "trade_date": "20260701",
+          "mkt_cap": 210.82292349999997,
+          "pe_ttm": null,
+          "close": 213.5,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "300530.SZ",
+          "trade_date": "20260701",
+          "mkt_cap": 29.4896651,
+          "pe_ttm": null,
+          "close": 17.15,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "688353.SH",
+          "trade_date": "20260701",
+          "mkt_cap": 187.9548,
+          "pe_ttm": 122.5608,
+          "close": 117.84,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "603181.SH",
+          "trade_date": "20260701",
+          "mkt_cap": 96.48793,
+          "pe_ttm": 21.5733,
+          "close": 16.39,
+          "source": "tushare_historical"
+        }
+      ]
+    },
+    {
+      "SECURITY_CODE": "920189",
+      "SECURITY_NAME_ABBR": "康美特",
+      "ISSUE_PRICE": 8.14,
+      "AFTER_ISSUE_PE": 14.98,
+      "LISTING_DATE": "2026-07-08",
+      "AVERAGE_PRICE": 45.95455525346833,
+      "CLOSE_PRICE": 40.75,
+      "verified_float_shares": 8486.749959313462,
+      "verified_float_source": "ifind_listing_day_volume_div_turnover_structural_reconstruction",
+      "industry_primary": "电子",
+      "industry_secondary": "半导体",
+      "NEXT_TRADE_DATE": "20260709",
+      "NEXT_DAY_CLOSE": 31.23,
+      "NEXT_DAY_FROM_LISTING_CLOSE_PCT": -23.361963190184042,
+      "THIRD_TRADE_DATE": "20260710",
+      "THIRD_DAY_CLOSE": 30.2,
+      "THIRD_DAY_FROM_LISTING_CLOSE_PCT": -25.889570552147244,
+      "comparable_data": [
+        {
+          "code": "300041.SZ",
+          "trade_date": "20260707",
+          "mkt_cap": 84.92236962,
+          "pe_ttm": 38.1028,
+          "close": 15.18,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "688535.SH",
+          "trade_date": "20260707",
+          "mkt_cap": 228.14967683999998,
+          "pe_ttm": 746.3066,
+          "close": 159.24,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "688035.SH",
+          "trade_date": "20260707",
+          "mkt_cap": 131.529328,
+          "pe_ttm": 114.495,
+          "close": 92.47,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "688093.SH",
+          "trade_date": "20260707",
+          "mkt_cap": 90.47952955999999,
+          "pe_ttm": 22.7843,
+          "close": 32.27,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "688019.SH",
+          "trade_date": "20260707",
+          "mkt_cap": 682.52359854,
+          "pe_ttm": 82.9826,
+          "close": 300.02,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "688219.SH",
+          "trade_date": "20260707",
+          "mkt_cap": 66.61152,
+          "pe_ttm": 33.2576,
+          "close": 12.12,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "300644.SZ",
+          "trade_date": "20260707",
+          "mkt_cap": 26.64055565,
+          "pe_ttm": 20.8538,
+          "close": 24.07,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "300221.SZ",
+          "trade_date": "20260707",
+          "mkt_cap": 75.37437277000001,
+          "pe_ttm": 57.4367,
+          "close": 15.91,
+          "source": "tushare_historical"
+        }
+      ]
+    },
+    {
+      "SECURITY_CODE": "920136",
+      "SECURITY_NAME_ABBR": "永励精密",
+      "ISSUE_PRICE": 19.28,
+      "AFTER_ISSUE_PE": 14.99,
+      "LISTING_DATE": "2026-07-09",
+      "AVERAGE_PRICE": 35.78526768453804,
+      "CLOSE_PRICE": 34.0,
+      "verified_float_shares": 2099.9998817768465,
+      "verified_float_source": "ifind_listing_day_volume_div_turnover_structural_reconstruction",
+      "industry_primary": "汽车",
+      "industry_secondary": "汽车零部件",
+      "NEXT_TRADE_DATE": "20260710",
+      "NEXT_DAY_CLOSE": 25.53,
+      "NEXT_DAY_FROM_LISTING_CLOSE_PCT": -24.911764705882344,
+      "THIRD_TRADE_DATE": "20260713",
+      "THIRD_DAY_CLOSE": 21.78,
+      "THIRD_DAY_FROM_LISTING_CLOSE_PCT": -35.94117647058823,
+      "comparable_data": [
+        {
+          "code": "001380.SZ",
+          "trade_date": "20260708",
+          "mkt_cap": 42.90330655,
+          "pe_ttm": 16.9619,
+          "close": 15.84,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "603037.SH",
+          "trade_date": "20260708",
+          "mkt_cap": 26.253992999999998,
+          "pe_ttm": 37.194,
+          "close": 9.85,
+          "source": "tushare_historical"
+        }
+      ]
+    },
+    {
+      "SECURITY_CODE": "920081",
+      "SECURITY_NAME_ABBR": "欧伦电气",
+      "ISSUE_PRICE": 38.69,
+      "AFTER_ISSUE_PE": 12.78,
+      "LISTING_DATE": "2026-07-10",
+      "AVERAGE_PRICE": 51.60916145937602,
+      "CLOSE_PRICE": 47.02,
+      "verified_float_shares": 1710.0006988687344,
+      "verified_float_source": "ifind_listing_day_volume_div_turnover_structural_reconstruction",
+      "industry_primary": "家用电器",
+      "industry_secondary": "小家电",
+      "NEXT_TRADE_DATE": "20260713",
+      "NEXT_DAY_CLOSE": 40.03,
+      "NEXT_DAY_FROM_LISTING_CLOSE_PCT": -14.866014461931098,
+      "THIRD_TRADE_DATE": "20260714",
+      "THIRD_DAY_CLOSE": 40.99,
+      "THIRD_DAY_FROM_LISTING_CLOSE_PCT": -12.824330072309653,
+      "comparable_data": [
+        {
+          "code": "605117.SH",
+          "trade_date": "20260709",
+          "mkt_cap": 1097.3977989,
+          "pe_ttm": 30.04,
+          "close": 86.19,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "301187.SZ",
+          "trade_date": "20260709",
+          "mkt_cap": 36.4554905,
+          "pe_ttm": 67.4021,
+          "close": 14.3,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "000333.SZ",
+          "trade_date": "20260709",
+          "mkt_cap": 6039.74107937,
+          "pe_ttm": 13.6653,
+          "close": 79.33,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "000921.SZ",
+          "trade_date": "20260709",
+          "mkt_cap": 343.72254984,
+          "pe_ttm": 11.1098,
+          "close": 24.82,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "000651.SZ",
+          "trade_date": "20260709",
+          "mkt_cap": 2141.9775553599998,
+          "pe_ttm": 7.3404,
+          "close": 38.24,
+          "source": "tushare_historical"
+        }
+      ]
+    },
+    {
+      "SECURITY_CODE": "920117",
+      "SECURITY_NAME_ABBR": "龙鑫智能",
+      "ISSUE_PRICE": 17.83,
+      "AFTER_ISSUE_PE": 14.99,
+      "LISTING_DATE": "2026-07-16",
+      "AVERAGE_PRICE": 37.6600568495391,
+      "CLOSE_PRICE": 35.34,
+      "verified_float_shares": 2021.400928958699,
+      "verified_float_source": "ifind_listing_day_volume_div_turnover_structural_reconstruction",
+      "industry_primary": "电力设备",
+      "industry_secondary": "电池",
+      "NEXT_TRADE_DATE": "20260717",
+      "NEXT_DAY_CLOSE": 27.48,
+      "NEXT_DAY_FROM_LISTING_CLOSE_PCT": -22.241086587436342,
+      "THIRD_TRADE_DATE": "20260720",
+      "THIRD_DAY_CLOSE": 25.03,
+      "THIRD_DAY_FROM_LISTING_CLOSE_PCT": -29.17374080362196,
+      "comparable_data": [
+        {
+          "code": "301662.SZ",
+          "trade_date": "20260715",
+          "mkt_cap": 82.7428,
+          "pe_ttm": 69.7761,
+          "close": 71.33,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "920522.BJ",
+          "trade_date": "20260715",
+          "mkt_cap": 43.16601327,
+          "pe_ttm": 92.7888,
+          "close": 19.67,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "920284.BJ",
+          "trade_date": "20260715",
+          "mkt_cap": 17.0905387,
+          "pe_ttm": null,
+          "close": 16.31,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "300619.SZ",
+          "trade_date": "20260715",
+          "mkt_cap": 59.1737892,
+          "pe_ttm": 83.5369,
+          "close": 26.16,
+          "source": "tushare_historical"
+        }
+      ]
+    },
+    {
+      "SECURITY_CODE": "920079",
+      "SECURITY_NAME_ABBR": "乔路铭",
+      "ISSUE_PRICE": 14.36,
+      "AFTER_ISSUE_PE": 14.99,
+      "LISTING_DATE": "2026-07-22",
+      "AVERAGE_PRICE": 18.181011938586085,
+      "CLOSE_PRICE": 18.81,
+      "verified_float_shares": 4499.998410747584,
+      "verified_float_source": "ifind_listing_day_volume_div_turnover_structural_reconstruction",
+      "industry_primary": "汽车",
+      "industry_secondary": "汽车零部件",
+      "NEXT_TRADE_DATE": "20260723",
+      "NEXT_DAY_CLOSE": 15.81,
+      "NEXT_DAY_FROM_LISTING_CLOSE_PCT": -15.948963317384358,
+      "THIRD_TRADE_DATE": "20260724",
+      "THIRD_DAY_CLOSE": 15.22,
+      "THIRD_DAY_FROM_LISTING_CLOSE_PCT": -19.085592769803284,
+      "comparable_data": [
+        {
+          "code": "002048.SZ",
+          "trade_date": "20260721",
+          "mkt_cap": 152.53140414,
+          "pe_ttm": 35.0521,
+          "close": 18.78,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "000700.SZ",
+          "trade_date": "20260721",
+          "mkt_cap": 104.47015252,
+          "pe_ttm": 21.0125,
+          "close": 11.38,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "603179.SH",
+          "trade_date": "20260721",
+          "mkt_cap": 304.32006607,
+          "pe_ttm": 37.7883,
+          "close": 42.61,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "002662.SZ",
+          "trade_date": "20260721",
+          "mkt_cap": 46.2,
+          "pe_ttm": 20.3724,
+          "close": 3.08,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "603035.SH",
+          "trade_date": "20260721",
+          "mkt_cap": 39.418947960000004,
+          "pe_ttm": 11.9408,
+          "close": 10.76,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "605228.SH",
+          "trade_date": "20260721",
+          "mkt_cap": 51.83378346,
+          "pe_ttm": 30.4027,
+          "close": 10.82,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "001278.SZ",
+          "trade_date": "20260721",
+          "mkt_cap": 16.74112902,
+          "pe_ttm": null,
+          "close": 13.53,
+          "source": "tushare_historical"
+        }
+      ]
+    },
+    {
+      "SECURITY_CODE": "920238",
+      "SECURITY_NAME_ABBR": "长鹰硬科",
+      "ISSUE_PRICE": 18.89,
+      "AFTER_ISSUE_PE": 14.99,
+      "LISTING_DATE": "2026-07-24",
+      "AVERAGE_PRICE": 61.806563523341445,
+      "CLOSE_PRICE": 56.03,
+      "verified_float_shares": 1940.6948979094586,
+      "verified_float_source": "ifind_listing_day_volume_div_turnover_structural_reconstruction",
+      "industry_primary": "机械设备",
+      "industry_secondary": "通用设备",
+      "NEXT_TRADE_DATE": "20260727",
+      "NEXT_DAY_CLOSE": 64.07,
+      "NEXT_DAY_FROM_LISTING_CLOSE_PCT": 14.34945564875958,
+      "THIRD_TRADE_DATE": "20260728",
+      "THIRD_DAY_CLOSE": 70.73,
+      "THIRD_DAY_FROM_LISTING_CLOSE_PCT": 26.235945029448505,
+      "comparable_data": [
+        {
+          "code": "000657.SZ",
+          "trade_date": "20260723",
+          "mkt_cap": 1315.894041,
+          "pe_ttm": 67.5157,
+          "close": 57.75,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "600549.SH",
+          "trade_date": "20260723",
+          "mkt_cap": 798.07938166,
+          "pe_ttm": 26.3098,
+          "close": 50.27,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "002842.SZ",
+          "trade_date": "20260723",
+          "mkt_cap": 103.41922724999999,
+          "pe_ttm": 26.7986,
+          "close": 31.61,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "002378.SZ",
+          "trade_date": "20260723",
+          "mkt_cap": 278.00805578,
+          "pe_ttm": 44.1864,
+          "close": 23.14,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "688308.SH",
+          "trade_date": "20260723",
+          "mkt_cap": 154.16115253,
+          "pe_ttm": 51.4141,
+          "close": 97.09,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "688257.SH",
+          "trade_date": "20260723",
+          "mkt_cap": 215.57377044,
+          "pe_ttm": 43.7915,
+          "close": 60.68,
+          "source": "tushare_historical"
+        }
+      ]
+    },
+    {
+      "SECURITY_CODE": "920176",
+      "SECURITY_NAME_ABBR": "维琪科技",
+      "ISSUE_PRICE": 22.16,
+      "AFTER_ISSUE_PE": 14.99,
+      "LISTING_DATE": "2026-07-27",
+      "AVERAGE_PRICE": 54.42041621958547,
+      "CLOSE_PRICE": 155.01,
+      "verified_float_shares": 794.7000029358378,
+      "verified_float_source": "ifind_listing_day_volume_div_turnover_structural_reconstruction",
+      "industry_primary": "美容护理",
+      "industry_secondary": "化妆品",
+      "NEXT_TRADE_DATE": "20260728",
+      "NEXT_DAY_CLOSE": 108.51,
+      "NEXT_DAY_FROM_LISTING_CLOSE_PCT": -29.998064640990897,
+      "THIRD_TRADE_DATE": "20260729",
+      "THIRD_DAY_CLOSE": 81.0,
+      "THIRD_DAY_FROM_LISTING_CLOSE_PCT": -47.74530675440294,
+      "comparable_data": [
+        {
+          "code": "920982.BJ",
+          "trade_date": "20260724",
+          "mkt_cap": 137.79074465000002,
+          "pe_ttm": 22.08,
+          "close": 119.75,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "920123.BJ",
+          "trade_date": "20260724",
+          "mkt_cap": 10.618608,
+          "pe_ttm": 26.5262,
+          "close": 9.52,
+          "source": "tushare_historical"
+        }
+      ]
+    },
+    {
+      "SECURITY_CODE": "920065",
+      "SECURITY_NAME_ABBR": "千岸科技",
+      "ISSUE_PRICE": 24.3,
+      "AFTER_ISSUE_PE": 10.28,
+      "LISTING_DATE": "2026-07-29",
+      "AVERAGE_PRICE": 62.439535892796364,
+      "CLOSE_PRICE": 58.03,
+      "verified_float_shares": 1575.0003646281523,
+      "verified_float_source": "ifind_listing_day_volume_div_turnover_structural_reconstruction",
+      "industry_primary": "商贸零售",
+      "industry_secondary": "互联网电商",
+      "NEXT_TRADE_DATE": "20260730",
+      "NEXT_DAY_CLOSE": 40.63,
+      "NEXT_DAY_FROM_LISTING_CLOSE_PCT": -29.9844907806307,
+      "THIRD_TRADE_DATE": "20260731",
+      "THIRD_DAY_CLOSE": 39.71,
+      "THIRD_DAY_FROM_LISTING_CLOSE_PCT": -31.56987764949164,
+      "comparable_data": [
+        {
+          "code": "301558.SZ",
+          "trade_date": "20260728",
+          "mkt_cap": 49.77651703,
+          "pe_ttm": 101.8311,
+          "close": 6.31,
+          "source": "tushare_historical"
+        }
+      ]
+    },
+    {
+      "SECURITY_CODE": "920258",
+      "SECURITY_NAME_ABBR": "聚仁新材",
+      "ISSUE_PRICE": 4.48,
+      "AFTER_ISSUE_PE": 14.97,
+      "LISTING_DATE": "2026-08-03",
+      "AVERAGE_PRICE": 17.287847340441452,
+      "CLOSE_PRICE": 15.72,
+      "verified_float_shares": 3599.999151532121,
+      "verified_float_source": "ifind_listing_day_volume_div_turnover_structural_reconstruction",
+      "industry_primary": "基础化工",
+      "industry_secondary": "化学制品",
+      "NEXT_TRADE_DATE": "20260804",
+      "NEXT_DAY_CLOSE": 14.0,
+      "NEXT_DAY_FROM_LISTING_CLOSE_PCT": -10.941475826972013,
+      "THIRD_TRADE_DATE": "20260805",
+      "THIRD_DAY_CLOSE": 13.86,
+      "THIRD_DAY_FROM_LISTING_CLOSE_PCT": -11.832061068702293,
+      "comparable_data": [
+        {
+          "code": "603192.SH",
+          "trade_date": "20260731",
+          "mkt_cap": 33.25476726,
+          "pe_ttm": 43.1308,
+          "close": 19.89,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "688323.SH",
+          "trade_date": "20260731",
+          "mkt_cap": 45.590613250000004,
+          "pe_ttm": null,
+          "close": 22.75,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "688716.SH",
+          "trade_date": "20260731",
+          "mkt_cap": 31.746312,
+          "pe_ttm": 2279.1373,
+          "close": 26.09,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "688203.SH",
+          "trade_date": "20260731",
+          "mkt_cap": 19.051741399999997,
+          "pe_ttm": 178.4245,
+          "close": 9.4,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "301518.SZ",
+          "trade_date": "20260731",
+          "mkt_cap": 34.08350385,
+          "pe_ttm": 37.3969,
+          "close": 23.43,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "920261.BJ",
+          "trade_date": "20260731",
+          "mkt_cap": 38.86622186,
+          "pe_ttm": 19.9323,
+          "close": 13.35,
+          "source": "tushare_historical"
+        }
+      ]
+    },
+    {
+      "SECURITY_CODE": "920038",
+      "SECURITY_NAME_ABBR": "森合高科",
+      "ISSUE_PRICE": 29.06,
+      "AFTER_ISSUE_PE": 11.49,
+      "LISTING_DATE": "2026-08-05",
+      "AVERAGE_PRICE": 49.92140977555286,
+      "CLOSE_PRICE": 48.31,
+      "verified_float_shares": 3416.608077797722,
+      "verified_float_source": "ifind_listing_day_volume_div_turnover_structural_reconstruction",
+      "industry_primary": "基础化工",
+      "industry_secondary": "化学制品",
+      "NEXT_TRADE_DATE": "20260806",
+      "NEXT_DAY_CLOSE": 47.69,
+      "NEXT_DAY_FROM_LISTING_CLOSE_PCT": -1.2833781825709045,
+      "THIRD_TRADE_DATE": "20260807",
+      "THIRD_DAY_CLOSE": 45.75,
+      "THIRD_DAY_FROM_LISTING_CLOSE_PCT": -5.29910991513145,
+      "comparable_data": []
+    },
+    {
+      "SECURITY_CODE": "920165",
+      "SECURITY_NAME_ABBR": "珈凯生物",
+      "ISSUE_PRICE": 19.26,
+      "AFTER_ISSUE_PE": 14.98,
+      "LISTING_DATE": "2026-08-11",
+      "AVERAGE_PRICE": 52.62868033210781,
+      "CLOSE_PRICE": 45.94,
+      "verified_float_shares": 960.5041874343066,
+      "verified_float_source": "ifind_listing_day_volume_div_turnover_structural_reconstruction",
+      "industry_primary": "美容护理",
+      "industry_secondary": "化妆品",
+      "NEXT_TRADE_DATE": "20260812",
+      "NEXT_DAY_CLOSE": 41.33,
+      "NEXT_DAY_FROM_LISTING_CLOSE_PCT": -10.034828036569444,
+      "THIRD_TRADE_DATE": "20260813",
+      "THIRD_DAY_CLOSE": 40.34,
+      "THIRD_DAY_FROM_LISTING_CLOSE_PCT": -12.189812799303423,
+      "comparable_data": [
+        {
+          "code": "920982.BJ",
+          "trade_date": "20260810",
+          "mkt_cap": 156.82255189,
+          "pe_ttm": 25.1297,
+          "close": 136.29,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "688363.SH",
+          "trade_date": "20260810",
+          "mkt_cap": 187.46915544,
+          "pe_ttm": 73.5693,
+          "close": 38.92,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "300856.SZ",
+          "trade_date": "20260810",
+          "mkt_cap": 52.99155407999999,
+          "pe_ttm": 52.5693,
+          "close": 11.14,
+          "source": "tushare_historical"
+        }
+      ]
+    },
+    {
+      "SECURITY_CODE": "920138",
+      "SECURITY_NAME_ABBR": "杰理科技",
+      "ISSUE_PRICE": 18.86,
+      "AFTER_ISSUE_PE": 14.99,
+      "LISTING_DATE": "2026-08-12",
+      "AVERAGE_PRICE": 55.03189064658913,
+      "CLOSE_PRICE": 53.26,
+      "verified_float_shares": 3461.3736435688234,
+      "verified_float_source": "ifind_listing_day_volume_div_turnover_structural_reconstruction",
+      "industry_primary": "电子",
+      "industry_secondary": "半导体",
+      "NEXT_TRADE_DATE": "20260813",
+      "NEXT_DAY_CLOSE": 46.59,
+      "NEXT_DAY_FROM_LISTING_CLOSE_PCT": -12.523469770935025,
+      "THIRD_TRADE_DATE": "20260814",
+      "THIRD_DAY_CLOSE": 45.24,
+      "THIRD_DAY_FROM_LISTING_CLOSE_PCT": -15.058205031918881,
+      "comparable_data": []
+    },
+    {
+      "SECURITY_CODE": "920107",
+      "SECURITY_NAME_ABBR": "恒兴股份",
+      "ISSUE_PRICE": 16.02,
+      "AFTER_ISSUE_PE": 13.67,
+      "LISTING_DATE": "2026-08-17",
+      "AVERAGE_PRICE": 31.110350792161253,
+      "CLOSE_PRICE": 30.05,
+      "verified_float_shares": 1887.3005600291956,
+      "verified_float_source": "ifind_listing_day_volume_div_turnover_structural_reconstruction",
+      "industry_primary": "基础化工",
+      "industry_secondary": "化学制品",
+      "NEXT_TRADE_DATE": "20260818",
+      "NEXT_DAY_CLOSE": 24.07,
+      "NEXT_DAY_FROM_LISTING_CLOSE_PCT": -19.90016638935108,
+      "THIRD_TRADE_DATE": "20260819",
+      "THIRD_DAY_CLOSE": 22.14,
+      "THIRD_DAY_FROM_LISTING_CLOSE_PCT": -26.32279534109817,
+      "comparable_data": [
+        {
+          "code": "688157.SH",
+          "trade_date": "20260814",
+          "mkt_cap": 35.309624129999996,
+          "pe_ttm": 370.9654,
+          "close": 18.81,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "300398.SZ",
+          "trade_date": "20260814",
+          "mkt_cap": 210.57026408000002,
+          "pe_ttm": 52.3991,
+          "close": 36.94,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "300537.SZ",
+          "trade_date": "20260814",
+          "mkt_cap": 43.24458091,
+          "pe_ttm": 378.8428,
+          "close": 20.87,
+          "source": "tushare_historical"
+        }
+      ]
+    },
+    {
+      "SECURITY_CODE": "920059",
+      "SECURITY_NAME_ABBR": "双英集团",
+      "ISSUE_PRICE": 11.13,
+      "AFTER_ISSUE_PE": 12.99,
+      "LISTING_DATE": "2026-08-19",
+      "AVERAGE_PRICE": 26.01599083764992,
+      "CLOSE_PRICE": 24.75,
+      "verified_float_shares": 3231.8327850780447,
+      "verified_float_source": "ifind_listing_day_volume_div_turnover_structural_reconstruction",
+      "industry_primary": "汽车",
+      "industry_secondary": "汽车零部件",
+      "NEXT_TRADE_DATE": "20260820",
+      "NEXT_DAY_CLOSE": 17.33,
+      "NEXT_DAY_FROM_LISTING_CLOSE_PCT": -29.979797979797983,
+      "THIRD_TRADE_DATE": "20260821",
+      "THIRD_DAY_CLOSE": 15.62,
+      "THIRD_DAY_FROM_LISTING_CLOSE_PCT": -36.88888888888889,
+      "comparable_data": [
+        {
+          "code": "603997.SH",
+          "trade_date": "20260818",
+          "mkt_cap": 155.34354428999998,
+          "pe_ttm": 23.3679,
+          "close": 12.21,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "603085.SH",
+          "trade_date": "20260818",
+          "mkt_cap": 39.74971,
+          "pe_ttm": 44.617,
+          "close": 10.01,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "603179.SH",
+          "trade_date": "20260818",
+          "mkt_cap": 282.96552494,
+          "pe_ttm": 35.0612,
+          "close": 39.62,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "603035.SH",
+          "trade_date": "20260818",
+          "mkt_cap": 40.70116281,
+          "pe_ttm": 12.3292,
+          "close": 11.11,
+          "source": "tushare_historical"
+        }
+      ]
+    },
+    {
+      "SECURITY_CODE": "920093",
+      "SECURITY_NAME_ABBR": "信胜科技",
+      "ISSUE_PRICE": 14.35,
+      "AFTER_ISSUE_PE": 9.2,
+      "LISTING_DATE": "2026-08-21",
+      "AVERAGE_PRICE": 27.179366479086625,
+      "CLOSE_PRICE": 23.19,
+      "verified_float_shares": 2520.0004515745436,
+      "verified_float_source": "ifind_listing_day_volume_div_turnover_structural_reconstruction",
+      "industry_primary": "机械设备",
+      "industry_secondary": "专用设备",
+      "NEXT_TRADE_DATE": "20260824",
+      "NEXT_DAY_CLOSE": 19.39,
+      "NEXT_DAY_FROM_LISTING_CLOSE_PCT": -16.38637343682622,
+      "THIRD_TRADE_DATE": "20260825",
+      "THIRD_DAY_CLOSE": 19.58,
+      "THIRD_DAY_FROM_LISTING_CLOSE_PCT": -15.567054764984922,
+      "comparable_data": [
+        {
+          "code": "603337.SH",
+          "trade_date": "20260820",
+          "mkt_cap": 178.6455375,
+          "pe_ttm": 20.6071,
+          "close": 37.5,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "600843.SH",
+          "trade_date": "20260820",
+          "mkt_cap": 48.9232219,
+          "pe_ttm": null,
+          "close": 6.86,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "600302.SH",
+          "trade_date": "20260820",
+          "mkt_cap": 22.35223308,
+          "pe_ttm": null,
+          "close": 6.46,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "002021.SZ",
+          "trade_date": "20260820",
+          "mkt_cap": 31.56060072,
+          "pe_ttm": null,
+          "close": 2.64,
+          "source": "tushare_historical"
+        }
+      ]
+    },
+    {
+      "SECURITY_CODE": "920288",
+      "SECURITY_NAME_ABBR": "华大海天",
+      "ISSUE_PRICE": 12.57,
+      "AFTER_ISSUE_PE": 13.5,
+      "LISTING_DATE": "2026-08-28",
+      "AVERAGE_PRICE": 27.299160130075105,
+      "CLOSE_PRICE": 28.51,
+      "verified_float_shares": 1787.9996454660884,
+      "verified_float_source": "ifind_listing_day_volume_div_turnover_structural_reconstruction",
+      "industry_primary": "轻工制造",
+      "industry_secondary": "造纸",
+      "NEXT_TRADE_DATE": "20260831",
+      "NEXT_DAY_CLOSE": 20.05,
+      "NEXT_DAY_FROM_LISTING_CLOSE_PCT": -29.673798667134342,
+      "THIRD_TRADE_DATE": "20260901",
+      "THIRD_DAY_CLOSE": 19.5,
+      "THIRD_DAY_FROM_LISTING_CLOSE_PCT": -31.602946334619432,
+      "comparable_data": [
+        {
+          "code": "600433.SH",
+          "trade_date": "20260827",
+          "mkt_cap": 59.85954864000001,
+          "pe_ttm": null,
+          "close": 3.42,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "603733.SH",
+          "trade_date": "20260827",
+          "mkt_cap": 177.42566972,
+          "pe_ttm": 17.2718,
+          "close": 21.71,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "605007.SH",
+          "trade_date": "20260827",
+          "mkt_cap": 70.598332,
+          "pe_ttm": 20.001,
+          "close": 14.84,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "301469.SZ",
+          "trade_date": "20260827",
+          "mkt_cap": 26.66504,
+          "pe_ttm": 26.6843,
+          "close": 29.8,
+          "source": "tushare_historical"
+        }
+      ]
+    },
+    {
+      "SECURITY_CODE": "920071",
+      "SECURITY_NAME_ABBR": "金钛股份",
+      "ISSUE_PRICE": 9.72,
+      "AFTER_ISSUE_PE": 13.41,
+      "LISTING_DATE": "2026-09-03",
+      "AVERAGE_PRICE": 26.982596224489388,
+      "CLOSE_PRICE": 24.23,
+      "verified_float_shares": 3150.0014801876882,
+      "verified_float_source": "ifind_listing_day_volume_div_turnover_structural_reconstruction",
+      "industry_primary": "有色金属",
+      "industry_secondary": "小金属",
+      "NEXT_TRADE_DATE": "20260904",
+      "NEXT_DAY_CLOSE": 28.04,
+      "NEXT_DAY_FROM_LISTING_CLOSE_PCT": 15.724308708212952,
+      "THIRD_TRADE_DATE": "20260907",
+      "THIRD_DAY_CLOSE": 26.01,
+      "THIRD_DAY_FROM_LISTING_CLOSE_PCT": 7.3462649607924035,
+      "comparable_data": [
+        {
+          "code": "600456.SH",
+          "trade_date": "20260902",
+          "mkt_cap": 128.37881425,
+          "pe_ttm": 37.6371,
+          "close": 26.87,
+          "source": "tushare_historical"
+        }
+      ]
+    },
+    {
+      "SECURITY_CODE": "920289",
+      "SECURITY_NAME_ABBR": "华汇智能",
+      "ISSUE_PRICE": 17.71,
+      "AFTER_ISSUE_PE": 14.99,
+      "LISTING_DATE": "2026-09-04",
+      "AVERAGE_PRICE": 37.398690810490365,
+      "CLOSE_PRICE": 37.5,
+      "verified_float_shares": 1445.0013316793566,
+      "verified_float_source": "ifind_listing_day_volume_div_turnover_structural_reconstruction",
+      "industry_primary": "电力设备",
+      "industry_secondary": "电池",
+      "NEXT_TRADE_DATE": "20260907",
+      "NEXT_DAY_CLOSE": 28.24,
+      "NEXT_DAY_FROM_LISTING_CLOSE_PCT": -24.693333333333335,
+      "THIRD_TRADE_DATE": "20260908",
+      "THIRD_DAY_CLOSE": 26.95,
+      "THIRD_DAY_FROM_LISTING_CLOSE_PCT": -28.133333333333333,
+      "comparable_data": [
+        {
+          "code": "300450.SZ",
+          "trade_date": "20260903",
+          "mkt_cap": 537.25764726,
+          "pe_ttm": 30.1901,
+          "close": 32.09,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "301662.SZ",
+          "trade_date": "20260903",
+          "mkt_cap": 76.3628,
+          "pe_ttm": 76.2849,
+          "close": 65.83,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "688499.SH",
+          "trade_date": "20260903",
+          "mkt_cap": 56.237209050000004,
+          "pe_ttm": 98.5822,
+          "close": 33.33,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "920284.BJ",
+          "trade_date": "20260903",
+          "mkt_cap": 18.3898807,
+          "pe_ttm": null,
+          "close": 17.55,
+          "source": "tushare_historical"
+        }
+      ]
+    },
+    {
+      "SECURITY_CODE": "920269",
+      "SECURITY_NAME_ABBR": "杰锋动力",
+      "ISSUE_PRICE": 30.7,
+      "AFTER_ISSUE_PE": 12.98,
+      "LISTING_DATE": "2026-09-07",
+      "AVERAGE_PRICE": 44.792345000255565,
+      "CLOSE_PRICE": 41.25,
+      "verified_float_shares": 889.9495814357891,
+      "verified_float_source": "ifind_listing_day_volume_div_turnover_structural_reconstruction",
+      "industry_primary": "汽车",
+      "industry_secondary": "汽车零部件",
+      "NEXT_TRADE_DATE": "20260908",
+      "NEXT_DAY_CLOSE": 35.85,
+      "NEXT_DAY_FROM_LISTING_CLOSE_PCT": -13.090909090909086,
+      "THIRD_TRADE_DATE": "20260909",
+      "THIRD_DAY_CLOSE": 35.15,
+      "THIRD_DAY_FROM_LISTING_CLOSE_PCT": -14.787878787878794,
+      "comparable_data": [
+        {
+          "code": "000581.SZ",
+          "trade_date": "20260904",
+          "mkt_cap": 174.89151504,
+          "pe_ttm": 14.5414,
+          "close": 18.09,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "300432.SZ",
+          "trade_date": "20260904",
+          "mkt_cap": 236.97276372000002,
+          "pe_ttm": 44.2941,
+          "close": 13.86,
+          "source": "tushare_historical"
+        }
+      ]
+    },
+    {
+      "SECURITY_CODE": "920268",
+      "SECURITY_NAME_ABBR": "百迈科",
+      "ISSUE_PRICE": 17.1,
+      "AFTER_ISSUE_PE": 14.99,
+      "LISTING_DATE": "2026-09-09",
+      "AVERAGE_PRICE": 28.493969108318783,
+      "CLOSE_PRICE": 26.88,
+      "verified_float_shares": 1444.8126500603666,
+      "verified_float_source": "ifind_listing_day_volume_div_turnover_structural_reconstruction",
+      "industry_primary": "医药生物",
+      "industry_secondary": "医疗器械",
+      "NEXT_TRADE_DATE": "20260910",
+      "NEXT_DAY_CLOSE": 34.94,
+      "NEXT_DAY_FROM_LISTING_CLOSE_PCT": 29.985119047619047,
+      "THIRD_TRADE_DATE": "20260911",
+      "THIRD_DAY_CLOSE": 41.5,
+      "THIRD_DAY_FROM_LISTING_CLOSE_PCT": 54.389880952380956,
+      "comparable_data": [
+        {
+          "code": "688314.SH",
+          "trade_date": "20260908",
+          "mkt_cap": 26.01493921,
+          "pe_ttm": 30.5704,
+          "close": 31.87,
+          "source": "tushare_historical"
+        }
+      ]
+    },
+    {
+      "SECURITY_CODE": "920298",
+      "SECURITY_NAME_ABBR": "腾信精密",
+      "ISSUE_PRICE": 35.78,
+      "AFTER_ISSUE_PE": 14.99,
+      "LISTING_DATE": "2026-09-16",
+      "AVERAGE_PRICE": 58.10795029080462,
+      "CLOSE_PRICE": 64.3,
+      "verified_float_shares": 1529.9995691860872,
+      "verified_float_source": "ifind_listing_day_volume_div_turnover_structural_reconstruction",
+      "industry_primary": "机械设备",
+      "industry_secondary": "通用设备",
+      "NEXT_TRADE_DATE": "20260917",
+      "NEXT_DAY_CLOSE": 69.6,
+      "NEXT_DAY_FROM_LISTING_CLOSE_PCT": 8.242612752721623,
+      "THIRD_TRADE_DATE": "20260918",
+      "THIRD_DAY_CLOSE": 90.48,
+      "THIRD_DAY_FROM_LISTING_CLOSE_PCT": 40.71539657853811,
+      "comparable_data": [
+        {
+          "code": "301029.SZ",
+          "trade_date": "20260915",
+          "mkt_cap": 152.14375730999998,
+          "pe_ttm": 27.7368,
+          "close": 23.93,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "688409.SH",
+          "trade_date": "20260915",
+          "mkt_cap": 561.25377532,
+          "pe_ttm": 495.4537,
+          "close": 183.29,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "688605.SH",
+          "trade_date": "20260915",
+          "mkt_cap": 166.37643358,
+          "pe_ttm": 120.7905,
+          "close": 82.21,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "603308.SH",
+          "trade_date": "20260915",
+          "mkt_cap": 302.08153833,
+          "pe_ttm": 79.1569,
+          "close": 41.47,
+          "source": "tushare_historical"
+        }
+      ]
+    },
+    {
+      "SECURITY_CODE": "920229",
+      "SECURITY_NAME_ABBR": "世纪数码",
+      "ISSUE_PRICE": 15.67,
+      "AFTER_ISSUE_PE": 13.49,
+      "LISTING_DATE": "2026-09-22",
+      "AVERAGE_PRICE": 68.74499595763183,
+      "CLOSE_PRICE": 132.0,
+      "verified_float_shares": 1134.9998888716023,
+      "verified_float_source": "ifind_listing_day_volume_div_turnover_structural_reconstruction",
+      "industry_primary": "机械设备",
+      "industry_secondary": "专用设备",
+      "NEXT_TRADE_DATE": "20260923",
+      "NEXT_DAY_CLOSE": 92.4,
+      "NEXT_DAY_FROM_LISTING_CLOSE_PCT": -29.999999999999993,
+      "THIRD_TRADE_DATE": "20260924",
+      "THIRD_DAY_CLOSE": 64.68,
+      "THIRD_DAY_FROM_LISTING_CLOSE_PCT": -51.0,
+      "comparable_data": [
+        {
+          "code": "688789.SH",
+          "trade_date": "20260921",
+          "mkt_cap": 80.03370840000001,
+          "pe_ttm": 20.5804,
+          "close": 44.4,
+          "source": "tushare_historical"
+        }
+      ]
+    },
+    {
+      "SECURITY_CODE": "920025",
+      "SECURITY_NAME_ABBR": "凯达重工",
+      "ISSUE_PRICE": 4.26,
+      "AFTER_ISSUE_PE": 13.76,
+      "LISTING_DATE": "2026-09-23",
+      "AVERAGE_PRICE": 31.40242614026083,
+      "CLOSE_PRICE": 29.0,
+      "verified_float_shares": 5100.000826734955,
+      "verified_float_source": "ifind_listing_day_volume_div_turnover_structural_reconstruction",
+      "industry_primary": "机械设备",
+      "industry_secondary": "专用设备",
+      "NEXT_TRADE_DATE": "20260924",
+      "NEXT_DAY_CLOSE": 20.3,
+      "NEXT_DAY_FROM_LISTING_CLOSE_PCT": -29.999999999999993,
+      "THIRD_TRADE_DATE": "20260928",
+      "THIRD_DAY_CLOSE": 15.2,
+      "THIRD_DAY_FROM_LISTING_CLOSE_PCT": -47.58620689655173,
+      "comparable_data": [
+        {
+          "code": "603917.SH",
+          "trade_date": "20260922",
+          "mkt_cap": 29.271424,
+          "pe_ttm": 185.0717,
+          "close": 14.36,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "002760.SZ",
+          "trade_date": "20260922",
+          "mkt_cap": 19.02760894,
+          "pe_ttm": 92.0389,
+          "close": 17.62,
+          "source": "tushare_historical"
+        }
+      ]
+    },
+    {
+      "SECURITY_CODE": "920162",
+      "SECURITY_NAME_ABBR": "莫森泰克",
+      "ISSUE_PRICE": 17.37,
+      "AFTER_ISSUE_PE": 10.0,
+      "LISTING_DATE": "2026-09-23",
+      "AVERAGE_PRICE": null,
+      "CLOSE_PRICE": null,
+      "verified_float_shares": null,
+      "verified_float_source": null,
+      "industry_primary": "汽车",
+      "industry_secondary": "汽车零部件",
+      "NEXT_TRADE_DATE": null,
+      "NEXT_DAY_CLOSE": null,
+      "NEXT_DAY_FROM_LISTING_CLOSE_PCT": null,
+      "THIRD_TRADE_DATE": null,
+      "THIRD_DAY_CLOSE": null,
+      "THIRD_DAY_FROM_LISTING_CLOSE_PCT": null,
+      "comparable_data": []
+    },
+    {
+      "SECURITY_CODE": "920201",
+      "SECURITY_NAME_ABBR": "百瑞吉",
+      "ISSUE_PRICE": 16.77,
+      "AFTER_ISSUE_PE": 14.91,
+      "LISTING_DATE": "2026-09-24",
+      "AVERAGE_PRICE": 82.24977934833652,
+      "CLOSE_PRICE": 72.35,
+      "verified_float_shares": 760.846922407406,
+      "verified_float_source": "ifind_listing_day_volume_div_turnover_structural_reconstruction",
+      "industry_primary": "医药生物",
+      "industry_secondary": "医疗器械",
+      "NEXT_TRADE_DATE": "20260928",
+      "NEXT_DAY_CLOSE": 52.01,
+      "NEXT_DAY_FROM_LISTING_CLOSE_PCT": -28.113337940566684,
+      "THIRD_TRADE_DATE": "20260929",
+      "THIRD_DAY_CLOSE": 46.03,
+      "THIRD_DAY_FROM_LISTING_CLOSE_PCT": -36.37871458189357,
+      "comparable_data": []
+    },
+    {
+      "SECURITY_CODE": "920196",
+      "SECURITY_NAME_ABBR": "南方乳业",
+      "ISSUE_PRICE": 14.21,
+      "AFTER_ISSUE_PE": 11.99,
+      "LISTING_DATE": "2026-09-28",
+      "AVERAGE_PRICE": null,
+      "CLOSE_PRICE": null,
+      "verified_float_shares": null,
+      "verified_float_source": null,
+      "industry_primary": "食品饮料",
+      "industry_secondary": "饮料乳品",
+      "NEXT_TRADE_DATE": null,
+      "NEXT_DAY_CLOSE": null,
+      "NEXT_DAY_FROM_LISTING_CLOSE_PCT": null,
+      "THIRD_TRADE_DATE": null,
+      "THIRD_DAY_CLOSE": null,
+      "THIRD_DAY_FROM_LISTING_CLOSE_PCT": null,
+      "comparable_data": []
+    },
+    {
+      "SECURITY_CODE": "920202",
+      "SECURITY_NAME_ABBR": "安达股份",
+      "ISSUE_PRICE": 7.55,
+      "AFTER_ISSUE_PE": 13.5,
+      "LISTING_DATE": "2026-09-29",
+      "AVERAGE_PRICE": 27.984159658343,
+      "CLOSE_PRICE": 26.16,
+      "verified_float_shares": 2380.0,
+      "verified_float_source": "ifind_case_flow_shares_crosschecked_by_volume_div_turnover",
+      "industry_primary": "汽车",
+      "industry_secondary": "汽车零部件",
+      "NEXT_TRADE_DATE": "20260930",
+      "NEXT_DAY_CLOSE": 18.32,
+      "NEXT_DAY_FROM_LISTING_CLOSE_PCT": -29.969418960244642,
+      "THIRD_TRADE_DATE": "20261008",
+      "THIRD_DAY_CLOSE": 14.3,
+      "THIRD_DAY_FROM_LISTING_CLOSE_PCT": -45.33639143730886,
+      "comparable_data": [
+        {
+          "code": "600933.SH",
+          "trade_date": "20260928",
+          "mkt_cap": 139.25861626,
+          "pe_ttm": 12.9448,
+          "close": 13.52,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "603211.SH",
+          "trade_date": "20260928",
+          "mkt_cap": 51.5347968,
+          "pe_ttm": 94.8391,
+          "close": 18.96,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "603305.SH",
+          "trade_date": "20260928",
+          "mkt_cap": 128.2836546,
+          "pe_ttm": 31.8953,
+          "close": 11.1,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "605133.SH",
+          "trade_date": "20260928",
+          "mkt_cap": 69.20773926,
+          "pe_ttm": 38.256,
+          "close": 24.26,
+          "source": "tushare_historical"
+        }
+      ]
+    },
+    {
+      "SECURITY_CODE": "920157",
+      "SECURITY_NAME_ABBR": "宇特光电",
+      "ISSUE_PRICE": 13.75,
+      "AFTER_ISSUE_PE": 14.99,
+      "LISTING_DATE": "2026-10-09",
+      "AVERAGE_PRICE": 78.57959808353718,
+      "CLOSE_PRICE": 75.55,
+      "verified_float_shares": 1281.5467,
+      "verified_float_source": "ifind_case_flow_shares_crosschecked_by_volume_div_turnover",
+      "industry_primary": "通信",
+      "industry_secondary": "通信设备",
+      "NEXT_TRADE_DATE": "20261012",
+      "NEXT_DAY_CLOSE": 71.1,
+      "NEXT_DAY_FROM_LISTING_CLOSE_PCT": -5.890138980807413,
+      "THIRD_TRADE_DATE": null,
+      "THIRD_DAY_CLOSE": null,
+      "THIRD_DAY_FROM_LISTING_CLOSE_PCT": null,
+      "comparable_data": [
+        {
+          "code": "300394.SZ",
+          "trade_date": "20261008",
+          "mkt_cap": 2564.2023274999997,
+          "pe_ttm": 110.416,
+          "close": 235.07,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "300570.SZ",
+          "trade_date": "20261008",
+          "mkt_cap": 451.98253099999994,
+          "pe_ttm": 149.7021,
+          "close": 199.0,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "002179.SZ",
+          "trade_date": "20261008",
+          "mkt_cap": 696.8617223399999,
+          "pe_ttm": 37.7999,
+          "close": 33.18,
+          "source": "tushare_historical"
+        },
+        {
+          "code": "920045.BJ",
+          "trade_date": "20261008",
+          "mkt_cap": 459.02278437,
+          "pe_ttm": 98.3865,
+          "close": 481.66,
+          "source": "tushare_historical"
+        }
+      ]
+    }
+  ]
+}

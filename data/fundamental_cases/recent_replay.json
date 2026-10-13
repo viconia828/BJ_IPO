@@ -1,0 +1,1540 @@
+{
+  "schema": "recent_ipo_replay_v1",
+  "protocol_sha256": "60a7c2499649dd5dcfcaf1110d7fd28080b3bba994d22b2dfcdb7b4c5e8ca51c",
+  "stage2_commit": "e09ee41e16c808c9b6a8a275f1b48de3c1b25eb8",
+  "mode": "shadow",
+  "historical_pit_eligible": false,
+  "parameter_sha256": "048c8fa05aef386d7ed5531c959ebb08cc1ac386361c106e84b03ea725c65a13",
+  "frozen_history_sha256": "952ee287f8574fa27a8421246e3d87bc53ffdb7a5819454e78919fab033cd498",
+  "rows": [
+    {
+      "code": "920071",
+      "name": "金钛股份",
+      "date": "2026-09-03",
+      "issue": 9.72,
+      "actual_vwap": 26.982596224489388,
+      "cooling_subset": true,
+      "aftermarket_proxy": {
+        "weak": true,
+        "listing_dates": [
+          "2026-08-19",
+          "2026-08-21",
+          "2026-08-28"
+        ],
+        "observations": [
+          {
+            "code": "920059",
+            "mean_return_pct": -36.673563183464665,
+            "dates": [
+              "2026-08-20",
+              "2026-08-21"
+            ]
+          },
+          {
+            "code": "920093",
+            "mean_return_pct": -28.30958729301919,
+            "dates": [
+              "2026-08-24",
+              "2026-08-25"
+            ]
+          },
+          {
+            "code": "920288",
+            "mean_return_pct": -27.56187404383127,
+            "dates": [
+              "2026-08-31",
+              "2026-09-01"
+            ]
+          }
+        ]
+      },
+      "models": {
+        "proxy": {
+          "available": false,
+          "fundamental": null,
+          "center": null,
+          "low": null,
+          "high": null,
+          "price_error_pct": null,
+          "gain_error_pp": null,
+          "interval_hit": null,
+          "state": "uncertain",
+          "state_label": "无法判断",
+          "recent_coverage": null,
+          "reason": "缺少发行盈利口径或至少两家有事前日期的有效可比公司",
+          "peer_count": 1,
+          "history_count": 47
+        },
+        "stage2": {
+          "available": false,
+          "fundamental": null,
+          "center": null,
+          "low": null,
+          "high": null,
+          "price_error_pct": null,
+          "gain_error_pp": null,
+          "interval_hit": null,
+          "state": "uncertain",
+          "state_label": "无法判断",
+          "recent_coverage": null,
+          "reason": "缺少发行盈利口径或至少两家有事前日期的有效可比公司",
+          "peer_count": 1,
+          "history_count": 47
+        },
+        "ttm_expanded": {
+          "available": true,
+          "fundamental": 23.67473495436083,
+          "center": 21.96783571949416,
+          "low": 19.771052147544747,
+          "high": 24.16461929144358,
+          "price_error_pct": -18.585166761839744,
+          "gain_error_pp": -51.59218626538299,
+          "interval_hit": false,
+          "state": "divergent",
+          "state_label": "溢价与承接分化",
+          "recent_coverage": 0.6666666666666666,
+          "reason": null,
+          "peer_count": 2,
+          "history_count": 47
+        },
+        "cycle_sensitivity": {
+          "available": true,
+          "fundamental": 23.67473495436083,
+          "center": 21.96783571949416,
+          "low": 19.771052147544747,
+          "high": 24.16461929144358,
+          "price_error_pct": -18.585166761839744,
+          "gain_error_pp": -51.59218626538299,
+          "interval_hit": false,
+          "state": "divergent",
+          "state_label": "溢价与承接分化",
+          "recent_coverage": 0.6666666666666666,
+          "reason": null,
+          "peer_count": 2,
+          "history_count": 47
+        },
+        "proxy_same_history": {
+          "available": false,
+          "fundamental": null,
+          "center": null,
+          "low": null,
+          "high": null,
+          "price_error_pct": null,
+          "gain_error_pp": null,
+          "interval_hit": null,
+          "state": "uncertain",
+          "state_label": "无法判断",
+          "recent_coverage": null,
+          "reason": "缺少发行盈利口径或至少两家有事前日期的有效可比公司",
+          "peer_count": 1,
+          "history_count": 47
+        }
+      }
+    },
+    {
+      "code": "920289",
+      "name": "华汇智能",
+      "date": "2026-09-04",
+      "issue": 17.71,
+      "actual_vwap": 37.398690810490365,
+      "cooling_subset": true,
+      "aftermarket_proxy": {
+        "weak": true,
+        "listing_dates": [
+          "2026-08-21",
+          "2026-08-28",
+          "2026-09-03"
+        ],
+        "observations": [
+          {
+            "code": "920093",
+            "mean_return_pct": -28.30958729301919,
+            "dates": [
+              "2026-08-24",
+              "2026-08-25"
+            ]
+          },
+          {
+            "code": "920288",
+            "mean_return_pct": -27.56187404383127,
+            "dates": [
+              "2026-08-31",
+              "2026-09-01"
+            ]
+          }
+        ]
+      },
+      "models": {
+        "proxy": {
+          "available": true,
+          "fundamental": 49.5699178418946,
+          "center": 45.21164150721788,
+          "low": 40.69047735649609,
+          "high": 49.73280565793967,
+          "price_error_pct": 20.890973794558533,
+          "gain_error_pp": 44.116040071866244,
+          "interval_hit": false,
+          "state": "weak_aftermarket",
+          "state_label": "承接偏弱，净情绪待确认",
+          "recent_coverage": 0.3333333333333333,
+          "reason": null,
+          "peer_count": 3,
+          "history_count": 47
+        },
+        "stage2": {
+          "available": true,
+          "fundamental": 49.5699178418946,
+          "center": 45.21164150721788,
+          "low": 40.69047735649609,
+          "high": 49.73280565793967,
+          "price_error_pct": 20.890973794558533,
+          "gain_error_pp": 44.116040071866244,
+          "interval_hit": false,
+          "state": "weak_aftermarket",
+          "state_label": "承接偏弱，净情绪待确认",
+          "recent_coverage": 0.3333333333333333,
+          "reason": null,
+          "peer_count": 3,
+          "history_count": 47
+        },
+        "ttm_expanded": {
+          "available": true,
+          "fundamental": 58.739896455373625,
+          "center": 49.61420715225652,
+          "low": 44.65278643703087,
+          "high": 54.575627867482176,
+          "price_error_pct": 32.662951769262705,
+          "gain_error_pp": 68.97524755373323,
+          "interval_hit": false,
+          "state": "divergent",
+          "state_label": "溢价与承接分化",
+          "recent_coverage": 0.6666666666666666,
+          "reason": null,
+          "peer_count": 3,
+          "history_count": 48
+        },
+        "cycle_sensitivity": {
+          "available": true,
+          "fundamental": 58.739896455373625,
+          "center": 49.61420715225652,
+          "low": 44.65278643703087,
+          "high": 54.575627867482176,
+          "price_error_pct": 32.662951769262705,
+          "gain_error_pp": 68.97524755373323,
+          "interval_hit": false,
+          "state": "divergent",
+          "state_label": "溢价与承接分化",
+          "recent_coverage": 0.6666666666666666,
+          "reason": null,
+          "peer_count": 3,
+          "history_count": 48
+        },
+        "proxy_same_history": {
+          "available": true,
+          "fundamental": 49.5699178418946,
+          "center": 47.66479338753015,
+          "low": 42.89831404877714,
+          "high": 52.431272726283176,
+          "price_error_pct": 27.450433035372825,
+          "gain_error_pp": 57.967829345227486,
+          "interval_hit": false,
+          "state": "divergent",
+          "state_label": "溢价与承接分化",
+          "recent_coverage": 0.6666666666666666,
+          "reason": null,
+          "peer_count": 3,
+          "history_count": 48
+        }
+      }
+    },
+    {
+      "code": "920269",
+      "name": "杰锋动力",
+      "date": "2026-09-07",
+      "issue": 30.7,
+      "actual_vwap": 44.792345000255565,
+      "cooling_subset": false,
+      "aftermarket_proxy": {
+        "weak": false,
+        "listing_dates": [
+          "2026-08-28",
+          "2026-09-03",
+          "2026-09-04"
+        ],
+        "observations": [
+          {
+            "code": "920288",
+            "mean_return_pct": -27.56187404383127,
+            "dates": [
+              "2026-08-31",
+              "2026-09-01"
+            ]
+          },
+          {
+            "code": "920071",
+            "mean_return_pct": 3.91883629993659,
+            "dates": [
+              "2026-09-04"
+            ]
+          }
+        ]
+      },
+      "models": {
+        "proxy": {
+          "available": true,
+          "fundamental": 38.26800529661016,
+          "center": 58.93995532828964,
+          "low": 53.04595979546068,
+          "high": 64.83395086111861,
+          "price_error_pct": 31.58488426527648,
+          "gain_error_pp": 46.08342126395465,
+          "interval_hit": false,
+          "state": "stable",
+          "state_label": "暂稳观察",
+          "recent_coverage": 0.6666666666666666,
+          "reason": null,
+          "peer_count": 2,
+          "history_count": 48
+        },
+        "stage2": {
+          "available": true,
+          "fundamental": 38.26800529661016,
+          "center": 58.93995532828964,
+          "low": 53.04595979546068,
+          "high": 64.83395086111861,
+          "price_error_pct": 31.58488426527648,
+          "gain_error_pp": 46.08342126395465,
+          "interval_hit": false,
+          "state": "stable",
+          "state_label": "暂稳观察",
+          "recent_coverage": 0.6666666666666666,
+          "reason": null,
+          "peer_count": 2,
+          "history_count": 48
+        },
+        "ttm_expanded": {
+          "available": true,
+          "fundamental": 45.543799325254646,
+          "center": 66.33915368338053,
+          "low": 59.70523831504248,
+          "high": 72.9730690517186,
+          "price_error_pct": 48.103774613724795,
+          "gain_error_pp": 70.18504457043963,
+          "interval_hit": false,
+          "state": "divergent",
+          "state_label": "溢价与承接分化",
+          "recent_coverage": 1.0,
+          "reason": null,
+          "peer_count": 2,
+          "history_count": 49
+        },
+        "cycle_sensitivity": {
+          "available": true,
+          "fundamental": 45.543799325254646,
+          "center": 66.33915368338053,
+          "low": 59.70523831504248,
+          "high": 72.9730690517186,
+          "price_error_pct": 48.103774613724795,
+          "gain_error_pp": 70.18504457043963,
+          "interval_hit": false,
+          "state": "divergent",
+          "state_label": "溢价与承接分化",
+          "recent_coverage": 1.0,
+          "reason": null,
+          "peer_count": 2,
+          "history_count": 49
+        },
+        "proxy_same_history": {
+          "available": true,
+          "fundamental": 38.26800529661016,
+          "center": 61.76715725825034,
+          "low": 55.59044153242531,
+          "high": 67.94387298407538,
+          "price_error_pct": 37.89668135905349,
+          "gain_error_pp": 55.292548071644234,
+          "interval_hit": false,
+          "state": "divergent",
+          "state_label": "溢价与承接分化",
+          "recent_coverage": 1.0,
+          "reason": null,
+          "peer_count": 2,
+          "history_count": 49
+        }
+      }
+    },
+    {
+      "code": "920268",
+      "name": "百迈科",
+      "date": "2026-09-09",
+      "issue": 17.1,
+      "actual_vwap": 28.493969108318783,
+      "cooling_subset": false,
+      "aftermarket_proxy": {
+        "weak": false,
+        "listing_dates": [
+          "2026-09-03",
+          "2026-09-04",
+          "2026-09-07"
+        ],
+        "observations": [
+          {
+            "code": "920071",
+            "mean_return_pct": 0.15715231832334475,
+            "dates": [
+              "2026-09-04",
+              "2026-09-07"
+            ]
+          },
+          {
+            "code": "920289",
+            "mean_return_pct": -26.213994656038658,
+            "dates": [
+              "2026-09-07",
+              "2026-09-08"
+            ]
+          },
+          {
+            "code": "920269",
+            "mean_return_pct": -19.964002778163415,
+            "dates": [
+              "2026-09-08"
+            ]
+          }
+        ]
+      },
+      "models": {
+        "proxy": {
+          "available": false,
+          "fundamental": null,
+          "center": null,
+          "low": null,
+          "high": null,
+          "price_error_pct": null,
+          "gain_error_pp": null,
+          "interval_hit": null,
+          "state": "uncertain",
+          "state_label": "无法判断",
+          "recent_coverage": null,
+          "reason": "缺少发行盈利口径或至少两家有事前日期的有效可比公司",
+          "peer_count": 1,
+          "history_count": 49
+        },
+        "stage2": {
+          "available": false,
+          "fundamental": null,
+          "center": null,
+          "low": null,
+          "high": null,
+          "price_error_pct": null,
+          "gain_error_pp": null,
+          "interval_hit": null,
+          "state": "uncertain",
+          "state_label": "无法判断",
+          "recent_coverage": null,
+          "reason": "缺少发行盈利口径或至少两家有事前日期的有效可比公司",
+          "peer_count": 1,
+          "history_count": 49
+        },
+        "ttm_expanded": {
+          "available": true,
+          "fundamental": 31.099335375446188,
+          "center": 37.10693135942915,
+          "low": 33.396238223486236,
+          "high": 40.817624495372065,
+          "price_error_pct": 30.227316588884136,
+          "gain_error_pp": 50.36820029889101,
+          "interval_hit": false,
+          "state": "cooling_watch",
+          "state_label": "降温观察",
+          "recent_coverage": 1.0,
+          "reason": null,
+          "peer_count": 11,
+          "history_count": 50
+        },
+        "cycle_sensitivity": {
+          "available": true,
+          "fundamental": 31.099335375446188,
+          "center": 37.10693135942915,
+          "low": 33.396238223486236,
+          "high": 40.817624495372065,
+          "price_error_pct": 30.227316588884136,
+          "gain_error_pp": 50.36820029889101,
+          "interval_hit": false,
+          "state": "cooling_watch",
+          "state_label": "降温观察",
+          "recent_coverage": 1.0,
+          "reason": null,
+          "peer_count": 11,
+          "history_count": 50
+        },
+        "proxy_same_history": {
+          "available": false,
+          "fundamental": null,
+          "center": null,
+          "low": null,
+          "high": null,
+          "price_error_pct": null,
+          "gain_error_pp": null,
+          "interval_hit": null,
+          "state": "uncertain",
+          "state_label": "无法判断",
+          "recent_coverage": null,
+          "reason": "缺少发行盈利口径或至少两家有事前日期的有效可比公司",
+          "peer_count": 1,
+          "history_count": 50
+        }
+      }
+    },
+    {
+      "code": "920298",
+      "name": "腾信精密",
+      "date": "2026-09-16",
+      "issue": 35.78,
+      "actual_vwap": 58.10795029080462,
+      "cooling_subset": false,
+      "aftermarket_proxy": {
+        "weak": false,
+        "listing_dates": [
+          "2026-09-04",
+          "2026-09-07",
+          "2026-09-09"
+        ],
+        "observations": [
+          {
+            "code": "920289",
+            "mean_return_pct": -26.213994656038658,
+            "dates": [
+              "2026-09-07",
+              "2026-09-08"
+            ]
+          },
+          {
+            "code": "920269",
+            "mean_return_pct": -20.74538629357884,
+            "dates": [
+              "2026-09-08",
+              "2026-09-09"
+            ]
+          },
+          {
+            "code": "920268",
+            "mean_return_pct": 34.1336472104257,
+            "dates": [
+              "2026-09-10",
+              "2026-09-11"
+            ]
+          }
+        ]
+      },
+      "models": {
+        "proxy": {
+          "available": true,
+          "fundamental": 131.24632703802536,
+          "center": 64.15960058743252,
+          "low": 57.74364052868927,
+          "high": 70.57556064617577,
+          "price_error_pct": 10.414496237334259,
+          "gain_error_pp": 16.913499990575474,
+          "interval_hit": true,
+          "state": "uncertain",
+          "state_label": "无法判断",
+          "recent_coverage": 0.6666666666666666,
+          "reason": null,
+          "peer_count": 4,
+          "history_count": 49
+        },
+        "stage2": {
+          "available": true,
+          "fundamental": 131.24632703802536,
+          "center": 64.15960058743252,
+          "low": 57.74364052868927,
+          "high": 70.57556064617577,
+          "price_error_pct": 10.414496237334259,
+          "gain_error_pp": 16.913499990575474,
+          "interval_hit": true,
+          "state": "uncertain",
+          "state_label": "无法判断",
+          "recent_coverage": 0.6666666666666666,
+          "reason": null,
+          "peer_count": 4,
+          "history_count": 49
+        },
+        "ttm_expanded": {
+          "available": true,
+          "fundamental": 139.88996525092335,
+          "center": 64.72520290755043,
+          "low": 58.25268261679538,
+          "high": 71.19772319830547,
+          "price_error_pct": 11.387861013216583,
+          "gain_error_pp": 18.494277855633896,
+          "interval_hit": false,
+          "state": "cooling_watch",
+          "state_label": "降温观察",
+          "recent_coverage": 1.0,
+          "reason": null,
+          "peer_count": 4,
+          "history_count": 51
+        },
+        "cycle_sensitivity": {
+          "available": true,
+          "fundamental": 139.88996525092335,
+          "center": 64.72520290755043,
+          "low": 58.25268261679538,
+          "high": 71.19772319830547,
+          "price_error_pct": 11.387861013216583,
+          "gain_error_pp": 18.494277855633896,
+          "interval_hit": false,
+          "state": "cooling_watch",
+          "state_label": "降温观察",
+          "recent_coverage": 1.0,
+          "reason": null,
+          "peer_count": 4,
+          "history_count": 51
+        },
+        "proxy_same_history": {
+          "available": true,
+          "fundamental": 131.24632703802536,
+          "center": 64.13683620648445,
+          "low": 57.723152585836004,
+          "high": 70.5505198271329,
+          "price_error_pct": 10.37532021953609,
+          "gain_error_pp": 16.849876790608803,
+          "interval_hit": true,
+          "state": "cooling_watch",
+          "state_label": "降温观察",
+          "recent_coverage": 1.0,
+          "reason": null,
+          "peer_count": 4,
+          "history_count": 51
+        }
+      }
+    },
+    {
+      "code": "920229",
+      "name": "世纪数码",
+      "date": "2026-09-22",
+      "issue": 15.67,
+      "actual_vwap": 68.74499595763183,
+      "cooling_subset": false,
+      "aftermarket_proxy": {
+        "weak": false,
+        "listing_dates": [
+          "2026-09-07",
+          "2026-09-09",
+          "2026-09-16"
+        ],
+        "observations": [
+          {
+            "code": "920269",
+            "mean_return_pct": -20.74538629357884,
+            "dates": [
+              "2026-09-08",
+              "2026-09-09"
+            ]
+          },
+          {
+            "code": "920268",
+            "mean_return_pct": 34.1336472104257,
+            "dates": [
+              "2026-09-10",
+              "2026-09-11"
+            ]
+          },
+          {
+            "code": "920298",
+            "mean_return_pct": 37.743629915416335,
+            "dates": [
+              "2026-09-17",
+              "2026-09-18"
+            ]
+          }
+        ]
+      },
+      "models": {
+        "proxy": {
+          "available": false,
+          "fundamental": null,
+          "center": null,
+          "low": null,
+          "high": null,
+          "price_error_pct": null,
+          "gain_error_pp": null,
+          "interval_hit": null,
+          "state": "uncertain",
+          "state_label": "无法判断",
+          "recent_coverage": null,
+          "reason": "缺少发行盈利口径或至少两家有事前日期的有效可比公司",
+          "peer_count": 1,
+          "history_count": 50
+        },
+        "stage2": {
+          "available": false,
+          "fundamental": null,
+          "center": null,
+          "low": null,
+          "high": null,
+          "price_error_pct": null,
+          "gain_error_pp": null,
+          "interval_hit": null,
+          "state": "uncertain",
+          "state_label": "无法判断",
+          "recent_coverage": null,
+          "reason": "缺少发行盈利口径或至少两家有事前日期的有效可比公司",
+          "peer_count": 1,
+          "history_count": 50
+        },
+        "ttm_expanded": {
+          "available": false,
+          "fundamental": null,
+          "center": null,
+          "low": null,
+          "high": null,
+          "price_error_pct": null,
+          "gain_error_pp": null,
+          "interval_hit": null,
+          "state": "uncertain",
+          "state_label": "无法判断",
+          "recent_coverage": null,
+          "reason": "正盈利有效可比不足两家",
+          "peer_count": null,
+          "history_count": 52
+        },
+        "cycle_sensitivity": {
+          "available": false,
+          "fundamental": null,
+          "center": null,
+          "low": null,
+          "high": null,
+          "price_error_pct": null,
+          "gain_error_pp": null,
+          "interval_hit": null,
+          "state": "uncertain",
+          "state_label": "无法判断",
+          "recent_coverage": null,
+          "reason": "正盈利有效可比不足两家",
+          "peer_count": null,
+          "history_count": 52
+        },
+        "proxy_same_history": {
+          "available": false,
+          "fundamental": null,
+          "center": null,
+          "low": null,
+          "high": null,
+          "price_error_pct": null,
+          "gain_error_pp": null,
+          "interval_hit": null,
+          "state": "uncertain",
+          "state_label": "无法判断",
+          "recent_coverage": null,
+          "reason": "缺少发行盈利口径或至少两家有事前日期的有效可比公司",
+          "peer_count": 1,
+          "history_count": 52
+        }
+      }
+    },
+    {
+      "code": "920025",
+      "name": "凯达重工",
+      "date": "2026-09-23",
+      "issue": 4.26,
+      "actual_vwap": 31.40242614026083,
+      "cooling_subset": false,
+      "aftermarket_proxy": {
+        "weak": false,
+        "listing_dates": [
+          "2026-09-09",
+          "2026-09-16",
+          "2026-09-22"
+        ],
+        "observations": [
+          {
+            "code": "920268",
+            "mean_return_pct": 34.1336472104257,
+            "dates": [
+              "2026-09-10",
+              "2026-09-11"
+            ]
+          },
+          {
+            "code": "920298",
+            "mean_return_pct": 37.743629915416335,
+            "dates": [
+              "2026-09-17",
+              "2026-09-18"
+            ]
+          }
+        ]
+      },
+      "models": {
+        "proxy": {
+          "available": true,
+          "fundamental": 23.592664818313953,
+          "center": 11.581204230482127,
+          "low": 10.423083807433915,
+          "high": 12.73932465353034,
+          "price_error_pct": -63.12003353258764,
+          "gain_error_pp": -465.2868992905798,
+          "interval_hit": false,
+          "state": "uncertain",
+          "state_label": "无法判断",
+          "recent_coverage": 0.3333333333333333,
+          "reason": null,
+          "peer_count": 2,
+          "history_count": 50
+        },
+        "stage2": {
+          "available": false,
+          "fundamental": null,
+          "center": null,
+          "low": null,
+          "high": null,
+          "price_error_pct": null,
+          "gain_error_pp": null,
+          "interval_hit": null,
+          "state": "uncertain",
+          "state_label": "无法判断",
+          "recent_coverage": null,
+          "reason": "正盈利有效可比不足两家",
+          "peer_count": null,
+          "history_count": 50
+        },
+        "ttm_expanded": {
+          "available": true,
+          "fundamental": 12.757057000468494,
+          "center": 9.736760706129878,
+          "low": 8.763084635516892,
+          "high": 10.710436776742867,
+          "price_error_pct": -68.99360367049331,
+          "gain_error_pp": -508.58369563687677,
+          "interval_hit": false,
+          "state": "cooling_watch",
+          "state_label": "降温观察",
+          "recent_coverage": 0.6666666666666666,
+          "reason": null,
+          "peer_count": 2,
+          "history_count": 52
+        },
+        "cycle_sensitivity": {
+          "available": true,
+          "fundamental": 50.548462692634814,
+          "center": 13.438617232941052,
+          "low": 12.094755509646948,
+          "high": 14.782478956235158,
+          "price_error_pct": -57.2051625154163,
+          "gain_error_pp": -421.68565510140326,
+          "interval_hit": false,
+          "state": "cooling_watch",
+          "state_label": "降温观察",
+          "recent_coverage": 0.6666666666666666,
+          "reason": null,
+          "peer_count": 3,
+          "history_count": 52
+        },
+        "proxy_same_history": {
+          "available": true,
+          "fundamental": 23.592664818313953,
+          "center": 11.172699947451969,
+          "low": 10.055429952706772,
+          "high": 12.289969942197168,
+          "price_error_pct": -64.42090207441797,
+          "gain_error_pp": -474.8762017091282,
+          "interval_hit": false,
+          "state": "cooling_watch",
+          "state_label": "降温观察",
+          "recent_coverage": 0.6666666666666666,
+          "reason": null,
+          "peer_count": 2,
+          "history_count": 52
+        }
+      }
+    },
+    {
+      "code": "920201",
+      "name": "百瑞吉",
+      "date": "2026-09-24",
+      "issue": 16.77,
+      "actual_vwap": 82.24977934833652,
+      "cooling_subset": false,
+      "aftermarket_proxy": {
+        "weak": false,
+        "listing_dates": [
+          "2026-09-16",
+          "2026-09-22",
+          "2026-09-23"
+        ],
+        "observations": [
+          {
+            "code": "920298",
+            "mean_return_pct": 37.743629915416335,
+            "dates": [
+              "2026-09-17",
+              "2026-09-18"
+            ]
+          },
+          {
+            "code": "920229",
+            "mean_return_pct": 34.40978315999461,
+            "dates": [
+              "2026-09-23"
+            ]
+          }
+        ]
+      },
+      "models": {
+        "proxy": {
+          "available": false,
+          "fundamental": null,
+          "center": null,
+          "low": null,
+          "high": null,
+          "price_error_pct": null,
+          "gain_error_pp": null,
+          "interval_hit": null,
+          "state": "uncertain",
+          "state_label": "无法判断",
+          "recent_coverage": null,
+          "reason": "缺少发行盈利口径或至少两家有事前日期的有效可比公司",
+          "peer_count": 0,
+          "history_count": 51
+        },
+        "stage2": {
+          "available": false,
+          "fundamental": null,
+          "center": null,
+          "low": null,
+          "high": null,
+          "price_error_pct": null,
+          "gain_error_pp": null,
+          "interval_hit": null,
+          "state": "uncertain",
+          "state_label": "无法判断",
+          "recent_coverage": null,
+          "reason": "缺少发行盈利口径或至少两家有事前日期的有效可比公司",
+          "peer_count": 0,
+          "history_count": 50
+        },
+        "ttm_expanded": {
+          "available": true,
+          "fundamental": 81.72517096109867,
+          "center": 66.44352431527274,
+          "low": 59.799171883745466,
+          "high": 73.08787674680002,
+          "price_error_pct": -19.21738290156696,
+          "gain_error_pp": -94.25316060264626,
+          "interval_hit": false,
+          "state": "recovery_watch",
+          "state_label": "修复待确认",
+          "recent_coverage": 0.6666666666666666,
+          "reason": null,
+          "peer_count": 2,
+          "history_count": 53
+        },
+        "cycle_sensitivity": {
+          "available": true,
+          "fundamental": 81.72517096109867,
+          "center": 54.78519944550453,
+          "low": 49.30667950095408,
+          "high": 60.26371939005499,
+          "price_error_pct": -33.391676087684786,
+          "gain_error_pp": -163.7720924438401,
+          "interval_hit": false,
+          "state": "recovery_watch",
+          "state_label": "修复待确认",
+          "recent_coverage": 0.6666666666666666,
+          "reason": null,
+          "peer_count": 2,
+          "history_count": 53
+        },
+        "proxy_same_history": {
+          "available": false,
+          "fundamental": null,
+          "center": null,
+          "low": null,
+          "high": null,
+          "price_error_pct": null,
+          "gain_error_pp": null,
+          "interval_hit": null,
+          "state": "uncertain",
+          "state_label": "无法判断",
+          "recent_coverage": null,
+          "reason": "缺少发行盈利口径或至少两家有事前日期的有效可比公司",
+          "peer_count": 0,
+          "history_count": 53
+        }
+      }
+    },
+    {
+      "code": "920202",
+      "name": "安达股份",
+      "date": "2026-09-29",
+      "issue": 7.55,
+      "actual_vwap": 27.984159658343,
+      "cooling_subset": false,
+      "aftermarket_proxy": {
+        "weak": true,
+        "listing_dates": [
+          "2026-09-23",
+          "2026-09-24",
+          "2026-09-28"
+        ],
+        "observations": [
+          {
+            "code": "920025",
+            "mean_return_pct": -43.475704963945915,
+            "dates": [
+              "2026-09-24",
+              "2026-09-28"
+            ]
+          },
+          {
+            "code": "920201",
+            "mean_return_pct": -36.76578780870384,
+            "dates": [
+              "2026-09-28"
+            ]
+          }
+        ]
+      },
+      "models": {
+        "proxy": {
+          "available": true,
+          "fundamental": 10.789010120370369,
+          "center": 24.47156896570773,
+          "low": 22.024412069136957,
+          "high": 26.918725862278503,
+          "price_error_pct": -12.552067796640276,
+          "gain_error_pp": -46.524380034904254,
+          "interval_hit": false,
+          "state": "uncertain",
+          "state_label": "无法判断",
+          "recent_coverage": 0.3333333333333333,
+          "reason": null,
+          "peer_count": 4,
+          "history_count": 51
+        },
+        "stage2": {
+          "available": true,
+          "fundamental": 11.520600864748198,
+          "center": 16.566797718527212,
+          "low": 14.910117946674491,
+          "high": 18.223477490379935,
+          "price_error_pct": -40.79937392871433,
+          "gain_error_pp": -151.2233369512025,
+          "interval_hit": false,
+          "state": "uncertain",
+          "state_label": "无法判断",
+          "recent_coverage": 0.0,
+          "reason": null,
+          "peer_count": 5,
+          "history_count": 50
+        },
+        "ttm_expanded": {
+          "available": true,
+          "fundamental": 11.520600864748198,
+          "center": 21.54146305402237,
+          "low": 19.387316748620133,
+          "high": 23.69560935942461,
+          "price_error_pct": -23.022655255612978,
+          "gain_error_pp": -85.3337298585514,
+          "interval_hit": false,
+          "state": "divergent",
+          "state_label": "溢价与承接分化",
+          "recent_coverage": 0.6666666666666666,
+          "reason": null,
+          "peer_count": 5,
+          "history_count": 54
+        },
+        "cycle_sensitivity": {
+          "available": true,
+          "fundamental": 11.520600864748198,
+          "center": 18.446907908709054,
+          "low": 16.602217117838148,
+          "high": 20.29159869957996,
+          "price_error_pct": -34.080893855930306,
+          "gain_error_pp": -126.32121522693969,
+          "interval_hit": false,
+          "state": "divergent",
+          "state_label": "溢价与承接分化",
+          "recent_coverage": 0.6666666666666666,
+          "reason": null,
+          "peer_count": 5,
+          "history_count": 54
+        },
+        "proxy_same_history": {
+          "available": true,
+          "fundamental": 10.789010120370369,
+          "center": 21.706960563814864,
+          "low": 19.536264507433376,
+          "high": 23.87765662019635,
+          "price_error_pct": -22.431258151633283,
+          "gain_error_pp": -83.14170986129982,
+          "interval_hit": false,
+          "state": "divergent",
+          "state_label": "溢价与承接分化",
+          "recent_coverage": 0.6666666666666666,
+          "reason": null,
+          "peer_count": 4,
+          "history_count": 54
+        }
+      }
+    },
+    {
+      "code": "920157",
+      "name": "宇特光电",
+      "date": "2026-10-09",
+      "issue": 13.75,
+      "actual_vwap": 78.57959808353718,
+      "cooling_subset": false,
+      "aftermarket_proxy": {
+        "weak": true,
+        "listing_dates": [
+          "2026-09-24",
+          "2026-09-28",
+          "2026-09-29"
+        ],
+        "observations": [
+          {
+            "code": "920201",
+            "mean_return_pct": -40.40105591968202,
+            "dates": [
+              "2026-09-28",
+              "2026-09-29"
+            ]
+          },
+          {
+            "code": "920202",
+            "mean_return_pct": -41.71702777882969,
+            "dates": [
+              "2026-09-30",
+              "2026-10-08"
+            ]
+          }
+        ]
+      },
+      "models": {
+        "proxy": {
+          "available": true,
+          "fundamental": 52.6707440376918,
+          "center": 62.12451171520384,
+          "low": 55.91206054368345,
+          "high": 68.33696288672422,
+          "price_error_pct": -20.940659878204137,
+          "gain_error_pp": -119.67335540606065,
+          "interval_hit": false,
+          "state": "uncertain",
+          "state_label": "无法判断",
+          "recent_coverage": 0.6666666666666666,
+          "reason": null,
+          "peer_count": 4,
+          "history_count": 52
+        },
+        "stage2": {
+          "available": true,
+          "fundamental": 79.53986537486578,
+          "center": 56.921928028441535,
+          "low": 51.22973522559738,
+          "high": 62.614120831285696,
+          "price_error_pct": -27.561441625180617,
+          "gain_error_pp": -157.51032767342286,
+          "interval_hit": false,
+          "state": "weak_aftermarket",
+          "state_label": "承接偏弱，净情绪待确认",
+          "recent_coverage": 0.3333333333333333,
+          "reason": null,
+          "peer_count": 4,
+          "history_count": 51
+        },
+        "ttm_expanded": {
+          "available": true,
+          "fundamental": 79.53986537486578,
+          "center": 62.13932462933309,
+          "low": 55.92539216639978,
+          "high": 68.3532570922664,
+          "price_error_pct": -20.921809038430816,
+          "gain_error_pp": -119.56562512148427,
+          "interval_hit": false,
+          "state": "divergent",
+          "state_label": "溢价与承接分化",
+          "recent_coverage": 1.0,
+          "reason": null,
+          "peer_count": 4,
+          "history_count": 55
+        },
+        "cycle_sensitivity": {
+          "available": true,
+          "fundamental": 79.53986537486578,
+          "center": 57.72994762680671,
+          "low": 51.956952864126045,
+          "high": 63.50294238948739,
+          "price_error_pct": -26.533159961654952,
+          "gain_error_pp": -151.6338215034943,
+          "interval_hit": false,
+          "state": "divergent",
+          "state_label": "溢价与承接分化",
+          "recent_coverage": 1.0,
+          "reason": null,
+          "peer_count": 4,
+          "history_count": 55
+        },
+        "proxy_same_history": {
+          "available": true,
+          "fundamental": 52.6707440376918,
+          "center": 58.445064169785,
+          "low": 52.6005577528065,
+          "high": 64.2895705867635,
+          "price_error_pct": -25.623106257615824,
+          "gain_error_pp": -146.43297391819766,
+          "interval_hit": false,
+          "state": "divergent",
+          "state_label": "溢价与承接分化",
+          "recent_coverage": 1.0,
+          "reason": null,
+          "peer_count": 4,
+          "history_count": 55
+        }
+      }
+    }
+  ],
+  "all_available": {
+    "proxy": {
+      "count": 6,
+      "cohort_count": 10,
+      "mean_positive_price_error_pct": 10.481725716194878,
+      "overestimate_gt_10pct_count": 3,
+      "underestimate_gt_10pct_count": 3,
+      "price_mape_pct": 26.58385258410022,
+      "gain_mae_pp": 123.09959934299017,
+      "interval_hit_count": 1,
+      "warning_count": 1,
+      "warning_followed_by_underestimate_count": 0
+    },
+    "stage2": {
+      "count": 5,
+      "cohort_count": 10,
+      "mean_positive_price_error_pct": 12.578070859433854,
+      "overestimate_gt_10pct_count": 3,
+      "underestimate_gt_10pct_count": 2,
+      "price_mape_pct": 26.250233970212843,
+      "gain_mae_pp": 83.16932519020435,
+      "interval_hit_count": 1,
+      "warning_count": 2,
+      "warning_followed_by_underestimate_count": 1
+    },
+    "ttm_expanded": {
+      "count": 9,
+      "cohort_count": 10,
+      "mean_positive_price_error_pct": 13.59798933167647,
+      "overestimate_gt_10pct_count": 4,
+      "underestimate_gt_10pct_count": 5,
+      "price_mape_pct": 30.346946845892447,
+      "gain_mae_pp": 118.59457419595994,
+      "interval_hit_count": 0,
+      "warning_count": 3,
+      "warning_followed_by_underestimate_count": 1
+    },
+    "cycle_sensitivity": {
+      "count": 9,
+      "cohort_count": 10,
+      "mean_positive_price_error_pct": 13.59798933167647,
+      "overestimate_gt_10pct_count": 4,
+      "underestimate_gt_10pct_count": 5,
+      "price_mape_pct": 32.464218129734924,
+      "gain_mae_pp": 124.78086009108424,
+      "interval_hit_count": 0,
+      "warning_count": 3,
+      "warning_followed_by_underestimate_count": 1
+    },
+    "proxy_same_history": {
+      "count": 6,
+      "cohort_count": 10,
+      "mean_positive_price_error_pct": 12.620405768993734,
+      "overestimate_gt_10pct_count": 3,
+      "underestimate_gt_10pct_count": 3,
+      "price_mape_pct": 31.36628351627158,
+      "gain_mae_pp": 139.09352328268437,
+      "interval_hit_count": 1,
+      "warning_count": 2,
+      "warning_followed_by_underestimate_count": 1
+    }
+  },
+  "common_proxy_ttm_codes": [
+    "920289",
+    "920269",
+    "920298",
+    "920025",
+    "920202",
+    "920157"
+  ],
+  "common_proxy_ttm": {
+    "proxy": {
+      "count": 6,
+      "cohort_count": 6,
+      "mean_positive_price_error_pct": 10.481725716194878,
+      "overestimate_gt_10pct_count": 3,
+      "underestimate_gt_10pct_count": 3,
+      "price_mape_pct": 26.58385258410022,
+      "gain_mae_pp": 123.09959934299017,
+      "interval_hit_count": 1,
+      "warning_count": 1,
+      "warning_followed_by_underestimate_count": 0
+    },
+    "stage2": {
+      "count": 5,
+      "cohort_count": 6,
+      "mean_positive_price_error_pct": 12.578070859433854,
+      "overestimate_gt_10pct_count": 3,
+      "underestimate_gt_10pct_count": 2,
+      "price_mape_pct": 26.250233970212843,
+      "gain_mae_pp": 83.16932519020435,
+      "interval_hit_count": 1,
+      "warning_count": 2,
+      "warning_followed_by_underestimate_count": 1
+    },
+    "ttm_expanded": {
+      "count": 6,
+      "cohort_count": 6,
+      "mean_positive_price_error_pct": 15.359097899367347,
+      "overestimate_gt_10pct_count": 3,
+      "underestimate_gt_10pct_count": 3,
+      "price_mape_pct": 34.182109226790196,
+      "gain_mae_pp": 145.18960343278653,
+      "interval_hit_count": 0,
+      "warning_count": 2,
+      "warning_followed_by_underestimate_count": 1
+    },
+    "cycle_sensitivity": {
+      "count": 6,
+      "cohort_count": 6,
+      "mean_positive_price_error_pct": 15.359097899367347,
+      "overestimate_gt_10pct_count": 3,
+      "underestimate_gt_10pct_count": 3,
+      "price_mape_pct": 34.99563395486761,
+      "gain_mae_pp": 142.882543635274,
+      "interval_hit_count": 0,
+      "warning_count": 2,
+      "warning_followed_by_underestimate_count": 1
+    },
+    "proxy_same_history": {
+      "count": 6,
+      "cohort_count": 6,
+      "mean_positive_price_error_pct": 12.620405768993734,
+      "overestimate_gt_10pct_count": 3,
+      "underestimate_gt_10pct_count": 3,
+      "price_mape_pct": 31.36628351627158,
+      "gain_mae_pp": 139.09352328268437,
+      "interval_hit_count": 1,
+      "warning_count": 2,
+      "warning_followed_by_underestimate_count": 1
+    }
+  },
+  "common_stage2_codes": [
+    "920289",
+    "920269",
+    "920298",
+    "920202",
+    "920157"
+  ],
+  "common_stage2": {
+    "proxy": {
+      "count": 5,
+      "cohort_count": 5,
+      "mean_positive_price_error_pct": 12.578070859433854,
+      "overestimate_gt_10pct_count": 3,
+      "underestimate_gt_10pct_count": 2,
+      "price_mape_pct": 19.276616394402737,
+      "gain_mae_pp": 54.662139353472256,
+      "interval_hit_count": 1,
+      "warning_count": 1,
+      "warning_followed_by_underestimate_count": 0
+    },
+    "stage2": {
+      "count": 5,
+      "cohort_count": 5,
+      "mean_positive_price_error_pct": 12.578070859433854,
+      "overestimate_gt_10pct_count": 3,
+      "underestimate_gt_10pct_count": 2,
+      "price_mape_pct": 26.250233970212843,
+      "gain_mae_pp": 83.16932519020435,
+      "interval_hit_count": 1,
+      "warning_count": 2,
+      "warning_followed_by_underestimate_count": 1
+    },
+    "ttm_expanded": {
+      "count": 5,
+      "cohort_count": 5,
+      "mean_positive_price_error_pct": 18.430917479240815,
+      "overestimate_gt_10pct_count": 3,
+      "underestimate_gt_10pct_count": 2,
+      "price_mape_pct": 27.219810338049577,
+      "gain_mae_pp": 72.51078499196848,
+      "interval_hit_count": 0,
+      "warning_count": 1,
+      "warning_followed_by_underestimate_count": 0
+    },
+    "cycle_sensitivity": {
+      "count": 5,
+      "cohort_count": 5,
+      "mean_positive_price_error_pct": 18.430917479240815,
+      "overestimate_gt_10pct_count": 3,
+      "underestimate_gt_10pct_count": 2,
+      "price_mape_pct": 30.553728242757867,
+      "gain_mae_pp": 87.12192134204814,
+      "interval_hit_count": 0,
+      "warning_count": 1,
+      "warning_followed_by_underestimate_count": 0
+    },
+    "proxy_same_history": {
+      "count": 5,
+      "cohort_count": 5,
+      "mean_positive_price_error_pct": 15.144486922792481,
+      "overestimate_gt_10pct_count": 3,
+      "underestimate_gt_10pct_count": 2,
+      "price_mape_pct": 24.755359804642303,
+      "gain_mae_pp": 71.9369875973956,
+      "interval_hit_count": 1,
+      "warning_count": 1,
+      "warning_followed_by_underestimate_count": 0
+    }
+  },
+  "cooling_codes": [
+    "920071",
+    "920289"
+  ],
+  "cooling_common": {
+    "proxy": {
+      "count": 1,
+      "cohort_count": 1,
+      "mean_positive_price_error_pct": 20.890973794558533,
+      "overestimate_gt_10pct_count": 1,
+      "underestimate_gt_10pct_count": 0,
+      "price_mape_pct": 20.890973794558533,
+      "gain_mae_pp": 44.116040071866244,
+      "interval_hit_count": 0,
+      "warning_count": 1,
+      "warning_followed_by_underestimate_count": 0
+    },
+    "stage2": {
+      "count": 1,
+      "cohort_count": 1,
+      "mean_positive_price_error_pct": 20.890973794558533,
+      "overestimate_gt_10pct_count": 1,
+      "underestimate_gt_10pct_count": 0,
+      "price_mape_pct": 20.890973794558533,
+      "gain_mae_pp": 44.116040071866244,
+      "interval_hit_count": 0,
+      "warning_count": 1,
+      "warning_followed_by_underestimate_count": 0
+    },
+    "ttm_expanded": {
+      "count": 1,
+      "cohort_count": 1,
+      "mean_positive_price_error_pct": 32.662951769262705,
+      "overestimate_gt_10pct_count": 1,
+      "underestimate_gt_10pct_count": 0,
+      "price_mape_pct": 32.662951769262705,
+      "gain_mae_pp": 68.97524755373323,
+      "interval_hit_count": 0,
+      "warning_count": 0,
+      "warning_followed_by_underestimate_count": 0
+    },
+    "cycle_sensitivity": {
+      "count": 1,
+      "cohort_count": 1,
+      "mean_positive_price_error_pct": 32.662951769262705,
+      "overestimate_gt_10pct_count": 1,
+      "underestimate_gt_10pct_count": 0,
+      "price_mape_pct": 32.662951769262705,
+      "gain_mae_pp": 68.97524755373323,
+      "interval_hit_count": 0,
+      "warning_count": 0,
+      "warning_followed_by_underestimate_count": 0
+    },
+    "proxy_same_history": {
+      "count": 1,
+      "cohort_count": 1,
+      "mean_positive_price_error_pct": 27.450433035372825,
+      "overestimate_gt_10pct_count": 1,
+      "underestimate_gt_10pct_count": 0,
+      "price_mape_pct": 27.450433035372825,
+      "gain_mae_pp": 57.967829345227486,
+      "interval_hit_count": 0,
+      "warning_count": 0,
+      "warning_followed_by_underestimate_count": 0
+    }
+  },
+  "cooling_all": {
+    "proxy": {
+      "count": 1,
+      "cohort_count": 2,
+      "mean_positive_price_error_pct": 20.890973794558533,
+      "overestimate_gt_10pct_count": 1,
+      "underestimate_gt_10pct_count": 0,
+      "price_mape_pct": 20.890973794558533,
+      "gain_mae_pp": 44.116040071866244,
+      "interval_hit_count": 0,
+      "warning_count": 1,
+      "warning_followed_by_underestimate_count": 0
+    },
+    "stage2": {
+      "count": 1,
+      "cohort_count": 2,
+      "mean_positive_price_error_pct": 20.890973794558533,
+      "overestimate_gt_10pct_count": 1,
+      "underestimate_gt_10pct_count": 0,
+      "price_mape_pct": 20.890973794558533,
+      "gain_mae_pp": 44.116040071866244,
+      "interval_hit_count": 0,
+      "warning_count": 1,
+      "warning_followed_by_underestimate_count": 0
+    },
+    "ttm_expanded": {
+      "count": 2,
+      "cohort_count": 2,
+      "mean_positive_price_error_pct": 16.331475884631352,
+      "overestimate_gt_10pct_count": 1,
+      "underestimate_gt_10pct_count": 1,
+      "price_mape_pct": 25.624059265551224,
+      "gain_mae_pp": 60.28371690955811,
+      "interval_hit_count": 0,
+      "warning_count": 0,
+      "warning_followed_by_underestimate_count": 0
+    },
+    "cycle_sensitivity": {
+      "count": 2,
+      "cohort_count": 2,
+      "mean_positive_price_error_pct": 16.331475884631352,
+      "overestimate_gt_10pct_count": 1,
+      "underestimate_gt_10pct_count": 1,
+      "price_mape_pct": 25.624059265551224,
+      "gain_mae_pp": 60.28371690955811,
+      "interval_hit_count": 0,
+      "warning_count": 0,
+      "warning_followed_by_underestimate_count": 0
+    },
+    "proxy_same_history": {
+      "count": 1,
+      "cohort_count": 2,
+      "mean_positive_price_error_pct": 27.450433035372825,
+      "overestimate_gt_10pct_count": 1,
+      "underestimate_gt_10pct_count": 0,
+      "price_mape_pct": 27.450433035372825,
+      "gain_mae_pp": 57.967829345227486,
+      "interval_hit_count": 0,
+      "warning_count": 0,
+      "warning_followed_by_underestimate_count": 0
+    }
+  },
+  "coverage_added": [
+    "920071",
+    "920268",
+    "920201"
+  ],
+  "coverage_lost": [],
+  "limitations": [
+    "当前供应商历史版本的事后重建；财报披露、报价、已知后续行情严格按日期截断，但不等于原始PIT",
+    "只有10例且降温子集更小，不能据此调参或确认稳定提升",
+    "预警后低估是过度保守案例检查，不代表情绪真值标签",
+    "周期参照改变盈利可用性及可比构成，不能单独归因于利润率修正"
+  ]
+}

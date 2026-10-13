@@ -1,0 +1,280 @@
+{
+  "old": {
+    "available": false,
+    "reason": "缺少发行盈利口径或至少两家有事前日期的有效可比公司",
+    "peer_count": 1,
+    "as_of": "2026-09-03"
+  },
+  "matched": {
+    "available": true,
+    "basis": "fundamental_anchor_v2",
+    "as_of": "2026-09-03",
+    "historical_pit_eligible": false,
+    "research_reconstruction": true,
+    "earnings": {
+      "net_profit_parent": {
+        "available": true,
+        "value": 214929489.47000003,
+        "metric": "net_profit_parent",
+        "end": "2026-06-30",
+        "basis": "TTM",
+        "components": {
+          "2025-12-31": 196344089.47,
+          "2026-06-30": 129565700.0,
+          "2025-06-30": 110980300.0
+        },
+        "evidence": [
+          "data/fundamental_cases/evidence/920071_p340.json",
+          "data/peer_research/api/ea4136c6d077466db782_20261012234354720966_7607da32.json",
+          "data/peer_research/workpapers/companies/920071.BJ.json"
+        ],
+        "historical_pit_eligible": false
+      },
+      "adjusted_net_profit_parent": {
+        "available": true,
+        "value": 198282759.66999996,
+        "metric": "adjusted_net_profit_parent",
+        "end": "2026-06-30",
+        "basis": "TTM",
+        "components": {
+          "2025-12-31": 184763359.67,
+          "2026-06-30": 118587300.0,
+          "2025-06-30": 105067900.0
+        },
+        "evidence": [
+          "data/fundamental_cases/evidence/920071_p14.json",
+          "data/fundamental_cases/evidence/920071_p340.json"
+        ],
+        "historical_pit_eligible": false
+      }
+    },
+    "scenarios": {
+      "net_profit_parent": {
+        "available": true,
+        "center": 20.976850192160327,
+        "low": 17.44754194527397,
+        "high": 24.50615843904669,
+        "eps": 0.842860743019608,
+        "peer_multiple": 24.88768205885267,
+        "peer_count": 2,
+        "peer_codes": [
+          "600456.SH",
+          "002601.SZ"
+        ],
+        "profit": {
+          "available": true,
+          "value": 214929489.47000003,
+          "metric": "net_profit_parent",
+          "end": "2026-06-30",
+          "basis": "TTM",
+          "components": {
+            "2025-12-31": 196344089.47,
+            "2026-06-30": 129565700.0,
+            "2025-06-30": 110980300.0
+          },
+          "evidence": [
+            "data/fundamental_cases/evidence/920071_p340.json",
+            "data/peer_research/api/ea4136c6d077466db782_20261012234354720966_7607da32.json",
+            "data/peer_research/workpapers/companies/920071.BJ.json"
+          ],
+          "historical_pit_eligible": false
+        }
+      },
+      "adjusted_net_profit_parent": {
+        "available": true,
+        "center": 23.67473495436083,
+        "low": 20.63036871256164,
+        "high": 26.719101196160025,
+        "eps": 0.7775794496862743,
+        "peer_multiple": 30.44670864683055,
+        "peer_count": 2,
+        "peer_codes": [
+          "600456.SH",
+          "002601.SZ"
+        ],
+        "profit": {
+          "available": true,
+          "value": 198282759.66999996,
+          "metric": "adjusted_net_profit_parent",
+          "end": "2026-06-30",
+          "basis": "TTM",
+          "components": {
+            "2025-12-31": 184763359.67,
+            "2026-06-30": 118587300.0,
+            "2025-06-30": 105067900.0
+          },
+          "evidence": [
+            "data/fundamental_cases/evidence/920071_p14.json",
+            "data/fundamental_cases/evidence/920071_p340.json"
+          ],
+          "historical_pit_eligible": false
+        }
+      }
+    },
+    "peer_details": [
+      {
+        "code": "600456.SH",
+        "name": "宝钛股份",
+        "match": "related",
+        "weight": 0.5,
+        "market": "SH",
+        "market_factor": 0.55,
+        "reason": "钛材及子公司海绵钛，上下游一体化与加工深度不同",
+        "trade_date": "20260902",
+        "mkt_cap_yi": 128.37881425,
+        "metrics": {
+          "net_profit_parent": {
+            "available": true,
+            "pe": 37.637063773088514,
+            "market_adjusted_pe": 20.700385075198685,
+            "profit": {
+              "available": true,
+              "value": 341096784.34000003,
+              "metric": "net_profit_parent",
+              "end": "2026-06-30",
+              "basis": "TTM",
+              "components": {
+                "2025-12-31": 400901760.98,
+                "2026-06-30": 145675887.69,
+                "2025-06-30": 205480864.33
+              },
+              "evidence": [
+                "data/peer_research/api/b742a82e7473be88de5f_20261012234343572200_a2849c26.json",
+                "data/peer_research/api/dff4e804cdeea7fa9e52_20261012234343147630_d4f932be.json",
+                "data/peer_research/api/e39ede11fd7346e18676_20261012234343367685_e9ee0355.json",
+                "data/peer_research/workpapers/companies/600456.SH.json"
+              ],
+              "historical_pit_eligible": false
+            }
+          },
+          "adjusted_net_profit_parent": {
+            "available": true,
+            "pe": 48.239136606169915,
+            "market_adjusted_pe": 26.531525133393455,
+            "profit": {
+              "available": true,
+              "value": 266130000.0,
+              "metric": "adjusted_net_profit_parent",
+              "end": "2026-06-30",
+              "basis": "TTM",
+              "components": {
+                "2025-12-31": 316590000.0,
+                "2026-06-30": 122059999.99999999,
+                "2025-06-30": 172520000.0
+              },
+              "evidence": [
+                "data/peer_research/mcp/financials_20250630_47e95b7312.json",
+                "data/peer_research/mcp/financials_20251231_47e95b7312.json",
+                "data/peer_research/mcp/financials_20260630_47e95b7312.json",
+                "data/peer_research/workpapers/companies/600456.SH.json"
+              ],
+              "historical_pit_eligible": false
+            }
+          }
+        }
+      },
+      {
+        "code": "002601.SZ",
+        "name": "龙佰集团",
+        "match": "related",
+        "weight": 0.5,
+        "market": "SZ",
+        "market_factor": 0.55,
+        "reason": "子公司云南国钛生产海绵钛，集团以钛白粉等为主；保留低匹配的钛产业参照",
+        "trade_date": "20260902",
+        "mkt_cap_yi": 371.7042632,
+        "metrics": {
+          "net_profit_parent": {
+            "available": true,
+            "pe": 52.86359825910301,
+            "market_adjusted_pe": 29.074979042506655,
+            "profit": {
+              "available": true,
+              "value": 703138407.9800003,
+              "metric": "net_profit_parent",
+              "end": "2026-06-30",
+              "basis": "TTM",
+              "components": {
+                "2025-12-31": 1244565890.88,
+                "2026-06-30": 843830644.32,
+                "2025-06-30": 1385258127.22
+              },
+              "evidence": [
+                "data/fundamental_cases/raw/stage3/002601.SZ_income_full.json",
+                "data/fundamental_cases/raw/stage3/api/403c3f64086863189cb8_20261013211929687885_0490e197.json",
+                "data/fundamental_cases/raw/stage3/api/cb12244526a6ac058e7c_20261013211929284067_84b06826.json",
+                "data/fundamental_cases/raw/stage3/api/ff49b0bfacc359c38ca7_20261013211930159382_5f7da78a.json"
+              ],
+              "historical_pit_eligible": false
+            }
+          },
+          "adjusted_net_profit_parent": {
+            "available": true,
+            "pe": 62.476167564123,
+            "market_adjusted_pe": 34.36189216026765,
+            "profit": {
+              "available": true,
+              "value": 594953688.25,
+              "metric": "adjusted_net_profit_parent",
+              "end": "2026-06-30",
+              "basis": "TTM",
+              "components": {
+                "2025-12-31": 1169553533.49,
+                "2026-06-30": 772096603.54,
+                "2025-06-30": 1346696448.78
+              },
+              "evidence": [
+                "data/fundamental_cases/raw/stage3/002601.SZ_fina_indicator.json"
+              ],
+              "historical_pit_eligible": false
+            }
+          }
+        }
+      }
+    ],
+    "coverage": {
+      "candidates": 2,
+      "usable": 2
+    },
+    "review_source": "data/fundamental_cases/cases/920071.json",
+    "cycle": {
+      "classification": "增长与盈利兑现需分开观察",
+      "normalization_approved": false,
+      "reason": "2025毛利率提升同时受原料价格下降及工艺成本改善驱动；不能将本期利润率直接认作完整周期常态。",
+      "pages": [
+        340,
+        306
+      ]
+    },
+    "stage": "matched",
+    "limitations": [
+      "市场统一折价仍为既有研究参数，需单列敏感性",
+      "前瞻与周期正常化尚无完整同口径同行估值，未加入主F",
+      "部分扣非利润仅有供应商来源，披露日/历史版本未达到真实PIT要求",
+      "当前资料历史重建不是原始事前PIT",
+      "匹配档位为固定研究规则，未按首日涨幅调参",
+      "区间是盈利口径、可比离散与绿鞋摊薄情景，不是统计置信区间"
+    ],
+    "market_policy": {
+      "SH_SZ": 0.55,
+      "BJ": 1.0,
+      "NQ": null
+    },
+    "center": 23.67473495436083,
+    "low": 17.44754194527397,
+    "high": 26.719101196160025,
+    "confidence": 0.257939093832223,
+    "peer_count": 2,
+    "peer_codes": [
+      "600456.SH",
+      "002601.SZ"
+    ],
+    "eps": 0.7775794496862743,
+    "peer_pe": 30.44670864683055,
+    "bse_discount": 0.55,
+    "earnings_basis": "扣非TTM/发行后股本 × 同行市值/扣非TTM（分市场调整）",
+    "reference_dates": [
+      "20260902"
+    ]
+  }
+}

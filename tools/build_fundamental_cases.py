@@ -10,7 +10,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'code'))
 from fundamental_anchor import VERSION, build_reviewed_anchor, ttm
 from ifind_helper import now_iso
-from peer_fundamentals import iso_day, parse_api
+from peer_fundamentals import iso_day, parse_api, parse_mcp
 import config_loader
 import quality_sentiment as qs
 import quality_sentiment_data as qdata
@@ -33,12 +33,18 @@ def ref(code, page):
 
 
 def extra_company(code):
-    income_path, fina_path = [FOLDER / 'raw' / f'{code}_{api}.json' for api in ('income_full', 'fina_indicator')]
+    raw = FOLDER / 'raw/stage3' if (FOLDER / 'raw/stage3' / f'{code}_income_full.json').exists() else FOLDER / 'raw'
+    income_path, fina_path = [raw / f'{code}_{api}.json' for api in ('income_full', 'fina_indicator')]
+    if not income_path.exists() or not fina_path.exists():
+        return {'code': code, 'records': [], 'diagnostics': {'supplement': 'missing'}}
     inc, fina = read(income_path), read(fina_path)
-    api_rows = [row for path in (FOLDER / 'raw/api').glob('*.json')
+    api_rows = [row for path in (raw / 'api').glob('*.json')
                 for row in parse_api(read(path), path.relative_to(ROOT).as_posix()) if row['code'] == code]
+    mcp_rows = [row for path in raw.glob('mcp_*.json')
+                for row in parse_mcp(read(path), path.relative_to(ROOT).as_posix())['financials'] if row['code'] == code]
     records = []
-    for period in PERIODS:
+    periods = sorted(set(PERIODS + ['2023-12-31', '2024-12-31']))
+    for period in periods:
         incomes = [r for r in inc['rows'] if iso_day(r['end_date']) == period and r.get('report_type') == '1']
         indicators = [r for r in fina['rows'] if iso_day(r['end_date']) == period]
         if not incomes:
@@ -51,14 +57,14 @@ def extra_company(code):
                             ('adjusted_net_profit_parent', 'profit_dedt')]:
             value = indicator.get(key) if key == 'profit_dedt' else row.get(key)
             paths = [(fina_path if key == 'profit_dedt' else income_path).relative_to(ROOT).as_posix()]
-            comparisons = [r for r in api_rows if r['report_period'] == period and metric in r['values']]
+            comparisons = [r for r in api_rows + mcp_rows if r['report_period'] == period and metric in r['values']]
             conflict = any(value is None or abs(r['values'][metric]['value'] - value) >
                            max(.01, r['values'][metric]['rounding_tolerance'] + .005) for r in comparisons)
             paths += [r['evidence'] for r in comparisons]
             available = max([available] + [r['retrieved_at'][:10] for r in comparisons])
             values[metric] = {'value': value, 'blocked': conflict, 'evidence': paths,
                               'independent_amount_crosschecked': bool(comparisons),
-                              'note': 'Tushare扣非单源；未将MCP失败标为复核通过' if key == 'profit_dedt' else ''}
+                              'note': 'Tushare单源；未将MCP失败标为复核通过' if not comparisons else 'Tushare与iFind金额交叉核验'}
         published = max(iso_day(row.get('f_ann_date') or row['ann_date']),
                         iso_day(indicator.get('ann_date')) or '0001-01-01')
         records.append({'period': period, 'currency': 'CNY', 'scope': 'consolidated',
@@ -68,6 +74,8 @@ def extra_company(code):
 
 
 def company(code):
+    if (FOLDER / 'raw/stage3' / f'{code}_income_full.json').exists():
+        return extra_company(code)
     path = ROOT / 'data/peer_research/workpapers/companies' / f'{code}.json'
     if not path.exists():
         return extra_company(code)
@@ -166,7 +174,7 @@ def main():
         share_base, share_max = decision.pop('shares')
         case = {**decision, 'schema': VERSION, 'code': code, 'issuer': issuer,
                 'source': f'data/fundamental_cases/cases/{code}.json',
-                'available_not_before': decisions['reviewed_at'], 'earnings_end': '2026-06-30',
+                'available_not_before': decisions['reviewed_at'], 'earnings_end': decision.get('earnings_end', '2026-06-30'),
                 'valuation_cutoff': iso_day(target.get('LISTING_DATE')) or '2026-10-13',
                 'excludes_ipo_sentiment': True, 'historical_pit_eligible': False,
                 'shares': {'basis': 'post_issue_diluted', 'post_issue_base': share_base,
@@ -180,14 +188,20 @@ def main():
                                   + [o['page'] for o in overrides]})
         for peer_code, name, match, reason in decision['peers']:
             peer = company(peer_code)
+            if peer_code == '874637.NQ':
+                peer = {**company('920201.BJ'), 'code': peer_code}
             case['peers'].append({**peer, 'name': name, 'match': match, 'reason': reason,
-                                 'match_evidence': [ref(code, p) for p in decision['business_pages']]})
+                                 'match_evidence': decision.get('peer_evidence', {}).get(peer_code)
+                                     or [ref(code, p) for p in decision['business_pages']]})
         for path in case['evidence']:
             evidence = read(ROOT / path)
             source_pdf = ROOT / evidence['source_file']
             if hashlib.sha256(source_pdf.read_bytes()).hexdigest() != evidence['source_sha256']:
                 raise ValueError('Original PDF changed: ' + path)
-        clean_target = {k: v for k, v in target.items() if k != 'fundamental_review'}
+        # The baseline must retain its ORIGINAL peer pool, even after supplements.
+        baseline_source = history.get(code, target)
+        clean_target = {k: v for k, v in baseline_source.items() if k not in
+                        {'fundamental_review', 'fundamental_case', 'fundamental_snapshot', 'sentiment_snapshot'}}
         result = build_reviewed_anchor(case, target['comparable_data'], case['valuation_cutoff'], params, reconstruction=True)
         baseline = qs.build_anchor(clean_target, case['valuation_cutoff'], params)
         write(FOLDER / 'cases' / f'{code}.json', case)
