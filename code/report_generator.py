@@ -678,6 +678,23 @@ def _prepare_report_context(all_data: dict[str, Any]) -> dict[str, Any]:
                 '基本面区间采用可比离散及盈利/股本情景；情绪区间仍保留固定宽度用于对照。'])
         if (_safe_float(sentiment.get("effective_n")) or 0) < 3:
             quality_lines.append("近期有效权重样本不足3只，情绪试算对单只股票较敏感。")
+        response_shadow = quality.get('response_shadow') or {}
+        if response_shadow:
+            candidate = response_shadow.get('sentiment') or {}
+            response = response_shadow.get('pricing_response') or {}
+            signals = response.get('signals') or {}
+            quality_rows.extend([
+                ['情绪反馈试算区间（影子）', _format_interval(candidate.get('low'), candidate.get('high')),
+                 candidate.get('reason') or '同一基本面，加入近期预测兑现与承接变化'],
+                ['反馈试算调幅', _fmt_signed_pct(response.get('price_change_pct')) if response_shadow.get('available') else '—',
+                 '相对原个股情绪中枢，尚未用于正式定价'],
+            ])
+            for key, label in [('expectation','近期预测兑现反馈'),('aftermarket','上市后承接变化反馈')]:
+                signal = signals.get(key) or {}
+                quality_rows.append([label, _fmt_signed_pct(math.expm1(signal['log_correction'])*100)
+                    if signal.get('available') else '资料不足',
+                    f"有效{signal.get('group_count',0)}个上市日组；缺资料不代表中性"])
+            quality_lines.append('反馈试算为固定规则影子实验：上涨下跌对称，整体调幅限制约-20%至+25%；没有修改PE基础或正式价格。')
         snapshot = quality.get("forward_snapshot") or {}
         if snapshot.get("previous_path"):
             quality_lines.append(f"相对上次：PE基础{_fmt_signed_pct(snapshot.get('anchor_change_pct'))}；情绪中枢{_fmt_signed_pct(snapshot.get('sentiment_change_pct'))}。")

@@ -1,0 +1,32 @@
+{
+  "status": "passed",
+  "audited_at": "2026-10-13T22:10:37.923099+08:00",
+  "frozen_inputs_verified": 39,
+  "line_ending_equivalent_inputs": [],
+  "unchanged_baseline_and_fundamentals": true,
+  "unchanged_forward_snapshot": true,
+  "validation_scripts_passed": 37,
+  "full_cohort": 63,
+  "unscored": [
+    {
+      "code": "920162",
+      "reason": "缺少首日成交均价或发行价，无法评分"
+    },
+    {
+      "code": "920196",
+      "reason": "缺少首日成交均价或发行价，无法评分"
+    }
+  ],
+  "mode": "shadow",
+  "formal_promotion": false,
+  "source_sha256_lf": {
+    "code/sentiment_pricing.py": "986a242c8ac2fb66dff0485f1ef45b79b0e07fb0275e1c69bcd2b48e80df94ec",
+    "code/bse_ipo_valuation.py": "96caf5a2b74a8492c0ed6e17dfb115b0c1c7bd4c7fca7d1b9b509443c8375fc0",
+    "code/report_generator.py": "cbc58b8d16f3ce1b4a0c7d03ba999ceeab3b05ef2d7c6e98816b7c95409a581e",
+    "tools/prepare_sentiment_pricing_protocol.py": "584181b3e008558b747c1350d7501744b5b50fc7d17e220c3e9f867bc2587b5f",
+    "tools/evaluate_sentiment_pricing.py": "e6e75197339b5689bb279532cc52e41968878209d965448d8c79d315597f7871",
+    "tools/audit_sentiment_pricing.py": "54eaf6bd27bbbf6cee1cdddbe7fbbbebb0b5132b8515287c92927ca4387fb8c8",
+    "tools/preview_quality_sentiment.py": "c85daec8ebf8cab1ee17b98547d3eb610ac5f79bf133f43fd4ef7a25f5f205df",
+    "tests/validate_sentiment_pricing.py": "7038bfd31e73becc4deaa4786184ec10f8d762a35b8f5873d4e1999265151216"
+  }
+}
