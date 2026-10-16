@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import csv
+import http.client
 import json
 import math
 import os
@@ -531,7 +532,7 @@ def _call_tushare_api(
     try:
         with urllib.request.urlopen(request, timeout=20) as response:
             body = json.loads(response.read().decode("utf-8"))
-    except urllib.error.URLError as exc:
+    except (urllib.error.URLError, OSError, http.client.HTTPException) as exc:
         reason = getattr(exc, "reason", exc)
         db.append_request_event(
             {
@@ -540,10 +541,12 @@ def _call_tushare_api(
                 "request_kind": api_name,
                 "codes": [params.get("ts_code")] if params.get("ts_code") else [],
                 "fields": fields.split(","),
-                "error_code": "url_error",
+                "error_code": "url_error" if isinstance(exc, urllib.error.URLError) else "network_error",
+                "error_type": type(exc).__name__,
+                "error_message": str(reason),
             }
         )
-        return [], f"Tushare 请求失败: {reason}"
+        return [], f"Tushare 请求失败: {type(exc).__name__}: {reason}"
     except json.JSONDecodeError:
         db.append_request_event(
             {
@@ -566,6 +569,7 @@ def _call_tushare_api(
             "codes": [params.get("ts_code")] if params.get("ts_code") else [],
             "fields": fields.split(","),
             "error_code": code,
+            "error_message": str(body.get("msg") or "") if code not in (0, None) else "",
         }
     )
 

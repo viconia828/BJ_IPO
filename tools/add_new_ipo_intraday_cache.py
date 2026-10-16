@@ -1,6 +1,9 @@
 from __future__ import annotations
 
 import argparse
+from datetime import datetime
+import json
+import logging
 from pathlib import Path
 import sys
 from typing import Any
@@ -20,6 +23,7 @@ import config_loader
 
 DEFAULT_OUTPUT_DIR = ROOT_DIR / "首日分时走势"
 DEFAULT_CACHE_ROOT = ROOT_DIR / "data" / "tushare_intraday_db"
+DEFAULT_LOG_DIR = DEFAULT_CACHE_ROOT / "logs"
 
 
 def _build_runtime_params() -> dict[str, object]:
@@ -144,17 +148,39 @@ def main() -> int:
     parser.add_argument("--output-dir", default=str(DEFAULT_OUTPUT_DIR), help="CSV 输出目录，默认 首日分时走势。")
     args = parser.parse_args()
 
-    summary = cache_listing_day_intraday.run_latest_missing_cache_job(
-        months=max(args.months, 1),
-        output_dir=args.output_dir,
-        params=_build_runtime_params(),
-        progress_callback=_emit_progress,
-    )
-    _print_summary(summary)
+    DEFAULT_LOG_DIR.mkdir(parents=True, exist_ok=True)
+    log_path = DEFAULT_LOG_DIR / f"refresh_{datetime.now():%Y%m%d_%H%M%S_%f}.log"
+    logger = logging.Logger("ipo_intraday_refresh", level=logging.INFO)
+    handler = logging.FileHandler(log_path, encoding="utf-8")
+    handler.setFormatter(logging.Formatter("%(asctime)s %(levelname)s %(message)s"))
+    logger.addHandler(handler)
 
-    if summary.get("error_count") and not summary.get("cached_count"):
+    def report_progress(event: str, payload: dict[str, Any]) -> None:
+        logger.info("%s %s", event, json.dumps(payload, ensure_ascii=False, default=str))
+        _emit_progress(event, payload)
+
+    try:
+        print(f"运行日志：{log_path}", flush=True)
+        logger.info("开始刷新：months=%s output_dir=%s", max(args.months, 1), args.output_dir)
+        summary = cache_listing_day_intraday.run_latest_missing_cache_job(
+            months=max(args.months, 1),
+            output_dir=args.output_dir,
+            params=_build_runtime_params(),
+            progress_callback=report_progress,
+        )
+        logger.info("summary %s", json.dumps(summary, ensure_ascii=False, default=str))
+        _print_summary(summary)
+
+        if summary.get("error_count") and not summary.get("cached_count"):
+            return 1
+        return 0
+    except Exception as exc:
+        logger.exception("刷新异常中止")
+        print(f"刷新失败：{type(exc).__name__}: {exc}；完整错误已保存到 {log_path}", file=sys.stderr, flush=True)
         return 1
-    return 0
+    finally:
+        logger.removeHandler(handler)
+        handler.close()
 
 
 if __name__ == "__main__":
