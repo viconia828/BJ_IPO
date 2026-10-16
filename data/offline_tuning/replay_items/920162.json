@@ -1,14 +1,14 @@
 {
   "schema": "offline_tuning_replay_item_v1",
   "cache_version": 10,
-  "generated_at": "2026-10-13 23:11:06",
+  "generated_at": "2026-10-15 20:18:44",
   "code": "920162",
-  "listing_date": "2026-09-23",
+  "listing_date": "2026-10-15 00:00:00",
   "record_signature": {
     "SECURITY_CODE": "920162",
     "SECURITY_NAME_ABBR": "莫森泰克",
-    "APPLY_DATE": "2026-09-23",
-    "LISTING_DATE": "2026-09-23",
+    "APPLY_DATE": "2026-09-23 00:00:00",
+    "LISTING_DATE": "2026-10-15 00:00:00",
     "ISSUE_PRICE": 17.37,
     "AFTER_ISSUE_PE": 10.0,
     "INDUSTRY_PE_NEW": 22.47,
@@ -16,9 +16,9 @@
     "ISSUE_NUM": 1700.0,
     "ONLINE_ISSUE_NUM": 15300000.0,
     "TOP_APPLY_MARKETCAP": 1328.805,
-    "SUBSCRIPTION_LIMIT_WAN_SHARES": 76.5,
-    "CLOSE_PRICE": null,
-    "LD_CLOSE_CHANGE": null,
+    "SUBSCRIPTION_LIMIT_WAN_SHARES": null,
+    "CLOSE_PRICE": 32.53,
+    "LD_CLOSE_CHANGE": 87.2769,
     "NEXT_DAY_CLOSE": null,
     "NEXT_TRADE_DATE": null,
     "THIRD_TRADE_DATE": null,
@@ -28,8 +28,8 @@
     "NEXT_DAY_FROM_LISTING_CLOSE_PCT": null,
     "THIRD_DAY_FROM_LISTING_CLOSE_PCT": null,
     "POST_LISTING_PROFIT_EFFECT_PCT": null,
-    "TURNOVERRATE": null,
-    "SW_INDUSTRY": "汽车制造业",
+    "TURNOVERRATE": 95.3191,
+    "SW_INDUSTRY": null,
     "INDUSTRY": "汽车制造业",
     "INDUSTRY_CODE": "C36",
     "industry_primary": "汽车",
@@ -48,7 +48,7 @@
     "industry_review_reasons": "[]",
     "industry_classification_version": 4,
     "ISSUER_BUSINESS": null,
-    "MAIN_BUSINESS": null
+    "MAIN_BUSINESS": "公司主要从事汽车天窗、玻璃升降器等汽车开闭器件以及相关电子控制单元的研发、制造及销售。此外,公司还从事粉末冶金零部件的研发、制造及销售"
   },
   "pdf_signature": {
     "files": {
@@ -75,32 +75,32 @@
   "item": {
     "SECURITY_CODE": "920162",
     "SECURITY_NAME_ABBR": "莫森泰克",
-    "APPLY_DATE": "2026-09-23",
-    "LISTING_DATE": "2026-09-23",
+    "APPLY_DATE": "2026-09-23 00:00:00",
+    "LISTING_DATE": "2026-10-15 00:00:00",
     "ISSUE_PRICE": 17.37,
     "AFTER_ISSUE_PE": 10.0,
     "INDUSTRY_PE_NEW": 22.47,
     "TOTAL_ISSUE_NUM": 1700.0,
     "ONLINE_ISSUE_NUM": 15300000.0,
     "TOP_APPLY_MARKETCAP": 1328.805,
-    "SUBSCRIPTION_LIMIT_WAN_SHARES": 76.5,
-    "CLOSE_PRICE": null,
-    "AVERAGE_PRICE": null,
-    "LD_CLOSE_CHANGE": null,
-    "LD_AVERAGE_CHANGE": null,
+    "SUBSCRIPTION_LIMIT_WAN_SHARES": null,
+    "CLOSE_PRICE": 32.53,
+    "AVERAGE_PRICE": 33.33266269543741,
+    "LD_CLOSE_CHANGE": 87.2769,
+    "LD_AVERAGE_CHANGE": 91.8978854083904,
     "NEXT_DAY_CLOSE": null,
-    "NEXT_TRADE_DATE": null,
-    "THIRD_TRADE_DATE": null,
+    "NEXT_TRADE_DATE": "",
+    "THIRD_TRADE_DATE": "",
     "THIRD_DAY_CLOSE": null,
     "NEXT_DAY_CLOSE_CHANGE": null,
     "THIRD_DAY_CLOSE_CHANGE": null,
     "NEXT_DAY_FROM_LISTING_CLOSE_PCT": null,
     "THIRD_DAY_FROM_LISTING_CLOSE_PCT": null,
     "POST_LISTING_PROFIT_EFFECT_PCT": null,
-    "post_listing_performance_source": "",
-    "post_listing_performance_reason": "Missing listing date; post-listing performance cannot be calculated.",
-    "TURNOVERRATE": null,
-    "SW_INDUSTRY": "汽车制造业",
+    "post_listing_performance_source": "tushare_daily",
+    "post_listing_performance_reason": "",
+    "TURNOVERRATE": 95.3191,
+    "SW_INDUSTRY": "",
     "INDUSTRY": "汽车制造业",
     "INDUSTRY_CODE": "C36",
     "industry_primary": "汽车",
@@ -119,7 +119,7 @@
     "industry_review_reasons": [],
     "industry_classification_version": 4,
     "ISSUER_BUSINESS": "",
-    "MAIN_BUSINESS": "",
+    "MAIN_BUSINESS": "公司主要从事汽车天窗、玻璃升降器等汽车开闭器件以及相关电子控制单元的研发、制造及销售。此外,公司还从事粉末冶金零部件的研发、制造及销售",
     "industry_confidence": 0.95,
     "industry_evidence": [
       "ifind_sw:2026-10-12",
@@ -143,13 +143,42 @@
       "pending_reason": "未找到上市公告书，且招股文件未提取到有效老股数据"
     },
     "float_shares": 1700.0,
-    "has_intraday_file": false,
+    "has_intraday_file": true,
     "comparable_codes": [
       "600741.SH",
       "301173.SZ",
       "832684.NQ"
     ],
-    "comparable_data": [],
+    "comparable_data": [
+      {
+        "code": "600741.SH",
+        "name": "600741.SH",
+        "close": 15.58,
+        "pe_ttm": 7.0615,
+        "pb_lf": 0.7382,
+        "mkt_cap": 491.19439919999996,
+        "trade_date": "20261014",
+        "source": "tushare_historical",
+        "close_source": "tushare_historical",
+        "pe_source": "tushare_historical",
+        "pb_source": "tushare_historical",
+        "mkt_cap_source": "tushare_historical"
+      },
+      {
+        "code": "301173.SZ",
+        "name": "301173.SZ",
+        "close": 30.31,
+        "pe_ttm": 15.577,
+        "pb_lf": 1.7185,
+        "mkt_cap": 26.622727879999996,
+        "trade_date": "20261014",
+        "source": "tushare_historical",
+        "close_source": "tushare_historical",
+        "pe_source": "tushare_historical",
+        "pb_source": "tushare_historical",
+        "mkt_cap_source": "tushare_historical"
+      }
+    ],
     "comparable_summary": {
       "provider": "tushare_historical",
       "requested_codes": [
@@ -157,46 +186,28 @@
         "301173.SZ",
         "832684.NQ"
       ],
-      "returned_codes": [],
+      "returned_codes": [
+        "600741.SH",
+        "301173.SZ"
+      ],
       "cache_hits": [],
-      "api_fetched": [],
-      "skipped_unsupported": [],
-      "reference_trade_date": null,
-      "reason": "上市日期缺失，无法构建方法一历史快照。"
+      "api_fetched": [
+        "600741.SH",
+        "301173.SZ"
+      ],
+      "skipped_unsupported": [
+        "832684.NQ"
+      ],
+      "reference_trade_date": "20261014",
+      "reason": ""
     },
     "method1_replay_available": true,
-    "average_price_source": "",
-    "average_price_reason": "本地首日分时 CSV 不存在",
+    "average_price_source": "intraday_csv",
+    "average_price_reason": "",
     "average_price_calc_version": 3,
-    "average_price_unit_mode": "",
-    "average_price_reference": null,
-    "replay_record_source": "announcement_pdf_fallback",
-    "listing_date_source": "apply_date_fallback",
-    "announcement_fallback_field_sources": {
-      "PRICE_WAY": "issue_announcement:全文",
-      "APPLY_DATE": "issue_announcement:全文",
-      "ISSUE_PRICE": "issue_announcement:全文",
-      "AFTER_ISSUE_PE": "prospectus:全文",
-      "INDUSTRY": "issue_announcement:全文",
-      "INDUSTRY_CODE": "issue_announcement:全文",
-      "TOTAL_SHARE_CAPITAL_AFTER_ISSUE": "issue_announcement:全文",
-      "SECURITY_NAME_ABBR": "issue_announcement:全文",
-      "INDUSTRY_PE_NEW": "issue_announcement:全文",
-      "TOTAL_ISSUE_NUM": "issue_announcement:全文",
-      "TOP_APPLY_MARKETCAP": "issue_announcement:全文",
-      "SUBSCRIPTION_LIMIT_WAN_SHARES": "issue_announcement:全文",
-      "ONLINE_ISSUE_NUM": "issue_announcement:全文",
-      "ONLINE_VA_NUM": "issue_result:result",
-      "ONLINE_ALLOCATED_ACCOUNTS": "issue_result:result",
-      "ONLINE_VA_SHARES": "issue_result:result",
-      "ONLINE_ES_MULTIPLE": "issue_result:result"
-    },
-    "announcement_fallback_parse_errors": [],
-    "announcement_fallback_pdf_files": {
-      "prospectus": "920162_莫森泰克_招股说明书.pdf",
-      "issue": "920162_莫森泰克_发行公告.pdf",
-      "result": "920162_莫森泰克_发行结果公告.pdf",
-      "listing": ""
-    }
+    "average_price_unit_mode": "volume_shares_amount_yuan",
+    "average_price_reference": 32.56,
+    "replay_record_source": "",
+    "listing_date_source": ""
   }
 }

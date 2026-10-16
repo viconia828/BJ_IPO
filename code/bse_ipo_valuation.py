@@ -23,6 +23,7 @@ import pdf_parser
 import report_generator
 import subscription_ladder_labels
 import subscription_predictor
+import subscription_prediction_context
 import valuation_engine
 import quality_sentiment
 import quality_sentiment_data
@@ -486,8 +487,8 @@ def _overlay_replay_history_recent_ipos(
 ) -> tuple[list[dict[str, Any]], dict[str, Any]]:
     """Merge the local replay pool so method 2 can use year-to-date samples.
 
-    The remote recent-IPO request is intentionally short for sentiment and
-    subscription work, while method 2 requires all earlier samples in the
+    The remote recent-IPO request is intentionally short for sentiment,
+    while method 2 requires all earlier samples in the
     target year.  Local replay is the already point-in-time-safe bridge between
     those two windows.
     """
@@ -1218,8 +1219,9 @@ def build_analysis_data(
         target_apply_date=ipo_info.get("APPLY_DATE"),
         recent_days=int(ipo_data_summary.get("recent_days") or params.get("recent_days") or 90),
     )
-    # Keep the short recent window for subscription prediction and method 3.
-    # Method 2 alone receives the longer local year-to-date replay pool.
+    # Method 3 and the report keep the sentiment window (recent_days).
+    # Subscription forecasts load their own complete, point-in-time history.
+    # Method 2 receives the longer local year-to-date replay pool.
     recent_ipos = mapper.enrich_recent_ipos(recent_ipos)
     method2_ipos, replay_history_overlay_summary = _overlay_replay_history_recent_ipos(
         recent_ipos,
@@ -1233,7 +1235,15 @@ def build_analysis_data(
     ipo_data_summary["subscription_history_target_overlay"] = target_subscription_history_overlay_summary
     ipo_info, subscription_ladder_label_overlay_summary = _overlay_subscription_ladder_label_ipo_info(ipo_info)
     ipo_data_summary["subscription_ladder_label_overlay"] = subscription_ladder_label_overlay_summary
-    subscription_prediction = subscription_predictor.build_subscription_prediction(ipo_info, recent_ipos, params)
+    subscription_prediction = subscription_prediction_context.build_prediction(
+        ipo_info,
+        history_rows=subscription_prediction_context.load_history_rows(
+            SUBSCRIPTION_HISTORY_SAMPLE_PATH, SUBSCRIPTION_LADDER_LABEL_PATH,
+        ),
+        params=params,
+        as_of_date=date.today(),
+    )
+    ipo_data_summary["subscription_prediction_history"] = subscription_prediction["history_context"]
 
     issue_price = _safe_float(ipo_info.get("ISSUE_PRICE"))
     issue_pe = _safe_float(ipo_info.get("AFTER_ISSUE_PE"))

@@ -97,6 +97,8 @@
 
 申购配售模型的历史样本表保存在 `data/offline_tuning/subscription_history_sample.csv`，这是可提交的训练样本产物。它按历史新股逐行记录发行价、网上发行数量、顶格申购金额、有效申购户数、有效申购股数、冻结资金、申购冻结天数、正股门槛、碎股门槛估算和字段来源。申购规模按网上发行口径处理：系统会用网上发行数量和发行价得到网上发行金额，用顶格申购金额判断单户上限，再用有效申购股数或冻结资金反推全市场有效申购资金池。正股/碎股门槛和是否需要抢时间，都是在这个口径上计算出来的。碎股抢时间提示使用金额边界：在碎股门槛上增加 `subscription_prediction_fractional_time_priority_buffer_wan` 保护值；若碎股门槛已达到顶格，则直接提示顶格必须抢时间。
 
+正式申购预测与离线寻优共用 `code/subscription_prediction_context.py`：读取本地申购历史和手工分档表，使用目标申购日前已公布、且截至分析日已知的全部有效历史，不受 `recent_days` 限制；同日结果、自身和未来结果不进入预测。账户池快照、资金池下限修正与水位残差也沿同一时间口径处理。全历史不等于等权。统一模式下，申购倍数、顶格金额、网上发行金额、冻结天数的中位数，以及相似顶格锚点、水位残差、资金池先验和账户池跨样本汇总，共用 `subscription_prediction_sample_decay_half_life_days` 这一时间半衰期；虽保留 `_days` 旧名称，实际单位为样本数。同结果可用日期的样本等权，先在完整有效样本总体中计算年龄，再做相似性或质量筛选，筛选后不重新计算年龄。相似性、拟合置信度和模块混合强度仍各自保留。冻资上下限使用同权重的 10% / 90% 分位数与原缓冲系数，避免远期极值永远控制边界。原分模块 `recent_samples` 和半衰期在统一模式下不生效，也不再参与寻优；显式设置 `subscription_prediction_unified_recency_enabled=False` 可复现旧统计方式。方法三情绪与近期展示单独使用 `recent_days`，当前为 30 天，方法二仍使用当年历史。离线 `robustness` 中的有限样本窗口仅用于敏感性诊断，不是正式默认值。
+
 如果申购规模相关字段缺失，通常是发行公告或发行结果公告还没有补齐。你可以双击 `添加新股首日走势.bat`，选择 `2. 刷新新上市新股数据（估值 replay / 申购 history / 缺公告重试）`，系统会重新尝试下载缺失公告并更新申购 history。
 
 常用生成命令：
@@ -113,13 +115,17 @@
 
 `model_ready=true` 表示该样本已有发行结果公告字段；`guaranteed_label_ready=true` 表示可用于正股门槛调模；`fractional_label_ready=true` 表示已有真实申购梯度或“顶格仍不足正股、全员拼时间抢碎股”标签，可用于碎股/抢时间调模。若公告没有申购梯度表，生成器会用网上获配户数、网上发行手数、冻结资金和配售规则生成 `allocation_fit_json`，作为后续拟合申购金额梯度的初始约束，并同步输出 `allocation_fit_confidence`、`allocation_fit_usable_for_tuning` 和 `allocation_fit_residual_json` 供调参筛样本使用。若本机 Python 没有 PDF 文本解析库，脚本仍会生成样本骨架，但公告字段会缺失；需要先补齐 `pdfplumber`/`pypdf` 等 PDF 解析依赖，或使用已配置好依赖的运行环境。
 
-手工分档标签表保存在 `data/offline_tuning/subscription_ladder_labels.csv`。该表一行一个本地样本，`manual_ladder` 可按 `1+0=251.2;2+1=564;0+1=顶格抢时间` 这样的格式补录真实分档；暂未找到资料的样本留空即可。`tools\build_subscription_history.py` 和 `tools\tune_subscription_prediction.py` 会自动为新增样本补空行，调参时默认读取该表，把手工分档误差和抢时间标签纳入候选参数排序；如需临时排除，可加 `--no-ladder-labels`。
+手工分档标签表保存在 `data/offline_tuning/subscription_ladder_labels.csv`。该表一行一个本地样本，`manual_ladder` 可按 `1+0=251.2;2+1=564;0+1=顶格抢时间` 这样的格式补录真实分档；暂未找到资料的样本留空即可。`tools\build_subscription_history.py` 和 `tools\tune_subscription_prediction.py` 会自动为新增样本补空行，调参时默认读取该表，展示手工分档误差和抢时间标签作为独立诊断；冻资候选只按冻资误差排序；如需临时排除，可加 `--no-ladder-labels`。
 
-账户池曲线以发行结果公告中的网上获配户数和网上获配手数为硬约束，以手工分档表中的核验门槛为金额切点，并用上一只样本完成后累计形成的完整账户快照及逐点偏差带约束各获配层人数。新样本会重新插值细化其相邻门槛之间的旧切点，并形成一个只使用当时及更早数据的新快照；正式预测和历史回放读取目标日期之前的最新快照，因此最新结果最细且不引入未来函数。`allocation_fit_json` 中的 `compressed_extra_lots` 只用于公告总量验算，不作为账户资金分布写入账户池。雪球作者的账户区间或资金拆分只作人工印证参考，不自动进入申购门槛主模型。
+账户池曲线以发行结果公告中的网上获配户数和网上获配手数为硬约束，以手工分档表中的核验门槛为金额切点，并用上一只样本完成后累计形成的完整账户快照及逐点偏差带约束各获配层人数。新样本会重新插值细化其相邻门槛之间的旧切点，并形成一个只使用当时及更早数据的新快照；历史调参只读取目标申购日前已公布结果对应的账户池快照，并检查累计快照的全部前序依赖；自身、同日、未公布结果的样本以及未来空白切点列均不进入回放。`allocation_fit_json` 中的 `compressed_extra_lots` 只用于公告总量验算，不作为账户资金分布写入账户池。雪球作者的账户区间或资金拆分只作人工印证参考，不自动进入申购门槛主模型。
 
-`tools\tune_subscription_prediction.py` 是申购配售调参的评估入口：默认输出当前 baseline 的正股门槛误差、手工分档误差、顶格不足正股分类准确率和拟合残差摘要；`--mode search` 会枚举候选参数并排序展示；`--mode robustness` 会用不同起始样本数和历史窗口复核当前最优候选；`--mode account-pool` 会按最近样本的获配分桶估算不同申购金额阈值以上的大户数量；`--mode account-pool-prior` 会把近期获配分布转换成有效申购资金池下限，离线检查它对当前 best 参数的修正效果；`--mode auto` 会先展示搜索结果，再确认是否把申购资金主参数写入 `策略参数.txt`。
+`tools\tune_subscription_prediction.py` 是申购配售调参的评估入口：默认输出当前 baseline 的冻资近期加权误差、正股门槛误差、手工分档误差、顶格不足正股分类准确率和拟合残差摘要；`--mode search` 会枚举候选参数并排序展示；`--mode robustness` 会用不同起始样本数和历史窗口复核当前最优候选；`--mode account-pool` 会按最近样本的获配分桶估算不同申购金额阈值以上的大户数量；`--mode account-pool-prior` 会把近期获配分布转换成有效申购资金池下限，离线检查它对当前 best 参数的修正效果；`--mode auto` 会先展示搜索结果，再确认是否把申购资金主参数写入 `策略参数.txt`。
 
-近期资金水位采用无前视自适应口径：对最近已公布结果的历史新股，逐只用它之前的样本重建当时预测，以“真实冻资 / 未做水位修正的预测冻资”生成残差因子；同一结果日样本不互相引用。系统按样本半衰期取加权中位数，并把相对原公式因子 `1.0` 的残差按自适应权重收缩后作为有限加成，最终因子受配置上下限保护。`subscription_prediction_recent_market_level_factor` 只在样本不足时回退；自适应启用后自动调参不会继续上调该静态基准，避免两层参数重复吸收同一段近期偏差。样本齐备后，正式预测和调参回放都使用同一套滚动因子。默认 `coarse-fine` 搜索会调节是否启用、近期窗口、最少样本、半衰期和自适应权重，候选排序以资金规模综合误差为先，并同时复核分档 MAPE 和近期有符号偏差。
+冻资评分对每只股票计算 `abs(预测冻资 / 实际冻资 - 1)`，再按 `0.5 ** (更新样本数 / 半衰期)` 加权平均；默认半衰期为 12 只，同日申购样本权重相同。可通过 `--frozen-score-half-life-samples 6` 更强调近期，或设为 24 让权重下降更缓。这是固定的评分设置，不参与候选搜索，也不改变预测模型里的历史样本权重。不可达正股门槛的样本仍参与冻资评分。
+
+`python -X utf8 tools/evaluate_account_pool_update_strategies.py` 单独比较碎股插值方案。它按结果可用时间更新历史账户池，在每只股票申购日前停止吸收新数据，再用该股票的实际配售比例评估插值误差；这是隔离冻资预测误差的事后诊断，不代表申购时已经知道真实配售比例。完整串联回放仍使用预测冻资。历史记录缺少结果日期时，以明确的上市日期保守回退；两者均缺失则不作为已知历史。
+
+近期资金水位采用无前视自适应口径：对最近已公布结果的历史新股，逐只用它之前的样本重建当时预测，以“真实冻资 / 未做水位修正的预测冻资”生成残差因子；用于重建每个历史预测的样本结果必须早于该次申购日，同日结果不使用。系统按样本半衰期取加权中位数，并把相对原公式因子 `1.0` 的残差按自适应权重收缩后作为有限加成，最终因子受配置上下限保护。`subscription_prediction_recent_market_level_factor` 只在样本不足时回退；自适应启用后自动调参不会继续上调该静态基准，避免两层参数重复吸收同一段近期偏差。样本齐备后，正式预测和调参回放都使用同一套滚动因子。默认 `coarse-fine` 搜索会调节共同半衰期（含 1、2、3 只等快速衰减候选）、是否启用水位、最少残差样本和自适应强度，候选排序仅使用冻资近期加权 MAPE，同分时比较全样本冻资 MAPE；原有漏判上限仍作为独立约束。碎股、分档和分类误差保留诊断，不与冻资误差混合加权。
 
 估值调参底层统一调用：
 
@@ -309,6 +315,30 @@
 - `训练/回放运行设置`：调参入口构建 replay、输出 Top N 和旧版手动复核设置。
 
 有两条固定使用口径不靠 README 里的数字维护：正式估值与调参回放统一使用首日成交均价；本地首日分时 CSV 写入时会统一为 `volume=股`、`amount=元`。申购资金模型的申购规模口径仍按网上发行数量、发行价、顶格申购金额、有效申购股数/冻结资金来计算，具体参数值同样以 `策略参数.txt` 为准。
+
+## 简化冻资模型试验
+
+`tools/evaluate_subscription_funding_models.py` 对比原倍数模型与两条可选路径：`direct_funds` 直接对历史冻资按顶格弹性归一后连续加权；`bucket_funds` 将历史分户结构按目标顶格截断，并先按该历史股票的实际冻资校准合计。两者保留共同近期权重及逐时点水位校准，不叠加旧倍数、发行规模、相似中位数或账户池 prior 修正。碎股继续走原账户池插值。
+
+例如：`python tools/evaluate_subscription_funding_models.py --as-of 2026-10-16 --output-dir tmp/funding_models_20261016`。可用 `--target-snapshot` 指定含 `ipo_info` 和 `analysis_date` 的历史报告 JSON，作当时信息下的额外预测。工具不联网刷新、不写回参数或标签；保存完整/7月起回放、逐票滚动选参、固定留出选参、半衰期扰动和窗口对比。历史起点、滚动起点、留出日可通过对应 CLI 参数指定。
+
+正式模型默认仍为 `multiple`。测试新路径时通过共同入口 `subscription_prediction_context.build_prediction` 的参数指定 `subscription_prediction_funding_model`；直接模型弹性为 `subscription_prediction_direct_cap_elasticity`，相似性带宽为 `subscription_prediction_direct_similarity_bandwidth`。旧寻优网格只支持 `multiple`，避免调整对新路径不生效的旧参数。2026-10-16 首轮试验虽降低参数跳变，但准确率未通过替换条件，未改变正式模型或参数。
+
+资金环境及分户金额假设验证：`python tools/evaluate_subscription_funding_hypotheses.py`。该工具专用于冻结的2026-10-16样本，先检查上一轮试验输入哈希；比较月末/季末/长假日历残差修正、T+2资金占用代理及分档金额守恒情景，并分别输出全历史与7月起回放。日期规则只覆盖已核实的2026北交所交易日历；资金退回代理不改变结果可用日期。分档户数来自粗拟合，低/中/高金额情景只能检验敏感性，不能据此声称已识别真实户均金额。
+
+实验通过显式参数启用：`subscription_prediction_lock_days_basis=t_plus_2_calendar_2026`；或在`bucket_funds`下指定`subscription_prediction_bucket_amount_basis=conserving_bounds`及`subscription_prediction_bucket_amount_position`（0至1）。默认仍为旧日期口径及门槛金额；日历残差模型仅存在于离线验证工具，不影响正式报告。试验不写回参数、标签或生产数据。
+
+人工分户门槛核对：`python tools/audit_subscription_ladder_pipeline.py --output-dir tmp/ladder_audit`。`subscription_ladder_labels.csv`保存核验后的获配门槛；`subscription_history_sample.csv`保存公告总量，运行时按代码合并；`account_pool_history_*`保存由门槛和公告约束派生的累计户数。`subscription_distribution_json`只用于公告直接披露的逐金额户数，不能用该字段为空判定人工门槛未入库。审计工具核对每条门槛、累计手数守恒和写出一致性，仅在输出目录重建；正式派生表用`python tools/build_account_pool_history.py --force-rebuild`刷新。
+
+2026-10-17账户表构建版本4修复数字后带“抢时间”的解析、纯碎股标签派生、最高人工门槛被顶格覆盖及历史偏差带无法满足公告总手数的问题。两获配层直接由公告总量解出户数，多层继续使用历史形状约束。版本5增加`source_lot_distribution_json`，保留每只股票自身的完整获配层，与跨股票更新的`account_pool_snapshot_json`分开。正式`multiple`模型的账户资金先验也已接入修复后的源分布：缺失或未到可用日期时停用先验，不回退压缩桶；人工个股冻资覆盖优先。只有显式历史实验`bucket_funds`保留旧压缩桶口径作为对照。
+
+修复分户资金路径为`subscription_prediction_funding_model=account_pool_funds`，经同一正式/回放入口调用`subscription_account_funding.py`。累计获配户数差分为每档户数，档内金额位于相邻门槛与顶格之间，未获配平均金额位于0至首档门槛之间，合计必须与历史实际冻资一致。`subscription_prediction_account_amount_position`为0至1的可行档内位置，缺省0.5；该参数描述金额假设，不表示观测到真实户均。缺少有效总户数或约束不相容的来源显式排除；有效来源不足则记录原因并回退`direct_funds`。累计来源的最晚可用日期同时约束目标预测和内层水位回放。
+
+第一轮对比保存在`tmp/subscription_repaired_funding_20261017`。该轮原倍数模型的先验尚未修复、也未与各模型同时重新寻优，不能再用其6.00%/4.38%成绩作为修复后的选型结论。汇总工具现在检查代码指纹，禁止用已改变的运行代码重算旧结果敏感性。
+
+修复后独立寻优使用`python tools/optimize_funding_families.py --output-dir tmp/subscription_independent_optima_20261017 --workers 4`，再用`python tools/report_independent_funding_optima.py --output-dir tmp/subscription_independent_optima_20261017`生成报告。六个模型（原倍数、直接冻资、修复分户、日历残差、截距校准、T+2）在完整历史/7月起分别独立搜索各自有效参数，训练只用9月23日前已公布结果，最近3只与远大不参与选参。分块坐标搜索后细化；日历和截距分支额外从原模型最优参数加零修正起步，避免局部搜索遗漏其退化情形。结果只代表本轮搜索到的最佳配置，不证明全局最优。
+
+独立寻优工具的时间范围与远大快照固定，用于本次可复核实验，不是任意日期的自动上线流程。`funding_only=True`仅跳过碎股插值与排版以加快资金评分，仍调用正式资金计算；所选参数必须通过完整预测入口一致性检查。日历残差仍为离线诊断，不能把未重建的碎股门槛算作其效果。正式数据路径修复已生效，寻优参数只保存到实验目录，不自动覆盖策略参数。
 
 ## 如果你要看项目过程记录
 

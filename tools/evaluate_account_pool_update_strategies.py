@@ -19,6 +19,7 @@ for path in (TOOLS_DIR, CODE_DIR):
 import build_account_pool_history as account_pool
 import subscription_ladder_labels
 import subscription_predictor
+import subscription_replay_timeline as replay_timeline
 
 
 DEFAULT_HISTORY_PATH = ROOT_DIR / "data" / "offline_tuning" / "subscription_history_sample.csv"
@@ -457,18 +458,9 @@ def _evaluate_strategy(
     allocated_pct: list[float] = []
     area_pct: list[float] = []
 
-    for sample_index, row in enumerate(rows):
+    def apply_observation(row: dict[str, Any], sample_index: int) -> None:
+        nonlocal state
         code = str(row.get("security_code") or "")
-        constraint_errors = _one_step_constraint_errors(state, row)
-        fractional = _predict_fractional_cutoff(state, row)
-        if fractional:
-            fractional_abs.append(float(fractional["abs_error_wan"]))
-            fractional_pct.append(float(fractional["pct_error"]))
-        if constraint_errors.get("allocated_pct_error") is not None:
-            allocated_pct.append(float(constraint_errors["allocated_pct_error"]))
-        if constraint_errors.get("area_pct_error") is not None:
-            area_pct.append(float(constraint_errors["area_pct_error"]))
-
         points = account_pool._build_points_for_row(row, state)
         if update_mode == "full_interpolation":
             account_pool._update_threshold_state(state, points, code)
@@ -507,12 +499,40 @@ def _evaluate_strategy(
         else:
             raise ValueError(f"unknown update mode: {update_mode}")
 
+    source_rows = sorted(
+        [row for row in rows if replay_timeline.result_available_date(row)],
+        key=lambda row: (replay_timeline.result_available_date(row), str(row.get("security_code") or "")),
+    )
+    next_source = 0
+    source_codes: list[str] = []
+    for row in sorted(rows, key=lambda item: (
+        replay_timeline.normalized_date(item.get("apply_date")), str(item.get("security_code") or ""),
+    )):
+        code = str(row.get("security_code") or "")
+        cutoff = replay_timeline.normalized_date(row.get("apply_date"))
+        while next_source < len(source_rows) and cutoff and replay_timeline.result_available_date(source_rows[next_source]) < cutoff:
+            source_row = source_rows[next_source]
+            apply_observation(source_row, next_source)
+            source_codes.append(str(source_row.get("security_code") or ""))
+            next_source += 1
+        # The target's realized allocation ratio is an ex-post diagnostic input
+        # isolating interpolation quality, never a historical pool observation.
+        constraint_errors = _one_step_constraint_errors(state, row) if cutoff else {}
+        fractional = _predict_fractional_cutoff(state, row) if cutoff else None
+        if fractional:
+            fractional_abs.append(float(fractional["abs_error_wan"]))
+            fractional_pct.append(float(fractional["pct_error"]))
+        if constraint_errors.get("allocated_pct_error") is not None:
+            allocated_pct.append(float(constraint_errors["allocated_pct_error"]))
+        if constraint_errors.get("area_pct_error") is not None:
+            area_pct.append(float(constraint_errors["area_pct_error"]))
         details.append(
             {
                 "security_code": code,
                 "apply_date": row.get("apply_date"),
+                "replay_as_of_date": cutoff,
+                "history_source_codes": list(source_codes),
                 "prior_cutpoint_count": len(state),
-                "point_count": len(points),
                 "constraint_errors": constraint_errors,
                 "fractional_cutoff": fractional,
             }
@@ -520,6 +540,8 @@ def _evaluate_strategy(
 
     return {
         "name": name,
+        "evaluation_scope": "fractional_interpolation_given_actual_allocation_ratio",
+        "replay_time_policy": "result_available_before_apply_date",
         "update_mode": update_mode,
         "half_life_samples": half_life_samples,
         "blend_weight": blend_weight,
@@ -577,6 +599,8 @@ def evaluate(history_path: Path, label_path: Path) -> dict[str, Any]:
         "history_path": str(history_path),
         "label_path": str(label_path),
         "walk_forward": True,
+        "evaluation_scope": "fractional_interpolation_given_actual_allocation_ratio",
+        "replay_time_policy": "result_available_before_apply_date",
         "sample_count": len(rows),
         "results": results,
     }
@@ -609,7 +633,11 @@ def parse_args() -> argparse.Namespace:
 def main() -> int:
     args = parse_args()
     payload = evaluate(args.history_path, args.label_path)
-    output = payload if args.details else {"summary": _summary(payload)}
+    output = payload if args.details else {
+        "evaluation_scope": payload["evaluation_scope"],
+        "replay_time_policy": payload["replay_time_policy"],
+        "summary": _summary(payload),
+    }
     print(json.dumps(output, ensure_ascii=False, indent=2))
     return 0
 

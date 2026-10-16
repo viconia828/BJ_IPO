@@ -43,7 +43,7 @@ def _sample_row(code: str, apply_date: str) -> dict[str, Any]:
     return {
         "security_code": code,
         "apply_date": apply_date,
-        "issue_result_date": "2026-06-04",
+        "issue_result_date": apply_date,
         "issue_price": "10",
         "online_issue_shares": "1000000",
         "top_apply_amount_wan": "10",
@@ -90,6 +90,7 @@ def _sample_pool_row(code: str, apply_date: str) -> dict[str, Any]:
 
 def _sample_prior_row(code: str, apply_date: str) -> dict[str, Any]:
     row = _sample_row(code, apply_date)
+    row.update(online_allocated_accounts=10000,online_valid_accounts=20000,manual_ladder='0+1=1')
     row["allocation_fit_confidence"] = "1.0"
     row["allocation_fit_json"] = json.dumps(
         {
@@ -108,12 +109,17 @@ def _sample_prior_row(code: str, apply_date: str) -> dict[str, Any]:
     return row
 
 
+def _repaired_prior_pool(rows):
+    import evaluate_subscription_funding_models as experiment
+    return experiment.rebuild_scoped_pool(rows)
+
+
 def _run_baseline_evaluation_case(failures: list[str]) -> None:
     rows = [
         _sample_row("920001", "2026-06-01"),
-        _sample_row("920002", "2026-06-01"),
-        _sample_row("920003", "2026-06-01"),
-        _sample_row("920004", "2026-06-01"),
+        _sample_row("920002", "2026-06-02"),
+        _sample_row("920003", "2026-06-03"),
+        _sample_row("920004", "2026-06-04"),
     ]
     summary = tune_subscription_prediction.evaluate_subscription_prediction(rows, min_history_samples=3)
     _assert(summary.get("eligible_rows") == 4, "baseline: eligible row count mismatch", failures)
@@ -149,9 +155,9 @@ def _run_csv_load_case(failures: list[str]) -> None:
 def _run_candidate_search_case(failures: list[str]) -> None:
     rows = [
         _sample_row("920001", "2026-06-01"),
-        _sample_row("920002", "2026-06-01"),
-        _sample_row("920003", "2026-06-01"),
-        _sample_row("920004", "2026-06-01"),
+        _sample_row("920002", "2026-06-02"),
+        _sample_row("920003", "2026-06-03"),
+        _sample_row("920004", "2026-06-04"),
     ]
     progress_events: list[tuple[int, int, bool]] = []
     result = tune_subscription_prediction.evaluate_candidate_grid(
@@ -267,6 +273,7 @@ def _run_adaptive_recent_market_level_walk_forward_case(failures: list[str]) -> 
             "subscription_prediction_recent_market_level_factor": 1.0,
             "subscription_prediction_recent_market_level_adaptive_enabled": True,
             "subscription_prediction_recent_market_level_adaptive_recent_samples": 3,
+            "subscription_prediction_unified_recency_enabled": False,  # legacy-window compatibility
             "subscription_prediction_recent_market_level_adaptive_min_samples": 3,
             "subscription_prediction_recent_market_level_adaptive_half_life_samples": 2.0,
             "subscription_prediction_recent_market_level_adaptive_weight": 1.0,
@@ -301,84 +308,49 @@ def _run_adaptive_recent_market_level_walk_forward_case(failures: list[str]) -> 
     )
 
 
-def _run_recent_market_level_ranking_case(failures: list[str]) -> None:
+def _run_frozen_funds_ranking_case(failures: list[str]) -> None:
     stale = {
+        "frozen_funds_weighted_mape": 0.20,
+        "frozen_funds_mape": 0.10,
+        "frozen_funds_metric_rows": 20,
         "top_apply_false_negative_codes": [],
         "top_apply_false_positive_codes": [],
-        "guaranteed_amount_mape": 0.05,
-        "recent_guaranteed_mape": 0.20,
-        "recent_guaranteed_signed_bias": -0.20,
-        "guaranteed_amount_mae_wan": 10.0,
-        "guaranteed_amount_metric_rows": 20,
+        "manual_ladder_amount_mape": 0.01,
     }
-    adaptive = {
+    recent_better = {
         **stale,
-        "guaranteed_amount_mape": 0.08,
-        "recent_guaranteed_mape": 0.08,
-        "recent_guaranteed_signed_bias": 0.0,
-    }
-    _assert(
-        tune_subscription_prediction._candidate_rank_key(adaptive)
-        < tune_subscription_prediction._candidate_rank_key(stale),
-        "adaptive market level ranking: recent correction should lead ranking",
-        failures,
-    )
-    classification_first = {
-        **adaptive,
-        "top_apply_false_positive_codes": [],
-        "recent_guaranteed_mape": 0.10,
-        "recent_guaranteed_signed_bias": 0.02,
-    }
-    recent_first = {
-        **adaptive,
+        "frozen_funds_weighted_mape": 0.08,
+        "frozen_funds_mape": 0.12,
+        "manual_ladder_amount_mape": 0.30,
         "top_apply_false_positive_codes": ["920099"],
-        "recent_guaranteed_mape": 0.08,
-        "recent_guaranteed_signed_bias": 0.01,
     }
     _assert(
-        tune_subscription_prediction._candidate_rank_key(recent_first)
-        < tune_subscription_prediction._candidate_rank_key(classification_first),
-        "adaptive market level ranking: one full-sample false positive must not override recent precision",
-        failures,
+        tune_subscription_prediction._candidate_rank_key(recent_better)
+        < tune_subscription_prediction._candidate_rank_key(stale),
+        "frozen ranking: recent funding accuracy should lead selection", failures,
+    )
+    _assert(
+        tune_subscription_prediction._candidate_rank_key(recent_better)
+        == tune_subscription_prediction._candidate_rank_key({**recent_better, "manual_ladder_amount_mape": 0.0}),
+        "frozen ranking: fractional error must not affect funding rank", failures,
     )
     _assert(
         tune_subscription_prediction._false_negative_guardrail_passed(
-            {"top_apply_false_negative_codes": ["1", "2"]},
-            max_false_negative_count=2,
-        )
-        and not tune_subscription_prediction._false_negative_guardrail_passed(
-            {"top_apply_false_negative_codes": ["1", "2", "3"]},
-            max_false_negative_count=2,
+            {"top_apply_false_negative_codes": ["1", "2"]}, max_false_negative_count=2,
+        ) and not tune_subscription_prediction._false_negative_guardrail_passed(
+            {"top_apply_false_negative_codes": ["1", "2", "3"]}, max_false_negative_count=2,
         ),
-        "adaptive market level ranking: false-negative guardrail mismatch",
-        failures,
-    )
-    ladder_only = {
-        **adaptive,
-        "guaranteed_amount_mape": 0.20,
-        "recent_guaranteed_mape": 0.20,
-        "recent_guaranteed_signed_bias": 0.20,
-        "manual_ladder_amount_mape": 0.01,
-    }
-    scale_first = {
-        **adaptive,
-        "manual_ladder_amount_mape": 0.02,
-    }
-    _assert(
-        tune_subscription_prediction._candidate_rank_key(scale_first)
-        < tune_subscription_prediction._candidate_rank_key(ladder_only),
-        "adaptive market level ranking: tiny ladder gain must not override funding scale loss",
-        failures,
+        "frozen ranking: separate false-negative guardrail mismatch", failures,
     )
 
 
 def _run_window_and_robustness_case(failures: list[str]) -> None:
     rows = [
         _sample_row("920001", "2026-06-01"),
-        _sample_row("920002", "2026-06-01"),
-        _sample_row("920003", "2026-06-01"),
-        _sample_row("920004", "2026-06-01"),
-        _sample_row("920005", "2026-06-01"),
+        _sample_row("920002", "2026-06-02"),
+        _sample_row("920003", "2026-06-03"),
+        _sample_row("920004", "2026-06-04"),
+        _sample_row("920005", "2026-06-05"),
     ]
     windowed = tune_subscription_prediction.evaluate_subscription_prediction(
         rows,
@@ -424,6 +396,7 @@ def _run_account_pool_prior_case(failures: list[str]) -> None:
         _sample_prior_row("920004", "2026-06-04"),
     ]
     rows[-1]["top_apply_below_guaranteed"] = "true"
+    pools = _repaired_prior_pool(rows)
     without_prior = tune_subscription_prediction.evaluate_subscription_prediction(
         rows,
         min_history_samples=3,
@@ -434,7 +407,8 @@ def _run_account_pool_prior_case(failures: list[str]) -> None:
         min_history_samples=3,
         params={
             "subscription_prediction_similar_top_apply_frozen_enabled": False,
-            "subscription_prediction_account_pool_prior_weight": 1.0,
+            "subscription_prediction_account_pool_prior_weight": 4.0,
+            "subscription_prediction_account_pool_rows": pools,
             "subscription_prediction_account_pool_recent_samples": 3,
             "subscription_prediction_account_pool_half_life_samples": 2,
         },
@@ -449,13 +423,13 @@ def _run_account_pool_prior_case(failures: list[str]) -> None:
     _assert(detail.get("account_pool_prior_applied"), "prior: detail should mark prior applied", failures)
     _assert_close(
         detail.get("account_pool_prior_base_subscription_multiple"),
-        33.0,
+        30.0,
         "prior: base multiple mismatch",
         failures,
     )
     _assert_close(
         detail.get("account_pool_prior_floor_subscription_multiple"),
-        200.0,
+        120.0,
         "prior: floor multiple mismatch",
         failures,
     )
@@ -464,7 +438,8 @@ def _run_account_pool_prior_case(failures: list[str]) -> None:
         min_history_samples=3,
         params={
             "subscription_prediction_similar_top_apply_frozen_enabled": False,
-            "subscription_prediction_account_pool_prior_weight": 1.0,
+            "subscription_prediction_account_pool_prior_weight": 4.0,
+            "subscription_prediction_account_pool_rows": pools,
             "subscription_prediction_account_pool_recent_samples": 3,
             "subscription_prediction_account_pool_half_life_samples": 2,
             "subscription_prediction_account_pool_prior_min_source_samples": 4,
@@ -479,13 +454,14 @@ def _run_account_pool_prior_case(failures: list[str]) -> None:
     search = tune_subscription_prediction.evaluate_account_pool_prior(
         rows,
         min_history_samples=3,
-        weights=[1.0],
+        weights=[4.0],
         recent_sample_values=[3],
         half_life_values=[2.0],
         min_uplift_ratio_values=[1.1],
         min_source_sample_values=[3],
         top_n=1,
-        base_params={"subscription_prediction_similar_top_apply_frozen_enabled": False},
+        base_params={"subscription_prediction_similar_top_apply_frozen_enabled": False,
+                     "subscription_prediction_account_pool_rows": pools},
     )
     _assert(search.get("candidate_count") == 1, "prior search: candidate count mismatch", failures)
     _assert(
@@ -507,7 +483,8 @@ def _run_account_pool_prior_case(failures: list[str]) -> None:
         min_history_values=[3],
         history_windows=[None],
         top_n=1,
-        account_pool_prior_weights=[1.0],
+        account_pool_prior_weights=[4.0],
+        base_params={"subscription_prediction_account_pool_rows": pools},
         account_pool_prior_recent_samples=3,
         account_pool_prior_half_life_samples=2.0,
     )
@@ -545,7 +522,8 @@ def _run_auto_prior_branch_case(failures: list[str]) -> None:
         min_history_samples=3,
         max_candidates=1,
         top_n=1,
-        prior_weights=[1.0],
+        prior_weights=[4.0],
+        base_params={"subscription_prediction_account_pool_rows": _repaired_prior_pool(rows)},
         prior_recent_sample_values=[3],
         prior_half_life_values=[2.0],
         prior_min_uplift_ratio_values=[1.1],
@@ -562,7 +540,7 @@ def _run_auto_prior_branch_case(failures: list[str]) -> None:
     selected_params = prior_best.get("params") or {}
     _assert_close(
         selected_params.get("subscription_prediction_account_pool_prior_weight"),
-        1.0,
+        4.0,
         "auto prior: selected weight mismatch",
         failures,
     )
@@ -890,7 +868,7 @@ def main() -> int:
     _run_candidate_search_case(failures)
     _run_similar_top_apply_frozen_search_grid_case(failures)
     _run_adaptive_recent_market_level_walk_forward_case(failures)
-    _run_recent_market_level_ranking_case(failures)
+    _run_frozen_funds_ranking_case(failures)
     _run_window_and_robustness_case(failures)
     _run_large_account_pool_case(failures)
     _run_account_pool_prior_case(failures)

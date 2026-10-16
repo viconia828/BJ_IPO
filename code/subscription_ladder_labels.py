@@ -199,7 +199,10 @@ def parse_manual_ladder(text: Any, top_apply_amount_wan: Any = None) -> list[dic
         threshold_text = match.group("threshold").strip()
         is_top_apply = "顶格" in threshold_text
         time_priority = "抢时间" in threshold_text
-        amount = top_apply if is_top_apply else _safe_float(threshold_text)
+        # Time-priority is a qualifier, not part of the numeric amount.
+        # Keep the original text for provenance and reject unknown suffixes.
+        amount_text = re.sub(r"\s*抢时间\s*$", "", threshold_text).strip()
+        amount = top_apply if is_top_apply else _safe_float(amount_text)
         threshold_kind = "guaranteed" if fractional_lots == 0 else "fractional"
         if is_top_apply:
             threshold_kind = "top_apply_time_priority" if time_priority else "top_apply"
@@ -238,13 +241,11 @@ def derive_fields_from_ladder(row: dict[str, Any]) -> dict[str, Any]:
         "manual_ladder_items": labels,
         "manual_ladder_item_count": len(labels),
     }
-    if not one_lot_estimates:
-        return derived
-
-    one_lot_amount = median(one_lot_estimates)
-    derived["manual_ladder_guaranteed_amount_wan"] = one_lot_amount
-    if top_apply is not None:
-        derived["manual_ladder_top_apply_below_guaranteed"] = top_apply < one_lot_amount
+    if one_lot_estimates:
+        one_lot_amount = median(one_lot_estimates)
+        derived["manual_ladder_guaranteed_amount_wan"] = one_lot_amount
+        if top_apply is not None:
+            derived["manual_ladder_top_apply_below_guaranteed"] = top_apply < one_lot_amount
 
     fractional_candidates = [
         item
@@ -268,6 +269,11 @@ def derive_fields_from_ladder(row: dict[str, Any]) -> dict[str, Any]:
             )
             if issue_price and issue_price > 0:
                 derived["manual_ladder_fractional_shares"] = fractional_amount * 10000 / issue_price
+
+    # A fractional-only label is still a usable observed threshold. It cannot
+    # identify the regular allocation ratio or total frozen funds by itself.
+    if not one_lot_estimates:
+        return derived
 
     if issue_price and issue_price > 0 and online_issue_shares and online_issue_shares > 0:
         threshold_shares = one_lot_amount * 10000 / issue_price

@@ -25,7 +25,7 @@ DEFAULT_POINTS_PATH = ROOT_DIR / "data" / "offline_tuning" / "account_pool_histo
 DEFAULT_THRESHOLDS_PATH = ROOT_DIR / "data" / "offline_tuning" / "account_pool_history_thresholds.csv"
 DEFAULT_SUMMARY_PATH = ROOT_DIR / "data" / "offline_tuning" / "account_pool_history_summary.json"
 DEFAULT_THRESHOLDS_WAN: tuple[float, ...] = ()
-ACCOUNT_POOL_BUILD_VERSION = 3
+ACCOUNT_POOL_BUILD_VERSION = 5
 UNINFORMATIVE_THRESHOLD_BASES = {
     "",
     "no_observed_points",
@@ -85,6 +85,7 @@ BASE_THRESHOLD_COLUMNS = (
     "account_pool_build_version",
     "account_pool_input_signature",
     "account_pool_snapshot_json",
+    "source_lot_distribution_json",
 )
 
 
@@ -410,7 +411,7 @@ def _complete_lot_thresholds(
     previous_amount = 0.0
     for lot_level in range(1, max_lots + 1):
         amount = max(float(completed.get(lot_level) or 0.0), previous_amount + 0.01)
-        if top_apply_amount_wan is not None and lot_level == max_lots:
+        if top_apply_amount_wan is not None and lot_level == max_lots and lot_level not in manual_by_lot:
             amount = max(float(top_apply_amount_wan), previous_amount + 0.01)
         completed[lot_level] = amount
         previous_amount = amount
@@ -432,11 +433,17 @@ def _announcement_constrained_cumulative(
     max_accounts_supported = math.ceil(max(float(total_lots), 0.0) - 1e-9)
     if max_lots <= 0 or allocated_accounts <= 0 or allocated_accounts > max_accounts_supported:
         return {}, "unavailable"
+    if total_lots > allocated_accounts * max_lots + 1e-6:
+        return {}, "unavailable"
 
     first_accounts = float(allocated_accounts)
     target_extra = min(max(float(total_lots) - first_accounts, 0.0), first_accounts * max(max_lots - 1, 0))
     if max_lots == 1:
         return {1: first_accounts}, "announcement_exact"
+    if max_lots == 2:
+        # Two awarded layers are identified exactly by the two aggregate
+        # equations. A history prior must never override this unique solution.
+        return {1: first_accounts, 2: target_extra}, "announcement_exact"
 
     raw: list[float] = []
     deviations: list[float] = []
@@ -473,7 +480,7 @@ def _announcement_constrained_cumulative(
                         center
                         + shift
                         * deviation
-                        * (1.0 + (expansion - 1.0) * index / max(len(raw) - 1, 1)),
+                        * (1.0 + (expansion - 1.0) * (index + 1) / len(raw)),
                         0.0,
                     ),
                     first_accounts,
@@ -524,6 +531,9 @@ def _announcement_constrained_cumulative(
     for lot_level, value in enumerate(scaled, start=2):
         result[lot_level] = min(max(value, 0.0), previous)
         previous = result[lot_level]
+    if abs(sum(result.values()) - max(total_lots, first_accounts)) > 1e-4:
+        # Never publish an inferred curve that silently loses allotted shares.
+        return {}, "constraint_projection_failed"
     return result, "history_prior" if used_history_prior else "cold_start"
 
 
@@ -579,6 +589,15 @@ def _build_points_for_row(
         thresholds_by_lot=thresholds_by_lot,
         prior_state=prior_state or {},
     )
+    # Preserve the source-specific full solution before subsequent stocks alter
+    # the pooled curve. Hidden/interpolated lot levels also carry awarded shares.
+    distribution = {
+        "version": 1, "security_code": code, "basis": prior_basis,
+        "thresholds_by_lot": thresholds_by_lot, "cumulative_accounts": cumulative,
+        "manual_lot_levels": sorted(manual_by_lot),
+        "online_lots_total": online_lots_total, "allocated_accounts": allocated_accounts,
+        "is_observed_distribution": False,
+    }
 
     points: list[dict[str, Any]] = []
     for lot_level in sorted(manual_by_lot):
@@ -594,6 +613,7 @@ def _build_points_for_row(
             "compressed_extra_lots_counts_excluded",
         ]
         point = {
+            "_source_lot_distribution": distribution,
             "security_code": code,
             "security_name_abbr": row.get("security_name_abbr") or "",
             "apply_date": _clean_date(row.get("apply_date")),
@@ -813,6 +833,7 @@ def _build_threshold_snapshot_row(
     output["snapshot_cutpoint_count"] = len(state)
     output["updated_cutpoint_count"] = len(touched_keys)
     output["account_pool_snapshot_json"] = _copy_threshold_state(state)
+    output["source_lot_distribution_json"] = points[0].get("_source_lot_distribution", {}) if points else {}
     for key, item in sorted(state.items(), key=lambda entry: float(entry[1].get("threshold_amount_wan") or 0.0)):
         threshold = _safe_float(item.get("threshold_amount_wan"))
         estimate = _safe_float(item.get("estimate"))

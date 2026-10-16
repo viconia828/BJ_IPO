@@ -5,6 +5,7 @@ import csv
 from datetime import datetime
 import itertools
 import json
+import math
 import os
 from pathlib import Path
 import re
@@ -18,7 +19,9 @@ if str(CODE_DIR) not in sys.path:
     sys.path.insert(0, str(CODE_DIR))
 
 import subscription_predictor
+import subscription_prediction_context as subscription_context
 import subscription_ladder_labels
+import subscription_replay_timeline as replay_timeline
 import config_loader
 import sync_offline_tuning_dataset as offline_tuning_sync
 
@@ -29,10 +32,12 @@ DEFAULT_LADDER_LABEL_PATH = ROOT_DIR / "data" / "offline_tuning" / "subscription
 DEFAULT_PARAMS_PATH = ROOT_DIR / "策略参数.txt"
 DEFAULT_AUTO_RECORD_PATH = ROOT_DIR / "自动调参记录.txt"
 MAX_AUTO_REFINE_STAGES = 5
+DEFAULT_FROZEN_SCORE_HALF_LIFE_SAMPLES = 12.0
 
 DEFAULT_ACCOUNT_POOL_THRESHOLDS_WAN = [300, 500, 800, 1000, 1500, 2000]
 
 DEFAULT_BASELINE_PARAMS = {
+    "subscription_prediction_unified_recency_enabled": True,
     "subscription_prediction_sample_decay_half_life_days": 5,
     "subscription_prediction_cap_factor_direction": "median_over_target",
     "subscription_prediction_cap_factor_exponent": 0.30,
@@ -49,7 +54,7 @@ DEFAULT_BASELINE_PARAMS = {
 }
 
 DEFAULT_SEARCH_GRID = {
-    "subscription_prediction_sample_decay_half_life_days": [5, 10, 20, 40],
+    "subscription_prediction_sample_decay_half_life_days": [1, 2, 3, 5, 7.5, 10, 20],
     "subscription_prediction_cap_factor_direction": ["target_over_median", "median_over_target"],
     "subscription_prediction_cap_factor_exponent": [0.0, 0.15, 0.25, 0.30, 0.45],
     "subscription_prediction_issue_factor_direction": ["target_over_median", "median_over_target"],
@@ -69,7 +74,7 @@ RECENT_MARKET_LEVEL_ADAPTIVE_PARAM_KEYS = (
 
 
 DEFAULT_CORE_COARSE_BLOCK_GRIDS = (
-    ("core_decay_coarse", {"subscription_prediction_sample_decay_half_life_days": [5, 10, 20, 40]}),
+    ("core_decay_coarse", {"subscription_prediction_sample_decay_half_life_days": [1, 2, 3, 5, 7.5, 10, 20]}),
     (
         "core_cap_shape_coarse",
         {
@@ -188,7 +193,7 @@ DEFAULT_ACCOUNT_POOL_PRIOR_HALF_LIVES = [4.0]
 MAX_FALSE_NEGATIVE_INCREASE = 1
 
 MAIN_TUNABLE_PARAM_KEYS = (
-    tuple(DEFAULT_SEARCH_GRID.keys())
+    ("subscription_prediction_unified_recency_enabled",) + tuple(DEFAULT_SEARCH_GRID.keys())
     + RECENT_MARKET_LEVEL_ADAPTIVE_PARAM_KEYS
     + SIMILAR_TOP_APPLY_FROZEN_PARAM_KEYS
 )
@@ -199,6 +204,15 @@ PRIOR_TUNABLE_PARAM_KEYS = (
     "subscription_prediction_account_pool_prior_min_uplift_ratio",
     "subscription_prediction_account_pool_prior_min_source_samples",
 )
+
+UNIFIED_RECENCY_INACTIVE_KEYS = {
+    "subscription_prediction_recent_market_level_adaptive_recent_samples",
+    "subscription_prediction_recent_market_level_adaptive_half_life_samples",
+    "subscription_prediction_similar_top_apply_frozen_recent_samples",
+    "subscription_prediction_similar_top_apply_frozen_half_life_samples",
+    "subscription_prediction_account_pool_recent_samples",
+    "subscription_prediction_account_pool_half_life_samples",
+}
 
 
 def _safe_float(value: Any) -> float | None:
@@ -242,15 +256,18 @@ def _resolve_subscription_base_params(
         merged.setdefault(key, value)
     for key, value in DEFAULT_SIMILAR_TOP_APPLY_FROZEN_PARAMS.items():
         merged.setdefault(key, value)
+    merged.setdefault("subscription_prediction_unified_recency_enabled", True)
     return merged
 
 
 def _main_tunable_snapshot(params: dict[str, Any]) -> dict[str, Any]:
-    return {key: params.get(key) for key in MAIN_TUNABLE_PARAM_KEYS if key in params}
+    return {key: params.get(key) for key in MAIN_TUNABLE_PARAM_KEYS if key in params
+            and not (subscription_predictor._unified_recency(params) and key in UNIFIED_RECENCY_INACTIVE_KEYS)}
 
 
 def _prior_tunable_snapshot(params: dict[str, Any]) -> dict[str, Any]:
-    return {key: params.get(key) for key in PRIOR_TUNABLE_PARAM_KEYS if key in params}
+    return {key: params.get(key) for key in PRIOR_TUNABLE_PARAM_KEYS if key in params
+            and not (subscription_predictor._unified_recency(params) and key in UNIFIED_RECENCY_INACTIVE_KEYS)}
 
 def _subscription_auto_param_snapshot(params: dict[str, Any], *, include_prior: bool = False) -> dict[str, Any]:
     snapshot = _main_tunable_snapshot(params)
@@ -391,17 +408,10 @@ def _load_history_rows(path: Path) -> list[dict[str, Any]]:
         return [dict(row) for row in csv.DictReader(file_obj)]
 
 
-def _row_sort_key(row: dict[str, Any]) -> tuple[str, str]:
-    return (
-        str(row.get("apply_date") or row.get("listing_date") or ""),
-        str(row.get("security_code") or ""),
-    )
+_row_sort_key = subscription_context._row_sort_key
 
 
-def _is_eligible_row(row: dict[str, Any]) -> bool:
-    return (
-        _parse_bool(row.get("model_ready")) and _parse_bool(row.get("allocation_fit_usable_for_tuning"))
-    ) or _parse_bool(row.get("manual_ladder_label_ready"))
+_is_eligible_row = subscription_context._is_eligible_row
 
 
 def _prepare_rows_with_ladder_labels(
@@ -433,30 +443,10 @@ def _prepare_rows_with_ladder_labels(
     return merged_rows, sync_summary
 
 
-def _recent_ipo_from_row(row: dict[str, Any]) -> dict[str, Any]:
-    return {
-        "SECURITY_CODE": row.get("security_code"),
-        "APPLY_DATE": row.get("apply_date"),
-        "ISSUE_RESULT_DATE": row.get("issue_result_date"),
-        "ISSUE_PRICE": _safe_float(row.get("issue_price")),
-        "ONLINE_ISSUE_NUM": _safe_float(row.get("online_issue_shares")),
-        "TOP_APPLY_MARKETCAP": _safe_float(row.get("top_apply_amount_wan")),
-        "ONLINE_VA_SHARES": _safe_float(row.get("online_valid_shares")),
-        "FROZEN_FUNDS_YI": _safe_float(row.get("frozen_funds_yi")),
-        "ONLINE_ISSUE_LWR": _safe_float(row.get("allocation_rate_pct")),
-        "ONLINE_ES_MULTIPLE": _safe_float(row.get("subscription_multiple")),
-    }
+_recent_ipo_from_row = subscription_context._recent_ipo_from_row
 
 
-def _target_from_row(row: dict[str, Any]) -> dict[str, Any]:
-    return {
-        "SECURITY_CODE": row.get("security_code"),
-        "APPLY_DATE": row.get("apply_date"),
-        "ISSUE_RESULT_DATE": row.get("issue_result_date"),
-        "ISSUE_PRICE": _safe_float(row.get("issue_price")),
-        "ONLINE_ISSUE_NUM": _safe_float(row.get("online_issue_shares")),
-        "TOP_APPLY_MARKETCAP": _safe_float(row.get("top_apply_amount_wan")),
-    }
+_target_from_row = subscription_context._target_from_row
 
 
 def _empty_metrics() -> dict[str, float]:
@@ -502,236 +492,53 @@ def _weighted_fit_residuals(rows: list[dict[str, Any]]) -> dict[str, Any]:
     }
 
 
-def _fit_unallocated_avg_amount_wan(row: dict[str, Any], fit: dict[str, Any]) -> float | None:
-    amount = _safe_float(fit.get("unallocated_avg_amount_wan"))
-    if amount is not None:
-        return amount
-    avg_shares = _safe_float(fit.get("unallocated_avg_shares"))
-    issue_price = _safe_float(row.get("issue_price"))
-    if avg_shares is None or issue_price is None or issue_price <= 0:
-        return None
-    return avg_shares * issue_price / 10000
+_fit_unallocated_avg_amount_wan = subscription_context._fit_unallocated_avg_amount_wan
 
 
-def _manual_ladder_thresholds_by_lot(row: dict[str, Any]) -> dict[int, float]:
-    top_apply = _safe_float(row.get("top_apply_amount_wan"))
-    thresholds: dict[int, float] = {}
-    for item in subscription_ladder_labels.parse_manual_ladder(row.get("manual_ladder"), top_apply):
-        lot_level = int(item.get("total_lots") or 0)
-        amount = _safe_float(item.get("threshold_amount_wan"))
-        if lot_level > 0 and amount is not None and amount > 0:
-            thresholds[lot_level] = amount
-    return thresholds
+_manual_ladder_thresholds_by_lot = subscription_context._manual_ladder_thresholds_by_lot
 
 
-def _account_pool_demand_wan_from_row(row: dict[str, Any], target_cap_wan: float) -> dict[str, Any] | None:
-    fit = _parse_json_object(row.get("allocation_fit_json"))
-    buckets = fit.get("buckets")
-    if not isinstance(buckets, list) or target_cap_wan <= 0:
-        return None
+_account_pool_demand_wan_from_row = subscription_context._account_pool_demand_wan_from_row
 
-    manual_thresholds = _manual_ladder_thresholds_by_lot(row)
-    bucket_demand_wan = 0.0
-    bucket_accounts = 0.0
-    manual_override_count = 0
-    for item in buckets:
-        if not isinstance(item, dict):
-            continue
-        accounts = _safe_float(item.get("accounts"))
-        amount = _safe_float(item.get("threshold_amount_wan"))
-        allocated_lots = int(_safe_float(item.get("allocated_lots")) or 0)
-        manual_amount = manual_thresholds.get(allocated_lots)
-        if manual_amount is not None:
-            amount = manual_amount
-            manual_override_count += 1
-        if accounts is None or amount is None or accounts <= 0 or amount <= 0:
-            continue
-        bucket_accounts += accounts
-        bucket_demand_wan += accounts * min(amount, target_cap_wan)
 
-    unallocated_accounts = _safe_float(fit.get("unallocated_accounts"))
-    unallocated_avg_amount = _fit_unallocated_avg_amount_wan(row, fit)
-    unallocated_demand_wan = 0.0
-    if (
-        unallocated_accounts is not None
-        and unallocated_avg_amount is not None
-        and unallocated_accounts > 0
-        and unallocated_avg_amount > 0
-    ):
-        unallocated_demand_wan = unallocated_accounts * min(unallocated_avg_amount, target_cap_wan)
+_account_pool_prior_from_history = subscription_context._account_pool_prior_from_history
 
-    total_demand_wan = bucket_demand_wan + unallocated_demand_wan
-    if total_demand_wan <= 0:
-        return None
 
-    confidence = _safe_float(row.get("allocation_fit_confidence")) or _safe_float(fit.get("fit_confidence")) or 0.0
+_apply_account_pool_prior = subscription_context._apply_account_pool_prior
+
+
+def _frozen_funds_metrics(details: list[dict[str, Any]], half_life: float) -> dict[str, Any]:
+    if not math.isfinite(half_life) or half_life <= 0:
+        raise ValueError("冻资评分半衰期必须为正数")
+    valid = [item for item in details if item.get("frozen_funds_pct_error") is not None]
+    # Same-day IPOs receive the same age; code order must not change their weight.
+    date_counts: dict[str, int] = {}
+    for item in details:
+        day = str(item.get("replay_as_of_date") or "")
+        date_counts[day] = date_counts.get(day, 0) + 1
+    age_by_date: dict[str, int] = {}
+    age = 0
+    for day in sorted(date_counts, reverse=True):
+        age_by_date[day] = age
+        age += date_counts[day]
+    for item in details:
+        item["frozen_score_weight"] = 0.5 ** (age_by_date[str(item.get("replay_as_of_date") or "")] / half_life)
+    total_weight = sum(item["frozen_score_weight"] for item in valid)
     return {
-        "security_code": row.get("security_code"),
-        "apply_date": row.get("apply_date"),
-        "estimated_demand_wan": total_demand_wan,
-        "bucket_demand_wan": bucket_demand_wan,
-        "unallocated_demand_wan": unallocated_demand_wan,
-        "bucket_accounts": bucket_accounts,
-        "unallocated_accounts": unallocated_accounts,
-        "manual_ladder_override_count": manual_override_count,
-        "confidence": confidence,
-        "is_lower_bound": bool(fit.get("top_apply_below_guaranteed")),
-        "fit_quality": fit.get("fit_quality") or fit.get("method") or "",
-    }
-
-
-def _account_pool_prior_from_history(
-    history_rows: list[dict[str, Any]],
-    target_row: dict[str, Any],
-    *,
-    recent_samples: int = 8,
-    half_life_samples: float = 4.0,
-) -> dict[str, Any] | None:
-    target_cap_wan = _safe_float(target_row.get("top_apply_amount_wan"))
-    issue_price = _safe_float(target_row.get("issue_price"))
-    online_issue_shares = _safe_float(target_row.get("online_issue_shares"))
-    if target_cap_wan is None or target_cap_wan <= 0 or issue_price is None or issue_price <= 0:
-        return None
-
-    recent_rows = history_rows[-recent_samples:] if recent_samples > 0 else history_rows
-    samples: list[dict[str, Any]] = []
-    total_weight = 0.0
-    weighted_demand_wan = 0.0
-    lower_bound_count = 0
-    for age, row in enumerate(reversed(recent_rows)):
-        sample = _account_pool_demand_wan_from_row(row, target_cap_wan)
-        if sample is None:
-            continue
-        recency_weight = 0.5 ** (age / max(half_life_samples, 1.0))
-        weight = max(float(sample.get("confidence") or 0.0), 0.05) * recency_weight
-        sample["weight"] = weight
-        total_weight += weight
-        weighted_demand_wan += float(sample.get("estimated_demand_wan") or 0.0) * weight
-        if sample.get("is_lower_bound"):
-            lower_bound_count += 1
-        samples.append(sample)
-
-    if total_weight <= 0:
-        return None
-
-    demand_wan = weighted_demand_wan / total_weight
-    valid_subscription_shares = demand_wan * 10000 / issue_price
-    return {
-        "target_top_apply_amount_wan": target_cap_wan,
-        "weighted_demand_wan": demand_wan,
-        "valid_subscription_shares": valid_subscription_shares,
-        "subscription_multiple": (
-            valid_subscription_shares / online_issue_shares
-            if online_issue_shares is not None and online_issue_shares > 0
-            else None
+        "selection_objective": "recency_weighted_frozen_funds_mape",
+        "frozen_score_half_life_samples": half_life,
+        "frozen_funds_metric_rows": len(valid),
+        "frozen_funds_missing_prediction_rows": sum(
+            item.get("actual_frozen_funds_yi") is not None and item.get("frozen_funds_pct_error") is None
+            for item in details
         ),
-        "sample_count": len(samples),
-        "recent_samples_requested": recent_samples,
-        "half_life_samples": half_life_samples,
-        "source_codes": [sample.get("security_code") for sample in samples],
-        "lower_bound_sample_count": lower_bound_count,
-        "samples": samples,
+        "frozen_funds_weighted_mape": (
+            sum(item["frozen_score_weight"] * item["frozen_funds_pct_error"] for item in valid) / total_weight
+            if total_weight else None
+        ),
+        "frozen_funds_mape": sum(item["frozen_funds_pct_error"] for item in valid) / len(valid) if valid else None,
+        "frozen_funds_mae_yi": sum(item["frozen_funds_abs_error_yi"] for item in valid) / len(valid) if valid else None,
     }
-
-
-def _apply_account_pool_prior(
-    prediction: dict[str, Any],
-    row: dict[str, Any],
-    history_rows: list[dict[str, Any]],
-    params: dict[str, Any],
-) -> dict[str, Any]:
-    weight = float(params.get("subscription_prediction_account_pool_prior_weight") or 0.0)
-    if weight <= 0 or not prediction.get("available"):
-        return prediction
-
-    recent_samples = int(float(params.get("subscription_prediction_account_pool_recent_samples", 8)))
-    half_life_samples = float(params.get("subscription_prediction_account_pool_half_life_samples", 4.0))
-    prior = _account_pool_prior_from_history(
-        history_rows,
-        row,
-        recent_samples=max(recent_samples, 1),
-        half_life_samples=max(half_life_samples, 1.0),
-    )
-    if prior is None:
-        return prediction
-
-    base_valid_shares = _safe_float(prediction.get("valid_subscription_shares"))
-    prior_floor_shares = float(prior.get("valid_subscription_shares") or 0.0) * weight
-    prior_info = dict(prior)
-    prior_info.update(
-        {
-            "floor_weight": weight,
-            "floor_valid_subscription_shares": prior_floor_shares,
-            "base_valid_subscription_shares": base_valid_shares,
-            "applied": False,
-        }
-    )
-
-    updated = dict(prediction)
-    updated["account_pool_prior"] = prior_info
-
-    min_source_samples = int(float(params.get("subscription_prediction_account_pool_prior_min_source_samples") or 1))
-    prior_info["min_source_samples"] = min_source_samples
-    if int(prior_info.get("sample_count") or 0) < min_source_samples:
-        prior_info["rejected_reason"] = "source_sample_count_below_min"
-        return updated
-
-    online_issue_shares = _safe_float(prediction.get("online_issue_shares") or row.get("online_issue_shares"))
-    if online_issue_shares is not None and online_issue_shares > 0:
-        prior_info["base_subscription_multiple"] = (
-            base_valid_shares / online_issue_shares if base_valid_shares is not None else None
-        )
-        prior_info["floor_subscription_multiple"] = prior_floor_shares / online_issue_shares
-
-    min_uplift_ratio = float(params.get("subscription_prediction_account_pool_prior_min_uplift_ratio") or 0.0)
-    prior_info["min_uplift_ratio"] = min_uplift_ratio
-    if base_valid_shares is not None and base_valid_shares > 0:
-        uplift_ratio = prior_floor_shares / base_valid_shares
-        prior_info["uplift_ratio"] = uplift_ratio
-        if min_uplift_ratio > 0 and uplift_ratio < min_uplift_ratio:
-            prior_info["rejected_reason"] = "uplift_ratio_below_min"
-            return updated
-
-    if base_valid_shares is None or prior_floor_shares <= base_valid_shares:
-        prior_info["rejected_reason"] = "floor_not_above_base"
-        return updated
-
-    issue_price = _safe_float(prediction.get("issue_price") or row.get("issue_price"))
-    top_apply_shares = _safe_float(prediction.get("top_apply_shares"))
-    if top_apply_shares is None:
-        top_apply_shares = subscription_predictor._money_to_shares(
-            _safe_float(row.get("top_apply_amount_wan")),
-            issue_price,
-        )
-    if issue_price is None or issue_price <= 0 or online_issue_shares is None or online_issue_shares <= 0:
-        return updated
-
-    allocation_ratio = online_issue_shares / prior_floor_shares
-    guaranteed_shares = subscription_predictor._ceil_to_lot(subscription_predictor.LOT_SIZE / allocation_ratio)
-    guaranteed_reachable = top_apply_shares is None or guaranteed_shares <= top_apply_shares
-    guaranteed_amount_wan = subscription_predictor._shares_to_amount_wan(guaranteed_shares, issue_price)
-    top_apply_below_guaranteed = bool(top_apply_shares is not None and guaranteed_shares > top_apply_shares)
-    top_apply_gap_shares = (guaranteed_shares - top_apply_shares) if top_apply_below_guaranteed else None
-
-    prior_info["applied"] = True
-    prior_info["updated_guaranteed_threshold_amount_wan"] = guaranteed_amount_wan
-    prior_info["updated_guaranteed_threshold_reachable"] = guaranteed_reachable
-    prior_info["updated_top_apply_below_guaranteed"] = top_apply_below_guaranteed
-    updated.update(
-        {
-            "valid_subscription_shares": prior_floor_shares,
-            "subscription_multiple": prior_floor_shares / online_issue_shares,
-            "allocation_rate_pct": allocation_ratio * 100,
-            "guaranteed_threshold_shares": guaranteed_shares,
-            "guaranteed_threshold_amount_wan": guaranteed_amount_wan if guaranteed_reachable else None,
-            "guaranteed_threshold_reachable": guaranteed_reachable,
-            "top_apply_below_guaranteed": top_apply_below_guaranteed,
-            "top_apply_gap_shares": top_apply_gap_shares,
-            "top_apply_gap_amount_wan": subscription_predictor._shares_to_amount_wan(top_apply_gap_shares, issue_price),
-            "account_pool_prior": prior_info,
-        }
-    )
-    return updated
 
 
 def evaluate_subscription_prediction(
@@ -743,11 +550,15 @@ def evaluate_subscription_prediction(
 ) -> dict[str, Any]:
     settings = dict(params or {})
     settings.setdefault("subscription_prediction_min_samples", min_history_samples)
+    score_half_life = float(settings.get(
+        "subscription_tuning_frozen_score_half_life_samples", DEFAULT_FROZEN_SCORE_HALF_LIFE_SAMPLES,
+    ))
+    if not math.isfinite(score_half_life) or score_half_life <= 0:
+        raise ValueError("冻资评分半衰期必须为正数")
 
     sorted_rows = sorted(rows, key=_row_sort_key)
     eligible_rows = [row for row in sorted_rows if _is_eligible_row(row)]
-    history: list[dict[str, Any]] = []
-    history_rows: list[dict[str, Any]] = []
+    _preload_account_pool_rows_for_tuning(settings)
     details: list[dict[str, Any]] = []
     skipped_history = 0
     amount_abs_errors: list[float] = []
@@ -767,20 +578,17 @@ def evaluate_subscription_prediction(
     for row in sorted_rows:
         if not _is_eligible_row(row):
             continue
-        if len(history) < min_history_samples:
+        known_history_rows = subscription_context.known_history(sorted_rows, row)
+        if len(known_history_rows) < min_history_samples:
             skipped_history += 1
-            history.append(_recent_ipo_from_row(row))
-            history_rows.append(row)
             continue
 
-        recent_history = history[-max_history_samples:] if max_history_samples else history
-        recent_history_rows = history_rows[-max_history_samples:] if max_history_samples else history_rows
-        prediction = subscription_predictor.build_subscription_prediction(
+        prediction = subscription_context.build_prediction(
             _target_from_row(row),
-            recent_ipos=recent_history,
+            history_rows=sorted_rows,
             params=settings,
+            max_history_samples=max_history_samples,
         )
-        prediction = _apply_account_pool_prior(prediction, row, recent_history_rows, settings)
         manual_ladder_items = subscription_ladder_labels.parse_manual_ladder(
             row.get("manual_ladder"),
             row.get("top_apply_amount_wan"),
@@ -868,11 +676,38 @@ def evaluate_subscription_prediction(
             )
 
         account_pool_prior = prediction.get("account_pool_prior") or {}
+        fractional_pool = prediction.get("account_pool_fractional_estimate") or {}
+        actual_frozen = _safe_float(row.get("frozen_funds_yi"))
+        predicted_frozen = _safe_float(prediction.get("frozen_funds_yi")) if prediction.get("available") else None
+        frozen_abs_error = (
+            abs(predicted_frozen - actual_frozen)
+            if actual_frozen is not None and actual_frozen > 0 and predicted_frozen is not None else None
+        )
         recent_market_level = ((prediction.get("estimate") or {}).get("recent_market_level") or {})
         details.append(
             {
                 "security_code": row.get("security_code"),
+                "replay_as_of_date": replay_timeline.normalized_date(row.get("apply_date")),
+                "funding_model": (prediction.get("estimate") or {}).get("funding_model", "multiple"),
+                "funding_source_codes": ((prediction.get("estimate") or {}).get("direct_funding") or {}).get("source_codes", []),
+                "funding_effective_sample_count": ((prediction.get("estimate") or {}).get("direct_funding") or {}).get("effective_sample_count"),
+                "funding_fallback_reason": ((prediction.get("estimate") or {}).get("direct_funding") or {}).get("fallback_reason"),
+                "funding_distribution_dates": {
+                    s["security_code"]: s["distribution_available_date"]
+                    for s in ((prediction.get("estimate") or {}).get("direct_funding") or {}).get("samples", [])
+                    if s.get("distribution_available_date")},
+                "funding_excluded_account_sources": ((prediction.get("estimate") or {}).get("direct_funding") or {}).get("excluded_account_sources", []),
+                "funding_calibration_distribution_dates": [
+                    {"security_code": s["security_code"], "source_dates": s["prediction_distribution_dates"]}
+                    for s in recent_market_level.get("samples", []) if s.get("prediction_distribution_dates")],
+                "history_source_codes": prediction["history_context"]["history_source_codes"],
+                "account_pool_source_codes": list(fractional_pool.get("source_codes") or []),
+                "account_pool_effective_source_codes": list(fractional_pool.get("effective_source_codes") or []),
                 "available": bool(prediction.get("available")),
+                "actual_frozen_funds_yi": actual_frozen,
+                "predicted_frozen_funds_yi": predicted_frozen,
+                "frozen_funds_abs_error_yi": frozen_abs_error,
+                "frozen_funds_pct_error": frozen_abs_error / actual_frozen if frozen_abs_error is not None else None,
                 "actual_guaranteed_amount_wan": actual_amount,
                 "predicted_guaranteed_amount_wan": predicted_amount,
                 "predicted_subscription_multiple": _safe_float(prediction.get("subscription_multiple")),
@@ -909,12 +744,13 @@ def evaluate_subscription_prediction(
                     "updated_guaranteed_threshold_reachable"
                 ),
                 "account_pool_prior_source_codes": account_pool_prior.get("source_codes") or [],
+                "account_pool_prior_count_basis": account_pool_prior.get("account_count_basis"),
+                "account_pool_prior_distribution_dates": {s["security_code"]: s.get("distribution_available_date")
+                    for s in account_pool_prior.get("samples", []) if s.get("distribution_available_date")},
                 "account_pool_prior_sample_count": account_pool_prior.get("sample_count"),
                 "account_pool_prior_lower_bound_sample_count": account_pool_prior.get("lower_bound_sample_count"),
             }
         )
-        history.append(_recent_ipo_from_row(row))
-        history_rows.append(row)
 
     mae = sum(amount_abs_errors) / len(amount_abs_errors) if amount_abs_errors else None
     mape = sum(amount_pct_errors) / len(amount_pct_errors) if amount_pct_errors else None
@@ -932,6 +768,8 @@ def evaluate_subscription_prediction(
     recent_abs_pct_errors = [abs(value) for value in recent_signed_pct_errors]
     return {
         "history_path": "",
+        "replay_time_policy": "result_available_before_apply_date",
+        **_frozen_funds_metrics(details, score_half_life),
         "total_rows": len(sorted_rows),
         "eligible_rows": len(eligible_rows),
         "min_history_samples": min_history_samples,
@@ -1008,6 +846,8 @@ def _candidate_params_from_grid(
     grid: dict[str, list[Any]],
     base_params: dict[str, Any] | None = None,
 ) -> list[dict[str, Any]]:
+    if subscription_predictor._unified_recency(base_params or DEFAULT_BASELINE_PARAMS):
+        grid = {key: values for key, values in grid.items() if key not in UNIFIED_RECENCY_INACTIVE_KEYS}
     keys = list(grid.keys())
     candidates: list[dict[str, Any]] = []
     for values in itertools.product(*(grid[key] for key in keys)):
@@ -1019,7 +859,7 @@ def _candidate_params_from_grid(
         min_samples = _safe_float(
             params.get("subscription_prediction_recent_market_level_adaptive_min_samples")
         )
-        if recent_samples is not None and min_samples is not None and min_samples > recent_samples:
+        if not subscription_predictor._unified_recency(params) and recent_samples is not None and min_samples is not None and min_samples > recent_samples:
             continue
         market_level_factor = _safe_float(
             params.get("subscription_prediction_recent_market_level_factor")
@@ -1062,6 +902,8 @@ def _candidate_signature(params: dict[str, Any]) -> tuple[tuple[str, Any], ...]:
     )
     signature: list[tuple[str, Any]] = []
     for key in MAIN_TUNABLE_PARAM_KEYS:
+        if subscription_predictor._unified_recency(params) and key in UNIFIED_RECENCY_INACTIVE_KEYS:
+            continue
         if (
             key in SIMILAR_TOP_APPLY_FROZEN_PARAM_KEYS
             and key != 'subscription_prediction_similar_top_apply_frozen_enabled'
@@ -1394,28 +1236,16 @@ def _params_from_summary(base_params: dict[str, Any], summary: dict[str, Any] | 
 
 
 def _candidate_rank_key(summary: dict[str, Any]) -> tuple[float, ...]:
-    false_negative_count = len(summary.get("top_apply_false_negative_codes") or [])
-    false_positive_count = len(summary.get("top_apply_false_positive_codes") or [])
-    ladder_mape = _safe_float(summary.get("manual_ladder_amount_mape"))
-    mape = _safe_float(summary.get("guaranteed_amount_mape"))
-    recent_mape = _safe_float(summary.get("recent_guaranteed_mape"))
-    recent_signed_bias = _safe_float(summary.get("recent_guaranteed_signed_bias"))
-    mae = _safe_float(summary.get("guaranteed_amount_mae_wan"))
-    metric_rows = _safe_float(summary.get("guaranteed_amount_metric_rows")) or 0.0
-    resolved_mape = mape if mape is not None else 999.0
-    resolved_recent_mape = recent_mape if recent_mape is not None else resolved_mape
-    resolved_recent_bias = abs(recent_signed_bias) if recent_signed_bias is not None else resolved_recent_mape
-    # 近期资金精度是主目标；全样本分类错误只在精度指标之后破同分。
-    # 漏判另由候选筛选的安全护栏限制，避免近期小样本导致分类明显失控。
-    recent_precision_loss = 0.75 * resolved_recent_mape + 0.25 * resolved_recent_bias
+    weighted_mape = _safe_float(summary.get("frozen_funds_weighted_mape"))
+    mape = _safe_float(summary.get("frozen_funds_mape"))
+    # Funding is selected only on funding errors. Fractional/ladder errors are
+    # diagnostics, not another term in this objective. Existing miss guardrails
+    # remain separate; missing predictions cannot improve a candidate's rank.
     return (
-        recent_precision_loss,
-        resolved_mape,
-        ladder_mape if ladder_mape is not None else 999.0,
-        float(false_negative_count),
-        float(false_positive_count),
-        mae if mae is not None else 999999.0,
-        -metric_rows,
+        float(summary.get("frozen_funds_missing_prediction_rows") or 0),
+        weighted_mape if weighted_mape is not None else 999999.0,
+        mape if mape is not None else 999999.0,
+        -float(summary.get("frozen_funds_metric_rows") or 0),
     )
 
 
@@ -1526,6 +1356,8 @@ def evaluate_candidate_grid(
     progress_callback: Callable[[int, int, dict[str, Any] | None], None] | None = None,
 ) -> dict[str, Any]:
     resolved_base_params = _resolve_subscription_base_params(base_params)
+    if str(resolved_base_params.get("subscription_prediction_funding_model", "multiple")) != "multiple":
+        raise ValueError("简化冻资模型请使用 tools/evaluate_subscription_funding_models.py，旧网格只适用于倍数模型")
     _preload_account_pool_rows_for_tuning(resolved_base_params)
     baseline = evaluate_subscription_prediction(
         rows,
@@ -1896,6 +1728,9 @@ def evaluate_account_pool_prior(
     weight_values = weights or DEFAULT_ACCOUNT_POOL_PRIOR_WEIGHTS
     recent_values = recent_sample_values or DEFAULT_ACCOUNT_POOL_PRIOR_RECENT_SAMPLES
     half_values = half_life_values or DEFAULT_ACCOUNT_POOL_PRIOR_HALF_LIVES
+    if subscription_predictor._unified_recency(base_params):
+        recent_values = [len(rows)]
+        half_values = [subscription_predictor._recency_half_life(base_params)]
     min_uplift_values = min_uplift_ratio_values or [0.0]
     min_source_values = min_source_sample_values or [1]
     ranked: list[dict[str, Any]] = []
@@ -2222,6 +2057,8 @@ def format_summary(summary: dict[str, Any]) -> str:
         f"- 可调样本: {summary.get('eligible_rows', 0)}",
         f"- 历史样本不足跳过: {summary.get('skipped_for_history', 0)}",
         f"- 实际评估样本: {summary.get('evaluated_rows', 0)}",
+        f"- 冻资评分半衰期: {summary.get('frozen_score_half_life_samples')} 只（越近期权重越大）",
+        f"- 冻资评分: {_format_frozen_metric(summary)}",
         f"- 正股门槛 MAE: {_format_float(summary.get('guaranteed_amount_mae_wan'), 4)} 万元",
         f"- 正股门槛 MAPE: {_format_float((summary.get('guaranteed_amount_mape') or 0) * 100 if summary.get('guaranteed_amount_mape') is not None else None, 2)}%",
         f"- 正股门槛有符号偏差: {_format_float((summary.get('guaranteed_amount_signed_bias') or 0) * 100 if summary.get('guaranteed_amount_signed_bias') is not None else None, 2)}%",
@@ -2263,7 +2100,7 @@ def _format_candidate_line(index: int, item: dict[str, Any]) -> str:
     false_negative_codes = item.get("top_apply_false_negative_codes") or []
     false_positive_codes = item.get("top_apply_false_positive_codes") or []
     return (
-        f"{index}. MAE={_format_float(item.get('guaranteed_amount_mae_wan'), 4)} 万元, "
+        f"{index}. {_format_frozen_metric(item)}, 正股MAE={_format_float(item.get('guaranteed_amount_mae_wan'), 4)} 万元, "
         f"MAPE={_format_float((item.get('guaranteed_amount_mape') or 0) * 100 if item.get('guaranteed_amount_mape') is not None else None, 2)}%, "
         f"近6偏差={_format_float((item.get('recent_guaranteed_signed_bias') or 0) * 100 if item.get('recent_guaranteed_signed_bias') is not None else None, 2)}%, "
         f"水位因子={_format_float(item.get('latest_recent_market_level_factor'), 4)}, "
@@ -2290,7 +2127,7 @@ def _format_account_pool_prior_line(index: int, item: dict[str, Any]) -> str:
     false_positive_codes = item.get("top_apply_false_positive_codes") or []
     applied_codes = item.get("account_pool_prior_applied_codes") or []
     return (
-        f"{index}. MAE={_format_float(item.get('guaranteed_amount_mae_wan'), 4)} 万元, "
+        f"{index}. {_format_frozen_metric(item)}, 正股MAE={_format_float(item.get('guaranteed_amount_mae_wan'), 4)} 万元, "
         f"MAPE={_format_float((item.get('guaranteed_amount_mape') or 0) * 100 if item.get('guaranteed_amount_mape') is not None else None, 2)}%, "
         f"漏判={len(false_negative_codes)} [{', '.join(false_negative_codes) or '-'}], "
         f"误判={len(false_positive_codes)} [{', '.join(false_positive_codes) or '-'}], "
@@ -2312,12 +2149,14 @@ def format_search_summary(result: dict[str, Any]) -> str:
         f"- 候选组数: {result.get('candidate_count', 0)} / 计划 {result.get('planned_candidate_count', result.get('candidate_count', 0))}",
         f"- 搜索轮次: {round_text}",
         "- baseline: "
+        f"{_format_frozen_metric(baseline)}, "
         f"MAE={_format_float(baseline.get('guaranteed_amount_mae_wan'), 4)} 万元, "
         f"MAPE={_format_float((baseline.get('guaranteed_amount_mape') or 0) * 100 if baseline.get('guaranteed_amount_mape') is not None else None, 2)}%, "
         f"分档MAPE={_format_float((baseline.get('manual_ladder_amount_mape') or 0) * 100 if baseline.get('manual_ladder_amount_mape') is not None else None, 2)}%, "
         f"漏判={len(baseline.get('top_apply_false_negative_codes') or [])}, "
         f"误判={len(baseline.get('top_apply_false_positive_codes') or [])}",
         "- best: "
+        f"{_format_frozen_metric(best)}, "
         f"MAE={_format_float(best.get('guaranteed_amount_mae_wan'), 4)} 万元, "
         f"MAPE={_format_float((best.get('guaranteed_amount_mape') or 0) * 100 if best.get('guaranteed_amount_mape') is not None else None, 2)}%, "
         f"分档MAPE={_format_float((best.get('manual_ladder_amount_mape') or 0) * 100 if best.get('manual_ladder_amount_mape') is not None else None, 2)}%, "
@@ -2389,8 +2228,19 @@ def format_account_pool_prior_summary(result: dict[str, Any]) -> str:
     return "\n".join(lines)
 
 
+def _format_frozen_metric(summary: dict[str, Any]) -> str:
+    weighted = _safe_float(summary.get("frozen_funds_weighted_mape"))
+    mape = _safe_float(summary.get("frozen_funds_mape"))
+    return (
+        f"冻资加权MAPE={_format_float(weighted * 100 if weighted is not None else None, 2)}%, "
+        f"冻资MAPE={_format_float(mape * 100 if mape is not None else None, 2)}%, "
+        f"冻资样本={summary.get('frozen_funds_metric_rows', 0)}"
+    )
+
+
 def _format_metric_brief(summary: dict[str, Any]) -> str:
     return (
+        f"{_format_frozen_metric(summary)}, "
         f"MAE={_format_float(summary.get('guaranteed_amount_mae_wan'), 4)} 万元, "
         f"MAPE={_format_float((summary.get('guaranteed_amount_mape') or 0) * 100 if summary.get('guaranteed_amount_mape') is not None else None, 2)}%, "
         f"分档MAPE={_format_float((summary.get('manual_ladder_amount_mape') or 0) * 100 if summary.get('manual_ladder_amount_mape') is not None else None, 2)}%, "
@@ -2562,6 +2412,7 @@ def _prepend_subscription_auto_record(
         f"- 主网格搜索模式：{result.get('search_profile') or 'base'}；细搜轮数 {result.get('fine_rounds', 0)}",
         f"- prior 分支候选组数：{result.get('prior_candidate_count', 0)}",
         f"- 选中分支：{result.get('selected_branch') or 'main_grid'}",
+        f"- 评分目标：冻资近期加权 MAPE；样本半衰期 {baseline.get('frozen_score_half_life_samples')} 只；碎股误差不参与加权",
         f"- baseline：{_format_metric_brief(baseline)}",
         f"- 主网格最优：{_format_metric_brief(best)}",
         f"- prior 分支最优：{_format_metric_brief(prior_best)}",
@@ -2592,7 +2443,7 @@ def _print_subscription_auto_summary(result: dict[str, Any], *, best_beats_basel
     )
     print(f"- 搜索模式：{result.get('search_profile') or 'base'}；细搜轮数 {result.get('fine_rounds', 0)}")
     print(
-        f"- 排序口径：近6精度优先；漏判安全上限={result.get('max_false_negative_count', 0)}，"
+        f"- 排序口径：冻资近期加权误差优先（半衰期 {baseline.get('frozen_score_half_life_samples')} 只）；漏判安全上限={result.get('max_false_negative_count', 0)}，"
         f"主网格剔除={result.get('false_negative_guardrail_rejected_count', 0)}，"
         f"prior 剔除={prior_branch.get('false_negative_guardrail_rejected_count', 0)}"
     )
@@ -2734,6 +2585,8 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--no-ladder-labels", action="store_true")
     parser.add_argument("--min-history-samples", type=int, default=3)
     parser.add_argument("--max-history-samples", type=int, default=None)
+    parser.add_argument("--frozen-score-half-life-samples", type=float, default=DEFAULT_FROZEN_SCORE_HALF_LIFE_SAMPLES,
+                        help="冻资评分的样本半衰期，默认 12；不改变预测公式或碎股评分。")
     parser.add_argument(
         "--mode",
         choices=("baseline", "search", "robustness", "account-pool", "account-pool-prior", "auto"),
@@ -2772,6 +2625,9 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
 def main() -> int:
     args = parse_args()
     strategy_params = config_loader.load_params(args.params_file)
+    if not math.isfinite(args.frozen_score_half_life_samples) or args.frozen_score_half_life_samples <= 0:
+        raise ValueError("冻资评分半衰期必须为正数")
+    strategy_params["subscription_tuning_frozen_score_half_life_samples"] = args.frozen_score_half_life_samples
     _refresh_subscription_history_before_tuning(args, strategy_params)
     account_pool_runtime_summary = _preload_account_pool_rows_for_tuning(strategy_params)
     rows = _load_history_rows(args.history_path)

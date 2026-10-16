@@ -6,7 +6,7 @@ import report_source_helper
 import shutil
 import statistics
 import subprocess
-import subscription_predictor
+import subscription_prediction_context
 import time
 import uuid
 from datetime import date, datetime, timedelta
@@ -473,7 +473,9 @@ def _prepare_report_context(all_data: dict[str, Any]) -> dict[str, Any]:
     discount = ((1 - issue_pe / industry_pe) * 100) if issue_pe and industry_pe else None
     subscription_prediction = all_data.get("subscription_prediction") or {}
     if not subscription_prediction:
-        subscription_prediction = subscription_predictor.build_subscription_prediction(ipo, recent_ipos, params)
+        subscription_prediction = subscription_prediction_context.build_prediction(
+            ipo, params=params, as_of_date=analysis_date,
+        )
     subscription_prediction_rows = [
         [str(cell) for cell in row]
         for row in (subscription_prediction.get("table_rows") or [["模型状态", DISPLAY_MISSING_TEXT, "-"]])

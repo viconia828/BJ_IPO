@@ -135,6 +135,8 @@ def _resolve_lot_threshold_max_lots(settings: dict[str, Any]) -> int:
 
 
 def _resolve_account_pool_recent_samples(settings: dict[str, Any]) -> int:
+    if _unified_recency(settings):
+        return 10**9
     raw_value = _safe_float(settings.get("subscription_prediction_account_pool_recent_samples"))
     if raw_value is None:
         raw_value = DEFAULT_ACCOUNT_POOL_RECENT_SAMPLES
@@ -142,6 +144,8 @@ def _resolve_account_pool_recent_samples(settings: dict[str, Any]) -> int:
 
 
 def _resolve_account_pool_half_life(settings: dict[str, Any]) -> float:
+    if _unified_recency(settings):
+        return _recency_half_life(settings)
     raw_value = _safe_float(settings.get("subscription_prediction_account_pool_half_life_samples"))
     if raw_value is None:
         raw_value = DEFAULT_ACCOUNT_POOL_HALF_LIFE_SAMPLES
@@ -221,6 +225,48 @@ def _weighted_median(values: list[tuple[float, float]]) -> float | None:
     for value, weight in clean:
         cursor += weight
         if cursor >= total_weight / 2:
+            return value
+    return clean[-1][0]
+
+
+def _unified_recency(params: dict[str, Any]) -> bool:
+    # Low-level callers can explicitly retain the legacy policy for comparison.
+    # The shared production entry and tuning defaults enable the unified policy.
+    return _is_enabled(params.get("subscription_prediction_unified_recency_enabled"), default=False)
+
+
+def _recency_half_life(params: dict[str, Any]) -> float:
+    value = float(params.get("subscription_prediction_sample_decay_half_life_days", 20))
+    if not math.isfinite(value) or value <= 0:
+        raise ValueError("申购统一时间衰减半衰期必须为正数")
+    return max(value, 1.0)
+
+
+def _with_recency_weights(samples: list[dict[str, Any]], params: dict[str, Any]) -> list[dict[str, Any]]:
+    """One age per known result date, before any component-specific filtering."""
+    half_life = _recency_half_life(params)
+    dates = [float(sample.get("sample_date_ordinal") or 0) for sample in samples]
+    return [{**sample, "recency_age": (age := sum(day > dates[index] for day in dates)
+             if dates[index] else index), "recency_weight": 0.5 ** (age / half_life)}
+            for index, sample in enumerate(samples)]
+
+
+def _history_recency_weights(records: list[dict[str, Any]], params: dict[str, Any]) -> dict[str, float]:
+    samples = [sample for record in records if (sample := _historical_sample(record)) is not None]
+    samples.sort(key=lambda sample: sample["sample_date_ordinal"], reverse=True)
+    return {str(sample["security_code"]): sample["recency_weight"]
+            for sample in _with_recency_weights(samples, params)}
+
+
+def _weighted_quantile(values: list[tuple[float, float]], quantile: float) -> float | None:
+    clean = sorted((value, weight) for value, weight in values if value > 0 and weight > 0)
+    if not clean:
+        return None
+    threshold = _clamp(quantile, 0.0, 1.0) * sum(weight for _, weight in clean)
+    cumulative = 0.0
+    for value, weight in clean:
+        cumulative += weight
+        if cumulative >= threshold:
             return value
     return clean[-1][0]
 
@@ -468,6 +514,7 @@ def _estimate_account_pool_accounts_ge_indexed(
     account_pool_index: dict[str, Any],
     recent_limit: int,
     half_life: float,
+    recency_weights: dict[str, float] | None = None,
 ) -> dict[str, Any]:
     sorted_rows = account_pool_index.get("sorted_rows") or []
 
@@ -476,7 +523,10 @@ def _estimate_account_pool_accounts_ge_indexed(
         estimate = _indexed_row_estimate_accounts_ge(indexed_row, amount_wan)
         if estimate is None:
             continue
-        weight = 0.5 ** (len(samples) / half_life)
+        weight = (recency_weights.get(str(indexed_row.get("code") or ""), 0.0)
+                  if recency_weights is not None else 0.5 ** (len(samples) / half_life))
+        if weight <= 0:
+            continue
         samples.append((estimate, weight, str(indexed_row.get("code") or "")))
         if len(samples) >= recent_limit:
             break
@@ -555,9 +605,20 @@ def _estimate_account_pool_accounts_ge(
 
     recent_limit = _resolve_account_pool_recent_samples(settings)
     half_life = _resolve_account_pool_half_life(settings)
+    recency_weights = None
+    if _unified_recency(settings):
+        recency_weights = settings.get("subscription_prediction_recency_weights")
+        if not isinstance(recency_weights, dict):
+            dated_rows = sorted(rows, key=lambda row: str(row.get("apply_date") or ""), reverse=True)
+            samples = [{"security_code": row.get("security_code"),
+                        "sample_date_ordinal": parsed.toordinal() if (parsed := _parse_date(row.get("issue_result_date") or row.get("apply_date"))) else 0}
+                       for row in dated_rows]
+            recency_weights = {str(sample["security_code"]): sample["recency_weight"]
+                               for sample in _with_recency_weights(samples, settings)}
     if account_pool_index is not None:
         top_apply_key = round(float(top_apply_amount_wan), 6) if top_apply_amount_wan is not None else None
-        memo_key = (round(float(amount_wan), 6), top_apply_key, int(recent_limit), round(float(half_life), 6))
+        weight_key = tuple(sorted(recency_weights.items())) if recency_weights is not None else None
+        memo_key = (round(float(amount_wan), 6), top_apply_key, int(recent_limit), round(float(half_life), 6), weight_key)
         memo = account_pool_index.setdefault("accounts_ge_memo", {})
         cached = memo.get(memo_key)
         if isinstance(cached, dict):
@@ -567,6 +628,7 @@ def _estimate_account_pool_accounts_ge(
             account_pool_index=account_pool_index,
             recent_limit=recent_limit,
             half_life=half_life,
+            recency_weights=recency_weights,
         )
         memo[memo_key] = dict(result)
         return result
@@ -581,7 +643,10 @@ def _estimate_account_pool_accounts_ge(
         estimate = _row_estimate_accounts_ge(row, amount_wan, thresholds)
         if estimate is None:
             continue
-        weight = 0.5 ** (len(samples) / half_life)
+        weight = (recency_weights.get(str(row.get("security_code") or ""), 0.0)
+                  if recency_weights is not None else 0.5 ** (len(samples) / half_life))
+        if weight <= 0:
+            continue
         samples.append((estimate, weight, str(row.get("security_code") or "")))
         if len(samples) >= recent_limit:
             break
@@ -974,6 +1039,11 @@ def _resolve_allocated_accounts(record: dict[str, Any]) -> tuple[float | None, s
 
 
 def _resolve_lock_days(record: dict[str, Any]) -> tuple[int | None, str]:
+    occupation_days = _safe_float(record.get("CAPITAL_OCCUPATION_DAYS"))
+    if occupation_days is not None:
+        if occupation_days <= 0 or occupation_days != int(occupation_days):
+            raise ValueError("Capital occupation days must be a positive integer")
+        return int(occupation_days), str(record.get("CAPITAL_OCCUPATION_SOURCE") or "CAPITAL_OCCUPATION_DAYS")
     apply_date = _parse_date(record.get("APPLY_DATE"))
     result_date = _parse_date(record.get("ISSUE_RESULT_DATE") or record.get("BALLOT_NUM_DATE"))
     if apply_date is None or result_date is None:
@@ -994,7 +1064,8 @@ def _historical_sample(record: dict[str, Any]) -> dict[str, Any] | None:
     lock_days, _ = _resolve_lock_days(record)
     issue_amount_yi = online_issue_shares * issue_price / 100000000
     sample_date = _parse_date(
-        record.get("ISSUE_RESULT_DATE")
+        record.get("RESULT_AVAILABLE_DATE")
+        or record.get("ISSUE_RESULT_DATE")
         or record.get("BALLOT_NUM_DATE")
         or record.get("APPLY_DATE")
         or record.get("LISTING_DATE")
@@ -1028,6 +1099,8 @@ def _frozen_funds_floor_from_samples(
             )
         )
     )
+    if _unified_recency(params):
+        recent_sample_count = 0
     floor_samples = samples[:recent_sample_count] if recent_sample_count > 0 else list(samples)
     min_samples = int(float(params.get("subscription_prediction_frozen_funds_floor_min_samples", 3)))
     frozen_values = [float(sample["frozen_funds_yi"]) for sample in floor_samples if sample.get("frozen_funds_yi", 0) > 0]
@@ -1037,10 +1110,11 @@ def _frozen_funds_floor_from_samples(
     quantile = float(
         params.get(
             "subscription_prediction_frozen_funds_floor_quantile",
-            DEFAULT_FROZEN_FUNDS_FLOOR_QUANTILE,
+            0.1 if _unified_recency(params) else DEFAULT_FROZEN_FUNDS_FLOOR_QUANTILE,
         )
     )
-    raw_floor_yi = _quantile(frozen_values, quantile)
+    raw_floor_yi = (_weighted_quantile([(s["frozen_funds_yi"], s["recency_weight"]) for s in _with_recency_weights(floor_samples, params)], quantile)
+                    if _unified_recency(params) else _quantile(frozen_values, quantile))
     if raw_floor_yi is None or raw_floor_yi <= 0:
         return None
 
@@ -1079,6 +1153,8 @@ def _frozen_funds_cap_from_samples(
             )
         )
     )
+    if _unified_recency(params):
+        recent_sample_count = 0
     cap_samples = samples[:recent_sample_count] if recent_sample_count > 0 else list(samples)
     min_samples = int(float(params.get("subscription_prediction_frozen_funds_cap_min_samples", 3)))
     frozen_values = [float(sample["frozen_funds_yi"]) for sample in cap_samples if sample.get("frozen_funds_yi", 0) > 0]
@@ -1088,10 +1164,11 @@ def _frozen_funds_cap_from_samples(
     quantile = float(
         params.get(
             "subscription_prediction_frozen_funds_cap_quantile",
-            DEFAULT_FROZEN_FUNDS_CAP_QUANTILE,
+            0.9 if _unified_recency(params) else DEFAULT_FROZEN_FUNDS_CAP_QUANTILE,
         )
     )
-    raw_cap_yi = _quantile(frozen_values, quantile)
+    raw_cap_yi = (_weighted_quantile([(s["frozen_funds_yi"], s["recency_weight"]) for s in _with_recency_weights(cap_samples, params)], quantile)
+                  if _unified_recency(params) else _quantile(frozen_values, quantile))
     if raw_cap_yi is None or raw_cap_yi <= 0:
         return None
 
@@ -1131,6 +1208,9 @@ def _similar_top_apply_frozen_funds_from_samples(
             )
         )
     )
+    if _unified_recency(params):
+        recent_sample_count = 0
+        samples = _with_recency_weights(samples, params)
     candidate_samples = samples[:recent_sample_count] if recent_sample_count > 0 else list(samples)
     max_rel_distance = max(
         float(
@@ -1171,6 +1251,8 @@ def _similar_top_apply_frozen_funds_from_samples(
         1,
     )
 
+    if _unified_recency(params):
+        half_life = _recency_half_life(params)
     weighted_values: list[tuple[float, float]] = []
     source_samples: list[dict[str, Any]] = []
     for index, sample in enumerate(candidate_samples):
@@ -1183,7 +1265,7 @@ def _similar_top_apply_frozen_funds_from_samples(
             continue
         log_distance = abs(math.log(sample_top_apply / target_top_apply_wan))
         similarity_weight = math.exp(-0.5 * (log_distance / bandwidth) ** 2)
-        recency_weight = 0.5 ** (index / half_life)
+        recency_weight = (sample["recency_weight"] if _unified_recency(params) else 0.5 ** (index / half_life))
         weight = similarity_weight * recency_weight
         if weight <= 0:
             continue
@@ -1194,6 +1276,7 @@ def _similar_top_apply_frozen_funds_from_samples(
                 "top_apply_wan": sample_top_apply,
                 "frozen_funds_yi": frozen_funds,
                 "relative_distance": relative_distance,
+                "recency_weight": recency_weight,
                 "weight": weight,
             }
         )
@@ -1320,6 +1403,9 @@ def _adaptive_recent_market_level_from_history(
         0.0,
         1.0,
     )
+    if _unified_recency(params):
+        recent_samples = len(recent_ipos)
+        half_life = _recency_half_life(params)
     result.update(
         {
             "recent_samples": recent_samples,
@@ -1352,18 +1438,22 @@ def _adaptive_recent_market_level_from_history(
     )
     weighted_ratios: list[tuple[float, float]] = []
     observations: list[dict[str, Any]] = []
+    common_weights = _history_recency_weights(recent_ipos, params) if _unified_recency(params) else {}
     for entry in ordered[:recent_samples]:
         sample = entry.get("sample") or {}
         sample_date_ordinal = float(sample.get("sample_date_ordinal") or 0.0)
+        calibration_apply_date = _parse_date((entry.get("record") or {}).get("APPLY_DATE"))
+        calibration_cutoff = calibration_apply_date.toordinal() if calibration_apply_date else sample_date_ordinal
         older_records: list[dict[str, Any]] = []
         for older_entry in ordered:
             if older_entry is entry:
                 continue
             older_sample = older_entry.get("sample") or {}
             older_date_ordinal = float(older_sample.get("sample_date_ordinal") or 0.0)
-            if sample_date_ordinal > 0 and older_date_ordinal > 0:
-                # 同一发行结果日的样本在当时互不可见，不能彼此用于校准。
-                if older_date_ordinal >= sample_date_ordinal:
+            if calibration_cutoff > 0 and older_date_ordinal > 0:
+                # 重建申购时预测，只能用申购日前已公布的结果，不能把
+                # 申购后、结果公布前才获知的历史结果用于残差校准。
+                if older_date_ordinal >= calibration_cutoff:
                     continue
             elif int(older_entry.get("input_order") or 0) <= int(entry.get("input_order") or 0):
                 continue
@@ -1397,7 +1487,8 @@ def _adaptive_recent_market_level_from_history(
         raw_ratio = actual_frozen_funds_yi / predicted_frozen_funds_yi
         calibrated_ratio = _clamp(raw_ratio, factor_min, factor_max)
         observation_age = len(observations)
-        observation_weight = 0.5 ** (observation_age / half_life)
+        observation_weight = (common_weights.get(str(sample.get("security_code") or ""), 0.0)
+                              if _unified_recency(params) else 0.5 ** (observation_age / half_life))
         weighted_ratios.append((calibrated_ratio, observation_weight))
         observations.append(
             {
@@ -1484,15 +1575,22 @@ def _estimate_valid_subscription_shares(
         ),
         1.0,
     )
+    if _unified_recency(params):
+        samples = _with_recency_weights(samples, params)
     weighted_multiples: list[tuple[float, float]] = []
     for index, sample in enumerate(samples):
-        weight = today_weight * (0.5 ** (index / half_life))
+        weight = sample["recency_weight"] if _unified_recency(params) else today_weight * (0.5 ** (index / half_life))
         weighted_multiples.append((sample["subscription_multiple"], weight))
     median_multiple = _weighted_median(weighted_multiples) or statistics.median(sample["subscription_multiple"] for sample in samples)
 
-    median_top_apply = statistics.median(sample["top_apply_wan"] for sample in samples if sample["top_apply_wan"] > 0) if any(sample["top_apply_wan"] > 0 for sample in samples) else None
-    median_issue_amount = statistics.median(sample["issue_amount_yi"] for sample in samples if sample["issue_amount_yi"] > 0)
-    median_lock_days = statistics.median(sample["lock_days"] for sample in samples if sample["lock_days"] > 0)
+    def sample_median(field: str) -> float | None:
+        if _unified_recency(params):
+            return _weighted_median([(sample[field], sample["recency_weight"]) for sample in samples if sample[field] > 0])
+        values = [sample[field] for sample in samples if sample[field] > 0]
+        return statistics.median(values) if values else None
+    median_top_apply = sample_median("top_apply_wan")
+    median_issue_amount = sample_median("issue_amount_yi")
+    median_lock_days = sample_median("lock_days")
     target_issue_amount = online_issue_shares * issue_price / 100000000
 
     cap_exponent = max(float(params.get("subscription_prediction_cap_factor_exponent", 0.25)), 0.0)
@@ -1632,6 +1730,12 @@ def _estimate_valid_subscription_shares(
         "valid_subscription_shares": valid_subscription_shares,
         "sample_count": len(samples),
         "median_subscription_multiple": median_multiple,
+        "median_top_apply_wan": median_top_apply,
+        "median_issue_amount_yi": median_issue_amount,
+        "median_lock_days": median_lock_days,
+        "recency_policy": "unified" if _unified_recency(params) else "legacy",
+        "recency_half_life_samples": half_life,
+        "recency_weights": {str(sample["security_code"]): sample["recency_weight"] for sample in samples} if _unified_recency(params) else {},
         "cap_factor": cap_factor,
         "cap_factor_direction": cap_direction,
         "issue_factor": issue_factor,
@@ -2234,6 +2338,7 @@ def build_subscription_prediction(
     ipo_info: dict[str, Any],
     recent_ipos: list[dict[str, Any]] | None = None,
     params: dict[str, Any] | None = None,
+    *, funding_estimate: dict[str, Any] | None = None, funding_only: bool = False,
 ) -> dict[str, Any]:
     settings = params or {}
     recent_items = recent_ipos or []
@@ -2256,7 +2361,9 @@ def build_subscription_prediction(
     target_frozen_funds_override: dict[str, Any] | None = None
     mode = "actual"
     if not valid_shares or valid_shares <= online_issue_shares:
-        estimate = _estimate_valid_subscription_shares(
+        if funding_estimate is None and str(settings.get("subscription_prediction_funding_model", "multiple")) != "multiple":
+            raise ValueError("简化冻资模型请通过 subscription_prediction_context.build_prediction 调用")
+        estimate = dict(funding_estimate) if funding_estimate is not None else _estimate_valid_subscription_shares(
             ipo_info,
             recent_items,
             issue_price,
@@ -2315,6 +2422,24 @@ def build_subscription_prediction(
     top_apply_below_guaranteed = bool(top_apply_shares is not None and guaranteed_shares > top_apply_shares)
     top_apply_gap_shares = (guaranteed_shares - top_apply_shares) if top_apply_below_guaranteed else None
     top_apply_gap_amount_wan = _shares_to_amount_wan(top_apply_gap_shares, issue_price)
+    if funding_only:
+        # Offline selection uses exactly the production money calculation and
+        # omits only fractional interpolation and report formatting. Winners
+        # must still be replayed with the full output path for verification.
+        return {"available": True, "mode": mode, "reason": "", "funding_only": True,
+                "issue_price": issue_price, "online_issue_shares": online_issue_shares,
+                "top_apply_amount_wan": top_apply_wan, "top_apply_shares": top_apply_shares,
+                "valid_subscription_shares": valid_shares, "frozen_funds_yi": frozen_funds_yi,
+                "subscription_multiple": subscription_multiple, "allocation_rate_pct": allocation_rate_pct,
+                "guaranteed_threshold_shares": guaranteed_shares,
+                "guaranteed_threshold_amount_wan": guaranteed_amount_wan if guaranteed_reachable else None,
+                "guaranteed_threshold_raw_amount_wan": guaranteed_amount_wan,
+                "guaranteed_threshold_reachable": guaranteed_reachable,
+                "top_apply_below_guaranteed": top_apply_below_guaranteed,
+                "top_apply_gap_shares": top_apply_gap_shares, "top_apply_gap_amount_wan": top_apply_gap_amount_wan,
+                "target_frozen_funds_override": target_frozen_funds_override, "estimate": estimate,
+                "frozen_funds_floor": estimate.get("frozen_funds_floor") if mode == "estimated" else None,
+                "frozen_funds_cap": estimate.get("frozen_funds_cap") if mode == "estimated" else None}
     buffer_min_wan, buffer_max_wan = _resolve_guaranteed_buffer_range(settings)
     protected_amount_min_wan = guaranteed_amount_wan + buffer_min_wan
     protected_amount_max_wan = guaranteed_amount_wan + buffer_max_wan

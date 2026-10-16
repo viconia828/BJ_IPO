@@ -6,6 +6,7 @@ from pathlib import Path
 import sys
 from tempfile import TemporaryDirectory
 from typing import Any
+from unittest.mock import patch
 
 CURRENT_DIR = Path(__file__).resolve().parent
 ROOT_DIR = CURRENT_DIR.parent if CURRENT_DIR.name == "tests" else CURRENT_DIR
@@ -21,6 +22,7 @@ import ipo_data_helper
 import note_builder
 import pdf_parser
 import report_generator
+import subscription_predictor
 
 
 PDF_DIR = ROOT_DIR / "公告文件"
@@ -506,49 +508,51 @@ def _assert_target_subscription_overlays(failures: list[str]) -> None:
 
 
 def _assert_missing_online_va_num_placeholder(failures: list[str]) -> None:
-    markdown = report_generator.build_report_markdown(
-        {
-            "analysis_date": "2026-04-18",
-            "ipo_info": {
-                "SECURITY_CODE": "920000",
-                "SECURITY_NAME_ABBR": "占位样本",
-                "ISSUE_PRICE": 10.0,
-                "AFTER_ISSUE_PE": 15.0,
-                "INDUSTRY_PE_NEW": 20.0,
-                "ONLINE_VA_NUM": None,
-                "ONLINE_ISSUE_LWR": None,
-                "APPLY_DATE": "2026-04-18",
-                "LISTING_DATE": "2026-04-25",
-                "PRICE_WAY": None,
-                "TOTAL_ISSUE_NUM": 1000.0,
-                "TOP_APPLY_MARKETCAP": None,
-            },
-            "industry": {"display_name": "通用设备"},
-            "method1": {"available": False, "reason": "test"},
-            "method2": {"available": False, "reason": "test"},
-            "final": {
-                "available": False,
-                "reason": "test",
-                "target_price": None,
-                "range_low": None,
-                "range_high": None,
-            },
-            "params": {
-                "price_range_width": 0.15,
-                "ipo_data_source": "eastmoney",
-                "comparable_data_source": "wind",
-            },
-            "notes": [],
-            "recent_ipos": [],
-            "comparable_data": [],
-            "float_shares": 500.0,
-            "old_shares_desc": "无",
-            "company_description": "",
-            "final_change_pct": None,
-            "range_change_low": None,
-            "range_change_high": None,
-        }
-    )
+    # Empty-state fixture must not load the production history CSV.
+    with patch.object(report_generator.subscription_prediction_context, "load_history_rows", return_value=[]):
+        markdown = report_generator.build_report_markdown(
+            {
+                "analysis_date": "2026-04-18",
+                "ipo_info": {
+                    "SECURITY_CODE": "920000",
+                    "SECURITY_NAME_ABBR": "占位样本",
+                    "ISSUE_PRICE": 10.0,
+                    "AFTER_ISSUE_PE": 15.0,
+                    "INDUSTRY_PE_NEW": 20.0,
+                    "ONLINE_VA_NUM": None,
+                    "ONLINE_ISSUE_LWR": None,
+                    "APPLY_DATE": "2026-04-18",
+                    "LISTING_DATE": "2026-04-25",
+                    "PRICE_WAY": None,
+                    "TOTAL_ISSUE_NUM": 1000.0,
+                    "TOP_APPLY_MARKETCAP": None,
+                },
+                "industry": {"display_name": "通用设备"},
+                "method1": {"available": False, "reason": "test"},
+                "method2": {"available": False, "reason": "test"},
+                "final": {
+                    "available": False,
+                    "reason": "test",
+                    "target_price": None,
+                    "range_low": None,
+                    "range_high": None,
+                },
+                "params": {
+                    "price_range_width": 0.15,
+                    "ipo_data_source": "eastmoney",
+                    "comparable_data_source": "wind",
+                },
+                "notes": [],
+                "recent_ipos": [],
+                "comparable_data": [],
+                "float_shares": 500.0,
+                "old_shares_desc": "无",
+                "company_description": "",
+                "final_change_pct": None,
+                "range_change_low": None,
+                "range_change_high": None,
+            }
+        )
     for snippet, label in (
         ("| 定价方式 | 未取到数据 |", "PRICE_WAY"),
         ("## 二、申购资金配售预测", "SUBSCRIPTION_SECTION"),
@@ -821,8 +825,8 @@ def _assert_report_overview_text(failures: list[str]) -> None:
     )
     _assert_contains(protected_overview, ("正股抢时间 可能",), failures, "protected overview")
 
-    estimated_overview = report_generator.build_report_overview_text(
-        {
+    # Formatting fixture supplies its prediction; shared live/replay history is tested separately.
+    estimated_payload = {
             "analysis_date": "2026-06-18",
             "ipo_info": {
                 "SECURITY_CODE": "920222",
@@ -892,7 +896,11 @@ def _assert_report_overview_text(failures: list[str]) -> None:
             "range_change_high": None,
             "listing_pdf_found": False,
         }
+    estimated_payload["subscription_prediction"] = subscription_predictor.build_subscription_prediction(
+        estimated_payload["ipo_info"], estimated_payload["recent_ipos"],
+        {**estimated_payload["params"], "subscription_prediction_account_pool_rows": []},
     )
+    estimated_overview = report_generator.build_report_overview_text(estimated_payload)
     _assert_not_contains(
         estimated_overview,
         ("正股测算门槛（万元）\n", "正股建议申购（万元）\n"),
