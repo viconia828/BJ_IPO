@@ -324,6 +324,8 @@
 
 正式模型默认仍为 `multiple`。测试新路径时通过共同入口 `subscription_prediction_context.build_prediction` 的参数指定 `subscription_prediction_funding_model`；直接模型弹性为 `subscription_prediction_direct_cap_elasticity`，相似性带宽为 `subscription_prediction_direct_similarity_bandwidth`。旧寻优网格只支持 `multiple`，避免调整对新路径不生效的旧参数。2026-10-16 首轮试验虽降低参数跳变，但准确率未通过替换条件，未改变正式模型或参数。
 
+2026-10-17经用户确认，正式配置采用修复后原倍数模型的完整历史独立寻优参数（`full_multiple_selection.json`，选参只用9月23日前已公布结果），已写入`策略参数.txt`。`运行.bat`与`调参.bat`的申购入口共同读取该文件；分户金额位置为0.9，统一近期半衰期为6.25只，固定水位为1，情绪窗口仍为30天。后续调参以此配置为起点。
+
 资金环境及分户金额假设验证：`python tools/evaluate_subscription_funding_hypotheses.py`。该工具专用于冻结的2026-10-16样本，先检查上一轮试验输入哈希；比较月末/季末/长假日历残差修正、T+2资金占用代理及分档金额守恒情景，并分别输出全历史与7月起回放。日期规则只覆盖已核实的2026北交所交易日历；资金退回代理不改变结果可用日期。分档户数来自粗拟合，低/中/高金额情景只能检验敏感性，不能据此声称已识别真实户均金额。
 
 实验通过显式参数启用：`subscription_prediction_lock_days_basis=t_plus_2_calendar_2026`；或在`bucket_funds`下指定`subscription_prediction_bucket_amount_basis=conserving_bounds`及`subscription_prediction_bucket_amount_position`（0至1）。默认仍为旧日期口径及门槛金额；日历残差模型仅存在于离线验证工具，不影响正式报告。试验不写回参数、标签或生产数据。

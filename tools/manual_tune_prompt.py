@@ -275,7 +275,7 @@ def _build_subscription_auto_command() -> tuple[list[str], dict[str, str]]:
         "mode": "申购资金自动调参",
         "input_mode": "系统枚举申购主参数网格",
         "manual_name": "不适用",
-        "candidate_summary": f"按正股门槛、手工分档误差和抢时间漏判排序；Top N={top_n}；最多 5 轮，确认接受后写入参数文件",
+        "candidate_summary": f"按冻资近期加权误差排序，保留抢时间漏判约束；碎股/分档独立诊断；Top N={top_n}；最多 5 轮，确认接受后写入参数文件",
         "history_path": str(DEFAULT_SUBSCRIPTION_HISTORY_PATH.relative_to(ROOT_DIR)),
         "ladder_label_path": str(DEFAULT_LADDER_LABEL_PATH.relative_to(ROOT_DIR)),
         "auto_kind": "subscription",
