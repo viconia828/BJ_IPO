@@ -41,6 +41,9 @@ def run(args, params, dataset, *, write_updates):
         values = '/'.join(f'{v:g}' for v in cfg['sentiment_tuning_half_life_candidates'])
         print(f'只搜索情绪半衰期{values}天及当前值；不会运行旧综合参数搜索或研究候选重排。', flush=True)
         history, audit = tuning.prepare_history(dataset)
+        print(f"情绪回放可用历史：{len(history)}只；暂不纳入：{len(audit['excluded'])}只。", flush=True)
+        for excluded in audit['excluded']:
+            print(f"- {excluded['code']}：{excluded['reason']}", flush=True)
         result = tuning.tune(history, params, train_ratio=args.train_ratio,
                              min_train_samples=args.min_train_samples,
                              progress=lambda i, n, v: print(f'[{i}/{n}] 组合影子：半衰期{v:g}天', flush=True))

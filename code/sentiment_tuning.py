@@ -37,7 +37,10 @@ def prepare_history(dataset, *, root=inputs.ROOT, cutoff=None):
     for row in history:
         code, day = str(row.get('SECURITY_CODE') or ''), qs.day(row.get('LISTING_DATE'))
         if not day or day >= cutoff:
-            excluded.append({'code': code, 'reason': '上市日期缺失或尚未完成首日交易'})
+            source = row.get('listing_date_source') or row.get('LISTING_DATE_SOURCE')
+            reason = ('上市日仅为申购日占位，尚无真实上市日期' if source == 'apply_date_fallback'
+                      else '上市日期缺失或尚未完成首日交易')
+            excluded.append({'code': code, 'reason': reason})
             continue
         if code in seen:
             raise ValueError(f'回放代码重复：{code}')
@@ -50,7 +53,10 @@ def prepare_history(dataset, *, root=inputs.ROOT, cutoff=None):
             saved = json.loads(path.read_text('utf-8'))
             if (str(saved.get('SECURITY_CODE')) != code
                     or qs.number(saved.get('ISSUE_PRICE')) != qs.number(row.get('ISSUE_PRICE'))
-                    or qs.day(saved.get('LISTING_DATE')) != day):
+                    # A prelisting review may not know the later listing date.
+                    # Known dates must still agree; unknown is not a conflict.
+                    or (saved.get('LISTING_DATE') not in (None, '')
+                        and qs.day(saved.get('LISTING_DATE')) != day)):
                 raise ValueError(f'{code}: 已复核可比输入与回放发行批次不一致')
             row['comparable_data'] = saved['comparable_data']
             row['_fundamental_reconstruction'] = True

@@ -113,6 +113,65 @@ class QualitySentimentTests(unittest.TestCase):
                     "listing_date_source": "apply_date_fallback"}
         self.assertEqual(self.evaluate(), self.evaluate(history=self.history + [unlisted]))
 
+    def test_normalization_clears_application_placeholder_before_snapshot_lookup(self):
+        tmp_root = ROOT / 'tests/_tmp'
+        tmp_root.mkdir(exist_ok=True)
+        for source_key in ('listing_date_source', 'LISTING_DATE_SOURCE'):
+            with self.subTest(source_key=source_key), tempfile.TemporaryDirectory(dir=tmp_root) as folder:
+                original = {**self.target, source_key: 'apply_date_fallback'}
+                before = deepcopy(original)
+                rows, audit = data.normalize_history([original], Path(folder))
+                self.assertIsNone(rows[0]['LISTING_DATE'])
+                self.assertEqual(original, before)
+                self.assertEqual(audit[0]['reason'], 'apply_date_is_not_listing_date')
+
+    def test_real_listing_sources_replace_application_placeholder(self):
+        tmp_root = ROOT / 'tests/_tmp'
+        tmp_root.mkdir(exist_ok=True)
+        code = self.target['SECURITY_CODE']
+        for source in ('historical_reference', 'tushare_ipo_listing_day'):
+            with self.subTest(source=source), tempfile.TemporaryDirectory(dir=tmp_root) as folder:
+                root = Path(folder)
+                original = {**self.target, 'LISTING_DATE': '2026-02-01',
+                            'listing_date_source': 'apply_date_fallback',
+                            'LISTING_DATE_SOURCE': 'apply_date_fallback'}
+                if source == 'historical_reference':
+                    path = root / 'data/quality_sentiment/historical_reference.json'
+                    payload = {'items': {code: {'ISSUE_PRICE': 10, 'LISTING_DATE': '2026-02-15'}}}
+                else:
+                    path = root / f'data/tushare_db/variable_fields/{code}.BJ.json'
+                    payload = {'fields': {source: {'listing_date': '2026-02-15', 'average_price': 32, 'close': 33}}}
+                path.parent.mkdir(parents=True)
+                path.write_text(json.dumps(payload), encoding='utf-8')
+                rows, _ = data.normalize_history([original], root)
+                self.assertEqual(rows[0]['LISTING_DATE'], '2026-02-15')
+                self.assertEqual(rows[0]['listing_date_source'], source)
+                self.assertEqual(rows[0]['LISTING_DATE_SOURCE'], source)
+
+    def test_only_dated_complete_single_day_tape_restores_unknown_listing(self):
+        tmp_root = ROOT / 'tests/_tmp'
+        tmp_root.mkdir(exist_ok=True)
+        with tempfile.TemporaryDirectory(dir=tmp_root) as folder:
+            root = Path(folder)
+            path = root / '首日分时走势' / f"{self.target['SECURITY_CODE']}.csv"
+            path.parent.mkdir()
+            original = {**self.target, 'LISTING_DATE': '2026-02-01',
+                        'listing_date_source': 'apply_date_fallback'}
+            header = 'DateTime,open,high,low,close,volume,amount\n'
+            start = '2026/02/15 09:30,10,10,10,10,100,1000\n'
+            end = '2026/02/15 15:00,10,10,10,10,100,1000\n'
+            path.write_text(header + start + end, encoding='utf-8')
+            rows, audit = data.normalize_history([original], root)
+            self.assertEqual(rows[0]['LISTING_DATE'], '2026-02-15')
+            self.assertEqual(rows[0]['AVERAGE_PRICE'], 10)
+            self.assertEqual(rows[0]['listing_date_source'], 'dated_listing_intraday_csv')
+            self.assertEqual(audit[-1]['sha256'], hashlib.sha256(path.read_bytes()).hexdigest())
+            for body in (start, start + end.replace('02/15', '02/16'), end + start, start + start + end):
+                with self.subTest(body=body):
+                    path.write_text(header + body, encoding='utf-8')
+                    rows, _ = data.normalize_history([original], root)
+                    self.assertIsNone(rows[0]['LISTING_DATE'])
+
     def test_no_new_observations_do_not_create_cooling(self):
         result = self.evaluate()
         later = qs.evaluate(self.target, self.history, PARAMS, as_of="2026-03-01")

@@ -1,12 +1,15 @@
 """Local, auditable input bridge and immutable forward prediction snapshots."""
 from __future__ import annotations
 
+import csv
 from datetime import datetime, timedelta, timezone
 import hashlib
 import json
+import math
 from pathlib import Path
 import uuid
 
+import listing_average_price_helper
 from quality_sentiment import day, number
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -16,6 +19,35 @@ def _json(path: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
 
 
+def _completed_local_listing(code: str, root: Path) -> dict | None:
+    """Recover a missing listing date from its dated, completed first-day tape."""
+    if not code.isdigit() or len(code) != 6:
+        return None
+    path = root / '首日分时走势' / f'{code}.csv'
+    if not path.is_file():
+        return None
+    for encoding in listing_average_price_helper.INTRADAY_CSV_ENCODINGS:
+        try:
+            with path.open(encoding=encoding, newline='') as handle:
+                rows = list(csv.DictReader(handle))
+            times = [datetime.fromisoformat(row['DateTime'].strip().replace('/', '-')) for row in rows]
+            if (not times or len({t.date() for t in times}) != 1 or times != sorted(set(times))
+                    or times[0].strftime('%H:%M') > '09:30' or times[-1].strftime('%H:%M') < '15:00'):
+                return None
+            average = listing_average_price_helper.calc_intraday_csv_average_price(code, path.parent)
+            value, close = number(average.get('average_price')), number(rows[-1].get('close'))
+            if not all(v is not None and math.isfinite(v) and v > 0 for v in (value, close)):
+                return None
+            return {'LISTING_DATE': times[0].date().isoformat(), 'AVERAGE_PRICE': value,
+                    'CLOSE_PRICE': close, 'path': str(path.relative_to(root)),
+                    'sha256': hashlib.sha256(path.read_bytes()).hexdigest()}
+        except UnicodeError:
+            continue
+        except (OSError, ValueError, KeyError, TypeError):
+            return None
+    return None
+
+
 def normalize_history(items: list[dict], root: Path = ROOT) -> tuple[list[dict], list[dict]]:
     reference = _json(root / "data/quality_sentiment/historical_reference.json").get("items", {})
     result, audit = [], []
@@ -23,6 +55,15 @@ def normalize_history(items: list[dict], root: Path = ROOT) -> tuple[list[dict],
         item = dict(original)
         item = with_fundamental_review(item, root)
         code = str(item.get("SECURITY_CODE") or "")
+        source = str(item.get("listing_date_source") or item.get("LISTING_DATE_SOURCE") or "").strip()
+        if source == "apply_date_fallback":
+            # The replay builder keeps application dates as placeholders for
+            # upcoming IPOs. Only a real listing source below may restore one.
+            placeholder = item.get("LISTING_DATE")
+            item["LISTING_DATE"] = None
+            if placeholder is not None:
+                audit.append({"code": code, "reason": "apply_date_is_not_listing_date",
+                              "changes": {"LISTING_DATE": {"before": placeholder, "after": None}}})
         ref = reference.get(code, {})
         # Do not apply real-stock corrections to synthetic fixtures or mismatched issues.
         if ref and number(item.get("ISSUE_PRICE")) == ref.get("ISSUE_PRICE"):
@@ -35,12 +76,30 @@ def normalize_history(items: list[dict], root: Path = ROOT) -> tuple[list[dict],
                     item[key] = value
             if changes:
                 audit.append({"code": code, "changes": changes})
+            if day(ref.get("LISTING_DATE")):
+                item["listing_date_source"] = "historical_reference"
+                if "LISTING_DATE_SOURCE" in item:
+                    item["LISTING_DATE_SOURCE"] = "historical_reference"
         fields = _json(root / f"data/tushare_db/variable_fields/{code}.BJ.json").get("fields", {})
         listing = fields.get("tushare_ipo_listing_day") or {}
         if day(listing.get("listing_date")) and number(listing.get("average_price")):
             item["LISTING_DATE"] = day(listing["listing_date"]).isoformat()
+            item["listing_date_source"] = "tushare_ipo_listing_day"
+            if "LISTING_DATE_SOURCE" in item:
+                item["LISTING_DATE_SOURCE"] = "tushare_ipo_listing_day"
             item["AVERAGE_PRICE"] = number(listing["average_price"])
             item["CLOSE_PRICE"] = number(listing.get("close"))
+        if not day(item.get('LISTING_DATE')):
+            local = _completed_local_listing(code, root)
+            if local:
+                changes = {key: {'before': item.get(key), 'after': local[key]}
+                           for key in ('LISTING_DATE', 'AVERAGE_PRICE', 'CLOSE_PRICE')}
+                item.update({key: local[key] for key in changes})
+                item['listing_date_source'] = 'dated_listing_intraday_csv'
+                if 'LISTING_DATE_SOURCE' in item:
+                    item['LISTING_DATE_SOURCE'] = 'dated_listing_intraday_csv'
+                audit.append({'code': code, 'reason': 'completed_local_listing_tape',
+                              'changes': changes, 'source': local['path'], 'sha256': local['sha256']})
         issue = number(item.get("ISSUE_PRICE"))
         for price, change in (("AVERAGE_PRICE", "LD_AVERAGE_CHANGE"), ("CLOSE_PRICE", "LD_CLOSE_CHANGE")):
             value = number(item.get(price))

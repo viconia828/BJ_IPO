@@ -110,6 +110,35 @@ class SentimentConsoleTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 console.accept(result, path, sha, tune_params._write_param_updates)
 
+    def test_application_placeholder_is_excluded_before_reviewed_issue_comparison(self):
+        with tempfile.TemporaryDirectory(dir=self.temp_root) as folder:
+            row = {**self.history[0], 'listing_date_source': 'apply_date_fallback',
+                   'fundamental_case': {'code': self.history[0]['SECURITY_CODE']}}
+            # No saved peer input is needed for an IPO whose listing date is unknown.
+            rows, audit = tuning.prepare_history({'items': [row]}, root=Path(folder), cutoff='2026-04-01')
+            self.assertEqual(rows, [])
+            self.assertEqual(audit['excluded'][0]['code'], row['SECURITY_CODE'])
+            self.assertIn('申购日占位', audit['excluded'][0]['reason'])
+
+    def test_prelisting_review_can_gain_real_listing_date_but_conflicts_still_fail(self):
+        with tempfile.TemporaryDirectory(dir=self.temp_root) as folder:
+            root = Path(folder)
+            row = {**self.history[0], 'fundamental_case': {'code': self.history[0]['SECURITY_CODE']}}
+            path = root / 'data/fundamental_cases/inputs' / f"{row['SECURITY_CODE']}.json"
+            path.parent.mkdir(parents=True)
+            saved = {'SECURITY_CODE': row['SECURITY_CODE'], 'ISSUE_PRICE': row['ISSUE_PRICE'],
+                     'LISTING_DATE': None, 'comparable_data': [{'code': 'PEER', 'pe_ttm': 15}]}
+            path.write_text(json.dumps(saved), encoding='utf-8')
+            rows, _ = tuning.prepare_history({'items': [row]}, root=root, cutoff='2026-04-01')
+            self.assertEqual(rows[0]['comparable_data'], saved['comparable_data'])
+            self.assertTrue(rows[0]['_fundamental_reconstruction'])
+            for conflicting in ({'SECURITY_CODE': '999999'}, {'ISSUE_PRICE': 99},
+                                {'LISTING_DATE': '2025-12-31'}, {'LISTING_DATE': 'invalid'}):
+                with self.subTest(conflicting=conflicting):
+                    path.write_text(json.dumps({**saved, **conflicting}), encoding='utf-8')
+                    with self.assertRaisesRegex(ValueError, '发行批次不一致'):
+                        tuning.prepare_history({'items': [row]}, root=root, cutoff='2026-04-01')
+
     def test_cli_evaluation_creates_reviewable_reports_without_writing(self):
         with tempfile.TemporaryDirectory(dir=self.temp_root) as folder:
             folder = Path(folder)
