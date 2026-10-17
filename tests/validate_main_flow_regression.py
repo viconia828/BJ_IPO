@@ -645,6 +645,10 @@ def _assert_recent_table_time_window(failures: list[str]) -> None:
         "range_change_high": None,
     }
     markdown = report_generator.build_report_markdown(base_payload)
+    base_payload["industry"].update({"status": "needs_review", "candidate_groups": []})
+    pending_markdown = report_generator.build_report_markdown(base_payload)
+    _assert_contains(pending_markdown, ("待复核；二级行业证据不足",), failures, "empty industry candidates")
+    _assert_not_contains(pending_markdown, ("待复核；候选：",), failures, "empty industry candidates")
     _assert_contains(markdown, ("边界样本", "窗口样本"), failures, "recent table window")
     _assert_not_contains(markdown, ("过旧样本", "未来样本"), failures, "recent table window")
 

@@ -849,6 +849,13 @@ def _get_recent_new_share_rows(
                 refresh_start = max(start_date, _shift_ymd(cached_end, -refresh_backfill_days))
             else:
                 refresh_start = start_date
+            # new_share is queried by subscription date. An IPO may list weeks
+            # later, so a fixed short backfill never refreshes its blank issue_date.
+            pending_dates = [_to_ymd(row.get("ipo_date")) for row in cached_rows
+                             if not _to_ymd(row.get("issue_date"))]
+            pending_dates = [value for value in pending_dates if start_date <= value <= end_date]
+            if pending_dates:
+                refresh_start = min(refresh_start, min(pending_dates))
             if refresh_start <= end_date:
                 fetch_segments.append((refresh_start, end_date))
 

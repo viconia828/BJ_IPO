@@ -44,6 +44,11 @@ def main() -> int:
         _assert(info.statutory_industry_code == "C38", "legal evidence must remain separate", failures)
 
     generic = mapper.resolve_stock_industry("fixture", {"INDUSTRY": "电气机械和器材制造业", "INDUSTRY_CODE": "C38"})
+    tianyuan = mapper.resolve_stock_industry("920306", {"INDUSTRY": "金属制品业", "INDUSTRY_CODE": "C33",
+        "ISSUER_BUSINESS": "公司主要从事索鞍、索夹等桥梁受力部件及桥梁钢结构产品的研发、制造和安装。"})
+    _assert(tianyuan.display_name == "建筑装饰 / 专业工程" and tianyuan.tertiary == "钢结构"
+            and tianyuan.status == "confirmed", "Tianyuan verified market industry missing", failures)
+    _assert(tianyuan.statutory_industry_code == "C33", "Tianyuan legal industry must be preserved", failures)
     _assert(generic.primary == "未分类" and generic.status == "needs_review", "C38 alone must not imply power equipment", failures)
     _assert("家用电器" in generic.candidate_groups, "C38 candidates must expose ambiguity", failures)
     paired, _ = valuation_engine._pick_secondary_industry_samples(

@@ -5,7 +5,7 @@
   "source": "iFind stock_info / SW industry and issuer business",
   "notes": [
     "以申万行业名称作为本地市场行业参考；法定行业单独保留。",
-    "行业参考为2026-10-12静态核验快照，业务与产业链标签独立；不写入未来行情或财务数据。"
+    "基础行业参考为2026-10-12静态核验快照，新增条目以各自reference_date为准；业务与产业链标签独立，不写入未来行情或财务数据。"
   ],
   "stocks": {
     "920011": {
@@ -838,6 +838,21 @@
       "chain_tags": [
         "锂电产业链"
       ]
+    },
+    "920306": {
+      "name": "天元重工",
+      "primary": "建筑装饰",
+      "secondary": "专业工程",
+      "tertiary": "钢结构",
+      "main_business": "桥梁受力产品的研发、设计、制造、安装及技术服务，主要包括索鞍、索夹等桥梁受力部件、桥梁钢结构产品及其安装、维护、质量检测服务。",
+      "reference_sw": "建筑装饰--专业工程--钢结构",
+      "reference_ths": "建筑装饰",
+      "source": "ifind_stock_info",
+      "source_security_code": "833288.NQ",
+      "reference_date": "2026-10-17",
+      "identity_evidence": "920306招股说明书确认公司原挂牌简称天元重工、代码833288；主营桥梁受力产品一致。",
+      "evidence_path": "data/industry_classification/evidence/920306_20261017.json",
+      "chain_tags": ["桥梁建设"]
     },
     "920298": {
       "name": "腾信精密",

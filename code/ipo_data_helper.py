@@ -1,5 +1,9 @@
 from __future__ import annotations
 
+from datetime import date, timedelta
+import json
+import math
+from pathlib import Path
 from typing import Any
 
 import bse_official_helper
@@ -9,6 +13,95 @@ import tushare_ipo_helper
 
 
 SUPPORTED_PROVIDERS = {"eastmoney", "tushare"}
+
+
+def supplement_local_recent_listings(
+    records: list[dict[str, Any]],
+    days: int,
+    *,
+    target_code: str = "",
+    target_apply_date: Any = None,
+    as_of_date: date | None = None,
+    root: Path = listing_average_price_helper.ROOT_DIR,
+) -> tuple[list[dict[str, Any]], dict[str, Any]]:
+    """Bridge delayed IPO calendars using completed local first-day evidence."""
+    def day(value: Any) -> date | None:
+        try:
+            return date.fromisoformat(str(value or "")[:10])
+        except ValueError:
+            return None
+
+    end = as_of_date or date.today()
+    apply = day(target_apply_date)
+    if apply:
+        end = min(end, apply - timedelta(days=1))
+    start = end - timedelta(days=max(int(days), 1))
+    result = [dict(row) for row in records]
+    positions = {str(row.get("SECURITY_CODE") or ""): i for i, row in enumerate(result)}
+    candidates = {code: dict(result[i]) for code, i in positions.items()}
+    summary: dict[str, Any] = {"as_of_date": end.isoformat(), "appended_codes": [], "updated_codes": [], "audit": []}
+    path = root / "data/offline_tuning/replay_dataset.json"
+    try:
+        history = json.loads(path.read_text(encoding="utf-8")).get("items") or []
+    except (OSError, ValueError) as exc:
+        history = []
+        summary["history_error"] = str(exc)
+    # Replay contributes issuer metadata only; prices and dates need a complete tape.
+    metadata = ("SECURITY_CODE", "SECURITY_NAME_ABBR", "ISSUE_PRICE", "APPLY_DATE",
+                "AFTER_ISSUE_PE", "INDUSTRY_PE_NEW", "TOTAL_ISSUE_NUM", "INDUSTRY", "INDUSTRY_CODE",
+                "float_shares", "old_shares", "ONLINE_ISSUE_NUM", "TOP_APPLY_MARKETCAP")
+    for row in history:
+        code = str(row.get("SECURITY_CODE") or "")
+        candidate = candidates.setdefault(code, {})
+        for key in metadata:
+            if candidate.get(key) in (None, "", "--") and row.get(key) not in (None, "", "--"):
+                candidate[key] = row[key]
+    for code, candidate in candidates.items():
+        if code == target_code:
+            continue
+        issue = listing_average_price_helper.safe_float(candidate.get("ISSUE_PRICE"))
+        if issue is None or not math.isfinite(issue) or issue <= 0:
+            continue
+        tape = listing_average_price_helper.completed_local_listing(code, root)
+        if not tape:
+            continue
+        listing = day(tape["LISTING_DATE"])
+        if listing is None or not start <= listing <= end:
+            continue
+        source = str(candidate.get("LISTING_DATE_SOURCE") or candidate.get("listing_date_source") or "")
+        previous_date = day(candidate.get("LISTING_DATE"))
+        placeholder = source == "apply_date_fallback" or previous_date == day(candidate.get("APPLY_DATE"))
+        if previous_date and not placeholder and previous_date != listing:
+            summary["audit"].append({"code": code, "reason": "listing_date_conflict",
+                                     "record_date": previous_date.isoformat(), "tape_date": listing.isoformat()})
+            continue
+        merged = dict(candidate)
+        changed = []
+        if not previous_date or placeholder:
+            merged.update({"LISTING_DATE": tape["LISTING_DATE"],
+                           "LISTING_DATE_SOURCE": "dated_listing_intraday_csv",
+                           "listing_date_source": "dated_listing_intraday_csv"})
+            changed.append("LISTING_DATE")
+        for field, change_field in (("AVERAGE_PRICE", "LD_AVERAGE_CHANGE"), ("CLOSE_PRICE", "LD_CLOSE_CHANGE")):
+            value = listing_average_price_helper.safe_float(merged.get(field))
+            if placeholder or value is None or not math.isfinite(value) or value <= 0:
+                merged[field] = tape[field]
+                changed.append(field)
+                if field == "AVERAGE_PRICE":
+                    merged["average_price_source"] = "intraday_csv"
+            merged[change_field] = listing_average_price_helper.calc_change_pct(issue, merged[field])
+        if code in positions:
+            result[positions[code]] = merged
+            if changed:
+                summary["updated_codes"].append(code)
+        else:
+            positions[code] = len(result)
+            result.append(merged)
+            summary["appended_codes"].append(code)
+        if changed:
+            summary["audit"].append({"code": code, "fields": changed,
+                                     "source": tape["path"], "sha256": tape["sha256"]})
+    return result, summary
 
 
 def _resolve_recent_days(months: int, params: dict[str, Any] | None = None) -> int:

@@ -80,6 +80,10 @@ def build_ipo_source_text(all_data: dict[str, Any]) -> str:
     issue_result_labels = get_supplemented_field_labels(ipo_summary.get("issue_result_supplemented_fields"))
     issue_result_suffix = f"+ 发行结果公告（字段补充：{'、'.join(issue_result_labels)}）" if issue_result_labels else ""
     document_suffix = f"{prospectus_suffix}{issue_announcement_suffix}{issue_result_suffix}"
+    local_listing = ipo_summary.get("local_listing_overlay") or {}
+    local_codes = set(local_listing.get("appended_codes") or []) | set(local_listing.get("updated_codes") or [])
+    if local_codes:
+        document_suffix += f"+ 本地完整首日分时（补充{len(local_codes)}只近期样本）"
     if provider != "tushare":
         if target_source == "bse_newshare":
             return f"北交所公开发行一览（IPO 信息）{document_suffix}"

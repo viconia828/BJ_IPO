@@ -565,7 +565,9 @@ def _prepare_report_context(all_data: dict[str, Any]) -> dict[str, Any]:
     if industry.get("chain_tags"):
         basic_rows.append(["产业链标签", "、".join(str(value) for value in industry["chain_tags"])])
     if industry.get("status") == "needs_review":
-        basic_rows.append(["行业分类状态", "待复核；候选：" + "、".join(industry.get("candidate_groups") or [])])
+        candidates = "、".join(industry.get("candidate_groups") or [])
+        status = f"待复核；候选：{candidates}" if candidates else "待复核；二级行业证据不足"
+        basic_rows.append(["行业分类状态", status])
 
     user_ranges = _build_user_valuation_ranges(final, issue_price, float(params.get("price_range_width", 0.15)))
     valuation_rows = [

@@ -1222,6 +1222,11 @@ def build_analysis_data(
     # Method 3 and the report keep the sentiment window (recent_days).
     # Subscription forecasts load their own complete, point-in-time history.
     # Method 2 receives the longer local year-to-date replay pool.
+    recent_ipos, local_listing_summary = ipo_data_helper.supplement_local_recent_listings(
+        recent_ipos, recent_days, target_code=code,
+        target_apply_date=ipo_info.get("APPLY_DATE"), root=ROOT_DIR,
+    )
+    ipo_data_summary["local_listing_overlay"] = local_listing_summary
     recent_ipos = mapper.enrich_recent_ipos(recent_ipos)
     method2_ipos, replay_history_overlay_summary = _overlay_replay_history_recent_ipos(
         recent_ipos,

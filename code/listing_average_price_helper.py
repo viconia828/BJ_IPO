@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import csv
+import hashlib
 import json
 import math
 from datetime import datetime
@@ -14,6 +15,35 @@ DEFAULT_CACHE_PATH = ROOT_DIR / "data" / "offline_tuning" / "listing_average_pri
 CACHE_SCHEMA = "listing_average_price_cache_v3"
 AVERAGE_PRICE_CALC_VERSION = 3
 INTRADAY_CSV_ENCODINGS = ("utf-8-sig", "gb18030")
+
+
+def completed_local_listing(code: str, root: Path = ROOT_DIR) -> dict[str, Any] | None:
+    """Read a dated, completed first-day tape without changing any cache."""
+    if not code.isdigit() or len(code) != 6:
+        return None
+    path = root / "首日分时走势" / f"{code}.csv"
+    if not path.is_file():
+        return None
+    for encoding in INTRADAY_CSV_ENCODINGS:
+        try:
+            with path.open(encoding=encoding, newline="") as handle:
+                rows = list(csv.DictReader(handle))
+            times = [datetime.fromisoformat(row["DateTime"].strip().replace("/", "-")) for row in rows]
+            if (not times or len({t.date() for t in times}) != 1 or times != sorted(set(times))
+                    or times[0].strftime("%H:%M") > "09:30" or times[-1].strftime("%H:%M") < "15:00"):
+                return None
+            average = calc_intraday_csv_average_price(code, path.parent)
+            value, close = safe_float(average.get("average_price")), safe_float(rows[-1].get("close"))
+            if not all(v is not None and math.isfinite(v) and v > 0 for v in (value, close)):
+                return None
+            return {"LISTING_DATE": times[0].date().isoformat(), "AVERAGE_PRICE": value,
+                    "CLOSE_PRICE": close, "path": str(path.relative_to(root)),
+                    "sha256": hashlib.sha256(path.read_bytes()).hexdigest()}
+        except UnicodeError:
+            continue
+        except (OSError, ValueError, KeyError, TypeError):
+            return None
+    return None
 
 
 def _now_text() -> str:

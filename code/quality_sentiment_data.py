@@ -1,15 +1,13 @@
 """Local, auditable input bridge and immutable forward prediction snapshots."""
 from __future__ import annotations
 
-import csv
 from datetime import datetime, timedelta, timezone
 import hashlib
 import json
-import math
 from pathlib import Path
 import uuid
 
-import listing_average_price_helper
+from listing_average_price_helper import completed_local_listing as _completed_local_listing
 from quality_sentiment import day, number
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -17,35 +15,6 @@ ROOT = Path(__file__).resolve().parents[1]
 
 def _json(path: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
-
-
-def _completed_local_listing(code: str, root: Path) -> dict | None:
-    """Recover a missing listing date from its dated, completed first-day tape."""
-    if not code.isdigit() or len(code) != 6:
-        return None
-    path = root / '首日分时走势' / f'{code}.csv'
-    if not path.is_file():
-        return None
-    for encoding in listing_average_price_helper.INTRADAY_CSV_ENCODINGS:
-        try:
-            with path.open(encoding=encoding, newline='') as handle:
-                rows = list(csv.DictReader(handle))
-            times = [datetime.fromisoformat(row['DateTime'].strip().replace('/', '-')) for row in rows]
-            if (not times or len({t.date() for t in times}) != 1 or times != sorted(set(times))
-                    or times[0].strftime('%H:%M') > '09:30' or times[-1].strftime('%H:%M') < '15:00'):
-                return None
-            average = listing_average_price_helper.calc_intraday_csv_average_price(code, path.parent)
-            value, close = number(average.get('average_price')), number(rows[-1].get('close'))
-            if not all(v is not None and math.isfinite(v) and v > 0 for v in (value, close)):
-                return None
-            return {'LISTING_DATE': times[0].date().isoformat(), 'AVERAGE_PRICE': value,
-                    'CLOSE_PRICE': close, 'path': str(path.relative_to(root)),
-                    'sha256': hashlib.sha256(path.read_bytes()).hexdigest()}
-        except UnicodeError:
-            continue
-        except (OSError, ValueError, KeyError, TypeError):
-            return None
-    return None
 
 
 def normalize_history(items: list[dict], root: Path = ROOT) -> tuple[list[dict], list[dict]]:
