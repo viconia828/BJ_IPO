@@ -1,0 +1,157 @@
+{
+  "original4": {
+    "old": {
+      "target_price": 9.746266642439615,
+      "range_low": 8.771639978195653,
+      "range_high": 10.720893306683577,
+      "local_center_alpha": null
+    },
+    "new": {
+      "target_price": 19.800130658429474,
+      "range_low": 17.820117592586527,
+      "range_high": 21.780143724272424,
+      "local_center_alpha": 0.6000000000000001
+    }
+  },
+  "plus_bairuiji": {
+    "old": {
+      "target_price": 18.993065515250066,
+      "range_low": 17.09375896372506,
+      "range_high": 20.892372066775074,
+      "local_center_alpha": 0.75
+    },
+    "new": {
+      "target_price": 16.121365797047453,
+      "range_low": 14.509229217342709,
+      "range_high": 17.7335023767522,
+      "local_center_alpha": 0.75
+    }
+  },
+  "all7": {
+    "old": {
+      "target_price": 17.973213666268396,
+      "range_low": 16.175892299641557,
+      "range_high": 19.77053503289524,
+      "local_center_alpha": 0.75
+    },
+    "new": {
+      "target_price": 12.739740154354006,
+      "range_low": 11.465766138918607,
+      "range_high": 14.013714169789408,
+      "local_center_alpha": 0.75
+    }
+  },
+  "current_tide": {
+    "version": "ipo_tide_v1",
+    "tier": "low",
+    "label": "低",
+    "cutoff_exclusive": "2026-10-17",
+    "window_days": 30,
+    "sample_count": 7,
+    "events": [
+      {
+        "date": "2026-09-22",
+        "codes": [
+          "920229"
+        ],
+        "names": [
+          "世纪数码"
+        ],
+        "gain_pct": 338.70450515400023,
+        "before": "medium",
+        "after": "high",
+        "reason": "new_impulse"
+      },
+      {
+        "date": "2026-09-23",
+        "codes": [
+          "920025"
+        ],
+        "names": [
+          "凯达重工"
+        ],
+        "gain_pct": 637.1461535272496,
+        "before": "high",
+        "after": "high",
+        "reason": "new_impulse"
+      },
+      {
+        "date": "2026-09-24",
+        "codes": [
+          "920201"
+        ],
+        "names": [
+          "百瑞吉"
+        ],
+        "gain_pct": 391.0299613151379,
+        "before": "high",
+        "after": "high",
+        "reason": "follow_through"
+      },
+      {
+        "date": "2026-09-29",
+        "codes": [
+          "920202"
+        ],
+        "names": [
+          "安达股份"
+        ],
+        "gain_pct": 270.6511213025563,
+        "before": "high",
+        "after": "medium",
+        "reason": "weakening"
+      },
+      {
+        "date": "2026-10-09",
+        "codes": [
+          "920157"
+        ],
+        "names": [
+          "宇特光电"
+        ],
+        "gain_pct": 471.48798606208857,
+        "before": "medium",
+        "after": "medium",
+        "reason": "ordinary"
+      },
+      {
+        "date": "2026-10-15",
+        "codes": [
+          "920162"
+        ],
+        "names": [
+          "莫森泰克"
+        ],
+        "gain_pct": 91.8978854083904,
+        "before": "medium",
+        "after": "low",
+        "reason": "break"
+      },
+      {
+        "date": "2026-10-16",
+        "codes": [
+          "920196"
+        ],
+        "names": [
+          "南方乳业"
+        ],
+        "gain_pct": 83.09104083096256,
+        "before": "low",
+        "after": "low",
+        "reason": "break"
+      }
+    ],
+    "reason": "首日表现明显降温，上一轮热度结束",
+    "factor": 0.5,
+    "base_price": 7.5062666424396145,
+    "raw_target_price": 17.973213666268396,
+    "positive_premium": 10.466947023828782,
+    "retained_premium": 5.233473511914391,
+    "price_reduction": 5.23347351191439
+  },
+  "factors": {
+    "sentiment_tide_high_factor": 1.1,
+    "sentiment_tide_medium_factor": 0.75,
+    "sentiment_tide_low_factor": 0.5
+  }
+}

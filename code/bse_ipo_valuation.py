@@ -28,6 +28,7 @@ import valuation_engine
 import quality_sentiment
 import quality_sentiment_data
 import sentiment_timing
+import sentiment_tide
 from industry_mapping import IndustryMapper
 
 
@@ -1273,15 +1274,18 @@ def build_analysis_data(
         target_code=code,
         target_listing_date=ipo_info.get("LISTING_DATE"),
     )
+    local_center_reference_date = _local_center_history_cutoff_date(ipo_info)
+    if sentiment_tide.enabled(params):
+        # A future application/listing date must not advance the observation clock.
+        local_center_reference_date = quality_sentiment.live_cutoff(local_center_reference_date)
     method3 = valuation_engine.method3_recent_sentiment(
         issue_price=issue_price,
         recent_ipos=recent_ipos,
         params=params,
         target_code=code,
-        target_listing_date=ipo_info.get("LISTING_DATE"),
+        target_listing_date=local_center_reference_date if sentiment_tide.enabled(params) else ipo_info.get("LISTING_DATE"),
     )
     final = valuation_engine.composite_valuation(method1, method2, params, method3=method3)
-    local_center_reference_date = _local_center_history_cutoff_date(ipo_info)
     final = valuation_engine.apply_local_center_overlay(
         final,
         issue_price=issue_price,

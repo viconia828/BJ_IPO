@@ -5,6 +5,7 @@ import statistics
 from datetime import date, timedelta
 from typing import Any
 from quality_sentiment import mask_post_listing
+import sentiment_tide
 
 
 
@@ -1033,9 +1034,10 @@ def _local_center_linear_prediction(
         if _safe_float(row.get("proxy_score")) is not None
         and _safe_float(row.get("actual_change_pct")) is not None
     ]
-    if len(pairs) < min_history:
+    smooth = sentiment_tide.enabled(params, "local_center_smooth_warmup")
+    if len(pairs) < (1 if smooth else min_history):
         return None, len(pairs)
-    if len(pairs) < 5:
+    if len(pairs) < 5 and not smooth:
         similar = [y for x, y in pairs if abs(x - score) <= 2.5]
         values = similar if len(similar) >= 2 else [y for _, y in pairs]
         return statistics.median(values), len(pairs)
@@ -1053,7 +1055,7 @@ def _local_center_linear_prediction(
     return max(-50.0, min(actual_cap, intercept + beta * score)), len(pairs)
 
 
-def apply_local_center_overlay(
+def _apply_local_center_overlay(
     final: dict[str, Any],
     *,
     issue_price: float | None,
@@ -1142,6 +1144,9 @@ def apply_local_center_overlay(
         return final
     base_change = (base_target / float(issue_price) - 1) * 100
     alpha = min(max(float(params.get("local_center_alpha", 0.50)), 0.0), 1.0)
+    configured_alpha = alpha
+    if sentiment_tide.enabled(params, "local_center_smooth_warmup"):
+        alpha *= min(history_count / max(int(float(params.get("local_center_min_history", 8))), 1), 1.0)
     blended_change = base_change * (1 - alpha) + rolling_change * alpha
     target_price = float(issue_price) * (1 + blended_change / 100)
     width = float(params.get("price_range_width", 0.10))
@@ -1155,12 +1160,38 @@ def apply_local_center_overlay(
         "local_center_overlay_applied": True,
         "local_center_overlay_reason": "walk_forward_local_proxy_blend",
         "local_center_alpha": alpha,
+        "local_center_configured_alpha": configured_alpha,
         "local_center_proxy_score": target_row.get("proxy_score"),
         "local_center_proxy_reasons": target_row.get("proxy_reasons") or [],
         "local_center_history_count": history_count,
         "local_center_rolling_change_pct": rolling_change,
         "local_center_blended_change_pct": blended_change,
     }
+
+
+def apply_local_center_overlay(
+    final: dict[str, Any], *, issue_price: float | None, issue_pe: float | None,
+    industry_pe: float | None, float_shares: float | None, old_shares: float | None,
+    industry: dict[str, Any], recent_ipos: list[dict[str, Any]], params: dict[str, Any],
+    target_code: str | None = None, target_listing_date: str | date | None = None,
+    online_issue_num: float | None = None, top_apply_marketcap: float | None = None,
+) -> dict[str, Any]:
+    """Shared live/replay path; tide mode uses the same recent window in both."""
+    tide_enabled = sentiment_tide.enabled(params)
+    cutoff = _parse_date(target_listing_date) or date.today()
+    days = _get_recent_window_days(params)
+    history = (sentiment_tide.visible_history(recent_ipos, cutoff, days, str(target_code or ""))
+               if tide_enabled else recent_ipos)
+    result = _apply_local_center_overlay(
+        final, issue_price=issue_price, issue_pe=issue_pe, industry_pe=industry_pe,
+        float_shares=float_shares, old_shares=old_shares, industry=industry,
+        recent_ipos=history, params=params, target_code=target_code,
+        target_listing_date=cutoff, online_issue_num=online_issue_num,
+        top_apply_marketcap=top_apply_marketcap,
+    )
+    if tide_enabled:
+        result = sentiment_tide.apply(result, sentiment_tide.classify(history, cutoff, days), params)
+    return result
 
 
 def generate_notes(data_dict: dict[str, Any], params: dict[str, Any]) -> list[str]:

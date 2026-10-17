@@ -163,10 +163,15 @@ trend_weak_threshold = 25             # Legacy compatibility; current composite 
 # === 雪球学习项内化：本地滚动中枢 ===
 local_center_overlay_enabled = True    # 正式中枢与仅使用上市前本地历史拟合的滚动中枢混合
 local_center_alpha = 0.75              # 本地滚动中枢权重；0.50 表示与正式三方法中枢各占一半
-local_center_min_history = 5           # 至少积累 8 只已完成上市样本后才启用，之前保持原正式中枢
-local_center_history_window = 40       # 回归最多使用最近 20 只历史样本，0 表示使用全部历史
+local_center_min_history = 5           # 平滑启用时达到5只才使用完整滚动权重，之前按样本数递增
+local_center_history_window = 40       # 回归最多使用近期窗口内最近40只历史样本
 local_center_actual_cap_pct = 450      # 历史首日均价涨幅的拟合上限，抑制极端样本支配回归
 local_center_slope_cap = 32.5            # proxy 分数每增加 1 分时，拟合涨幅斜率的正向上限
+local_center_smooth_warmup = True      # 消除满5只时滚动权重从0跳到75%的开关
+sentiment_tide_enabled = True          # 按前30天已完成上市批次判断潮汐，正式运行与调参共用
+sentiment_tide_high_factor = 1.10      # 只缩放相对方法一/二基础的正向加成，向下修正保留
+sentiment_tide_medium_factor = 0.75
+sentiment_tide_low_factor = 0.50
 
 # === 自动调参可写回：WSI 评分权重 ===
 wsi_weight_close_vwap = 0.30          # 收盘相对 VWAP 的强弱权重

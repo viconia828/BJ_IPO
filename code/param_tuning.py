@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Any, Callable
 
 import bse_ipo_valuation
+import config_loader
 import data_fetcher
 import listing_average_price_helper
 import pdf_parser
@@ -66,7 +67,7 @@ AUTO_TUNE_WIDTH_DIAGNOSTIC_FACTOR = 0.50
 AUTO_TUNE_MAE_PENALTY = 0.002
 AUTO_TUNE_STAGE_TIME_LIMIT_SECONDS = 180.0
 AUTO_TUNE_STAGE_CANDIDATE_LIMIT = 650
-AUTO_TUNE_MODEL_CONTRACT_VERSION = 3
+AUTO_TUNE_MODEL_CONTRACT_VERSION = 4
 LATEST_METHOD1_AUTO_TUNABLE_KEYS = {
     "bse_discount_factor",
     "weight_comparable",
@@ -113,6 +114,8 @@ LATEST_MODEL_STRUCTURAL_FLAGS = (
     "method1_industry_fallback_enabled",
     "method2_sample_confidence_enabled",
     "local_center_overlay_enabled",
+    "sentiment_tide_enabled",
+    "local_center_smooth_warmup",
 )
 REPLAY_RECORD_SIGNATURE_KEYS = (
     "SECURITY_CODE",
@@ -2810,10 +2813,10 @@ def build_auto_tune_candidate_groups(
 
     groups.append(
         (
-            "方法三情绪窗口",
+            "方法三情绪窗口（潮汐模式固定）" if _is_enabled(params.get("sentiment_tide_enabled"), False) else "方法三情绪窗口",
             [
                 {"recent_days": value}
-                for value in _auto_stage_int_values(
+                for value in ([config_loader.resolve_recent_days(params)] if _is_enabled(params.get("sentiment_tide_enabled"), False) else _auto_stage_int_values(
                     params,
                     "recent_days",
                     30,
@@ -2821,7 +2824,7 @@ def build_auto_tune_candidate_groups(
                     60,
                     (15, 5),
                     stage_level,
-                )
+                ))
             ],
         )
     )
@@ -3252,6 +3255,8 @@ def auto_tune_params(
         "required_latest_model_keys": sorted(required_latest_keys),
         "missing_latest_model_keys": missing_latest_keys,
         "structural_flags": {key: base_params.get(key) for key in LATEST_MODEL_STRUCTURAL_FLAGS},
+        "fixed_tide_factors": {tier: base_params.get(f"sentiment_tide_{tier}_factor", default)
+                               for tier, default in (("low", .5), ("medium", .75), ("high", 1.1))},
         "latest_model_compatible": not missing_latest_keys,
     }
     if missing_latest_keys:

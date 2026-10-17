@@ -283,6 +283,8 @@ def _build_user_valuation_ranges(
                 "rolling_center": sentiment.get("center"), "rolling_low": sentiment.get("low"), "rolling_high": sentiment.get("high"),
                 "formal_low": final.get("range_low"), "formal_high": final.get("range_high")}
     pre_local_center = _safe_float(final.get("pre_local_center_target_price"))
+    if pre_local_center is None:
+        pre_local_center = _safe_float((final.get("sentiment_tide") or {}).get("raw_target_price"))
     if pre_local_center is not None:
         baseline_low, baseline_high = _center_interval(pre_local_center, width)
     else:
@@ -397,7 +399,9 @@ def _build_composite_lines(all_data: dict[str, Any]) -> list[str]:
     premium_pct = _safe_float(final.get("sentiment_premium_pct")) or 0.0
     base_text = _fmt_number(base_target if base_target is not None else final.get("target_price"))
     pre_local_target = _safe_float(final.get("pre_local_center_target_price"))
-    composite_target = pre_local_target if pre_local_target is not None else _safe_float(final.get("target_price"))
+    tide = final.get("sentiment_tide") or {}
+    raw_target = tide.get("raw_target_price", final.get("target_price"))
+    composite_target = pre_local_target if pre_local_target is not None else _safe_float(raw_target)
 
     lines: list[str] = []
     if method1.get("available") and method2.get("available"):
@@ -430,15 +434,19 @@ def _build_composite_lines(all_data: dict[str, Any]) -> list[str]:
             )
         )
         lines.append(
-            "正式输出中枢 = 三方法中枢 {base} x {base_weight} + 本地滚动中枢 x {local_weight} = {target}".format(
+            "{label} = 三方法中枢 {base} x {base_weight} + 本地滚动中枢 x {local_weight} = {target}".format(
+                label="潮汐调整前中枢" if tide else "正式输出中枢",
                 base=_fmt_number(composite_target),
                 base_weight=_fmt_weight(1 - float(final.get("local_center_alpha") or 0.0)),
                 local_weight=_fmt_weight(float(final.get("local_center_alpha") or 0.0)),
-                target=_fmt_number(final.get("target_price")),
+                target=_fmt_number(raw_target),
             )
         )
-    else:
+    elif not tide:
         lines.append(f"正式输出中枢 = {_fmt_number(final.get('target_price'))}")
+    if tide:
+        lines.append(f"情绪潮汐：{tide['label']}档，正向加成 x {_fmt_number(tide['factor'])}；{tide['reason']}")
+        lines.append(f"正式输出中枢 = 调整前 {_fmt_number(raw_target)} + 潮汐调整 {_fmt_signed_number(-tide['price_reduction'])} = {_fmt_number(final.get('target_price'))}")
     lines.append(f"区间宽度 = +/-{width_text}")
     return lines
 
@@ -630,6 +638,10 @@ def _prepare_report_context(all_data: dict[str, Any]) -> dict[str, Any]:
         _format_interval(user_ranges.get("formal_low"), user_ranges.get("formal_high")),
     ]
 
+    tide = final.get("sentiment_tide") or {}
+    if tide:
+        overview_headers.append("情绪潮汐")
+        overview_row.append(f"{tide['label']}档（正向加成 x {_fmt_number(tide['factor'])}）")
     quality = final.get("quality_sentiment") or {}
     response_shadow = quality.get("response_shadow") or {}
     feedback_sentiment = response_shadow.get("sentiment") or {}

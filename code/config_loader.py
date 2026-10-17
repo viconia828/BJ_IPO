@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import Any
 
 import sentiment_settings
+import sentiment_tide
 
 
 SECTION_INDUSTRY_MAPPING = "industry_mapping"
@@ -101,6 +102,10 @@ def resolve_recent_days(params: dict[str, Any]) -> int:
 
 def _validate_params(params: dict[str, Any]) -> None:
     sentiment_settings.resolve(params)
+    sentiment_tide.factors(params)
+    for key in ("sentiment_tide_enabled", "local_center_smooth_warmup"):
+        if str(params.get(key, False)).strip().lower() not in {"0", "1", "true", "false", "yes", "no", "on", "off"}:
+            raise ValueError(f"{key} 必须为布尔开关")
     comparable_data_source = str(params.get("comparable_data_source", SYSTEM_SOURCE_DEFAULTS["comparable_data_source"])).strip().lower() or SYSTEM_SOURCE_DEFAULTS["comparable_data_source"]
     if comparable_data_source not in {"wind", "tushare"}:
         raise ValueError("comparable_data_source 仅支持 wind / tushare")

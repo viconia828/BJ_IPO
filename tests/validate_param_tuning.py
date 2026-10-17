@@ -1967,14 +1967,14 @@ def manual_batch_entry_case(failures: list[str]) -> None:
         failures,
     )
     _assert("请选择调参模式" in completed.stdout, "manual batch 入口应显示总模式提示词", failures)
-    _assert("估值自动调参" in completed.stdout, "manual batch 入口应显示估值自动调参选项", failures)
+    _assert("综合估值调参（正式）" in completed.stdout, "manual batch 入口应显示正式综合估值调参选项", failures)
     _assert("申购资金自动调参" in completed.stdout, "manual batch 入口应显示申购资金自动调参选项", failures)
     _assert("请选择手动调参执行模式" in completed.stdout, "manual batch 入口应显示手动模式提示词", failures)
     _assert("候选值列表，逗号分隔" in completed.stdout, "manual batch 入口应显示规范候选值提示词", failures)
     _assert("执行完成" in completed.stdout, "manual batch 入口应打印执行完成提示", failures)
     reports = sorted((ROOT_DIR / "输出" / "调参").glob("review_candidate_manual_small_cap_premium_*.json"))
     _assert(bool(reports), "manual batch 入口未生成预期报告", failures)
-    _assert("若只输入权重组中的一个因子" in completed.stdout, "manual batch 入口应提示权重组自动联动规则", failures)
+    _assert("若属于权重组会自动联动" in completed.stdout, "manual batch 入口应提示权重组自动联动规则", failures)
     if reports:
         latest_report = reports[-1]
         payload = json.loads(latest_report.read_text(encoding="utf-8"))

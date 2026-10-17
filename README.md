@@ -21,6 +21,7 @@
 - `python code\bse_ipo_valuation.py 920177`
 - `python tools\tune_params.py --mode auto`
 - 当前正式写回前的旧版固定样本三折时间切片门槛暂时停用，自动调参仍强制执行全样本命中率、MAE、P90 和可用率安全门槛。独立复核工具继续保留；如需研究性复现旧门槛，可显式增加 `--auto-time-slice-gate`。
+- 正式估值已接入情绪潮汐三档：高/中/低档分别对正向加成乘以 `1.10 / 0.75 / 0.50`，向下修正保留。仅用近30天已完成上市结果，强势启动、延续数批、明显降温后降档；满5只时突然启用滚动中枢改为按样本数逐步增加权重。运行与调参共用规则，自动调参固定这组倍数和30天窗口。冻结对照及局限在 `data/sentiment_tide/20261017/对照说明.txt`；执行 `python tools/evaluate_sentiment_tide.py` 可离线复现。
 - `python tools\tune_params.py --mode offline --param-name small_cap_premium --candidate-values 0.10,0.15`
 - `python tools\cache_listing_day_intraday.py --latest-until-cached --months 18`
 
