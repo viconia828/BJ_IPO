@@ -32,14 +32,18 @@ class SentimentConsoleTests(unittest.TestCase):
         self.params = {**PARAMS, tuning.PARAMETER: 8}
         self.history = [issuer(f'910{i:03}', date(2026, 1, 1)+timedelta(days=i*3)) for i in range(25)]
 
-    def test_default_menu_routes_combined_and_legacy_is_retained(self):
-        with patch('builtins.input', return_value=''):
+    def test_default_menu_routes_formal_and_shadow_is_explicit(self):
+        for choice in ('', '5'):
+            with self.subTest(choice=choice), patch('builtins.input', return_value=choice):
+                command, summary = menu._build_command()
+            self.assertEqual(command[command.index('--mode')+1], 'auto')
+            self.assertEqual(summary['auto_kind'], 'valuation')
+            self.assertEqual(summary['mode'], '综合估值调参（正式）')
+        with patch('builtins.input', return_value='1'):
             command, summary = menu._build_command()
         self.assertEqual(command[command.index('--mode')+1], 'sentiment-auto')
         self.assertEqual(summary['auto_kind'], 'sentiment')
-        with patch('builtins.input', return_value='5'):
-            command, _ = menu._build_command()
-        self.assertEqual(command[command.index('--mode')+1], 'auto')
+        self.assertEqual(summary['mode'], '情绪组合影子调参')
 
     def test_frozen_inputs_current_tie_and_missing_outcomes(self):
         history = deepcopy(self.history)
